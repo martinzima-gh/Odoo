@@ -1,0 +1,35 @@
+# Samostatná vývojová instance bez Odoo Mates.
+# Spuštění: docker compose -f docker-compose.investra.yml up -d
+name: odoo-investra
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${INVESTRA_DB_PASSWORD:?Nastavte INVESTRA_DB_PASSWORD v .env}
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  odoo:
+    image: odoo:19.0
+    command:
+      - odoo
+      - --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom
+      - --database=investra_dev
+      - --no-database-list
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:8070:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: ${INVESTRA_DB_PASSWORD:?Nastavte INVESTRA_DB_PASSWORD v .env}
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./addons/custom:/mnt/extra-addons/custom
+
+volumes:
+  db-data:
+  odoo-data:
