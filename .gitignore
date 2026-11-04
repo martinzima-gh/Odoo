@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Lokální tajemství
+.env
+
+# Zálohy databáze
+*.dump
+
+# Python
+__pycache__/
+*.pyc
+
+# Cizí kód: verze je zapsaná v addons/third_party/README.md
+addons/third_party/odoomates/
