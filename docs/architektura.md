@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 141 -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 147 -->
 
 # Investra – architektura Odoo a IS
 
@@ -211,7 +211,7 @@ Alokační poměr vzniká před výpočty přecenění.
 5. Zaúčtování.
 6. Finální kapitál tříd a kontrolní rovnice.
 7. Kontrola shody cenných papírů fondu s evidencí v IS.
-8. Kontrola shody majetku fondu s účetnictvím a změny vlastního kapitálu nad 5 %.
+8. Kontrola shody majetku fondu s účetnictvím a změny vlastního kapitálu nad prahem (výchozí 5 %, parametr se zdrojem v předpisu).
 9. Výpočet hodnoty na kus (FKCP), výchozí zaokrouhlení na 4 desetinná místa dolů, pokud statut neurčí jinak.
 10. Kontrola druhou osobou, pro fondy Investry povinná.
 11. Odeslání NAV a kurzu obhospodařovateli a depozitáři a evidence jejich stanoviska.
@@ -314,7 +314,7 @@ Obě složky se účtují jako doplatek do potřebného zůstatku, takže opakov
 | Dluhové nástroje ve FVOCI | vlastní kapitál | výsledek, z naběhlé hodnoty (peněžní položka) | recyklace z vlastního kapitálu do výsledku |
 | Naběhlá hodnota (úvěry, dluhopisy držené do splatnosti) | nepřeceňuje se | výsledek, z naběhlé hodnoty | realizovaný výsledek |
 
-U dluhových nástrojů ve FVOCI a v naběhlé hodnotě se úrok počítá efektivní úrokovou mírou a opravné položky (očekávané úvěrové ztráty) jdou do výsledku. Kurzový rozdíl se pak nepočítá z pořizovací ceny, ale z naběhlé hodnoty v měně nástroje, takže vzorec FX výše platí jen pro nástroje bez úpočování. Zdroje: IFRS 9 odst. 5.7.1, 5.7.5, 5.7.10–5.7.11, B5.7.2–B5.7.3; IAS 21 odst. 23, 28 a 30. Ve fondech BHS je zatím vše ve FVTPL nebo jako majetková účast ve FVOCI; dluhové FVOCI a naběhlou hodnotu musí model umět kvůli úvěrům do SPV a budoucím fondům.
+U dluhových nástrojů ve FVOCI a v naběhlé hodnotě se úrok počítá efektivní úrokovou mírou a opravné položky (očekávané úvěrové ztráty) jdou do výsledku. Kurzový rozdíl se pak nepočítá z pořizovací ceny, ale z naběhlé hodnoty v měně nástroje, takže vzorec FX výše platí jen pro nástroje bez úročení. Zdroje: IFRS 9 odst. 5.7.1, 5.7.5, 5.7.10–5.7.11, B5.7.2–B5.7.3; IAS 21 odst. 23, 28 a 30. Ve fondech BHS je zatím vše ve FVTPL nebo jako majetková účast ve FVOCI; dluhové FVOCI a naběhlou hodnotu musí model umět kvůli úvěrům do SPV a budoucím fondům.
 
 ### Evidence výpočtu NAV
 
@@ -338,7 +338,7 @@ Oprava má pevný postup, protože může změnit už vydané kusy a vyplacené 
 3. Pokud mezitím proběhl úpis nebo odkup, Odoo pošle IS kurz s příznakem opravy.
 4. IS určí dopad: dodatečnou emisi, opravu kusů, doplacení nebo narovnání s investorem.
 
-Odchylka do 0,5 % FK nevyžaduje opravu kusů ani zveřejnění opravené hodnoty. Hodnota je parametr podle předpisu.
+Odchylka do prahu (dnes 0,5 % FK podle vnitřního předpisu pro oceňování) nevyžaduje opravu kusů ani zveřejnění opravené hodnoty. Práh je parametr; u každého prahu a lhůty se v nastavení eviduje zdroj (předpis nebo statut, článek, verze) a platnost od data.
 
 ### Platnost a zveřejnění kurzu
 
@@ -411,7 +411,7 @@ Každý údaj se uloží jednou, u kmenových dat nebo na účetním řádku, a 
 | --- | --- | --- |
 | Účetní řádek | role účtu, část fondu, třída, protistrana, nástroj, měna a částka v měně, **typ pohybu** (transakce, přecenění cenou, přecenění kurzem, naběhlý úrok, úpis, odkup, dividenda, ostatní změna) | `investra_posting` |
 | Protistrana | země a rezidence, institucionální sektor (ESA 2010), IČO, LEI, spřízněná osoba a typ vztahu (IAS 24), role (depozitář, obhospodařovatel, administrátor, auditor, znalec) | `investra_entity` |
-| Nástroj | druh podle ČNB (vč. ETF, strukturovaný produkt, kryptoaktivum), kategorie IFRS 9, úroveň hierarchie RH, ISIN a CFI, emitent, měna, splatnost a původní splatnost, úpočování, nominál, vztah k limitu podle NV 243/2013, burzovní nebo OTC, u derivátu riziko (úrokové, akciové, měnové, úvěrové) a opce ano/ne, u úvěru revolving a pákový efekt | `investra_instruments` |
+| Nástroj | druh podle ČNB (vč. ETF, strukturovaný produkt, kryptoaktivum), kategorie IFRS 9, úroveň hierarchie RH, ISIN a CFI, emitent, měna, splatnost a původní splatnost, úročení, nominál, vztah k limitu podle NV 243/2013, burzovní nebo OTC, u derivátu riziko (úrokové, akciové, měnové, úvěrové) a opce ano/ne, u úvěru revolving a pákový efekt | `investra_instruments` |
 | Registry nástrojů | úvěr (limit, čerpání, splátky), účast (podíl, ZK, příplatky, údaje společnosti), derivát (obě nohy, podkladové aktivum, protistrana), nemovitost (údaje pro DOFOS40), zatížení aktiva (zástava, zapůjčení cenných papírů) | `investra_instruments` |
 | Účet a role | řádek rozvahy a výsledovky podle vyhlášky 501/2002, řádek přílohy (druh nákladu, dohadu), daňový režim, položka ČNB; výnosové účty (úroky, dividendy) berou kategorii IFRS 9 z nástroje na řádku | `investra_chart_*` |
 | Ocenění | vstupy a metoda, vstupy úrovně 3, citlivost | `investra_nav` |
@@ -423,7 +423,7 @@ Každý údaj se uloží jednou, u kmenových dat nebo na účetním řádku, a 
 
 **Kontrola úplnosti:** role účtu určí povinné atributy (např. úvěr vyžaduje protistranu se sektorem a zemí a nástroj se splatností). Chybějící údaje se zastaví už při zaúčtování, nebo nejpozději jako výjimka před schválením ocenění a před odesláním výkazu.
 
-**Převodové tabulky** (role → řádek vyhlášky a výkazu, druh nástroje a sektor → položka ČNB) budou nastavení s platností od data, ne kód. Výkazy se mění, například podle nařízení ECB/2024/17 přibyly KLISIFI10, VISIFI10 a VISIFI20 a upravily se RISIFI30 a RISIFI33.
+**Převodové tabulky** (role → řádek vyhlášky a výkazu, druh nástroje a sektor → položka ČNB) budou nastavení s platností od data, ne kód. Výkazy se mění. Například nařízení ECB (EU) 2024/1988 (ECB/2024/17), přepracované znění statistiky investičních fondů, se používá od referenčního období prosinec 2025; podle vnitřního předpisu s ním souvisí nové výkazy KLISIFI10, VISIFI10 a VISIFI20 a úpravy RISIFI30 a RISIFI33 (vazbu ověřit v Knihovně SDAT).
 
 ## Výroční zprávy
 
@@ -520,7 +520,7 @@ Fondy přecházejí ke dni uzávěrky nebo ocenění, ne migrací celé historie
 
 ## Plán prací
 
-První na řadě jsou role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popísují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Termíny doplníme, až bude jasný harmonogram úprav Asetiqu.
+První na řadě jsou role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popisují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Termíny doplníme, až bude jasný harmonogram úprav Asetiqu.
 
 1. **Specifikace:** rozhodnutí z otevřených bodů, seznam rolí účtů, účetní politika pro FX.
 2. **Dvě zkušební knihy:** CZK a EUR, vlastní osnova, kurzy ČNB a ECB. Ověří návrh „kniha = společnost“.
@@ -611,7 +611,7 @@ Největší otevřené otázky jsou možnosti Asetiqu, volba edice Odoo a pole v
 
 | Bod | Proč na tom záleží | Doporučení |
 | --- | --- | --- |
-| Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout před ostrým startem Investra Services |
+| Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout nejpozději po zkušebních knihách (etapa 2), před ostrým startem Investra Services. Kritéria: finanční výkazy, bankovní párování, oběh dokladů, cena licencí a hostingu, kompatibilita vlastních modulů. |
 | Podrobnosti dividend | Účet pro výplatu, dopad na kurz k rozhodnému dni | Upřesnit |
 | Zdroje cen | Jaká aktiva fondy drží, frekvence posudků | Upřesnit |
 | Možnosti Asetiqu | Zda umí závěrku, identifikátory, příjem číselníku a kurzu, dividendy a API | Získat dokumentaci |

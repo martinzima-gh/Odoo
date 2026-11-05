@@ -7,7 +7,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 
 | Bod | Proč na tom záleží | Doporučení |
 |---|---|---|
-| Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout před ostrým startem Investra Services |
+| Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout nejpozději po zkušebních knihách (etapa 2), před ostrým startem Investra Services. Kritéria: finanční výkazy, bankovní párování, oběh dokladů, cena licencí a hostingu, kompatibilita vlastních modulů |
 | Podrobnosti dividend | Účet pro výplatu, dopad na kurz k rozhodnému dni | Upřesnit |
 | Zdroje cen | Jaká aktiva fondy drží, frekvence posudků | Upřesnit |
 | Možnosti Asetiqu | Závěrka, identifikátory, příjem číselníku a kurzu, dividendy, API | Získat dokumentaci |
@@ -17,6 +17,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Podrozvaha v Odoo | Podpora ve standardním Odoo neověřená; deriváty a opce jsou u fondů významné | Ověřit v prototypu |
 | Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání | Určit v účetní politice |
 | Evidence aktiv uvnitř SPV | Zda vést i aktiva dceřiných společností, nebo jen účast a úvěr | Upřesnit |
+| Automatické testy (CI) | Testy modulů se zatím spouštějí ručně | Po prvním funkčním modulu nastavit GitHub Actions s instalací modulu a testy |
 | Pole výkazů ČNB | Struktura a kontroly převzaty z metodiky SDAT FOFI20261201 | Stáhnout kódy položek, číselníky a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
 
 ## Chybějící podklady

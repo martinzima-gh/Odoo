@@ -3,9 +3,16 @@
 
 # Lokální tajemství
 .env
+.env.*
+!.env.example
 
-# Zálohy databáze
+# Zálohy a exporty databáze
 *.dump
+*.sql
+*.sql.gz
+*.zip
+*.tar.gz
+filestore/
 
 # Python
 __pycache__/
