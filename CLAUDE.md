@@ -61,10 +61,13 @@ Neupravovat zdrojový kód Odoo core ani Odoo Mates. Funkce řešit vlastním ad
 - `docs/rozhodnuti.md` – deník rozhodnutí. Každé nové rozhodnutí zapsat hned, s datem a důvodem,
   a zároveň do Claude Doc (tabulka Přijatá rozhodnutí).
 - `docs/otevrene-body.md` – otevřené body a rizika; uzavřený bod přesunout do deníku rozhodnutí.
+- `docs/architektura.md` – export Claude Doc; po každé větší změně Doc ho přepsat novým exportem
+  (ručně neupravovat).
 - Tento soubor měnit, jen když se mění pravidla, prostředí nebo cíl.
-- Kontrolní agent (týdně a na vyžádání) čte tyto soubory a Claude Doc, porovnává je s kódem,
-  předpisy (podle odkazů) a metodikou ČNB SDAT a nálezy zapisuje jako komentáře v Claude Doc.
-  Sám nic nemění.
+- Kontrolor (cloudová rutina každý pátek 15:00 a na vyžádání) postupuje podle
+  `docs/kontrola-zadani.md`: zprávu ukládá do `docs/kontroly/` ve vlastní větvi a otevírá pull request.
+  Do `main` ani do kódu nezasahuje. Nálezy pak zapracujeme a uzavřené přeneseme do deníku rozhodnutí.
+- Kontrola na vyžádání lokálně: „Proveď kontrolu projektu podle docs/kontrola-zadani.md.“
 
 ## Zdroje
 
