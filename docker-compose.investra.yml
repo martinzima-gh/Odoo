@@ -12,7 +12,8 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
   odoo:
-    image: odoo:19.0
+    # Připnuté sestavení Odoo 20; aktualizovat řízeně (řízení změn).
+    image: odoo:20.0-20261102
     command:
       - odoo
       - --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom
