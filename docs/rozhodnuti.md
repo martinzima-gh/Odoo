@@ -31,9 +31,9 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-04 | Krytí výplat | Ověřuje se při autorizaci platby, Odoo nabídne přehled hotovosti | | R |
 | 2026-11-04 | Předání příkazů do banky | Soubor, autorizace dvěma osobami, kontrola depozitářem | | R |
 | 2026-11-04 | Výjimky u plateb | Přechodný účet a fronta k řešení; přeplatek se vrací, nedoplatek podle statutu | | R |
-| 2026-11-04 | Dividendy | Odoo účtuje hrubou dividendu za třídu, srážky a reinvestici počítá IS | | R |
+| 2026-11-04 | Dividendy | Odoo účtuje hrubou dividendu za třídu, srážky a reinvestici počítá IS; závazek se účtuje až po schválení a rozhodnutí o výplatě | Rámec rozhodnut; podrobnosti otevřené (účet pro výplatu, dopad na kurz). Pořadí opraveno 2026-11-05 (nález 6) | R |
 | 2026-11-04 | Ceny z Bloombergu | Import z Excelu, automatické napojení případně později | | R |
-| 2026-11-04 | Reálná hodnota | Poslední známá cena; Odoo eviduje cenu a podklad; FX z pořizovací ceny a přecenění na RH odděleně; FVOCI kapitál bez recyklace | | R |
+| 2026-11-04 | Reálná hodnota | Poslední známá cena; Odoo eviduje cenu a podklad; FX a přecenění na RH odděleně; protiúčty podle matice IFRS 9 / IAS 21 (majetkové FVOCI bez recyklace, dluhové FVOCI s recyklací a FX do výsledku, naběhlá hodnota FX do výsledku) | Doplněno 2026-11-05 podle kontroly (nález 5); ověřit s auditorem | R |
 | 2026-11-04 | Částečný prodej | Pořizovací cena průměrem u počítatelných nástrojů, jinak určí uživatel; kurzový rozdíl se odúčtuje na samostatné P&L účty | | R |
 | 2026-11-04 | Odoo Mates | Ve vývoji se nepoužívají, zůstávají ve výukové `odoo_cz` | | R |
 | 2026-11-04 | Kniha = společnost | Každá účetní kniha je hlavní společnost, ne pobočka; SICAV i podfondy jsou samostatné společnosti | | R (ověřit v etapě 2) |
@@ -47,3 +47,5 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-05 | Verze Odoo | Odoo 20 Community, připnuté sestavení `20.0-20261102`, aktualizace řízeně; výuková `odoo_cz` zůstává na 19 | | R |
 | 2026-11-05 | Detail dat pro výkazy | Atributy pro ČNB a výroční zprávy jako strukturovaná pole (ne analytika) na řádku, protistraně a nástroji; typ pohybu na řádku; převodové tabulky s platností | Ověřeno proti metodice SDAT FOFI20261201 | R |
 | 2026-11-05 | Paměť projektu | Sdílená paměť v repozitáři (`CLAUDE.md`, `docs/`), soukromý GitHub pod osobním účtem; kontrola AI agentem (týdně a na vyžádání) i člověkem; jen naše závěry, ne texty předpisů | | R |
+| 2026-11-05 | Pořadí výpočtů za třídy | Výchozí pořadí úplaty → performance fee → daň → dohady; parametr fondu podle statutu | Kontrola, nález 4 | R |
+| 2026-11-05 | Definice ΔT | ΔT zahrnuje i řádky s třídou na účtu vnitřního zúčtování; příklad performance fee přepočten a bude prvním testem `investra_nav` | Kontrola, nález 3 | R+P |

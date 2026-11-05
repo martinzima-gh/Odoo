@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 139 -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 141 -->
 
 # Investra – architektura Odoo a IS
 
@@ -190,12 +190,12 @@ Závěrku vytváří IS pro každý fond zvlášť a v jednom oceňovacím obdob
 
 Sestavu pro depozitáře vytvoří IS ze závěrky, oceněná aktiva k ní dodá Odoo.
 
-### Dividendy (návrh)
+### Dividendy
 
-Dividendu rozhoduje a účtuje Odoo za třídu, rozdělení a výplatu držitelům řeší IS.
+Rozhodnutý je rámec: dividendu za třídu počítá a účtuje Odoo v hrubé výši, rozdělení držitelům, srážkovou daň a reinvestici řeší IS. Otevřené zůstávají podrobnosti (účet pro výplatu, dopad na kurz k rozhodnému dni).
 
-1. Po schváleném ocenění se v Odoo stanoví dividenda na kus a rozhodný den. Účtuje se MD kapitál třídy / D závazek z dividend.
-2. Výpočet schválí obhospodařovatel a depozitář, stanovisko se eviduje v Odoo.
+1. Po schváleném ocenění Odoo připraví návrh dividendy na kus a rozhodný den. Zatím se nic neúčtuje.
+2. Návrh schválí obhospodařovatel a depozitář a o výplatě rozhodne příslušný orgán podle stanov a statutu; stanovisko i rozhodnutí se evidují v Odoo. Teprve potom se účtuje MD kapitál třídy / D závazek z dividend k datu rozhodnutí.
 3. Odoo pošle rozhodnutí do IS.
 4. IS spočítá nárok podle držitelů k rozhodnému dni, srážkovou daň a reinvestici, spustí převod a vytvoří platební příkazy.
 5. Odchozí platba se objeví na výpisu v Odoo. Účtuje se MD závazek z dividend / D banka.
@@ -207,7 +207,7 @@ Alokační poměr vzniká před výpočty přecenění.
 1. Kontrola: všechny závěrky k datu jsou přijaté.
 2. Předběžný kapitál třídy a alokační poměr.
 3. Přecenění aktiv a FX.
-4. Výpočty za třídy: úplaty, očekávaná daňová povinnost, performance fee, dohadné položky.
+4. Výpočty za třídy v pořadí podle statutu, výchozí je: úplaty, performance fee, očekávaná daňová povinnost, dohadné položky. Performance fee se počítá z hodnot před daní, pořadí je parametr fondu.
 5. Zaúčtování.
 6. Finální kapitál tříd a kontrolní rovnice.
 7. Kontrola shody cenných papírů fondu s evidencí v IS.
@@ -242,7 +242,7 @@ FKT(D) = APT(D) \cdot NFK(D) + \Delta_{T}
 FK(D) = \sum_{T} FKT(D)
 ```
 
-APT je alokační poměr třídy, FK celková čistá aktiva fondu z rozvahy, ΔT změna rozvahových položek označených třídou T od předchozího ocenění a NFK čistá aktiva bez těchto změn. Potvrzeno: APT = PFKT / PFK a IAV a IAO jsou vydané a odkoupené investiční akcie.
+APT je alokační poměr třídy, FK celková čistá aktiva fondu z rozvahy, ΔT změna rozvahových položek označených třídou T od předchozího ocenění (včetně řádků s třídou T na účtu vnitřního zúčtování) a NFK čistá aktiva bez těchto změn. Potvrzeno: APT = PFKT / PFK a IAV a IAO jsou vydané a odkoupené investiční akcie.
 
 **Výpočet tříd vychází pouze z rozvahy.** Výsledkové účty do něj nevstupují. Rozhoduje změna za období, ne celkový stav, protože alokační poměr už starší specifické položky obsahuje.
 
@@ -254,8 +254,10 @@ Příklad: třídy A a B po 100, performance fee třídy A 10.
 | --- | --- | --: | --: | --: | --: | --: |
 | Výchozí stav |  |  | 200 | 200 | 100 | 100 |
 | Zaúčtování fee | D závazek (třída A) 10 | −10 | 190 | 200 | 90 | 100 |
-| Platba fee | MD závazek (A) / D banka 10; MD zúčtování / D zúčtování (A) 10 | 0 | 190 | 190 | 90 | 100 |
-| Společný výnos 19 |  | 0 | 209 | 209 | 99 | 110 |
+| Platba fee | MD závazek (A) / D banka 10; MD zúčtování / D zúčtování (A) 10 | −10 | 190 | 200 | 90 | 100 |
+| Společný výnos 19 |  | −10 | 209 | 219 | 99,5 | 109,5 |
+
+Platbou fee se ΔA nemění: závazek třídy A zanikne, ale stejná částka zůstane na účtu vnitřního zúčtování s třídou A. Společný výnos se dělí alokacím poměrem platným od začátku období (50 : 50), takže A = 0,5 · 219 − 10 = 99,5 a B = 109,5. Při dalším ocenění se ΔT promítne do předběžného kapitálu třídy a počítá se znovu od nuly. Příklad bude první automatický test modulu `investra_nav`.
 
 V prototypu ověříme okamžik vzniku zápisu, průběžné uzavírání zůstatku za třídu a chování třídy v jiné měně.
 
@@ -287,7 +289,7 @@ Začínáme importem z Excelu a ručním zadáním. Odoo modely nepočítá, evi
 - Počty kusů se porovnají s výpisem depozitáře.
 - Ocenění si uloží použité ceny a kurzy, aby šlo zopakovat.
 
-**Zaúčtování:** hodnota instrumentu je na třech účtech: pořizovací cena, kurzový rozdíl a přecenění na reálnou hodnotu. Každý má svou roli a protiúčet. Protiúčet určí klasifikace nástroje podle IFRS 9: u FVTPL výsledek, u majetkových nástrojů ve FVOCI oceňovací rozdíly ve vlastním kapitálu, včetně kurzového rozdílu. Kurz se bere vždy k datu ocenění, i když je cena starší.
+**Zaúčtování:** hodnota instrumentu je na třech účtech: pořizovací cena (u dluhových nástrojů naběhlá hodnota), kurzový rozdíl a přecenění na reálnou hodnotu. Každý má svou roli a protiúčet. Protiúčty určí klasifikace nástroje podle IFRS 9 podle matice níže. Kurz se bere vždy k datu ocenění, i když je cena starší.
 
 ```latex
 FX = C_{m} \cdot (K_{D} - K_{0})
@@ -301,7 +303,18 @@ Cm je pořizovací cena v měně instrumentu, RHm reálná hodnota v měně, K0 
 
 Obě složky se účtují jako doplatek do potřebného zůstatku, takže opakovaný výpočet nic nezdvojí. Doklad má řádek na každou pozici a denně se porovná hodnota pozic s hlavní knihou.
 
-**Částečný prodej:** u počítatelných nástrojů, například kusů cenných papírů, se použije průměr. Kde kusy nejsou, například částečná splátka investice do fondu bez cenných papírů, určí uživatel, jaká část pořizovací ceny se odúčtuje, a uvede důvod. S touto částí se poměrně odúčtuje i přecenění a kurzový rozdíl, ten na samostatné výsledkové účty. U nástrojů ve FVTPL vzniká realizovaný výsledek. U majetkových nástrojů ve FVOCI se do výsledku nic nepřeúčtovává, oceňovací rozdíl se převede v rámci vlastního kapitálu do nerozděleného zisku.
+**Částečný prodej:** u počítatelných nástrojů, například kusů cenných papírů, se použije průměr. Kde kusy nejsou, například částečná splátka investice do fondu bez cenných papírů, určí uživatel, jaká část pořizovací ceny se odúčtuje, a uvede důvod. S touto částí se poměrně odúčtuje i přecenění a kurzový rozdíl, ten na samostatné výsledkové účty. U nástrojů ve FVTPL vzniká realizovaný výsledek. U majetkových nástrojů ve FVOCI se do výsledku nic nepřeúčtovává, oceňovací rozdíl se převede v rámci vlastního kapitálu do nerozděleného zisku. U dluhových nástrojů ve FVOCI se oceňovací rozdíl z vlastního kapitálu recykluje do výsledku.
+
+**Matice IFRS 9 a IAS 21** (k ověření s auditorem a v účetní politice):
+
+| Kategorie | Přecenění na RH | Kurzový rozdíl | Při prodeji nebo splacení |
+| --- | --- | --- | --- |
+| FVTPL (akcie, dluhové nástroje, deriváty) | výsledek | výsledek | realizovaný výsledek |
+| Majetkové nástroje ve FVOCI (neodvolatelná volba) | vlastní kapitál | vlastní kapitál (nepeněžní položka) | bez recyklace, převod do nerozděleného zisku; dividendy do výsledku |
+| Dluhové nástroje ve FVOCI | vlastní kapitál | výsledek, z naběhlé hodnoty (peněžní položka) | recyklace z vlastního kapitálu do výsledku |
+| Naběhlá hodnota (úvěry, dluhopisy držené do splatnosti) | nepřeceňuje se | výsledek, z naběhlé hodnoty | realizovaný výsledek |
+
+U dluhových nástrojů ve FVOCI a v naběhlé hodnotě se úrok počítá efektivní úrokovou mírou a opravné položky (očekávané úvěrové ztráty) jdou do výsledku. Kurzový rozdíl se pak nepočítá z pořizovací ceny, ale z naběhlé hodnoty v měně nástroje, takže vzorec FX výše platí jen pro nástroje bez úpočování. Zdroje: IFRS 9 odst. 5.7.1, 5.7.5, 5.7.10–5.7.11, B5.7.2–B5.7.3; IAS 21 odst. 23, 28 a 30. Ve fondech BHS je zatím vše ve FVTPL nebo jako majetková účast ve FVOCI; dluhové FVOCI a naběhlou hodnotu musí model umět kvůli úvěrům do SPV a budoucím fondům.
 
 ### Evidence výpočtu NAV
 
