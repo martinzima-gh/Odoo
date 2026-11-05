@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 152 -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 154 -->
 
 # Investra – architektura Odoo a IS
 
@@ -413,7 +413,7 @@ Každý údaj se uloží jednou, u kmenových dat nebo na účetním řádku, a 
 | Protistrana | země a rezidence, institucionální sektor (ESA 2010), IČO, LEI, spřízněná osoba a typ vztahu (IAS 24), role (depozitář, obhospodařovatel, administrátor, auditor, znalec) | `investra_entity` |
 | Nástroj | druh podle ČNB (vč. ETF, strukturovaný produkt, kryptoaktivum), kategorie IFRS 9, úroveň hierarchie RH, ISIN a CFI, emitent, měna, splatnost a původní splatnost, úročení, nominál, vztah k limitu podle NV 243/2013, burzovní nebo OTC, u derivátu riziko (úrokové, akciové, měnové, úvěrové) a opce ano/ne, u úvěru revolving a pákový efekt | `investra_instruments` |
 | Registry nástrojů | úvěr (limit, čerpání, splátky), účast (podíl, ZK, příplatky, údaje společnosti), derivát (obě nohy, podkladové aktivum, protistrana), nemovitost (údaje pro DOFOS40), zatížení aktiva (zástava, zapůjčení cenných papírů) | `investra_instruments` |
-| Účet a role | řádek rozvahy a výsledovky podle vyhlášky 501/2002, řádek přílohy (druh nákladu, dohadu), daňový režim, položka ČNB; výnosové účty (úroky, dividendy) berou kategorii IFRS 9 z nástroje na řádku | `investra_chart_*` |
+| Účet a role | řádek rozvahy a výsledovky podle rámce jednotky (vyhláška 501/2002, nebo IFRS), řádek přílohy (druh nákladu, dohadu), daňový režim, položka ČNB; výnosové účty (úroky, dividendy) berou kategorii IFRS 9 z nástroje na řádku | `investra_chart_*` |
 | Ocenění | vstupy a metoda, vstupy úrovně 3, citlivost | `investra_nav` |
 | Snímek k datu | zbytková splatnost a úroková pásma, měnová a zeměpisná struktura, koncentrace, majetek nad 1 %, citlivost ±10 %, přehled změn čistých aktiv | `investra_reporting` |
 
@@ -423,7 +423,7 @@ Každý údaj se uloží jednou, u kmenových dat nebo na účetním řádku, a 
 
 **Kontrola úplnosti:** role účtu určí povinné atributy (např. úvěr vyžaduje protistranu se sektorem a zemí a nástroj se splatností). Chybějící údaje se zastaví už při zaúčtování, nebo nejpozději jako výjimka před schválením ocenění a před odesláním výkazu.
 
-**Převodové tabulky** (role → řádek vyhlášky a výkazu, druh nástroje a sektor → položka ČNB) budou nastavení s platností od data, ne kód. Výkazy se mění. Například nařízení ECB (EU) 2024/1988 (ECB/2024/17), přepracované znění statistiky investičních fondů, se používá od referenčního období prosinec 2025; podle vnitřního předpisu s ním souvisí nové výkazy KLISIFI10, VISIFI10 a VISIFI20 a úpravy RISIFI30 a RISIFI33 (vazbu ověřit v Knihovně SDAT).
+**Převodové tabulky** (role → řádek vyhlášky a výkazu, druh nástroje a sektor → položka ČNB) budou nastavení s platností od data, ne kód. Výkazy se mění. Například nařízení ECB (EU) 2024/1988 (ECB/2024/17), přepracované znění statistiky investičních fondů, se používá od referenčního období prosinec 2025; podle vnitřního předpisu s ním souvisí nové výkazy KLISIFI10, VISIFI10 a VISIFI20 a úpravy RISIFI30 a RISIFI33 (vazbu ověřit v Knihovně SDAT). Převodové tabulky jsou pro každý účetní rámec zvlášť: výkazy ČNB mají pevnou strukturu, takže i jednotka na plném IFRS potřebuje převod svých rolí účtů na položky ČNB.
 
 ## Výroční zprávy
 
@@ -431,7 +431,7 @@ Výroční a pololetní zprávy fondů budou samostatný modul `investra_annual_
 
 **Co zpráva skládá:**
 
-- **Účetní závěrku:** rozvahu a výsledovku ve formátu pro finanční instituce (vyhláška 501/2002), se sloupci investiční a neinvestiční část a celek, a přehled změn čistých aktiv držitelů.
+- **Účetní závěrku:** podle rámce jednotky. U CAS rozvahu a výsledovku ve formátu pro finanční instituce (vyhláška 501/2002), se sloupci investiční a neinvestiční část a celek, a přehled změn čistých aktiv držitelů. U jednotek na plném IFRS výkazy podle IAS 1 (finanční pozice, výsledek a ostatní úplný výsledek, změny vlastního kapitálu nebo čistých aktiv, peněžní toky) a přílohu s povinnými IFRS zveřejněními (IFRS 7, IFRS 13).
 - **Přílohu závěrky:** účetní metody, členění portfolia, podrozvahu, úplaty, daň.
 - **Profil fondu a vývoj FK a hodnoty akcie** po třídách.
 - **Textové části:** činnost fondu, zpráva o vztazích, zpráva auditora (vkládá se).
