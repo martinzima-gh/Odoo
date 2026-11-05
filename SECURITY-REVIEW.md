@@ -29,3 +29,9 @@
 ## Omezení auditu
 
 Audit byl read-only a vztahoval se ke konfiguraci a běžícímu prostředí v okamžiku kontroly. Nešlo o penetrační test, audit zdrojového kódu všech Odoo modulů ani kontrolu bezpečnosti hostitele/macOS či veřejně přístupných systémů. Doporučení nebyla v rámci auditu aplikována.
+
+## Stav doporučení (5. 11. 2026)
+
+1. **Master password:** `INVESTRA_ADMIN_PASSWORD` je v `.env.example` popsaná jako místo pro heslo uživatele admin, Compose ji nepoužívá. Správa databází zůstává vypnutá (`--no-database-list`); před jejím zapnutím se nastaví master password.
+2. **Název Compose projektu:** `docker-compose.yml` má `name: odoo-dev` (stejný název, jaký projekt už měl, takže beze změny běžící instance). Konfigurace ověřena `docker compose config --quiet`.
+3. **Anonymní svazek `/mnt/extra-addons`:** pochází z oficiálního obrazu Odoo (VOLUME v obrazu), je prázdný a zdokumentovaný v `CLAUDE.md`. Bez dalších úprav.

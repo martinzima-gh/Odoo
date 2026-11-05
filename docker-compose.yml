@@ -1,3 +1,6 @@
+# Vyukova instance Odoo 19 s Odoo Mates (databaze odoo_cz, http://localhost:8069).
+name: odoo-dev
+
 services:
   db:
     image: postgres:16

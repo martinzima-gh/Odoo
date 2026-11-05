@@ -32,6 +32,10 @@ Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a 
 - Obraz Odoo je připnutý (`odoo:20.0-20261102`); aktualizace jen řízeně.
 - Hesla jsou pouze v `.env` (v `.gitignore`); šablona `.env.example`. Hesla nikdy nevypisovat.
 - Vlastní moduly v `addons/custom/`, cizí v `addons/third_party/` (Mates je mimo git, verze v README).
+- Oba Compose soubory mají pevný název projektu (`odoo-dev`, `odoo-investra`), aby spuštění odjinud
+  nevytvořilo nové prázdné svazky.
+- Kontejner Odoo 20 má navíc prázdný anonymní svazek `/mnt/extra-addons`. Vytváří ho oficiální obraz Odoo
+  (deklaruje tuto cestu jako VOLUME); vlastní moduly jsou připojené jen přes `./addons/custom`.
 - Odoo 20: přístupová práva jsou v `security/ir.access.csv`
   (`id,name,model_id,group_id/id,operation,domain`), ne v `ir.model.access.csv`.
 
