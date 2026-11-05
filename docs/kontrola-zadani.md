@@ -50,6 +50,11 @@ ani `main`. Jediný výstup je zpráva.
 Soubor `docs/kontroly/RRRR-MM-DD.md` (datum běhu) v nové větvi `kontrola/RRRR-MM-DD`
 a pull request do `main` s názvem „Kontrola projektu RRRR-MM-DD“. Do `main` nic přímo nezapisuj.
 
+Pokud už větev nebo soubor s dnešním datem existuje (druhý běh v jednom dni), použij příponu
+s časem UTC, např. `kontrola/RRRR-MM-DD-HHMM` a `docs/kontroly/RRRR-MM-DD-HHMM.md`.
+Existující větve ani zprávy nepřepisuj. Za „minulou zprávu“ ber nejnovější soubor v `docs/kontroly/`
+v `main` i v otevřených větvích `kontrola/*`.
+
 Struktura zprávy:
 
 ```markdown
