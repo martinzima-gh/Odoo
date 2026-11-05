@@ -1,0 +1,74 @@
+# Investra – Odoo účetnictví a NAV
+
+Tento soubor je sdílená paměť projektu pro lidi i AI (Claude Code, kontrolní agent, kolegové).
+Platí pro každou práci v repozitáři. Podrobná architektura je v Claude Doc
+„Investra – architektura Odoo a IS“: https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w
+
+## Cíl
+
+Platforma na Odoo pro účetnictví a výpočet NAV:
+
+- vlastní společnosti skupiny: Investra Services s.r.o. (servisní organizace) a budoucí investiční společnost,
+- později SICAV, fondy a podfondy přebírané od jiných administrátorů.
+
+Informační systém **Asetiq (IS)** řeší vypořádání úpisů a odkupů a evidenci držitelů.
+Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a podklady výročních zpráv.
+
+## Spolupráce
+
+- Komunikace česky, stručně. Uživatel je finančník a bývalý účetní metodik: nevysvětlovat účetní základy,
+  vysvětlovat vazby v Odoo.
+- Kroky v UI dávat ověřené na skutečné instalaci, ne odhadnuté.
+- U každé akce s účetním dopadem říct, co se stane; odlišit návrh od zaúčtovaného dokladu.
+- Rozhodnutí navrhovat s variantami a doporučením; rozhoduje uživatel.
+
+## Prostředí
+
+| Instance | Účel | Adresa | Databáze |
+|---|---|---|---|
+| `docker-compose.investra.yml` (projekt `odoo-investra`) | vývoj, Odoo 20 Community, bez Odoo Mates | http://127.0.0.1:8070 | `investra_dev` |
+| `docker-compose.yml` | výuková instance, Odoo 19 + Odoo Mates | http://localhost:8069 | `odoo_cz` |
+
+- Obraz Odoo je připnutý (`odoo:20.0-20261102`); aktualizace jen řízeně.
+- Hesla jsou pouze v `.env` (v `.gitignore`); šablona `.env.example`. Hesla nikdy nevypisovat.
+- Vlastní moduly v `addons/custom/`, cizí v `addons/third_party/` (Mates je mimo git, verze v README).
+- Odoo 20: přístupová práva jsou v `security/ir.access.csv`
+  (`id,name,model_id,group_id/id,operation,domain`), ne v `ir.model.access.csv`.
+
+## Bezpečnostní pravidla (závazná)
+
+Bez souhlasu lze: číst soubory, Docker konfiguraci a logy, stav gitu, read-only diagnostika, SQL `SELECT`, testy.
+
+Předem se zeptat na: změny Docker Compose, instalaci/upgrade/odinstalaci modulů, restart nebo stop služeb,
+změny schématu, migraci nebo obnovu DB, cokoli s účetním či historickým dopadem, commit, push.
+
+Nikdy bez výslovného souhlasu: `DELETE`, `UPDATE`, `INSERT`, `TRUNCATE`, `DROP` nad databází;
+nikdy nemazat Docker volumes. Účetní data měnit jen přes Odoo ORM/UI.
+
+Neupravovat zdrojový kód Odoo core ani Odoo Mates. Funkce řešit vlastním addonem.
+
+## Důvěrné podklady
+
+- Vnitřní předpisy, dokumenty DORA a dokumenty fondů (BHS) jsou na OneDrive/SharePoint Investry.
+  **Soubory nikdy neupravovat.** Do repozitáře ani do sdílených dokumentů se nekopíruje jejich text;
+  odkazuje se jen názvem a článkem.
+- Neobcházet omezení přístupu (SharePoint, bot-check). Když něco není dostupné, požádat uživatele.
+- Ve sdílených dokumentech nezmiňovat „stávající systém“ – poznámky z jiného oceňovacího systému
+  jsou jen inspirace od jiné společnosti.
+
+## Paměť projektu – jak ji udržovat
+
+- `docs/rozhodnuti.md` – deník rozhodnutí. Každé nové rozhodnutí zapsat hned, s datem a důvodem,
+  a zároveň do Claude Doc (tabulka Přijatá rozhodnutí).
+- `docs/otevrene-body.md` – otevřené body a rizika; uzavřený bod přesunout do deníku rozhodnutí.
+- Tento soubor měnit, jen když se mění pravidla, prostředí nebo cíl.
+- Kontrolní agent (týdně a na vyžádání) čte tyto soubory a Claude Doc, porovnává je s kódem,
+  předpisy (podle odkazů) a metodikou ČNB SDAT a nálezy zapisuje jako komentáře v Claude Doc.
+  Sám nic nemění.
+
+## Zdroje
+
+- Metodika výkazů ČNB: https://sdat.cnb.cz/sdat_ext/ → Metodické informace → Výkazy, rámec „Fondy“
+  (aktuálně metodika FOFI20261201, platná od 1. 12. 2026).
+- Česká legislativa: ZISIF (240/2013 Sb.), NV 243/2013 Sb., vyhláška 501/2002 Sb., zákon o účetnictví,
+  IFRS 9, IAS 21, DORA. Aktuální znění vždy ověřit.
