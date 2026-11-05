@@ -20,3 +20,6 @@ __pycache__/
 
 # Cizí kód: verze je zapsaná v addons/third_party/README.md
 addons/third_party/odoomates/
+
+# Duverne podklady (statuty FKI, predpisy, DORA) - nikdy necommitovat
+duverne/

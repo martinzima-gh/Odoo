@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 147 -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 152 -->
 
 # Investra – architektura Odoo a IS
 
@@ -6,7 +6,7 @@ Nov 5, 2026 · @Martin Zíma
 
 ## Shrnutí
 
-Odoo bude účetní základ pro společnosti, fondy a podfondy a ponese i portfolio, ocenění a výkazy ČNB. Samostatná aplikace IS (Asetiq) bude řešit jen držitele podílů a investičních akcií, pokyny a jejich vypořádání.
+Odoo bude účetní základ pro společnosti, fondy a podfondy a ponese i portfolio, ocenění a výkazy ČNB. Samostatná aplikace IS bude řešit jen držitele podílů a investičních akcií, pokyny a jejich vypořádání.
 
 Cílem je auditovatelný účetní a NAV základ pro Investru, která má spravovat fondy různých zakladatelů. Proto je většina pravidel parametrizovaná uživatelem, ne napsaná v kódu.
 
@@ -31,7 +31,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | FX přecenění | Uživatelsky definované skupiny účtů | Rozhodnuto |
 | Třídy a alokace | Široce parametrizovatelné, kvůli různým zakladatelům | Rozhodnuto |
 | Interval ocenění | Uživatelsky definovaný pro každý fond (například denně, týdně, měsíčně, čtvrtletně, ročně), možná jsou i ocenění mimo pravidelné běhy, s kontrolou proti statutu a zákonné lhůtě | Rozhodnuto |
-| IS | Samostatná aplikace Asetiq, jen vypořádání nákupů a prodejů a evidence držitelů | Rozhodnuto |
+| IS | Samostatná aplikace IS, jen vypořádání nákupů a prodejů a evidence držitelů | Rozhodnuto |
 | Instrumenty a portfolio | Vlastníkem je Odoo | Rozhodnuto |
 | Příchozí platby | Peníze investorů chodí na účet třídy pro úpisy, banka je v Odoo | Rozhodnuto |
 | Výplaty odkupů | Platební příkazy vytváří IS | Rozhodnuto |
@@ -46,7 +46,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Pořadí nasazení | Investra Services, investiční společnost, potom fondy | Rozhodnuto |
 | Části SICAV | Jedna společnost, pole části na účetním řádku, výkazy po částech i za celek | Rozhodnuto |
 | Převzetí fondů | Ke dni uzávěrky nebo ocenění, s paralelním během, historie jako archiv | Rozhodnuto |
-| Odoo a ABRA | Odoo nahradí ABRA, včetně oběhu dokladů | Rozhodnuto |
+| Účetní systém | Odoo je jediný účetní systém od začátku, včetně oběhu dokladů | Rozhodnuto |
 | Databáze | Jedna databáze pro všechny zakladatele | Rozhodnuto |
 | Vstup transakce do závěrky | Podle statutu fondu, parametr fondu | Rozhodnuto |
 | Krytí výplat | Ověřuje se při autorizaci platby, Odoo nabídne přehled hotovosti | Rozhodnuto |
@@ -134,7 +134,7 @@ V Odoo vznikne sada vlastních addonů nad standardním účetním jádrem, bez 
 
 Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Odoo 20 se přístupová práva a záznamová pravidla sloučila do nového modelu ir.access (soubor security/ir.access.csv s operacemi crud a doménou), kostra je na to upravená. Práce na ní bude pokračovat až po `investra_entity` a `investra_posting`.
 
-**Třídy:** každá má měnu, parametry hurdle a performance a příjemce performance allocation. Performance allocation může přesouvat hodnotu mezi třídami, aniž by měnila celkové NAV podfondu. Třída může být růstová, nebo může vyplácet dividendy.
+**Třídy:** každá má vlastní měnu (nezávislou na funkční měně fondu), parametry hurdle a performance a příjemce performance allocation. Performance allocation může přesouvat hodnotu mezi třídami, aniž by měnila celkové NAV podfondu. Třída může být růstová, nebo může vyplácet dividendy.
 
 **Instrumenty:** Dluhopis, akcie, podíl ve společnosti, nemovitost, derivát a ostatní. Fondy často drží aktiva přes SPV jako majetkovou účast, takže pořizovací cena má složky (příplatek mimo základní kapitál, úvěr SPV). Hotovost instrument není, zůstává na bankovních účtech v hlavní knize. Evidence musí od začátku sbírat údaje pro ČNB, například LEI, CFI, sektor a zemi emitenta. U dluhopisů a derivátů také parametry pro ocenění: kupon, frekvenci, splácení, konvenci počítání dní, senioritu a rating.
 
@@ -146,7 +146,7 @@ Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Od
 
 **Portfoliová transakce:** nese datum sjednání i vypořádání, okamžik zaúčtování určí účetní politika.
 
-**Poplatky fondu:** výpočet úplat má vlastní parametry, například průměr fondového kapitálu za obchodní dny i při měsíčním NAV. Typy úplat ze statutů: fixní měsíční částka s pásmy podle objemu aktiv, procento z fondového kapitálu před výkonnostní odměnou poměrené délkou oceňovacího období, výkonnostní odměna s hurdle a DPH jako náklad. Výkonnostní odměna má dvě podoby: poplatek obhospodařovateli (BHS Iconic Cars, závazek fondu) nebo alokace části zhodnocení na jinou třídu akcií (BHS Real Estate, přesun mezi třídami). Model musí umět obě, s parametry sazba, hurdle, srovnávací období, high-water mark ano/ne a časové vážení toků. Pořadí je dáno: nejdřív úplaty, potom výkonnostní odměna. Vstupní a výstupní poplatky řeší Asetiq.
+**Poplatky fondu:** výpočet úplat má vlastní parametry, například průměr fondového kapitálu za obchodní dny i při měsíčním NAV. Typy úplat ze statutů: fixní měsíční částka s pásmy podle objemu aktiv, procento z fondového kapitálu před výkonnostní odměnou poměrené délkou oceňovacího období, výkonnostní odměna s hurdle a DPH jako náklad. Výkonnostní odměna má dvě podoby: poplatek obhospodařovateli (BHS Iconic Cars, závazek fondu) nebo alokace části zhodnocení na jinou třídu akcií (BHS Real Estate, přesun mezi třídami). Model musí umět obě, s parametry sazba, hurdle, srovnávací období, high-water mark ano/ne a časové vážení toků. Pořadí je dáno: nejdřív úplaty, potom výkonnostní odměna. Vstupní a výstupní poplatky řeší IS.
 
 **FX skupiny:** skupina = účty, protiúčty a metoda (storno, nebo jen rozdíl). Cenné papíry v cizí měně by měly být mimo FX skupiny a kurz řešit v ocenění, jinak hrozí dvojí započtení.
 
@@ -259,7 +259,7 @@ Příklad: třídy A a B po 100, performance fee třídy A 10.
 
 Platbou fee se ΔA nemění: závazek třídy A zanikne, ale stejná částka zůstane na účtu vnitřního zúčtování s třídou A. Společný výnos se dělí alokacím poměrem platným od začátku období (50 : 50), takže A = 0,5 · 219 − 10 = 99,5 a B = 109,5. Při dalším ocenění se ΔT promítne do předběžného kapitálu třídy a počítá se znovu od nuly. Příklad bude první automatický test modulu `investra_nav`.
 
-V prototypu ověříme okamžik vzniku zápisu, průběžné uzavírání zůstatku za třídu a chování třídy v jiné měně.
+V prototypu ověříme okamžik vzniku zápisu, průběžné uzavírání zůstatku za třídu a chování třídy v jiné měně, než je funkční měna fondu.
 
 **Pohyby uvnitř období:** výchozí varianta je vstup všech pohybů do poměru najednou. Přesnější rozdělení na podobdobí bude volba alokačního schématu.
 
@@ -351,7 +351,7 @@ Záznam kurzu nese také plánované a skutečné zveřejnění a příznak tech
 
 ## Rozhraní Odoo a IS
 
-Systémy si vyměňují devět typů zpráv, hlavní je finalizovaná závěrka. Jde o pracovní minimum, které je potřeba ověřit proti možnostem Asetiqu.
+Systémy si vyměňují devět typů zpráv, hlavní je finalizovaná závěrka. Jde o pracovní minimum, které je potřeba ověřit proti možnostem IS.
 
 | Zpráva | Směr | Obsah |
 | --- | --- | --- |
@@ -514,13 +514,13 @@ Fondy přecházejí ke dni uzávěrky nebo ocenění, ne migrací celé historie
 3. **Počáteční stavy:** zůstatky účtů, otevřené pohledávky a závazky, kapitál podle tříd.
 4. **Pozice po nástrojích:** pořizovací cena v měně, pořizovací kurz, kurzový rozdíl a přecenění.
 5. **Údaje pro výpočty:** historie NAV, high-water mark a hurdle.
-6. **Kontroly:** předvaha souhlasí, otevřené položky odpovídají účtům, pozice hlavní knize, kusy Asetiqu a FK se zreprodukuje.
+6. **Kontroly:** předvaha souhlasí, otevřené položky odpovídají účtům, pozice hlavní knize, kusy v IS a FK se zreprodukuje.
 7. **Paralelní běh:** jedno až dvě ocenění v obou systémech, potom přepnutí se schválením.
 8. **Historie:** zůstane jako archiv ze starého systému. Při přechodu v průběhu roku se doplní obraty po měsících.
 
 ## Plán prací
 
-První na řadě jsou role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popisují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Termíny doplníme, až bude jasný harmonogram úprav Asetiqu.
+První na řadě jsou role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popisují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Termíny doplníme, až bude jasný harmonogram úprav IS.
 
 1. **Specifikace:** rozhodnutí z otevřených bodů, seznam rolí účtů, účetní politika pro FX.
 2. **Dvě zkušební knihy:** CZK a EUR, vlastní osnova, kurzy ČNB a ECB. Ověří návrh „kniha = společnost“.
@@ -533,7 +533,7 @@ První na řadě jsou role účtů a specifikace rozhraní, protože na nich sto
 
 Rozhodnutí Community, nebo Enterprise musí padnout před ostrým startem Investra Services.
 
-Protože Odoo nahrazuje ABRA, přibývá oběh dokladů, finanční výkazy a migrace dat. Jejich rozsah závisí na volbě edice.
+Protože začínáme přímo na Odoo, musí od začátku pokrýt i oběh dokladů a finanční výkazy. Jejich rozsah závisí na volbě edice.
 
 ## Ověření na fondech BHS
 
@@ -548,7 +548,7 @@ Návrh jsem porovnal se čtyřmi fondy skupiny z veřejného rejstříku (výro�
 
 Co z toho pro návrh plyne:
 
-- **Třídy v různých měnách jsou reálný požadavek.** BHS Real Estate má třídy PI a FI v CZK i EUR v jednom fondu. Model třídy musí mít vlastní měnu.
+- **Třídy v různých měnách jsou reálný požadavek.** BHS Real Estate má třídy PI a FI v CZK i EUR v jednom fondu. Model třídy musí mít vlastní měnu. Měna třídy je měna, ve které se vydávají a odkupují akcie a vyhlašuje kurz; funkční měnu fondu podle IAS 21 neurčuje. Fond s třídou v EUR může mít dál funkční měnu CZK: účetnictví a FK se vedou v CZK a kapitál třídy se do EUR přepočítává kurzem k datu ocenění.
 - **Statut počítá až čtyři třídy (A–D), i když je zatím vydaná jedna.** Model musí zvládnout víc tříd od začátku.
 - **Aktiva bývají držená přes SPV.** Automobily i nemovitosti jsou často majetková účast ve společnosti, ne přímý nástroj. Pořizovací cena má složky jako příplatek mimo základní kapitál a úvěr SPV. Ocenění je přes DCF nebo posudek.
 - **Interval ocenění se liší** (měsíčně i čtvrtletně), což potvrzuje parametr fondu.
@@ -558,7 +558,7 @@ BHS Iconic Cars se dříve jmenoval Engine Classic Cars. Analýza je z veřejný
 
 **Performance fee potvrzuje náš model alokace.** KID fondu BHS Real Estate popisuje, že **20 % zhodnocení portfolia se alokuje na jiný druh akcií fondu**. Investor dostává 0,8 Kč na každou 1 Kč zhodnocení. Je to přesně přesun hodnoty mezi třídami přes vnitřní zúčtování, který máme v návrhu. Potvrzuje také, že performance fee mění kapitál tříd, ne jen celkové NAV.
 
-Veřejné poplatky (BHS Real Estate, třída PI CZK): vstup max 3 %, výstup 2 % do roka, správa 1,7 % ročně, performance fee kolem 1,3 % ročně. Vstupní a výstupní poplatky řeší Asetiq, správu a performance fee účtuje Odoo.
+Veřejné poplatky (BHS Real Estate, třída PI CZK): vstup max 3 %, výstup 2 % do roka, správa 1,7 % ročně, performance fee kolem 1,3 % ročně. Vstupní a výstupní poplatky řeší IS, správu a performance fee účtuje Odoo.
 
 ### BHS Iconic Cars – detail ze stanov
 
@@ -573,7 +573,7 @@ Veřejné poplatky (BHS Real Estate, třída PI CZK): vstup max 3 %, výstup 2 %
 
 - **Růstová třída:** dividendy se nevyplácejí, reinvestují se. Potvrzuje, že třída může být růstová i dividendová, parametr třídy.
 - **Performance fee s hurdle 10 % p.a.** Poplatek se účtuje až při překročení výnosu 10 % ročně. Model performance fee musí mít hurdle jako parametr.
-- **Poplatky:** vstup max 3 %, výstup 5 % při odkupu do 5 let, správa 2,0 % ročně. Výstupní poplatek závisí na době držení, řeší ho Asetiq.
+- **Poplatky:** vstup max 3 %, výstup 5 % při odkupu do 5 let, správa 2,0 % ročně. Výstupní poplatek závisí na době držení, řeší ho IS.
 - **Doporučená doba držení 5 let, riziková třída SRI 6 ze 7.**
 
 Parametry se liší od BHS Real Estate (výstup 2 %, správa 1,7 %), takže poplatky i hurdle jsou nastavení třídy, ne globální.
@@ -605,7 +605,7 @@ Přesný alokační poměr mezi třídami je i zde odkázán do statutu, který 
 
 ## Otevřené body a rizika
 
-Největší otevřené otázky jsou možnosti Asetiqu, volba edice Odoo a pole výkazů ČNB. Bez nich nejde dokončit rozhraní ani datový model.
+Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkazů ČNB. Bez nich nejde dokončit rozhraní ani datový model.
 
 ### Rozhodnutí
 
@@ -614,8 +614,8 @@ Největší otevřené otázky jsou možnosti Asetiqu, volba edice Odoo a pole v
 | Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout nejpozději po zkušebních knihách (etapa 2), před ostrým startem Investra Services. Kritéria: finanční výkazy, bankovní párování, oběh dokladů, cena licencí a hostingu, kompatibilita vlastních modulů. |
 | Podrobnosti dividend | Účet pro výplatu, dopad na kurz k rozhodnému dni | Upřesnit |
 | Zdroje cen | Jaká aktiva fondy drží, frekvence posudků | Upřesnit |
-| Možnosti Asetiqu | Zda umí závěrku, identifikátory, příjem číselníku a kurzu, dividendy a API | Získat dokumentaci |
-| Aktualizace předpisů | ABRA, funkční měna EUR, schvalování, střediska SICAV v předpisu 12; nyní se nemění | Projít později |
+| Možnosti IS | Zda umí závěrku, identifikátory, příjem číselníku a kurzu, dividendy a API | Získat dokumentaci |
+| Aktualizace předpisů | Funkční měna EUR, schvalování, střediska SICAV v předpisu 12; nyní se nemění | Projít později |
 | Start Investra Services | Současné účetnictví, termín přechodu, plátcovství DPH, mzdy, hosting | Upřesnit |
 | Zdrojové systémy fondů | Které systémy a zda mají údaje po pozicích a pořizovací kurzy | Upřesnit u prvních fondů |
 | Podrozvaha v Odoo | Podpora ve standardním Odoo není ověřená, deriváty a opce jsou u fondů významné | Ověřit v prototypu |
@@ -625,8 +625,8 @@ Největší otevřené otázky jsou možnosti Asetiqu, volba edice Odoo a pole v
 
 ### Chybějící podklady
 
-- [ ] Dokumentace a API Asetiqu.
-- [ ] Kdo a kdy zajistí úpravy Asetiqu.
+- [ ] Dokumentace a API IS.
+- [ ] Kdo a kdy zajistí úpravy IS.
 - [ ] Oceňovací dokumentace, včetně „Výpočtu bonusů pro fondy s delší periodou“.
 - [ ] Pole výkazů ČNB: struktura a kontroly jsou převzaté z metodiky SDAT FOFI20261201. Zbývá stáhnout kódy položek, číselníky a převodníky z Knihovny a namapovat na ně role účtů; ověřit termíny RISIFI37 a ROFOS13 v záložce Vykazovací povinnost.
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
@@ -642,5 +642,5 @@ Největší otevřené otázky jsou možnosti Asetiqu, volba edice Odoo a pole v
 | Fondové moduly vyvíjené svépomocí | Trvalá práce na migracích a testech při nových verzích Odoo | Testy, omezit zásahy do core na minimum |
 | Odoo jako NAV systém | Může se ukázat méně vhodné než specializovaný systém | Ověřit prototypem před produkcí |
 | Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě 2 |
-| Nahrazení ABRA | Větší rozsah: oběh dokladů, výkazy, migrace, úprava předpisů a evidence pro DORA | Postup po fázích, start na Investra Services |
+| Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, úprava předpisů a evidence pro DORA | Postup po fázích, start na Investra Services |
 | Chybějící údaje při převzetí fondu | Bez pořizovacího kurzu nebo údajů po pozicích nejde oddělit FX a FV | Účetní postup pro stanovení hodnot ke dni přechodu |

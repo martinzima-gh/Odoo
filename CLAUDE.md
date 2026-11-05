@@ -11,7 +11,7 @@ Platforma na Odoo pro účetnictví a výpočet NAV:
 - vlastní společnosti skupiny: Investra Services s.r.o. (servisní organizace) a budoucí investiční společnost,
 - později SICAV, fondy a podfondy přebírané od jiných administrátorů.
 
-Informační systém **Asetiq (IS)** řeší vypořádání úpisů a odkupů a evidenci držitelů.
+Samostatný informační systém (**IS**) řeší vypořádání úpisů a odkupů a evidenci držitelů.
 Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a podklady výročních zpráv.
 
 ## Spolupráce
@@ -56,9 +56,14 @@ Neupravovat zdrojový kód Odoo core ani Odoo Mates. Funkce řešit vlastním ad
 - Vnitřní předpisy, dokumenty DORA a dokumenty fondů (BHS) jsou na OneDrive/SharePoint Investry.
   **Soubory nikdy neupravovat.** Do repozitáře ani do sdílených dokumentů se nekopíruje jejich text;
   odkazuje se jen názvem a článkem.
+- Lokální kopie důvěrných podkladů patří jen do složky `duverne/` (je v `.gitignore`, práva 700).
+  Jejich obsah se nikdy nepublikuje (Artifact, Doc, sdílení), necommituje, neposílá e-mailem
+  a nevkládá do webového vyhledávání ani WebFetch.
 - Neobcházet omezení přístupu (SharePoint, bot-check). Když něco není dostupné, požádat uživatele.
 - Ve sdílených dokumentech nezmiňovat „stávající systém“ – poznámky z jiného oceňovacího systému
   jsou jen inspirace od jiné společnosti.
+- Informační systém v dokumentech nazývat jen „IS“, bez obchodního názvu. ABRA nezmiňovat:
+  Investra začíná rovnou na Odoo, žádný přechod z jiného účetního systému není.
 
 ## Paměť projektu – jak ji udržovat
 

@@ -10,8 +10,8 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout nejpozději po zkušebních knihách (etapa 2), před ostrým startem Investra Services. Kritéria: finanční výkazy, bankovní párování, oběh dokladů, cena licencí a hostingu, kompatibilita vlastních modulů |
 | Podrobnosti dividend | Účet pro výplatu, dopad na kurz k rozhodnému dni | Upřesnit |
 | Zdroje cen | Jaká aktiva fondy drží, frekvence posudků | Upřesnit |
-| Možnosti Asetiqu | Závěrka, identifikátory, příjem číselníku a kurzu, dividendy, API | Získat dokumentaci |
-| Aktualizace předpisů | ABRA, funkční měna EUR, schvalování, střediska SICAV v předpisu 12 | Projít později, nyní neměnit |
+| Možnosti IS | Závěrka, identifikátory, příjem číselníku a kurzu, dividendy, API | Získat dokumentaci |
+| Aktualizace předpisů | Funkční měna EUR, schvalování, střediska SICAV v předpisu 12 | Projít později, nyní neměnit |
 | Start Investra Services | Současné účetnictví, termín přechodu, plátcovství DPH, mzdy, hosting | Upřesnit |
 | Zdrojové systémy fondů | Které systémy, zda mají údaje po pozicích a pořizovací kurzy | Upřesnit u prvních fondů |
 | Podrozvaha v Odoo | Podpora ve standardním Odoo neověřená; deriváty a opce jsou u fondů významné | Ověřit v prototypu |
@@ -22,8 +22,8 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 
 ## Chybějící podklady
 
-- [ ] Dokumentace a API Asetiqu.
-- [ ] Kdo a kdy zajistí úpravy Asetiqu.
+- [ ] Dokumentace a API IS.
+- [ ] Kdo a kdy zajistí úpravy IS.
 - [ ] Oceňovací dokumentace, včetně „Výpočtu bonusů pro fondy s delší periodou“.
 - [ ] Kódy položek, číselníky a převodníky ČNB z Knihovny SDAT.
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
@@ -39,5 +39,5 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Fondové moduly vyvíjené svépomocí | Trvalá práce na migracích a testech při nových verzích Odoo | Testy, minimum zásahů do core |
 | Odoo jako NAV systém | Může se ukázat méně vhodné než specializovaný systém | Ověřit prototypem před produkcí |
 | Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě 2 |
-| Nahrazení ABRA | Větší rozsah: oběh dokladů, výkazy, migrace, předpisy, DORA | Postup po fázích, start na Investra Services |
+| Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, předpisy, DORA | Postup po fázích, start na Investra Services |
 | Chybějící údaje při převzetí fondu | Bez pořizovacího kurzu nebo údajů po pozicích nejde oddělit FX a FV | Účetní postup pro stanovení hodnot ke dni přechodu |

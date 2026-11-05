@@ -10,12 +10,12 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-04 | Rozsah | Účetnictví a.s., s.r.o., SICAV, fondů a podfondů v Odoo | | R |
 | 2026-11-04 | Účetní rámec | CAS pro podnikatele, CAS pro finanční instituce nebo plné IFRS, pro každou jednotku zvlášť | | R |
 | 2026-11-04 | Souběh CAS a IFRS | Není třeba, každá jednotka účtuje jen v jednom rámci; multi-ledger se nepoužívá | | R |
-| 2026-11-04 | Funkční měna | CZK nebo jiná (např. EUR); kurzy ČNB i ECB | Předpisy se upraví později, nyní do nich nezasahovat | R |
+| 2026-11-04 | Funkční měna | CZK nebo jiná (např. EUR); kurzy ČNB i ECB | Předpisy se upraví později, nyní do nich nezasahovat. Měna třídy funkční měnu neurčuje: fond s třídou v EUR může mít funkční měnu CZK (upřesněno 2026-11-05) | R |
 | 2026-11-04 | FX přecenění | Uživatelsky definované skupiny účtů | | R |
 | 2026-11-04 | Třídy a alokace | Široce parametrizovatelné | Různí zakladatelé | R |
 | 2026-11-04 | Interval ocenění | Uživatelsky definovaný pro fond, i mimořádná ocenění; kontrola proti statutu a zákonné lhůtě | | R |
-| 2026-11-04 | IS | Samostatná aplikace Asetiq: jen vypořádání nákupů a prodejů a evidence držitelů | | R |
-| 2026-11-04 | Instrumenty a portfolio | Vlastníkem je Odoo | Asetiq evidenci portfolia nemá | R |
+| 2026-11-04 | IS | Samostatná aplikace IS: jen vypořádání nákupů a prodejů a evidence držitelů | | R |
+| 2026-11-04 | Instrumenty a portfolio | Vlastníkem je Odoo | IS evidenci portfolia nemá | R |
 | 2026-11-04 | Příchozí platby | Na účet třídy pro úpisy, banka je v Odoo | | R |
 | 2026-11-04 | Výplaty odkupů | Platební příkazy vytváří IS | | R |
 | 2026-11-04 | Bankovní účty | Třída má účet pro úpisy a pro odkupy, fond investiční účet; zvlášť pro každou měnu | | R |
@@ -25,7 +25,7 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-04 | Fondový modul | Univerzální, včetně výplaty dividend z tříd | | R |
 | 2026-11-04 | Schvalování ocenění | Parametrizovatelné; u fondů Investry povinná druhá osoba; stanovisko obhospodařovatele a depozitáře se eviduje v Odoo | Ocenění schvaluje i administrátor | R |
 | 2026-11-04 | Výpočet tříd | Pouze z rozvahy; přesuny mezi třídou a společným majetkem přes vnitřní zúčtování | | R+P |
-| 2026-11-04 | Odoo a ABRA | Odoo nahradí ABRA, včetně oběhu dokladů | | R |
+| 2026-11-04 | Účetní systém | Odoo je jediný účetní systém od začátku, včetně oběhu dokladů | | R |
 | 2026-11-04 | Databáze | Jedna databáze pro všechny zakladatele | | R |
 | 2026-11-04 | Vstup transakce do závěrky | Podle statutu fondu, parametr fondu | | R |
 | 2026-11-04 | Krytí výplat | Ověřuje se při autorizaci platby, Odoo nabídne přehled hotovosti | | R |

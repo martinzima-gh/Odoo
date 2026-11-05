@@ -2,7 +2,7 @@
 
 Soukromý repozitář platformy na Odoo 20 Community pro účetnictví společností skupiny Investra
 a pro účetnictví a výpočet NAV investičních fondů. Vypořádání úpisů a odkupů a evidenci držitelů
-řeší samostatný informační systém Asetiq.
+řeší samostatný informační systém (IS).
 
 ## Kde co je
 
