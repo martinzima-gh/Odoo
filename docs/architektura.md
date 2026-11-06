@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 157 -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 162. -->
 
 # Investra – architektura Odoo a IS
 
@@ -62,6 +62,8 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Číselník fondů a tříd | Vlastníkem je Odoo, IS dostává kopii | Rozhodnuto, lze změnit |
 | Plán verzí | Vývoj na Community, Enterprise zůstává otevřené | Předpoklad |
 | Katalog ČNB | Výkazy, položky, kontroly a číselníky v repozitáři (docs/cnb): CSV je zdroj, XLSX se generuje, verze podle metodiky | Rozhodnuto |
+| Postup ocenění | Jeden záznam ocenění s kroky; návrhy dokladů a zaúčtování po schválení druhou osobou; typovaná pravidla poplatků | Návrh, k rozhodnutí |
+| Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Návrh, k rozhodnutí |
 |  |  |  |
 |  |  |  |
 |  |  |  |
@@ -209,7 +211,7 @@ Alokační poměr vzniká před výpočty přecenění.
 2. Předběžný kapitál třídy a alokační poměr.
 3. Přecenění aktiv a FX.
 4. Výpočty za třídy v pořadí podle statutu, výchozí je: úplaty, performance fee, očekávaná daňová povinnost, dohadné položky. Performance fee se počítá z hodnot před daní, pořadí je parametr fondu.
-5. Zaúčtování.
+5. Návrhy dokladů; zaúčtují se po kontrole druhou osobou (doporučení, viz Postup ocenění v Odoo).
 6. Finální kapitál tříd a kontrolní rovnice.
 7. Kontrola shody cenných papírů fondu s evidencí v IS.
 8. Kontrola shody majetku fondu s účetnictvím a změny vlastního kapitálu nad prahem (výchozí 5 %, parametr se zdrojem v předpisu).
@@ -264,6 +266,57 @@ V prototypu ověříme okamžik vzniku zápisu, průběžné uzavírání zůsta
 
 **Pohyby uvnitř období:** výchozí varianta je vstup všech pohybů do poměru najednou. Přesnější rozdělení na podobdobí bude volba alokačního schématu.
 
+### Postup ocenění v Odoo (návrh)
+
+Ocenění je v `investra_nav` jeden záznam pro fond, datum a verzi. Účetní jím prochází krok za krokem, každý krok má stav a další se otevře až po dokončení předchozího. Záznam si ukládá použité ceny, kurzy a parametry, takže výpočet půjde kdykoli zopakovat. Portfolio i účetnictví jsou v jednom systému, proto odpadá přenos souborů mezi systémy a rozdíly mezi nimi.
+
+| Krok | Co se děje | Výstup |
+| --- | --- | --- |
+| 0. Příprava | Závěrky z IS, spárovaná banka, zaúčtované portfoliové transakce, kurzy, naběhlé úroky, opravné položky, nároky na dividendy a kupóny | Kontrola připravenosti, alokační poměr tříd |
+| 1. Schválení cen | Import a ruční zadání cen, zvýraznění starých a posledních známých cen, ocenění SPV s podkladem, stanovisko depozitáře k cenám, pokud ho fond vyžaduje | Schválený seznam cen |
+| 2. FX přecenění | Skupiny účtů mimo instrumenty, zvlášť banky a úvěry, možnost nést třídu | Návrh dokladu |
+| 3. Reálná hodnota | Řádek na každou pozici: kusy, cena, kurz, změna RH a FX | Návrh dokladu, evidence RH |
+| 4. Poplatky, dohady, daň | Pravidla fondu v pořadí podle statutu, rozpis výpočtu každé částky | Návrhy dokladů |
+| 5. NAV a cena za kus | FK z rozvahy včetně návrhů, rozdělení na třídy, kusy z IS, zaokrouhlení podle třídy | Výpočet NAV |
+| 6. Kontroly a sestava | Automatické kontroly se stavem OK, upozornění nebo stop | Sestava ke schválení |
+| 7. Schválení a zaúčtování | Kontrola druhou osobou, zaúčtování návrhů | Zaúčtované doklady |
+| 8. Stanovisko a zveřejnění | Obhospodařovatel a depozitář, uzamčení, kurz do IS, zveřejnění | Publikovaný kurz |
+| 9. Navazující kroky | Úhrada poplatků, snímek pro výkazy ČNB, výpočtový list pro řízení rizik | Podklady |
+
+**Zaúčtování (doporučení, k rozhodnutí):** kroky 2 až 4 vytvářejí návrhy dokladů a výpočet s nimi počítá. Zaúčtují se až po schválení druhou osobou, takže opravy před schválením nezanechají v účetnictví storna. Alternativa je účtovat po každém kroku; je jednodušší, ale každé vrácení znamená storno. Pokud ocenění vrátí depozitář, platí storno a nová verze.
+
+**Pravidla poplatků (doporučení, k rozhodnutí):** u fondu se vede sada typovaných pravidel s platností od data a odkazem na článek statutu. Pravidlo má typ, základ, sazbu nebo pásma, minimum a maximum, DPH, roční základ (365 nebo 366 dní), role účtů a třídu. Typy: pevná částka s pásmy, procento ze základu, výkonnostní odměna, daň, dohad a ruční položka s důvodem. Nový typ je malé rozšíření v kódu s testem. Volné vzorce ani tabulky mimo systém nedoporučujeme kvůli auditu.
+
+**Kruhová závislost:** úplata může být procentem z FK po úplatě a daň závisí na úplatě. Výpočet to musí vyřešit sám, přímým vzorcem nebo opakováním do ustálení, s výsledkem a počtem kroků v rozpisu.
+
+**Dohady:** částka se účtuje jako doúčtování proti tomu, co už je zaúčtované. Typy: pevná roční částka rozdělená na dny, skutečná částka, částka podle podkladu a částka podle NAV. Po přijetí faktury se dohad rozpustí a sleduje se rozdíl proti odhadu. U denních fondů půjde rozpis po dnech.
+
+**Výkonnostní odměna:** účtuje se jen při splnění všech podmínek ze statutu, jako doplatek do potřebného zůstatku, tedy i se záporným pohybem. Sestavy před odměnou a po odměně se porovnají automaticky: změnit se smí jen očekávané účty.
+
+**Parametry výkonnostní odměny:** vedou se po třídách: high-water mark, etalon a jeho kurz, sazba a základ průměrného počtu kusů. Výpočet ukáže odměnu, FK a cenu za kus po odměně a částku k zaúčtování.
+
+**Daň:** výpočet vychází z výsledku před daní a z typovaných úprav základu (osvobozené výnosy, dividendy, nedaňové náklady, ztráta minulých let). Fond může mít víc základů s různou sazbou, například samostatný základ pro určitou účast. Záporný základ znamená nulovou daň a účtuje se rozdíl proti zaúčtované dani.
+
+**Sražená daň z dividend:** jedna dividenda může mít víc sazeb podle země a držby. Nárok vzniká k rozhodnému dni, případný kurzový rozdíl k výplatě se dorovnává.
+
+**Úvěry SPV a účasti:** ocenění SPV se zadává před výpočtem RH. U účasti se závazkem k dalším vkladům se platba vede jako pořízení a do investice se zařadí až s podkladem k ocenění; závazek je v podrozvaze a přeceňuje se kurzem. Účty určuje role podle nástroje, ne ruční úprava dokladu.
+
+**Kontrola připravenosti:** před výpočtem portfolia se zkontrolují nedokončené položky k datu: budoucí účetní zápisy, obchody s cennými papíry, termínované vklady a REPO. Nedokončená položka ocenění zastaví, nebo ji účetní vědomě potvrdí.
+
+**Kontroly v kroku 6:**
+
+- zůstatek banky proti výpisu, technický účet peněz na cestě rovná se nule,
+- bankovní účty pro úpisy a odkupy proti závazkům vůči držitelům,
+- pozice proti saldu účtů, v měně i ve funkční měně,
+- kusy proti IS a depozitáři, kolaterál proti potvrzení protistrany,
+- nároky na kupóny a dividendy proti výpisům,
+- přepočet úplat po změně FK, změna FK nad prahem, stáří cen,
+- předběžné kontroly ČNB z katalogu `docs/cnb`: skok jednotkové ceny v RISIFI33, vazba přecenění v TISIFI10 na změny v RISIFI30, meziobdobní změny nad práh s komentářem.
+
+**Sestava ke schválení:** přemostění FK (počáteční FK, úpisy a odkupy, FX, RH, úplaty, výkonnostní odměna, daň, konečný FK), pevné řádky aktiv a pasiv plněné ze seznamu rolí účtů, výpočet po třídách, změna ceny za kus, seznam cen a výjimky.
+
+**Balíček pro audit:** jedno tlačítko za období: výpočty NAV, obchody, deriváty a předvaha.
+
 ### Reálná hodnota instrumentů
 
 Ceny vstupují do Odoo podle oceňovací politiky fondu a do účetnictví se promítnou při ocenění, odděleně kurzový rozdíl a přecenění na reálnou hodnotu.
@@ -278,6 +331,7 @@ Ceny vstupují do Odoo podle oceňovací politiky fondu a do účetnictví se pr
 | Podíly ve společnostech | Model, posudek | Ruční zadání s přílohou |
 | Nemovitosti | Znalecký posudek | Ruční zadání s přílohou |
 | Deriváty | Protistrana, model | Import nebo ruční zadání |
+| REPO a reverzní REPO | Smlouva, potvrzení protistrany | Import nebo ruční zadání; samostatný druh nástroje s vlastními řádky výkazů |
 
 Začínáme importem z Excelu a ručním zadáním. Odoo modely nepočítá, eviduje výslednou cenu a podklad k ní.
 
@@ -457,6 +511,7 @@ Výkazy pro fondy jsou převážně měsíční, takže data musí být k dispoz
 | DOFOS31 | Struktura investičních nástrojů | Čtvrtletně | Portfolio |
 | DOFOS40 | Údaje o nemovitostech | Čtvrtletně | Portfolio |
 | ROFOS13 | Hlášení fondu kvalifikovaných investorů | Ročně | Registr fondů, ocenění |
+| ROFOS11 | Hlášení fondu kolektivního investování (speciální fondy) | Ověřit v plánu výskytů SDAT | Registr fondů, ocenění, IS |
 | VYFOS20 | Výkaz zisku a ztráty | Čtvrtletně, kumulativně od počátku roku | Hlavní kniha |
 | ROFOS33, ROFOS35 | Hlášení obhospodařovatele | Do 30 dnů od konce období | Portfolio, rizika |
 
@@ -476,7 +531,86 @@ SDAT u každého výkazu publikuje kontroly ve dvou skupinách: jednovýkazové 
 - **Limity:** DOFOS31 kontroluje limity podle NV 243/2013 (5, 10, 20, 25, 30, 35 % majetku, min. 85 % u feeder fondů), u nemovitostních fondů 40 % na jednu nemovitostní společnost a 55 % na úvěry. Kontroly limitů v `investra_limits` mohou použít stejnou klasifikaci nástrojů.
 - **Hodnoty k potvrzení:** záporné hodnoty v rozvaze, vysoké změny z přecenění (TISIFI10 proti RISIFI30), kryptoaktiva nad 10 % FK. V Odoo pole pro komentář, který se přenese do vydání.
 
+**Kontroly nad rámec SDAT, před generováním výkazů:**
+
+- aktiva v RISIFI30 proti aktivům v ROFOS35 a součet aktiv podle tříd aktiv v ROFOS35,
+- NAV ve výkazech proti schválenému ocenění, výsledek před zdaněním ve VYFOS20 proti hlavní knize,
+- u FKI shoda trhů a nástrojů mezi ROFOS33 a ROFOS35,
+- změna reálné hodnoty derivátů v RISIFI30 proti TISIFI10,
+- nástroj nebo protistrana bez trhu, podskupiny aktiv, sektoru, CFI nebo LEI,
+- účet se zůstatkem, který žádné pravidlo výkazu nepokrývá.
+
 **Co z metodiky plyne pro implementaci:** kódy položek (např. EAR2285 Aktiva celkem), číselníky (země, sektory ESA, druhy cenných papírů, měny) a převodníky jsou veřejně v části Knihovna. Mapovací tabulky v Odoo použijí přímo tyto kódy a číselníky, aby export do SDAT nepotřeboval další překlad. Metodika má verze s platností (aktuálně FOFI20261201), takže mapování se bude verzovat stejně. Katalog výkazů, položek, 705 kontrol a použitých číselníků je v repozitáři v `docs/cnb/`: CSV je zdroj, XLSX slouží ke čtení.
+
+### Z účetnictví do výkazů (návrh)
+
+Každá buňka výkazu je pravidlo v `investra_cnb`. Pravidla mají platnost od data a vazbu na verzi metodiky, protože se mapování v čase mění často. Změna pravidla se eviduje a starý výkaz jde vždy vygenerovat podle pravidel svého období.
+
+| Typ pravidla | Použití |
+| --- | --- |
+| Účet nebo skupina účtů podle role | Běžné řádky rozvahy a výsledovky |
+| Jen kladný, nebo jen záporný zůstatek | Položky, které podle znaménka patří do aktiv nebo pasiv; test po nástroji nebo protistraně, ne po celém účtu |
+| Výnos minus náklad | Čistý výsledek podle druhu nástroje |
+| Součet jiných řádků | Souhrnné řádky |
+| Údaj z portfolia | Reálná hodnota účastí a cenných papírů |
+| Filtr podle atributu nástroje | Úroveň RH, kategorie IFRS 9, druh nástroje |
+| Údaj mimo účetnictví | Viz tabulka zdrojů níže |
+
+Cíl je, aby se výkaz nemusel po vygenerování ručně upravovat ani dorovnávat na bilanci nebo na 100 %. Ruční zásah je výjimka se zdůvodněním a zůstane ve vydání výkazu.
+
+**Deriváty:** kladná a záporná reálná hodnota se vedou po smlouvách a brutto, aby výkazy seděly na rozvahu a výroční zprávu. Řádek výkazu plyne z účetního režimu: bez zajišťovacího účetnictví jde o deriváty k obchodování, i když ekonomicky zajišťují. TISIFI10 se počítá po smlouvách od posledního přecenění minulého měsíce do posledního přecenění v aktuálním měsíci: kladná část je změna MAX(RH; 0), záporná změna MIN(RH; 0) s opačným znaménkem. Vypořádání se od přecenění odděluje, proto musí mít pohyb nástroje typ.
+
+**Sjednáno, nevypořádáno:** nástroj potřebuje tento stav, protože různé výkazy ho berou jinak. ROFOS10 vychází z účetnictví, tedy z data sjednání, pokud ho zvolí účetní politika. RISIFI33 potřebuje počet a další údaje, takže se investice do vypořádání vykáže v RISIFI30 v Ostatních aktivech a pak se přesune. Týká se to hlavně private equity a dlouhých upisovacích období. Mezi ROFOS10 a RISIFI30 ani RISIFI33 katalog mezivýkazovou kontrolu nemá. Před prvním použitím ověřit s ČNB.
+
+**Účasti bez ISIN:** patří do samostatné oblasti RIS33\_13, měna a počet vycházejí ze základního kapitálu společnosti.
+
+**Přepočet a zaokrouhlení:** částky pro výkazy se berou z hodnoty ve funkční měně nebo se přepočítají po řádcích, nikdy se nepřebírají z měny třídy. Objemy vydaných a odkoupených cenných papírů v ROFOS11 a ROFOS13 se přepočítají kurzem ČNB k rozhodnému dni transakce, u odkupu ke dni přijetí žádosti, a konečný stav je počáteční stav plus emise minus odkupy. IS proto musí předat datum žádosti. U fondu s funkční měnou EUR se výkazy v tisících Kč zaokrouhlují po řádcích, takže předem určíme pravidlo pro součty.
+
+**Období výkazu:** datem je poslední ocenění v měsíci, ne vždy kalendářní konec. U fondů s delším intervalem ocenění platí pro pohyby období od prvního dne po posledním ocenění minulého měsíce.
+
+**Vlastnosti s platností v čase:** sektor a země protistrany se mohou opravovat zpětně za více období, a výkaz se pak opraví novým vydáním. Zařazení podle ZISIF (např. § 46 a § 47) závisí na typu fondu držitele, takže patří na vazbu fondu a nástroje, ne jen na emisi. Emitentem podílového listu nebo akcie je pro výkazy fond nebo podfond. Změna ISIN má účinné datum a historii; je to technická změna bez dopadu na NAV. Výpadek ceny po změně musí vyvolat upozornění.
+
+**Zdroje údajů mimo účetnictví:**
+
+| Údaj | Výkaz | Zdroj |
+| --- | --- | --- |
+| Struktura a počty investorů po typech a zemích | ROFOS11, ROFOS13, ROFOS35 | IS |
+| Datum žádosti o odkup, počty kusů | ROFOS11, ROFOS13, RISIFI37 | IS |
+| Expozice, VaR, likvidita, stresové testy | DOFOS31, ROFOS35 | Řízení rizik |
+| DV01 a další rizikové charakteristiky dluhopisů | ROFOS35 | Tržní data |
+| Hrubá a čistá výkonnost po měsících | ROFOS35 | Ocenění |
+| Trh, podskupina aktiv, CFI, LEI, sektor | RISIFI33, DOFOS31, ROFOS33, ROFOS35 | Číselník nástrojů a protistran |
+| Nemovitosti, vlastní kapitál SPV | DOFOS40 | Podklad správce nebo SPV |
+| Strategie fondu, textové části | ROFOS35, KLISIFI10 | Registr fondů |
+
+**Hlášení obhospodařovatele:** ROFOS33 za obhospodařovatele agreguje fondy, takže potřebuje dotaz napříč společnostmi a jasný seznam, které fondy se započítávají. SICAV a FKI se vykazují také samostatně.
+
+**Odeslání:** Odoo vytvoří soubor ve formátu pro import do SDAT (šablona Export pro import, desetinná tečka, u některých oblastí povinné nuly). Podpis zaručeným certifikátem s roční obnovou a odeslání zůstávají na pověřené osobě. Odoo uloží snímek, vydání a protokol o zpracování.
+
+**Transakční výkazy a oznámení (mimo katalog):** `docs/cnb` obsahuje jen rámec Fondy. Hlášení obchodů (PERFIM30, REFFIM10, TRAFIM30, TRAFIM20, TRAFIM11) patří do jiného rámce: mají vlastní pořadí, lhůtu následujícího pracovního dne, časy v UTC, referenční údaje FIRDS, CFI, LEI a UTI a opravy přes storno. Oznámení o porušení limitu je samostatný výkaz. Zda se Investry týkají a zda je bude vytvářet Odoo, je otevřený bod.
+
+### Kapitál obhospodařovatele (návrh)
+
+Investiční společnost vykazuje kapitál a jeho požadavky v DOFOS60. Výkaz má tři části: strukturu kapitálu, kapitálové požadavky a aktiva podle likvidnosti. Výpočet bude v `investra_cnb` a poběží z dat Odoo, ne z tabulky mimo systém. Stejný výpočet poslouží i průběžnému sledování přebytku kapitálu.
+
+| Část DOFOS60 | Co se počítá | Zdroj v Odoo |
+| --- | --- | --- |
+| Struktura kapitálu | Splacený základní kapitál, fondy, nerozdělený výsledek, použitelný výsledek běžného období, odpočet nehmotného majetku | Hlavní kniha společnosti, stav auditu nebo schválení výsledku |
+| Počáteční kapitál a požadavek k fixním režijním nákladům | Minimální částka v EUR a čtvrtina fixních režijních nákladů (§ 29 a § 30 ZISIF) | Účty s příznakem fixních režijních nákladů, základ za předchozí rok, v prvním roce plán |
+| Dodatečné požadavky | Z hodnoty majetku nad práh a k pokrytí odpovědnosti za škodu (§ 31 ZISIF) | AUM ze schválených ocenění všech fondů |
+| Aktiva podle likvidnosti | Peněžní prostředky, cenné papíry a další likvidní hodnoty (§ 32 ZISIF) | Hlavní kniha společnosti, role účtů |
+
+**Co musí Odoo umět:**
+
+- u nákladových účtů příznak, zda patří do fixních režijních nákladů, s platností od data,
+- rozlišit použitelný a nepoužitelný zisk běžného období, protože zisk se do kapitálu počítá jen za splnění podmínek,
+- sečíst AUM ze schválených ocenění napříč společnostmi k jednomu datu a ukázat rezervu proti prahu pro dodatečný požadavek,
+- přepočítat minimální částku v EUR kurzem podle metodiky, ne pevnou hodnotou v Kč,
+- upozornit, když přebytek kapitálu nebo likvidita klesne pod vnitřní práh.
+
+**Kontroly před odesláním:** aktiva v DOFOS60 proti ROFOS10 a zisk v DOFOS60 proti ROFOS10 (mezivýkazové kontroly), součty struktury kapitálu a požadavků, kapitál proti nejvyššímu požadavku.
+
+Odkazy na ZISIF je před implementací potřeba ověřit proti aktuálnímu znění. Zařazení příplatku mimo základní kapitál do CET1 potvrdit s auditorem nebo ČNB.
 
 ## Audit, bezpečnost a provoz
 
@@ -622,7 +756,11 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 | Podrozvaha v Odoo | Podpora ve standardním Odoo není ověřená, deriváty a opce jsou u fondů významné | Ověřit v prototypu |
 | Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání | Určit v účetní politice |
 | Evidence aktiv uvnitř SPV | Zda Odoo má vést i aktiva dceřiných společností (např. jednotlivé automobily) pro ocenění, limity a výkazy, nebo jen účast a úvěr | Upřesnit |
-| Přesná pole výkazů ČNB | Struktura a kontroly výkazů jsou převzaté z veřejné metodiky SDAT FOFI20261201; chybí kódy položek, číselníky a převodníky pro mapování | Stáhnout z Knihovny SDAT |
+| Přesná pole výkazů ČNB | Struktura a kontroly výkazů jsou převzaté z veřejné metodiky SDAT FOFI20261201; položky a číselníky jsou v docs/cnb, chybí převodníky a ukazatele u položek bez kontroly | Doplnit před prvním exportem |
+| Transakční výkazy a oznámení | Katalog pokrývá jen rámec Fondy; hlášení obchodů mají krátkou lhůtu a vlastní data | Ověřit povinnost Investry, pak rozhodnout o rozsahu a doplnit katalog |
+| TISIFI10 u nových smluv | Zda je bez vypořádání přeceněním celá změna RH, nebo se vychází z první známé RH; mění výsledek v měsíci sjednání | Počítat celou změnu; potvrdit s ČNB před implementací |
+| Výkazy speciálních fondů | Speciální fondy mohou podávat jiné výkazy než FKI, například ROFOS11 a DOFOS70 | Ověřit v plánu výskytů SDAT a doplnit tabulku výkazů |
+| Příplatek mimo základní kapitál | Zda se počítá do CET1 a na který řádek DOFOS60 patří; ovlivňuje vykázaný kapitál | Potvrdit s auditorem nebo ČNB |
 
 ### Chybějící podklady
 
