@@ -82,5 +82,6 @@ Neupravovat zdrojový kód Odoo core ani Odoo Mates. Funkce řešit vlastním ad
 
 - Metodika výkazů ČNB: https://sdat.cnb.cz/sdat_ext/ → Metodické informace → Výkazy, rámec „Fondy“
   (aktuálně metodika FOFI20261201, platná od 1. 12. 2026).
+  Výkazy, položky, kontroly a číselníky jsou uložené v `docs/cnb/`; nejdřív hledat tam, SDAT až pro nové verze.
 - Česká legislativa: ZISIF (240/2013 Sb.), NV 243/2013 Sb., vyhláška 501/2002 Sb., zákon o účetnictví,
   IFRS 9, IAS 21, DORA. Aktuální znění vždy ověřit.

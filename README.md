@@ -13,6 +13,7 @@ a pro účetnictví a výpočet NAV investičních fondů. Vypořádání úpis�
 | [docs/rozhodnuti.md](docs/rozhodnuti.md) | deník rozhodnutí |
 | [docs/otevrene-body.md](docs/otevrene-body.md) | otevřené body a rizika |
 | [docs/kontrola-zadani.md](docs/kontrola-zadani.md) | zadání pro kontrolora; zprávy v `docs/kontroly/` |
+| [docs/cnb/](docs/cnb/README.md) | katalog výkazů, položek, kontrol a číselníků ČNB (rámec Fondy) |
 | `addons/custom/` | vlastní moduly `investra_*` |
 | `docker-compose.investra.yml` | vývojová instance (Odoo 20, http://127.0.0.1:8070) |
 

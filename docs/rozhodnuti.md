@@ -49,3 +49,4 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-05 | Paměť projektu | Sdílená paměť v repozitáři (`CLAUDE.md`, `docs/`), soukromý GitHub pod osobním účtem; kontrola AI agentem (týdně a na vyžádání) i člověkem; jen naše závěry, ne texty předpisů | | R |
 | 2026-11-05 | Pořadí výpočtů za třídy | Výchozí pořadí úplaty → performance fee → daň → dohady; parametr fondu podle statutu | Kontrola, nález 4 | R |
 | 2026-11-05 | Definice ΔT | ΔT zahrnuje i řádky s třídou na účtu vnitřního zúčtování; příklad performance fee přepočten a bude prvním testem `investra_nav` | Kontrola, nález 3 | R+P |
+| 2026-11-06 | Katalog ČNB | Výkazy, položky, kontroly a číselníky uložené v `docs/cnb/`: CSV je zdroj, XLSX se z nich generuje; verze podle metodiky | Veřejná data SDAT, aby se nemusela znovu dohledávat a mohlo je načíst Odoo | R |

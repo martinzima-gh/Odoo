@@ -18,14 +18,14 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání | Určit v účetní politice |
 | Evidence aktiv uvnitř SPV | Zda vést i aktiva dceřiných společností, nebo jen účast a úvěr | Upřesnit |
 | Automatické testy (CI) | Testy modulů se zatím spouštějí ručně | Po prvním funkčním modulu nastavit GitHub Actions s instalací modulu a testy |
-| Pole výkazů ČNB | Struktura a kontroly převzaty z metodiky SDAT FOFI20261201 | Stáhnout kódy položek, číselníky a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
+| Pole výkazů ČNB | Katalog výkazů, položek, kontrol a číselníků je v `docs/cnb/` (metodika FOFI20261201) | Doplnit ukazatele u položek bez kontroly a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
 
 ## Chybějící podklady
 
 - [ ] Dokumentace a API IS.
 - [ ] Kdo a kdy zajistí úpravy IS.
 - [ ] Oceňovací dokumentace, včetně „Výpočtu bonusů pro fondy s delší periodou“.
-- [ ] Kódy položek, číselníky a převodníky ČNB z Knihovny SDAT.
+- [ ] Zbývající ukazatele u položek a převodníky ČNB z Knihovny SDAT (ostatní je v `docs/cnb/`).
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
 - [ ] Účetní politika přecenění: účty, kurz, frekvence, protiúčty, metoda, P&L a OCI.
 - [ ] Naběhlý úrok a klasifikace podle IFRS 9.

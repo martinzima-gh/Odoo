@@ -1,0 +1,1480 @@
+﻿vykaz;list;nazev_listu;typ;cislo;nazev;datovy_typ_nebo_ciselnik;ukazatele_z_kontrol;nazev_ukazatele
+DOFOS15;DOFO15_01;Zpráva auditora a počet investorů;řádek;1;Počet investorů;;;
+DOFOS15;DOFO15_01;Zpráva auditora a počet investorů;řádek;2;Zpráva auditora;;;
+DOFOS15;DOFO15_01;Zpráva auditora a počet investorů;sloupec;1;;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;řádek;1;Součet;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;řádek;2;Dynamický;;P0301;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;1;Název cenného papíru;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;2;ISIN;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;3;Země (stát);;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;4;Vztah k legislativě;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;5;Limit na majetek fondu;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;6;Limit na emitenta;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;7;Celková pořizovací cena;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;8;Celková reálná hodnota;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;9;Počet jednotek;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;10;Ocenění reálnou hodnotou;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;11;Celková nominální hodnota;;;
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;sloupec;12;Podíl na majetkových CP vydaných jedním emitentem/FKI;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;řádek;1;Součet;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;řádek;2;Dynamický;;P0301;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;1;Název cenného papíru;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;2;ISIN;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;3;Země (stát);;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;4;Vztah k legislativě;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;5;Limit na majetek fondu;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;6;Limit na emitenta;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;7;Celková pořizovací cena;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;8;Celková reálná hodnota;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;9;Počet jednotek;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;10;Ocenění reálnou hodnotou;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;11;Celková nominální hodnota;;;
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;sloupec;12;Podíl na dluhových CP vydaných jedním emitentem;;;
+DOFOS31;DOFO31_21;Burzovní deriváty v majetku fondu;řádek;1;Součet;;;
+DOFOS31;DOFO31_21;Burzovní deriváty v majetku fondu;řádek;2;Dynamický;;P0301;
+DOFOS31;DOFO31_21;Burzovní deriváty v majetku fondu;sloupec;1;Název cenného papíru;;;
+DOFOS31;DOFO31_21;Burzovní deriváty v majetku fondu;sloupec;2;ISIN;;;
+DOFOS31;DOFO31_21;Burzovní deriváty v majetku fondu;sloupec;3;Celková reálná hodnota burzovního derivátu;;;
+DOFOS31;DOFO31_21;Burzovní deriváty v majetku fondu;sloupec;4;Ocenění reálnou hodnotou;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;řádek;1;Součet;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;řádek;2;Dynamický;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;1;Pořadové číslo;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;2;Název cenného papíru;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;3;Název protistrany mimoburzovního derivátu;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;4;Identifikační číslo;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;5;Podkladové aktivum mimoburzovních derivátů;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;6;Celková reálná hodnota mimoburzovního derivátu;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;7;Ocenění reálnou hodnotou;;;
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;sloupec;8;Riziko spojené s druhou smluvní stranou derivátu;;;
+DOFOS31;DOFO31_31;Výpočet celkové expozice;řádek;1;Závazková metoda;;;
+DOFOS31;DOFO31_31;Výpočet celkové expozice;řádek;2;Absolutní  hodnota v riziku (VaR);;;
+DOFOS31;DOFO31_31;Výpočet celkové expozice;řádek;3;Relativní hodnota v riziku (VaR);;;
+DOFOS31;DOFO31_31;Výpočet celkové expozice;řádek;4;Jiná pokročilá metoda měření rizik;;;
+DOFOS31;DOFO31_31;Výpočet celkové expozice;sloupec;1;;;;
+DOFOS31;DOFO31_41;Měnové expozice;řádek;1;Dynamický;;;
+DOFOS31;DOFO31_41;Měnové expozice;sloupec;1;Struktura sledovaných měn;;;
+DOFOS31;DOFO31_41;Měnové expozice;sloupec;2;Expozice dané měny v portfoliu (bez derivátů):;;;
+DOFOS31;DOFO31_41;Měnové expozice;sloupec;3;Nominální hodnota měnových derivátů:;;;
+DOFOS31;DOFO31_51;Kryptoaktiva;řádek;1;Dynamický;;;
+DOFOS31;DOFO31_51;Kryptoaktiva;sloupec;1;Název Krytoaktiva;;;
+DOFOS31;DOFO31_51;Kryptoaktiva;sloupec;2;Počet jednotek kryptoaktiva;;;
+DOFOS31;DOFO31_51;Kryptoaktiva;sloupec;3;Celková pořizovací cena kryptoaktiva;;;
+DOFOS31;DOFO31_51;Kryptoaktiva;sloupec;4;Celková reálná hodnota kryptoaktiva;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;řádek;1;Součet;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;řádek;2;Dynamický;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;1;Typ nemovitosti;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;2;Účel využití nemovitosti;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;3;Země (stát);;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;4;Adresa  - obec;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;5;Adresa  - ulice,číslo;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;6;Parcelní číslo nemovitosti;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;7;Označení katastrálního území;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;8;Identifikační číslo;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;9;Ideální podíl na nemovitosti;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;10;Reálná hodnota nemovitosti;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;11;Metoda výpočtu ceny nemovitosti;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;12;Hodnota budoucích výnosů z nemovitosti;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;13;Průměrná diskontní sazba;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;14;Zástavní právo k nemovitosti (ano/ne);;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;15;Průměrná zbývající doba sjednání nájemní smlouvy;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;16;Pronajatá plocha;;;
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;sloupec;17;Stupeň obsazení objektu;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;řádek;1;Součet;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;řádek;2;Dynamický;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;sloupec;1;Pořadové číslo;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;sloupec;2;Název nemovitostní společnosti;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;sloupec;3;Identifikační číslo;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;sloupec;4;Vlastní kapitál nemovitostní společnosti;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;sloupec;5;Výše majetkové účasti fondu na nemovitostní společnosti;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;sloupec;6;Reálná hodnota účasti na nemovitostní společnosti;;;
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;sloupec;7;Reálná hodnota půjček poskytnutých z majetku fondu;;;
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;1;Název vykazující osoby;;;
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;2;Identifikační číslo vykazující osoby;;;
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;3;LEI kód vykazující osoby;;EVD0175;LEI kód vykazující osoby
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;4;Adresa sídla vykazující osoby - ulice, číslo popisné;;EVD0004;Adresa sídla vykazující osoby - ulice, číslo popisné
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;5;Adresa sídla vykazující osoby - PSČ;;EVD0005;Adresa sídla vykazující osoby - PSČ
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;6;Adresa sídla vykazující osoby - obec;;EVD0006;Adresa sídla vykazující osoby - obec
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;7;Telefonní číslo ústředny sídla vykazující osoby;;;
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;8;Adresa elektronické pošty vykazující osoby;;;
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;9;Adresa internetové stránky vykazující osoby;;;
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;10;Doručovací adresa vykazující osoby-ulice, číslo popisné;;EVD0117;Doručovací adresa vykazující osoby-ulice, číslo popisné
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;11;Doručovací adresa vykazující osoby - PSČ;;EVD0118;Doručovací adresa vykazující osoby - PSČ
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;12;Doručovací adresa vykazující osoby - obec;;EVD0119;Doručovací adresa vykazující osoby - obec
+DOFOS50;DIS60_01;Identifikace vykazující osoby;řádek;13;Doručovací adresa vykazující osoby - stát;;EVD0182;Doručovací adresa vykazující osoby - stát
+DOFOS50;DIS60_01;Identifikace vykazující osoby;sloupec;1;;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;1;Počet pracovníků;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;2;z toho počet členů SO s řídicí funkcí;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;3;z toho počet členů DO nebo SO s kontrolní funkcí;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;4;Přepočtený počet pracovníků (FTE) ∑;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;5;Členství v SO s řídicí funkcí;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;6;Členství v DO nebo SO s kontrolní funkcí;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;7;Správa majetku investičních fondů;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;8;Řízení rizik;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;9;Vnitřní audit;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;10;Compliance;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;11;Administrace investičních fondů;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;12;z toho oceňování;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;13;Investiční služby;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;řádek;14;Ostatní;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;sloupec;1;Pracovníci celkem;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;sloupec;2;Pracovníci alokovaní na vlastní činnost;;;
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;sloupec;3;Pracovníci alokovaní na činnost pro jiného;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;1;Správa majetku investičních fondů;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;2;Řízení rizik;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;3;Vnitřní audit;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;4;Administrace investičních fondů;;EFO0222, EFO0221, EFO0218;Příjmení osoby
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;5;Compliance;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;6;Výkaznictví pro ČNB;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;7;Nabízení investic do fondů;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;8;Kontaktní osoba AML;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;řádek;9;Pověřená osoba AML;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;1;<br/> / Jméno osoby;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;2;Příjmení osoby;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;3;Titul před jménem;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;4;Titul za jménem;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;5;Adresa elektronické pošty;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;6;Telefonní číslo;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;7;Datum zahájení činnosti ve společnosti;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;8;Datum převzetí odpovědnosti za oblast;;;
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;sloupec;9;Outsourcovaná činnost;;;
+DOFOS50;DOFO50_04;Outsourcing;řádek;1;Dynamický;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;1;Pořadové číslo;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;2;Hlavní pracovní oblasti;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;3;Identifikační číslo pověřené osoby;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;4;Název společnosti;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;5;Jméno osoby provádějící činnost;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;6;Příjmení osoby provádějící činnost;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;7;Adresa elektronické pošty;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;8;Telefonní číslo;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;9;Datum uzavření smlouvy o outsourcingu;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;10;Kód fondu;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;11;Název fondu;;;
+DOFOS50;DOFO50_04;Outsourcing;sloupec;12;Rozsah pověření;;;
+DOFOS50;DOFO50_05;Distribuce investičních fondů;sloupec;1;Počet distributorů;;;
+DOFOS50;DOFO50_05;Distribuce investičních fondů;sloupec;2;Objem prodejů distributorů;;;
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;1;Počet svěřenských fondů;;;
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;2;Hodnota spravovaných aktiv (AUM) celkem ∑;;AFO0105;Hodnota spravovaných aktiv (AUM) celkem
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;3;Hotovost a pohledávky za bankami a družstevními záložnami;;AFO0106;Hotovost a pohledávky za bankami a družstevními záložnami
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;4;Finanční aktiva ∑;;AFO0107;Finanční aktiva
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;5;Akcie, podílové listy a ostatní podíly;;AFO0110;Akcie, podílové listy a ostatní podíly
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;6;z toho v investičních fondech;;AFO0108;z toho v investičních fondech
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;7;Ostatní finanční aktiva;;AFO0111;Ostatní finanční aktiva
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;8;Dlouhodobý nehmotný majetek;;AFO0023;Dlouhodobý nehmotný majetek
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;9;Dlouhodobý hmotný majetek;;AFO0026;Dlouhodobý hmotný majetek
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;10;z toho nemovitý majetek;;AFO0109;z toho nemovitý majetek
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;řádek;11;Ostatní aktiva;;AFO0028;Ostatní aktiva
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;sloupec;1;;;;
+DOFOS50;DOFO50_07;Informace týkající se udržitelnosti;řádek;1;Zohledňování hlavních nepříznivých dopadů (PAI) investičních rozhodnutí na faktory udržitelnosti na úrovni správce;;;
+DOFOS50;DOFO50_07;Informace týkající se udržitelnosti;řádek;2;Odkaz na prohlášení o (ne)zohledňování PAI podle RTS SFDR;;;
+DOFOS50;DOFO50_07;Informace týkající se udržitelnosti;sloupec;1;;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;řádek;1;Dynamický;;EFO0265, R0138, EFO0266;Identifikační číslo iniciátora fondu
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;1;Pořadové číslo;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;2;Kód (pod)fondu;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;3;Zkrácený název (pod)fondu;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;4;Identifikační číslo iniciátora fondu;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;5;Název společnosti – iniciátora fondu;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;6;Datum narození iniciátora fondu;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;7;Jméno iniciátora fondu;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;8;Příjmení iniciátora fondu;;;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;sloupec;9;Promotér fondu;;;
+DOFOS50;DOFO50_21;Identifikace (pod)fondů nabízených v jiném členském státě;řádek;1;Dynamický;;R0138;
+DOFOS50;DOFO50_21;Identifikace (pod)fondů nabízených v jiném členském státě;sloupec;1;Pořadové číslo;;;
+DOFOS50;DOFO50_21;Identifikace (pod)fondů nabízených v jiném členském státě;sloupec;2;Kód (pod)fondu;;;
+DOFOS50;DOFO50_21;Identifikace (pod)fondů nabízených v jiném členském státě;sloupec;3;Zkrácený název (pod)fondu;;;
+DOFOS50;DOFO50_21;Identifikace (pod)fondů nabízených v jiném členském státě;sloupec;4;Země skutečného nabízení;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;řádek;1;Součet;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;řádek;2;Dynamický;;P0632;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;1;Název právnické osoby;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;2;Identifikační číslo;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;3;LEI kód;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;4;Země (stát);;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;5;Ekonomické sektory podle ESA2010;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;6;Objekt vykazování podle ekonomických činností CZ-NACE (rev. 2.1);;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;7;Možnost podstatně ovlivňovat řízení;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;8;Celková jmenovitá hodnota akcií vykazující osoby držených akcionářem;;;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;sloupec;9;Celkový počet hlasovacích práv držených akcionářem;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;řádek;1;Součet;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;řádek;2;Dynamický;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;1;Datum narození občana;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;2;Titul před jménem;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;3;Jméno občana;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;4;Příjmení občana;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;5;Titul za jménem;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;6;Státní občanství;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;7;Adresa  - ulice,číslo;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;8;Adresa  - PSČ;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;9;Adresa  - obec;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;10;Země (stát);;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;11;Možnost podstatně ovlivňovat řízení;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;12;Celková jmenovitá hodnota akcií vykazující osoby držených akcionářem;;;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;sloupec;13;Celkový počet hlasovacích práv držených akcionářem;;;
+DOFOS50;DOFO50_11;Informace o činnosti hlavního administrátora;řádek;1;Počet fondů, pro které zajišťuje administraci;;;
+DOFOS50;DOFO50_11;Informace o činnosti hlavního administrátora;řádek;2;Objem majetku fondů, pro které zajišťuje administraci;;;
+DOFOS50;DOFO50_11;Informace o činnosti hlavního administrátora;sloupec;1;Celkem za vybrané fondy ∑;;;
+DOFOS50;DOFO50_11;Informace o činnosti hlavního administrátora;sloupec;2;Standardní fond;;;
+DOFOS50;DOFO50_11;Informace o činnosti hlavního administrátora;sloupec;3;Speciální fond;;;
+DOFOS50;DOFO50_11;Informace o činnosti hlavního administrátora;sloupec;4;Fond kvalifikovaných investorů;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;1;Kapitál;;DFO0033;Kapitál
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;2;Tier 1 (T1) kapitál;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;3;Kmenový tier 1 (CET1) kapitál ∑;;DFO0035;Kmenový tier 1 (CET1) kapitál
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;4;Nástroje použitelné pro CET1 kapitál ∑;;DFO0036;Nástroje použitelné pro CET1 kapitál
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;5;Splacené CET1 nástroje;;DFO0037;Splacené CET1 nástroje
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;6;z toho: kapitálové nástroje upsané veřejnými orgány v mimořádných situacích;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;7;Doplňující informace: nástroje nepoužitelné pro CET1 kapitál;;DFO0039;Doplňující informace: nástroje nepoužitelné pro CET1 kapitál
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;8;Emisní ážio;;DFO0040;Emisní ážio
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;9;(-) Nabyté vlastní CET1 nástroje ∑;;DFO0041;(-) Nabyté vlastní CET1 nástroje
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;10;(-) Vlastní CET1 nástroje nabyté přímo;;DFO0042;(-) Vlastní CET1 nástroje nabyté přímo
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;11;(-) Vlastní CET1 nástroje nabyté nepřímo;;DFO0043;(-) Vlastní CET1 nástroje nabyté nepřímo
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;12;(-) Syntetické investice do CET1 nástrojů;;DFO0044;(-) Syntetické investice do CET1 nástrojů
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;13;(-) Skutečné nebo podmíněné závazky k nákupu vlastních CET1 nástrojů;;DFO0045;(-) Skutečné nebo podmíněné závazky k nákupu vlastních CET1 nástrojů
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;14;Nerozdělený zisk/neuhrazená ztráta ∑;;DFO0046;Nerozdělený zisk/neuhrazená ztráta
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;15;Nerozdělený zisk/neuhrazená ztráta za předchozí období;;DFO0047;Nerozdělený zisk/neuhrazená ztráta za předchozí období
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;16;Použitelný zisk/ztráta ∑;;DFO0048;Použitelný zisk/ztráta
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;17;Zisk/ztráta;;DFO0049;Zisk/ztráta
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;18;(-) Nepoužitelný mezitímní zisk nebo nepoužitelný zisk z ukončeného účetního období;;DFO0050;(-) Nepoužitelný mezitímní zisk nebo nepoužitelný zisk z ukončeného účetního období
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;19;Kumulovaný ostatní úplný výsledek hospodaření (OCI);;DFO0051;Kumulovaný ostatní úplný výsledek hospodaření (OCI)
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;20;Ostatní rezervní fondy;;DFO0052;Ostatní rezervní fondy
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;21;Rezervní fond na všeobecná bankovní rizika;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;22;Nástroje použitelné pro CET1 kapitál po přechodnou dobu;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;23;Menšinové podíly zahrnuté do CET1 kapitálu;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;24;Přechodně uznávané menšinové podíly;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;25;Úpravy CET1 kapitálu z důvodu použití obezřetnostních filtrů ∑;;DFO0057;Úpravy CET1 kapitálu z důvodu použití obezřetnostních filtrů
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;26;(-) Zvýšení vlastního kapitálu ze sekuritizace aktiv;;DFO0058;(-) Zvýšení vlastního kapitálu ze sekuritizace aktiv
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;27;Rezervní fond na zajištění peněžních toků;;DFO0059;Rezervní fond na zajištění peněžních toků
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;28;Kumulativní zisk/ztráta ze změn reálné hodnoty závazků při změně úvěrového rizika;;DFO0060;Kumulativní zisk/ztráta ze změn reálné hodnoty závazků při změně úvěrového rizika
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;29;Reálná hodnota zisku nebo ztráty z vlastního úvěrového rizika souvisejícího s derivátovými závazky;;DFO0061;Reálná hodnota zisku nebo ztráty z vlastního úvěrového rizika souvisejícího s derivátovými závazky
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;30;(-) Úpravy hodnot podle požadavků pro obezřetné oceňování;;DFO0062;(-) Úpravy hodnot podle požadavků pro obezřetné oceňování
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;31;(-) Goodwill ∑;;DFO0063;(-) Goodwill
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;32;(-) Goodwill z nehmotných aktiv;;DFO0064;(-) Goodwill z nehmotných aktiv
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;33;(-) Goodwill zahrnutý v ocenění významných investic;;DFO0065;(-) Goodwill zahrnutý v ocenění významných investic
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;34;Odložené daňové závazky z goodwillu;;DFO0066;Odložené daňové závazky z goodwillu
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;35;(-) Jiná nehmotná aktiva ∑;;DFO0067;(-) Jiná nehmotná aktiva
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;36;(-) Jiná nehmotná aktiva - hrubá hodnota;;DFO0068;(-) Jiná nehmotná aktiva - hrubá hodnota
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;37;Odložené daňové závazky související s jinými nehmotnými aktivy;;DFO0069;Odložené daňové závazky související s jinými nehmotnými aktivy
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;38;(-) Odložené daňové pohledávky závislé na budoucím zisku nevyplývající z přechodných rozdílů snížené o související daňové závazky;;DFO0070;(-) Odložené daňové pohledávky závislé na budoucím zisku nevyplývající z přechodných rozdílů snížené o související daňové závazky
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;39;(-) Nedostatek v krytí očekávaných ztrát úpravami o úvěrové riziko při IRB;;DFO0071;(-) Nedostatek v krytí očekávaných ztrát úpravami o úvěrové riziko při IRB
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;40;(-) Aktiva z definovaných požitkových penzijních fondů ∑;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;41;(-) Aktiva z definovaných požitkových penzijních fondů - hrubá hodnota;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;42;Odložené daňové závazky související s aktivy definovaných požitkových penzijních fondů;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;43;Aktiva z definovaných požitkových penzijních fondů, se kterými může instituce nakládat bez omezení;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;44;(-) Vzájemné investice do CET1 nástrojů;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;45;(-) Převýšení odčitatelných položek nad AT1 kapitálem;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;46;(-) Kvalifikované účasti mimo finanční sektor (alternativně s rizikovou váhou 1250 %);;DFO0078;(-) Kvalifikované účasti mimo finanční sektor (alternativně s rizikovou váhou 1250 %)
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;47;(-) Sekuritizované expozice (alternativně s rizikovou váhou 1250 %);;DFO0079;(-) Sekuritizované expozice (alternativně s rizikovou váhou 1250 %)
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;48;(-) Volné dodávky (alternativně s rizikovou váhou 1250 %);;DFO0080;(-) Volné dodávky (alternativně s rizikovou váhou 1250 %)
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;49;(-) Seskupení expozic, pro které nelze určit rizikovou váhu podle IRB (alternativně s rizikovou váhou 1250 %);;DFO0081;(-) Seskupení expozic, pro které nelze určit rizikovou váhu podle IRB (alternativně s rizikovou váhou 1250 %)
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;50;(-) Akciové expozice podle VaR (alternativně s rizikovou váhou 1250 %);;DFO0082;(-) Akciové expozice podle VaR (alternativně s rizikovou váhou 1250 %)
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;51;(-) Nadlimitní nevýznamné investice do osob z finančního sektoru;;DFO0083;(-) Nadlimitní nevýznamné investice do osob z finančního sektoru
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;52;(-) Odložené daňové pohledávky závislé na budoucím zisku vyplývající z přechodných rozdílů;;DFO0084;(-) Odložené daňové pohledávky závislé na budoucím zisku vyplývající z přechodných rozdílů
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;53;(-) Nadlimitní významné investice do osob z finančního sektoru;;DFO0085;(-) Nadlimitní významné investice do osob z finančního sektoru
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;54;(-) Hodnoty přesahující 17,65 % vlastního CET1 kapitálu;;DFO0086;(-) Hodnoty přesahující 17,65 % vlastního CET1 kapitálu
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;55;Ostatní přechodné úpravy CET1 kapitálu;;DFO0087;Ostatní přechodné úpravy CET1 kapitálu
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;56;(-) Dodatečné odpočty od CET1 kapitálu podle čl. 3 CRR;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;řádek;57;Ostatní nástroje CET1 kapitálu a ostatní odpočty od CET1 kapitálu;;;
+DOFOS60;DOFO60_11;Struktura kapitálu;sloupec;1;;;;
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;1;Celkový kapitálový požadavek ∑;;DFO0090;Celkový kapitálový požadavek
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;2;Počáteční kapitál dle § 29;;DFO0023;Počáteční kapitál dle § 29
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;3;Minimální KP k fixním režijním nákladům dle § 30;;DFO0025;Minimální KP k fixním režijním nákladům dle § 30
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;4;Dodatečné kapitálové požadavky ∑;;DFO0028;Dodatečné kapitálové požadavky
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;5;Dodatečné KP z hodnot majetku dle § 31 odst. 1;;DFO0029;Dodatečné KP z hodnot majetku dle § 31 odst. 1
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;6;z toho dodatečný KP dle § 31 odst. 2 krytý zárukou;;DFO0030;z toho dodatečný KP dle § 31 odst. 2 krytý zárukou
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;7;Dodatečné KP k pokrytí odpovědnosti za škodu dle § 31 odst. 5a);;DFO0031;Dodatečné KP k pokrytí odpovědnosti za škodu dle § 31 odst. 5a)
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;8;Dodatečný KP k míře spoluúčasti k pojištění dle § 31 odst. 5b);;DFO0032;Dodatečný KP k míře spoluúčasti k pojištění dle § 31 odst. 5b)
+DOFOS60;DOFO60_12;Kapitálové požadavky;řádek;9;Dodatečný KP dle § 11 odst. 8;;DFO0091;Dodatečný KP dle § 11 odst. 8
+DOFOS60;DOFO60_12;Kapitálové požadavky;sloupec;1;Podkladová hodnota pro výpočet;;;
+DOFOS60;DOFO60_12;Kapitálové požadavky;sloupec;2;Kapitálový požadavek;;;
+DOFOS60;DOFO60_13;Aktiva podle likvidnosti;řádek;1;Aktiva celkem;;AFO0031;Aktiva celkem
+DOFOS60;DOFO60_13;Aktiva podle likvidnosti;řádek;2;Peněžní prostředky a ekvivalenty;;AFO0032;Peněžní prostředky a ekvivalenty
+DOFOS60;DOFO60_13;Aktiva podle likvidnosti;řádek;3;Cenné papíry dle § 32;;AFO0033;Cenné papíry dle § 32
+DOFOS60;DOFO60_13;Aktiva podle likvidnosti;řádek;4;Ostatní likvidní majetkové hodnoty dle § 32;;AFO0034;Ostatní likvidní majetkové hodnoty dle § 32
+DOFOS60;DOFO60_13;Aktiva podle likvidnosti;sloupec;1;;;;
+DOFOS70;DOFO70_01;Informace o produktech;řádek;1;Dynamický;;SFO0006, L0022, SFO0033;Důvod nevypracování sdělení klíčových informací
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;1;Kód aktiva;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;2;Typ kódu aktiva;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;3;Název produktu;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;4;Frekvence oceňování;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;5;Oblast udržitelnosti;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;6;Zohledňování PAI;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;7;Vypracováno sdělení klíčových informací?;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;8;Důvod nevypracování sdělení klíčových informací;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;9;Reprezentativní třída;;;
+DOFOS70;DOFO70_01;Informace o produktech;sloupec;10;Popis jiného důvodu pro nevypracování sdělení klíčových informací;;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;klíč;L0022;Kód aktiva;an80;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;klíč;P0019;Měna produktu;D_S_ISOMENY_1;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;1;Datum vypracování nebo poslední úpravy sdělení klíčových informací;;SFO0010;Datum vypracování nebo poslední úpravy sdělení klíčových informací
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;2;Datum poslední kontroly informací ze sdělení klíčových informací;;SFO0011;Datum poslední kontroly informací ze sdělení klíčových informací
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;3;Typ investice;;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;4;Předpokládaná výše investice v měně produktu;;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;5;Kategorie produktu;;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;6;Hodnota souhrnného ukazatele rizik (SRI);;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;7;Doporučený investiční horizont kratší než 1 rok;;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;8;Délka investičního horizontu (počet dní);;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;9;Zaručen minimální výnos;;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;10;Minimální zaručená peněžní částka;;;
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;řádek;11;Internetová adresa zveřejnění;;SFO0012;Internetová adresa zveřejnění
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;sloupec;1;;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;klíč;L0022;Kód aktiva;an80;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;klíč;P0019;Měna produktu;D_S_ISOMENY_1;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;1;Prezentované délky držení v letech;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;2;Stresový scénář – Co byste mohli získat zpět po odečtení nákladů;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;3;Stresový scénář – Průměrný každoroční výnos (v %);;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;4;Nepříznivý scénář – Co byste mohli získat zpět po odečtení nákladů;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;5;Nepříznivý scénář – Průměrný každoroční výnos (v %);;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;6;Umírněný scénář – Co byste mohli získat zpět po odečtení nákladů;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;7;Umírněný scénář – Průměrný každoroční výnos (v %);;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;8;Příznivý scénář – Co byste mohli získat zpět po odečtení nákladů;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;9;Příznivý scénář – Průměrný každoroční výnos (v %);;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;10;Investovaná částka v průběhu času;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;11;Náklady celkem;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;řádek;12;Dopad (ročních) nákladů (v %);;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;sloupec;1;Na konci prvního roku;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;sloupec;2;Po polovině doporučené doby držení;;;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;sloupec;3;Na konci doporučené doby držení;;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;klíč;L0022;Kód aktiva;an80;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;klíč;P0019;Struktura sledovaných měn;D_S_ISOMENY_1;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;řádek;1;Jednorázové náklady – náklady na vstup;;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;řádek;2;Jednorázové náklady – náklady na výstup;;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;řádek;3;Průběžné náklady – poplatky za vedení a jiné správní nebo provozní náklady;;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;řádek;4;Průběžné náklady – transakční náklady;;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;řádek;5;Vedlejší náklady – výkonnostní poplatky a odměny za zhodnocení kapitálu;;;
+DOFOS70;DOFO70_04;Skladba nákladů produktu;sloupec;1;;;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;1;Způsob distribuce zisku;;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;2;Investiční politika dle převažujícího typu aktiv;;EAR2574;Investiční politika dle převažujícího typu aktiv
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;3;Správa portfolia;;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;4;Geografické zaměření investic;;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;5;Fond korporátních/státních dluhopisů;;EAR2577;Fond korporátních/státních dluhopisů
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;6;Investorská základna;;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;7;Typ nemovitostního fondu;;EAR2581;Typ nemovitostního fondu
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;8;Burzovně obchodovaný fond (ETF);;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;9;Fond soukromého kapitálu (PEF);;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;10;Frekvence odkupů emitovaných podílových listů/akcií;;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;řádek;11;Klasifikace fondu podle SFDR;;;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;sloupec;1;;;;
+PEFOS10;PEFO10_01;Hlášení fondů peněžního trhu;řádek;1;Hlášení fondu peněžního trhu (xml);;;
+PEFOS10;PEFO10_01;Hlášení fondů peněžního trhu;sloupec;1;;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;1;Aktiva celkem ∑;;EAR2285;Aktiva celkem
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;2;*Uložené vklady ∑;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;3;*Uložené vklady - do 1 roku ∑;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;4;Převoditelné vklady;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;5;Ostatní vklady;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;6;*Uložené vklady - nad 1 rok;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;7;*Úvěry a pohledávky obdobné úvěrům ∑;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;8;*Úvěry a pohledávky obdobné úvěrům - do 1 roku;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;9;Úvěry a pohledávky obdobné úvěrům - nad 1 rok;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;10;Držené cenné papíry a majetkové účasti;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;11;Nefinanční aktiva;;EAR2592;Nefinanční aktiva
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;12;Rezidenční nemovitosti;;EAR2564;Rezidenční nemovitosti
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;13;Komerční nemovitosti;;EAR2565;Komerční nemovitosti
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;14;Průmyslové nemovitosti;;EAR2566;Průmyslové nemovitosti
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;15;Ostatní nemovitosti;;EAR2567;Ostatní nemovitosti
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;16;Kancelářské nemovitosti;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;17;Finanční deriváty - kladná reálná hodnota;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;18;Ostatní aktiva;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;19;Naběhlé příslušenství ke vkladům;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;řádek;20;Naběhlé příslušenství k úvěrům a pohledávkám obd.úvěrům;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;sloupec;1;Všechny země včetně vybraných  teritorií a mezinárod. org. ∑;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;sloupec;2;Česká republika;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;sloupec;3;Země eurozóny včetně vybraných teritorií;;;
+RISIFI30;RIS30_01;Aktiva v základním členění;sloupec;4;Ostatní země a MO bez ČR a  eurozóny vč. vybr. teritorií;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;řádek;1;*Přehled poskytnutých úvěrů - Česká republika - do 1 roku;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;řádek;2;*Přehled poskytnutých úvěrů - Česká republika - nad 1 rok;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;řádek;3;*Přehled poskytnutých úvěrů - Země eurozóny - do 1 roku;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;řádek;4;*Přehled poskytnutých úvěrů - Země eurozóny - nad 1 rok;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;1;Měnové finanční instituce (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;2;Vládní instituce (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;3;Nefinanční podniky (rezidenti a nerezidenti) / Úvěry s pákovým efektem;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;4;Ostatní úvěry;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;5;Investiční fondy jiné než fondy peněžního trhu (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;6;Ostatní finanční zprostředkovatelé (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;7;Pomocné finanční instituce (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;8;Kaptivní finanční instituce a půjčovatelé peněz (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;9;Pojišťovací společnosti (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;10;Penzijní fondy (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;11;Domácnosti celkem (rezidenti a nerezidenti) včetně SVJ;;;
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;sloupec;12;Neziskové instituce sloužící domácnostem (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;řádek;1;Uložené vklady a úvěry a pohledávky obdobné úvěrům - do 1 roku;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;řádek;2;Uložené vklady a úvěry a pohledávky obdobné úvěrům - nad 1 rok;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;1;Země eurozóny / Belgické království;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;2;Bulharská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;3;Francie  včetně teritorií;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;4;Finská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;5;Chorvatská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;6;Irsko;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;7;Italská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;8;Kyperská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;9;Litevská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;10;Lotyšská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;11;Lucemburské velkovévodství;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;12;Maltská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;13;Nizozemské království;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;14;Portugalská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;15;Rakouská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;16;Řecká republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;17;Slovenská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;18;Slovinská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;19;Spolková republika Německo;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;20;Španělské království;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;21;ECB (Evropská centrální banka);;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;22;EFSF (European Financial Stability Facility);;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;23;Evropský mechanismus stability (ESM);;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;24;Členské státy EU mimo eurozónu / Dánské království;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;25;Maďarsko;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;26;Polská republika;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;27;Rumunsko;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;28;Švédské království;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;29;Zbytek světa / Japonsko;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;30;Spojené království Velké Británie a Severního Irska;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;31;Spojené státy americké;;;
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;sloupec;32;Ostatní země bez zemí EU a GB a vybraných zemí;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;1;Pasiva celkem ∑;;EPR1887;Pasiva celkem
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;2;*Přijaté úvěry ∑;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;3;*Přijaté úvěry - do 1 roku;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;4;*Přijaté úvěry  - nad 1 rok;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;5;Revolvingové úvěry a přečerpání;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;6;Emitované akcie/podílové listy;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;7;Finanční deriváty - záporná reálná hodnota;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;8;Ostatní pasiva;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;řádek;9;Naběhlé příslušenství k přijatým úvěrům;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;sloupec;1;Všechny země včetně vybraných  teritorií a mezinárod. org. ∑;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;sloupec;2;Česká republika;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;sloupec;3;Země eurozóny včetně vybraných teritorií;;;
+RISIFI30;RIS30_03;Pasiva v základním členění;sloupec;4;Ostatní země a MO bez ČR a  eurozóny vč. vybr. teritorií;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;řádek;1;Přijaté úvěry - Česká republika - do 1 roku;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;řádek;2;Přijaté úvěry - Česká republika - nad 1 rok;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;řádek;3;Přijaté úvěry - Země eurozóny - do 1 roku;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;řádek;4;Přijaté úvěry - Země eurozóny - nad 1 rok;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;řádek;5;Revolvingové úvěry a přečerpání - Česká republika;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;řádek;6;Revolvingové úvěry a přečerpání - Země eurozóny;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;1;Měnové finanční instituce (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;2;Vládní instituce (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;3;Nefinanční podniky (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;4;Investiční fondy jiné než fondy peněžního trhu (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;5;Ostatní finanční zprostředkovatelé (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;6;Pomocné finanční instituce (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;7;Kaptivní finanční instituce a půjčovatelé peněz (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;8;Pojišťovací společnosti (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;9;Penzijní fondy (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;10;Domácnosti celkem (rezidenti a nerezidenti) včetně SVJ;;;
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;sloupec;11;Neziskové instituce sloužící domácnostem (rezidenti a nerezidenti);;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;řádek;1;*Přijaté úvěry - do 1 roku;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;řádek;2;*Přijaté úvěry  - nad 1 rok;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;1;Země eurozóny / Belgické království;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;2;Bulharská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;3;Francie  včetně teritorií;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;4;Finská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;5;Chorvatská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;6;Irsko;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;7;Italská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;8;Kyperská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;9;Litevská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;10;Lotyšská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;11;Lucemburské velkovévodství;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;12;Maltská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;13;Nizozemské království;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;14;Portugalská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;15;Rakouská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;16;Řecká republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;17;Slovenská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;18;Slovinská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;19;Spolková republika Německo;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;20;Španělské království;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;21;ECB (Evropská centrální banka);;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;22;EFSF (European Financial Stability Facility);;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;23;Evropský mechanismus stability (ESM);;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;24;Členské státy EU mimo eurozónu / Dánské království;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;25;Maďarsko;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;26;Polská republika;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;27;Rumunsko;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;28;Švédské království;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;29;Zbytek světa / Japonsko;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;30;Spojené království Velké Británie a Severního Irska;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;31;Spojené státy americké;;;
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;sloupec;32;Ostatní země bez zemí EU a GB a vybraných zemí;;;
+RISIFI30;RIS30_05;Doplňkové informace;řádek;1;Objem zapůjčených cenných papírů;;;
+RISIFI30;RIS30_05;Doplňkové informace;sloupec;1;;;;
+RISIFI33;RIS33_11;Security-by-security - držené cenné papíry s identifikátorem ISIN;řádek;1;Dynamický;;P0301;
+RISIFI33;RIS33_11;Security-by-security - držené cenné papíry s identifikátorem ISIN;sloupec;1;ISIN;;;
+RISIFI33;RIS33_11;Security-by-security - držené cenné papíry s identifikátorem ISIN;sloupec;2;Název cenného papíru;;;
+RISIFI33;RIS33_11;Security-by-security - držené cenné papíry s identifikátorem ISIN;sloupec;3;Počet jednotek/Nominální hodnota;;;
+RISIFI33;RIS33_11;Security-by-security - držené cenné papíry s identifikátorem ISIN;sloupec;4;Celková reálná hodnota;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;řádek;1;Dynamický;;P0236, P0125, P0088;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;1;Kód cenného papíru/majetkové účasti;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;2;Typ kódu cenného papíru/majetkové účasti;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;3;Název cenného papíru/majetkové účasti;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;4;Druh cenného papíru/majetková účast;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;5;Měna cenného papíru/majetkové účasti;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;6;Ekonomické sektory podle ESA2010;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;7;Země emitenta;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;8;Nabíhající příslušenství;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;9;Jednotková cena/Procento nominální hodnoty;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;10;Počet jednotek/Nominální hodnota;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;11;Celková reálná hodnota;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;12;Datum emise;;;
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;sloupec;13;Datum splatnosti;;;
+RISIFI33;RIS33_12;Security-by-security - emitované cenné papíry;řádek;1;Dynamický;;;
+RISIFI33;RIS33_12;Security-by-security - emitované cenné papíry;sloupec;1;ISIN;;;
+RISIFI33;RIS33_12;Security-by-security - emitované cenné papíry;sloupec;2;Země  (ekonomické teritorium);;;
+RISIFI33;RIS33_12;Security-by-security - emitované cenné papíry;sloupec;3;Ekonomické sektory podle ESA2010;;;
+RISIFI33;RIS33_12;Security-by-security - emitované cenné papíry;sloupec;4;Počet jednotek;;;
+RISIFI33;RIS33_12;Security-by-security - emitované cenné papíry;sloupec;5;Celková aktuální hodnota;;;
+RISIFI37;RIS37_01;Objem vydaných a odkoupených podílových listů a akcií fondu;řádek;1;Objem prodaných podílových listů/akcií;;EPR1986;Objem prodaných podílových listů/akcií
+RISIFI37;RIS37_01;Objem vydaných a odkoupených podílových listů a akcií fondu;řádek;2;Objem odkoupených podílových listů/akcií;;EPR1987;Objem odkoupených podílových listů/akcií
+RISIFI37;RIS37_01;Objem vydaných a odkoupených podílových listů a akcií fondu;sloupec;1;;;;
+ROFOS10;ROFO10_11;Aktiva;řádek;1;Aktiva celkem ∑;;AFO0031;Aktiva celkem
+ROFOS10;ROFO10_11;Aktiva;řádek;2;Pokladní hotovost a ostatní vklady splatné na požádání ∑;;AFO0035;Pokladní hotovost a ostatní vklady splatné na požádání
+ROFOS10;ROFO10_11;Aktiva;řádek;3;Pokladní hotovost;;AFO0002;Pokladní hotovost
+ROFOS10;ROFO10_11;Aktiva;řádek;4;Ostatní vklady splatné na požádání;;AFO0036;Ostatní vklady splatné na požádání
+ROFOS10;ROFO10_11;Aktiva;řádek;5;Finanční aktiva k obchodování;;AFO0037;Finanční aktiva k obchodování
+ROFOS10;ROFO10_11;Aktiva;řádek;6;Finanční aktiva jiná než k obchodování povinně v RH vykázané do zisku nebo ztráty;;AFO0038;Finanční aktiva jiná než k obchodování povinně v RH vykázané do zisku nebo ztráty
+ROFOS10;ROFO10_11;Aktiva;řádek;7;Finanční aktiva v reálné hodnotě vykázané do zisku nebo ztráty;;AFO0039;Finanční aktiva v reálné hodnotě vykázané do zisku nebo ztráty
+ROFOS10;ROFO10_11;Aktiva;řádek;8;Finanční aktiva v RH vykázané do úplného výsledku hospodaření;;AFO0040;Finanční aktiva v RH vykázané do úplného výsledku hospodaření
+ROFOS10;ROFO10_11;Aktiva;řádek;9;Finanční aktiva v naběhlé hodnotě ∑;;AFO0041;Finanční aktiva v naběhlé hodnotě
+ROFOS10;ROFO10_11;Aktiva;řádek;10;Dluhové cenné papíry v naběhlé hodnotě;;AFO0042;Dluhové cenné papíry v naběhlé hodnotě
+ROFOS10;ROFO10_11;Aktiva;řádek;11;Úvěry a pohledávky v naběhlé hodnotě;;AFO0043;Úvěry a pohledávky v naběhlé hodnotě
+ROFOS10;ROFO10_11;Aktiva;řádek;12;Zajišťovací deriváty;;AFO0044;Zajišťovací deriváty
+ROFOS10;ROFO10_11;Aktiva;řádek;13;Změny reálné hodnoty portfolia zajišťovaných nástrojů;;AFO0045;Změny reálné hodnoty portfolia zajišťovaných nástrojů
+ROFOS10;ROFO10_11;Aktiva;řádek;14;Účasti v dceřiných, společných a přidružených podnicích;;AFO0046;Účasti v dceřiných, společných a přidružených podnicích
+ROFOS10;ROFO10_11;Aktiva;řádek;15;Hmotný majetek ∑;;AFO0047;Hmotný majetek
+ROFOS10;ROFO10_11;Aktiva;řádek;16;Pozemky, budovy a zařízení;;AFO0048;Pozemky, budovy a zařízení
+ROFOS10;ROFO10_11;Aktiva;řádek;17;Investiční nemovitosti;;AFO0049;Investiční nemovitosti
+ROFOS10;ROFO10_11;Aktiva;řádek;18;Nehmotný majetek ∑;;AFO0050;Nehmotný majetek
+ROFOS10;ROFO10_11;Aktiva;řádek;19;Goodwill;;AFO0025;Goodwill
+ROFOS10;ROFO10_11;Aktiva;řádek;20;Ostatní nehmotný majetek;;AFO0051;Ostatní nehmotný majetek
+ROFOS10;ROFO10_11;Aktiva;řádek;21;Daňové pohledávky ∑;;AFO0052;Daňové pohledávky
+ROFOS10;ROFO10_11;Aktiva;řádek;22;Pohledávky ze splatné daně;;AFO0053;Pohledávky ze splatné daně
+ROFOS10;ROFO10_11;Aktiva;řádek;23;Pohledávky z odložené daně;;AFO0054;Pohledávky z odložené daně
+ROFOS10;ROFO10_11;Aktiva;řádek;24;Ostatní aktiva;;AFO0028;Ostatní aktiva
+ROFOS10;ROFO10_11;Aktiva;řádek;25;Neoběžná aktiva a vyřazované skupiny určené k prodeji;;AFO0055;Neoběžná aktiva a vyřazované skupiny určené k prodeji
+ROFOS10;ROFO10_11;Aktiva;sloupec;1;;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;1;Aktiva celkem ∑;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;2;Pokladní hotovost a ostatní vklady splatné na požádání ∑;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;3;Pokladní hotovost;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;4;Ostatní vklady splatné na požádání;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;5;Finanční aktiva k obchodování;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;6;Finanční aktiva jiná než k obchodování povinně v RH vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;7;Finanční aktiva v reálné hodnotě vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;8;Finanční aktiva v RH vykázané do úplného výsledku hospodaření;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;9;Finanční aktiva v naběhlé hodnotě ∑;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;10;Dluhové cenné papíry v naběhlé hodnotě;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;11;Úvěry a pohledávky v naběhlé hodnotě;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;12;Zajišťovací deriváty;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;13;Změny reálné hodnoty portfolia zajišťovaných nástrojů;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;14;Účasti v dceřiných, společných a přidružených podnicích;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;15;Hmotný majetek ∑;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;16;Pozemky, budovy a zařízení;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;17;Investiční nemovitosti;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;18;Nehmotný majetek ∑;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;19;Goodwill;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;20;Ostatní nehmotný majetek;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;21;Daňové pohledávky ∑;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;22;Pohledávky ze splatné daně;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;23;Pohledávky z odložené daně;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;24;Ostatní aktiva;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;řádek;25;Neoběžná aktiva a vyřazované skupiny určené k prodeji;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;sloupec;1;Činnosti celkem ∑;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;sloupec;2;Investiční činnost;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;sloupec;3;Ostatní činnost;;;
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;sloupec;4;Vzájemný zápočet;;;
+ROFOS10;ROFO10_21;Pasiva;řádek;1;Závazky a vlastní kapitál/fondový kapitál (NAV) celkem ∑;;PFO0034;Závazky a vlastní kapitál/fondový kapitál (NAV) celkem
+ROFOS10;ROFO10_21;Pasiva;řádek;2;Závazky celkem (bez čistých aktiv připadajících držitelům investičních akcií/podílových listů) ∑;;PFO0035;Závazky celkem (bez čistých aktiv připadajících držitelům investičních akcií/podílových listů)
+ROFOS10;ROFO10_21;Pasiva;řádek;3;Finanční závazky k obchodování ∑;;PFO0036;Finanční závazky k obchodování
+ROFOS10;ROFO10_21;Pasiva;řádek;4;Deriváty k obchodování;;PFO0037;Deriváty k obchodování
+ROFOS10;ROFO10_21;Pasiva;řádek;5;Závazky z krátkých prodejů;;PFO0038;Závazky z krátkých prodejů
+ROFOS10;ROFO10_21;Pasiva;řádek;6;Emitované dluhové CP k obchodování;;PFO0039;Emitované dluhové CP k obchodování
+ROFOS10;ROFO10_21;Pasiva;řádek;7;Ostatní finanční závazky k obchodování;;PFO0040;Ostatní finanční závazky k obchodování
+ROFOS10;ROFO10_21;Pasiva;řádek;8;Finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty ∑;;PFO0041;Finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty
+ROFOS10;ROFO10_21;Pasiva;řádek;9;Emitované dluhové CP v reálné hodnotě vykázané do zisku nebo ztráty;;PFO0042;Emitované dluhové CP v reálné hodnotě vykázané do zisku nebo ztráty
+ROFOS10;ROFO10_21;Pasiva;řádek;10;Ostatní fin.závazky v reálné hodnotě vykázané do zisku nebo ztráty;;PFO0043;Ostatní fin.závazky v reálné hodnotě vykázané do zisku nebo ztráty
+ROFOS10;ROFO10_21;Pasiva;řádek;11;Finanční závazky v naběhlé hodnotě ∑;;PFO0044;Finanční závazky v naběhlé hodnotě
+ROFOS10;ROFO10_21;Pasiva;řádek;12;Emitované dluhové cenné papíry v naběhlé hodnotě;;PFO0045;Emitované dluhové cenné papíry v naběhlé hodnotě
+ROFOS10;ROFO10_21;Pasiva;řádek;13;Ostatní finanční závazky v naběhlé hodnotě;;PFO0046;Ostatní finanční závazky v naběhlé hodnotě
+ROFOS10;ROFO10_21;Pasiva;řádek;14;Zajišťovací deriváty;;PFO0047;Zajišťovací deriváty
+ROFOS10;ROFO10_21;Pasiva;řádek;15;Změny reálné hodnoty portfolia zajišťovaných nástrojů;;PFO0048;Změny reálné hodnoty portfolia zajišťovaných nástrojů
+ROFOS10;ROFO10_21;Pasiva;řádek;16;Rezervy ∑;;PFO0013;Rezervy
+ROFOS10;ROFO10_21;Pasiva;řádek;17;Rezervy na penze a ostatní definované požitky;;PFO0049;Rezervy na penze a ostatní definované požitky
+ROFOS10;ROFO10_21;Pasiva;řádek;18;Rezervy na ostatní dlouhodobé zaměstnanecké požitky;;PFO0050;Rezervy na ostatní dlouhodobé zaměstnanecké požitky
+ROFOS10;ROFO10_21;Pasiva;řádek;19;Rezervy na restrukturalizaci;;PFO0051;Rezervy na restrukturalizaci
+ROFOS10;ROFO10_21;Pasiva;řádek;20;Rezervy na právní problémy a daňové spory;;PFO0052;Rezervy na právní problémy a daňové spory
+ROFOS10;ROFO10_21;Pasiva;řádek;21;Rezervy na poskytnuté přísliby a záruky;;PFO0053;Rezervy na poskytnuté přísliby a záruky
+ROFOS10;ROFO10_21;Pasiva;řádek;22;Ostatní rezervy;;PFO0054;Ostatní rezervy
+ROFOS10;ROFO10_21;Pasiva;řádek;23;Daňové závazky ∑;;PFO0055;Daňové závazky
+ROFOS10;ROFO10_21;Pasiva;řádek;24;Závazky ze splatné daně;;PFO0056;Závazky ze splatné daně
+ROFOS10;ROFO10_21;Pasiva;řádek;25;Závazky z odložené daně;;PFO0057;Závazky z odložené daně
+ROFOS10;ROFO10_21;Pasiva;řádek;26;Ostatní závazky;;PFO0058;Ostatní závazky
+ROFOS10;ROFO10_21;Pasiva;řádek;27;Závazky spojené s vyřazovanými skupinami určenými k prodeji;;PFO0059;Závazky spojené s vyřazovanými skupinami určenými k prodeji
+ROFOS10;ROFO10_21;Pasiva;řádek;28;Vlastní kapitál celkem/Fondový kapitál (NAV) ∑;;PFO0060;Vlastní kapitál celkem/Fondový kapitál (NAV)
+ROFOS10;ROFO10_21;Pasiva;řádek;29;Základní kapitál;;PFO0018;Základní kapitál
+ROFOS10;ROFO10_21;Pasiva;řádek;30;Emisní ážio;;PFO0021;Emisní ážio
+ROFOS10;ROFO10_21;Pasiva;řádek;31;Vydané kapitálové nástroje jiné než základní kapitál;;PFO0061;Vydané kapitálové nástroje jiné než základní kapitál
+ROFOS10;ROFO10_21;Pasiva;řádek;32;Ostatní vlastní kapitál / Ostatní fondový kapitál;;PFO0062;Ostatní vlastní kapitál / Ostatní fondový kapitál
+ROFOS10;ROFO10_21;Pasiva;řádek;33;Kumulovaný ostatní úplný výsledek hospodaření (OCI) ∑;;PFO0063;Kumulovaný ostatní úplný výsledek hospodaření (OCI)
+ROFOS10;ROFO10_21;Pasiva;řádek;34;OCI z položek, které se nereklasifikují do zisku nebo ztráty ∑;;PFO0064;OCI z položek, které se nereklasifikují do zisku nebo ztráty
+ROFOS10;ROFO10_21;Pasiva;řádek;35;OCI z kapitálových nástrojů;;PFO0065;OCI z kapitálových nástrojů
+ROFOS10;ROFO10_21;Pasiva;řádek;36;OCI z hmotného majetku;;PFO0066;OCI z hmotného majetku
+ROFOS10;ROFO10_21;Pasiva;řádek;37;OCI z nehmotného majetku;;PFO0067;OCI z nehmotného majetku
+ROFOS10;ROFO10_21;Pasiva;řádek;38;OCI z ostatních nástrojů;;PFO0068;OCI z ostatních nástrojů
+ROFOS10;ROFO10_21;Pasiva;řádek;39;OCI z položek, které se reklasifikují do zisku nebo ztráty ∑;;PFO0069;OCI z položek, které se reklasifikují do zisku nebo ztráty
+ROFOS10;ROFO10_21;Pasiva;řádek;40;Změna RH dluhových nástrojů vykázaných v RH do OCI;;PFO0070;Změna RH dluhových nástrojů vykázaných v RH do OCI
+ROFOS10;ROFO10_21;Pasiva;řádek;41;Změna RH ostatních nástrojů vykázaných v RH do OCI;;PFO0071;Změna RH ostatních nástrojů vykázaných v RH do OCI
+ROFOS10;ROFO10_21;Pasiva;řádek;42;Nerozdělený zisk nebo neuhrazená ztráta z předchozích období/ Kumulovaný zisk nebo ztráta za předchozí období;;PFO0072;Nerozdělený zisk nebo neuhrazená ztráta z předchozích období/ Kumulovaný zisk nebo ztráta za předchozí období
+ROFOS10;ROFO10_21;Pasiva;řádek;43;Rozdíly z ocenění;;PFO0073;Rozdíly z ocenění
+ROFOS10;ROFO10_21;Pasiva;řádek;44;Rezervní fondy;;PFO0074;Rezervní fondy
+ROFOS10;ROFO10_21;Pasiva;řádek;45;(-) Vlastní akcie;;PFO0075;(-) Vlastní akcie
+ROFOS10;ROFO10_21;Pasiva;řádek;46;Zisk nebo ztráta za běžné účetní období;;PFO0076;Zisk nebo ztráta za běžné účetní období
+ROFOS10;ROFO10_21;Pasiva;řádek;47;(-) Mezitímní dividendy;;PFO0077;(-) Mezitímní dividendy
+ROFOS10;ROFO10_21;Pasiva;sloupec;1;;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;1;Závazky a vlastní kapitál/fondový kapitál (NAV) celkem ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;2;Závazky celkem (bez čistých aktiv připadajících držitelům investičních akcií/podílových listů) ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;3;Finanční závazky k obchodování ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;4;Deriváty k obchodování;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;5;Závazky z krátkých prodejů;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;6;Emitované dluhové CP k obchodování;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;7;Ostatní finanční závazky k obchodování;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;8;Finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;9;Emitované dluhové CP v reálné hodnotě vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;10;Ostatní fin.závazky v reálné hodnotě vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;11;Finanční závazky v naběhlé hodnotě ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;12;Emitované dluhové cenné papíry v naběhlé hodnotě;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;13;Ostatní finanční závazky v naběhlé hodnotě;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;14;Zajišťovací deriváty;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;15;Změny reálné hodnoty portfolia zajišťovaných nástrojů;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;16;Rezervy ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;17;Rezervy na penze a ostatní definované požitky;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;18;Rezervy na ostatní dlouhodobé zaměstnanecké požitky;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;19;Rezervy na restrukturalizaci;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;20;Rezervy na právní problémy a daňové spory;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;21;Rezervy na poskytnuté přísliby a záruky;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;22;Ostatní rezervy;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;23;Daňové závazky ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;24;Závazky ze splatné daně;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;25;Závazky z odložené daně;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;26;Ostatní závazky;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;27;Závazky spojené s vyřazovanými skupinami určenými k prodeji;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;28;Vlastní kapitál celkem/Fondový kapitál (NAV) ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;29;Základní kapitál;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;30;Emisní ážio;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;31;Vydané kapitálové nástroje jiné než základní kapitál;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;32;Ostatní vlastní kapitál / Ostatní fondový kapitál;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;33;Kumulovaný ostatní úplný výsledek hospodaření (OCI) ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;34;OCI z položek, které se nereklasifikují do zisku nebo ztráty ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;35;OCI z kapitálových nástrojů;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;36;OCI z hmotného majetku;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;37;OCI z nehmotného majetku;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;38;OCI z ostatních nástrojů;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;39;OCI z položek, které se reklasifikují do zisku nebo ztráty ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;40;Změna RH dluhových nástrojů vykázaných v RH do OCI;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;41;Změna RH ostatních nástrojů vykázaných v RH do OCI;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;42;Nerozdělený zisk nebo neuhrazená ztráta z předchozích období/ Kumulovaný zisk nebo ztráta za předchozí období;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;43;Rozdíly z ocenění;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;44;Rezervní fondy;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;45;(-) Vlastní akcie;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;46;Zisk nebo ztráta za běžné účetní období;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;řádek;47;(-) Mezitímní dividendy;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;sloupec;1;Činnosti celkem ∑;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;sloupec;2;Investiční činnost;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;sloupec;3;Ostatní činnost;;;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;sloupec;4;Vzájemný zápočet;;;
+ROFOS10;ROFO10_41;Účetní rámec při sestavení výkazu rozvahy;řádek;1;Účetní rámec při sestavení výkazu;;;
+ROFOS10;ROFO10_41;Účetní rámec při sestavení výkazu rozvahy;sloupec;1;;;;
+ROFOS10;ROFO10_31;Poskytnuté úvěrové a jiné přísliby a finanční záruky;řádek;1;Poskytnuté přísliby a záruky (Σ) ∑;;;
+ROFOS10;ROFO10_31;Poskytnuté úvěrové a jiné přísliby a finanční záruky;řádek;2;Poskytnuté úvěrové přísliby celkem;;;
+ROFOS10;ROFO10_31;Poskytnuté úvěrové a jiné přísliby a finanční záruky;řádek;3;Poskytnuté finanční záruky celkem;;;
+ROFOS10;ROFO10_31;Poskytnuté úvěrové a jiné přísliby a finanční záruky;řádek;4;Ostatní poskytnuté přísliby a záruky celkem;;;
+ROFOS10;ROFO10_31;Poskytnuté úvěrové a jiné přísliby a finanční záruky;sloupec;1;Jmenovitá hodnota podrozvahových nástrojů;;;
+ROFOS10;ROFO10_31;Poskytnuté úvěrové a jiné přísliby a finanční záruky;sloupec;2;Rezervy na poskytnuté přísliby a záruky;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;1;Finanční aktiva v reálné hodnotě celkem ∑;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;2;Finanční aktiva k obchodování ∑;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;3;Deriváty k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;4;Úvěry a pohledávky k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;5;Dluhopisy k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;6;Akcie a podíly k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;7;Podílové listy k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;8;Exchange Traded Funds k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;9;Strukturované produkty k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;10;Ostatní nástroje k obchodování;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;11;Finanční aktiva jiná než k obchodování povinně v RH vykázané do zisku nebo ztráty ∑;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;12;Akcie a podíly povinně v RH vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;13;Podílové listy povinně v RH vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;14;Exchange Traded Funds povinně v RH vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;15;Strukturované produkty povinně v RH vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;16;Ostatní nástroje povinně v RH vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;17;Finanční aktiva v reálné hodnotě vykázané do zisku nebo ztráty ∑;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;18;Úvěry a pohledávky v reálné hodnotě vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;19;Dluhopisy v reálné hodnotě vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;20;Ostatní nástroje v reálné hodnotě vykázané do zisku nebo ztráty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;21;Finanční aktiva v RH vykázané do úplného výsledku hospodaření ∑;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;22;Úvěry a pohledávky v RH vykázané do OCI;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;23;Dluhopisy v RH vykázané do OCI;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;24;Akcie a podíly v RH vykázané do OCI;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;25;Ostatní nástroje v RH vykázané do OCI;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;řádek;26;Zajišťovací deriváty;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;sloupec;1;Oceňování reálnou hodnotou / Součet za úrovně stanovení reálné hodnoty ∑;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;sloupec;2;Oceňování reálnou hodnotou / Úroveň 1;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;sloupec;3;Oceňování reálnou hodnotou / Úroveň 2;;;
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;sloupec;4;Oceňování reálnou hodnotou / Úroveň 3;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;1;Deriváty k obchodování celkem ∑;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;2;Úrokové riziko ∑;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;3;Úrokové OTC opce;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;4;Ostatní úrokové OTC deriváty;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;5;Úrokové opce obchodované na organizovaném trhu;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;6;Ostatní úrokové deriváty obchodované na organizovaném trhu;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;7;Akciové riziko ∑;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;8;Akciové OTC opce;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;9;Ostatní akciové OTC deriváty;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;10;Akciové opce obchodované na organizovaném trhu;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;11;Ostatní akciové deriváty obchodované na organizovaném trhu;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;12;Měnové riziko a zlato ∑;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;13;Měnové OTC opce;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;14;Ostatní měnové OTC deriváty;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;15;Měnové opce obchodované na organizovaném trhu;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;16;Ostatní měnové deriváty obchodované na organizovaném trhu;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;17;Úvěrové riziko ∑;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;18;Swap úvěrového selhání;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;19;Opce úvěrového rozpětí;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;20;Swapy veškerých výnosů;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;21;Ostatní úvěrové deriváty;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;22;Komoditní riziko;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;řádek;23;Ostatní rizika;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;sloupec;1;Účetní  hodnota derivátu - aktiva;;;
+ROFOS10;ROFO10_52;Deriváty k obchodování;sloupec;2;Účetní hodnota derivátu - závazky;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;řádek;1;Aktiva celkem ∑;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;řádek;2;Vklady splatné na požádání;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;řádek;3;Akcie a ostatní podíly;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;řádek;4;Dluhopisy;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;řádek;5;Úvěry a pohledávky;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;řádek;6;Hmotný majetek;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;řádek;7;Jiná aktiva;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;sloupec;1;Celková účetní hodnota aktiva;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;sloupec;2;Z toho účetní hodnota zatížených položek;;;
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;sloupec;3;Podíl zatížených položek v %;;;
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;1;Počet cenných papírů - počáteční stav;;TFO0053;Počet cenných papírů - počáteční stav
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;2;Počet emitovaných cenných papírů;;TFO0054;Počet emitovaných cenných papírů
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;3;Počet odkoupených cenných papírů;;TFO0055;Počet odkoupených cenných papírů
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;4;Počet cenných papírů - konečný stav;;TFO0056;Počet cenných papírů - konečný stav
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;5;Objem cenných papírů - počáteční stav;;TFO0057;Objem cenných papírů - počáteční stav
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;6;Objem emitovaných cenných papírů;;TFO0058;Objem emitovaných cenných papírů
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;7;Objem odkoupených cenných papírů;;TFO0059;Objem odkoupených cenných papírů
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;řádek;8;Objem cenných papírů - konečný stav;;TFO0060;Objem cenných papírů - konečný stav
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;sloupec;1;Činnosti celkem ∑;;;
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;sloupec;2;Investiční činnost;;;
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;sloupec;3;Ostatní činnost;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;řádek;1;Dynamický;;EFO0237, L0019, L0022;z toho FO
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;1;Kód aktiva;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;2;Typ kódu aktiva;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;3;Struktura sledovaných měn;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;4;Název třídy;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;5;Hodnota cenného papíru v měně třídy;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;6;Počet jednotek;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;7;Hodnota fondového kapitálu v příslušné třídě (CZK) / Hodnota fondového kapitálu v příslušné třídě ∑;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;8;Hodnota fondového kapitálu připadající investorům z ČR;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;9;Hodnota fondového kapitálu připadající investorům z EU (kromě ČR);;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;10;Hodnota fondového kapitálu připadající investorům z ESVO;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;11;Hodnota fondového kapitálu připadající investorům mimo EU a ESVO;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;12;Počet investorů dle § 2a a 2b ZPKT;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;13;Počet investorů celkem;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;14;Počet investorů / z toho FO;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;15;Počet investorů FO / z toho PEP;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;16;Počet investorů / z toho PO;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;17;Počet investorů / Počet investorů z ČR;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;18;Počet investorů z EU (kromě ČR);;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;19;Počet investorů z ESVO;;;
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;sloupec;20;Počet investorů mimo EU a ESVO;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;1;Pozastavení vydávání a odkupování;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;2;Omezení odkupů;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;3;Prodloužení lhůty pro odkup;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;4;Úplata za odkup;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;5;Úplata proti zředění;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;6;Metoda pohyblivých cen;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;7;Metoda dvojích cen;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;8;Nepeněžní odkup;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;9;Oddělení majetku;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;10;Jiné;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;řádek;11;Komentář;;;
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;sloupec;1;;;;
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;1;Počet cenných papírů - počáteční stav;;TFO0053;Počet cenných papírů - počáteční stav
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;2;Počet emitovaných cenných papírů;;TFO0054;Počet emitovaných cenných papírů
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;3;Počet odkoupených cenných papírů;;TFO0055;Počet odkoupených cenných papírů
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;4;Počet cenných papírů - konečný stav;;TFO0056;Počet cenných papírů - konečný stav
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;5;Objem cenných papírů - počáteční stav;;TFO0057;Objem cenných papírů - počáteční stav
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;6;Objem emitovaných cenných papírů;;TFO0058;Objem emitovaných cenných papírů
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;7;Objem odkoupených cenných papírů;;TFO0059;Objem odkoupených cenných papírů
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;řádek;8;Objem cenných papírů - konečný stav;;TFO0060;Objem cenných papírů - konečný stav
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;sloupec;1;Činnosti celkem ∑;;;
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;sloupec;2;Investiční činnost;;;
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;sloupec;3;Ostatní činnost;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;řádek;1;Dynamický;;EFO0237, L0019, L0022;z toho FO
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;1;Kód aktiva;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;2;Typ kódu aktiva;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;3;Struktura sledovaných měn;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;4;Název třídy;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;5;Hodnota cenného papíru v měně třídy;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;6;Počet jednotek;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;7;Hodnota fondového kapitálu v příslušné třídě (CZK) / Hodnota fondového kapitálu v příslušné třídě ∑;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;8;Hodnota fondového kapitálu připadající investorům z ČR;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;9;Hodnota fondového kapitálu připadající investorům z EU (kromě ČR);;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;10;Hodnota fondového kapitálu připadající investorům z ESVO;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;11;Hodnota fondového kapitálu připadající investorům mimo EU a ESVO;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;12;Počet investorů dle § 2a a 2b ZPKT;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;13;Počet investorů celkem;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;14;Počet investorů / z toho FO;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;15;Počet investorů FO / z toho PEP;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;16;Počet investorů / z toho PO;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;17;Počet investorů / Počet investorů z ČR;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;18;Počet investorů z EU (kromě ČR);;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;19;Počet investorů z ESVO;;;
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;sloupec;20;Počet investorů mimo EU a ESVO;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;1;Pozastavení vydávání a odkupování;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;2;Omezení odkupů;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;3;Prodloužení lhůty pro odkup;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;4;Úplata za odkup;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;5;Úplata proti zředění;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;6;Metoda pohyblivých cen;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;7;Metoda dvojích cen;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;8;Nepeněžní odkup;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;9;Oddělení majetku;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;10;Jiné;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;řádek;11;Komentář;;;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;sloupec;1;;;;
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;1;1. největší;;AIF0026;MIC trhu
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;2;2. největší;;AIF0026;MIC trhu
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;3;3. největší;;AIF0026;MIC trhu
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;4;4. největší;;AIF0026;MIC trhu
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;5;5. největší;;AIF0026;MIC trhu
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;1;Typ kódu trhu;;;
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;2;MIC trhu;;;
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;3;Hodnota  spravovaných aktiv (AUM)/Trh;;;
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;4;Podskupina aktiv;;;
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;5;Hodnota  spravovaných aktiv (AUM)/Nástroj;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;1;Typ mezinárodního identifikačního kódu;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;2;Mezinárodní identifikační kód;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;3;Typ investičního fondu;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;4;Velikost pozice fondu soukromého kapitálu;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;5;Domovská země fondu;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;6;Základní měna fondu;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;7;Hodnota spravovaných aktiv (AUM);;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;8;Čistá hodnota aktiv (NAV);;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;9;*Jurisdikce hlavních zdrojů financování (1. nejvýznamnější země);;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;10;*Jurisdikce hlavních zdrojů financování (2. nejvýznamnější země);;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;11;*Jurisdikce hlavních zdrojů financování (3. nejvýznamnější země);;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;12;Expozice vůči riziku - pákový efekt metodou hrubé hodnoty aktiv;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;13;Expozice vůči riziku - pákový efekt závazkovou metodou;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;14;Počet otevřených pozic;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;15;Výplaty investorům - právo na zpětný odkup;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;16;Výplaty investorům - frekvence zpětného odkupu;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;17;Výplaty investorům - výpovědní lhůta pro zpětný odkup;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;18;Výplaty investorům - lock up lhůta pro zpětný odkup;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;19;Zvláštní výhody investorům - existence investorů s výhodami;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;20;Zvláštní výhody investorům - informování/podávání zpráv investorům;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;21;Zvláštní výhody investorům - podmínky likvidity investorů;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;22;Zvláštní výhody investorům - platební podmínky pro investory;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;23;Zvláštní výhody investorům -jiné zvláštní výhody;;;
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;sloupec;24;Periodicita předkládání;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;1;Strategie hedgeového fondu ∑;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;2;Akcie: tendence ve prospěch dlouhých pozic;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;3;Akcie: dlouhé/krátké pozice;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;4;Akcie: neutrální z hlediska trhu;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;5;Akcie: tendence ve prospěch krátkých pozic;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;6;Relativní hodnota: arbitráž fixního příjmu;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;7;Relativní hodnota: arbitráž konvertibilních dluhopisů;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;8;Relativní hodnota: arbitráž volatility;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;9;Na základě událostí: obtíže/restrukturalizace;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;10;Na základě událostí: riziková/fúzová arbitráž;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;11;Na základě událostí: zvláštní situace akcií;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;12;Úvěr: dlouhé/krátké pozice;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;13;Úvěr: půjčování zajištěné aktivy;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;14;Makro;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;15;Správa futures / poradce pro obchodování s komoditami: základní;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;16;Správa futures / poradce pro obchodování s komoditami: kvantitativní;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;17;Hedgeový fond s více strategiemi;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;18;Jiná strategie hedgeového fondu;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;19;Strategie fondu soukromého kapitálu ∑;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;20;Rizikový kapitál;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;21;Růstový kapitál;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;22;Mezaninový kapitál;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;23;Fond soukromého kapitálu s více strategiemi;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;24;Jiná strategie fondu soukromého kapitálu;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;25;Strategie nemovitostního fondu ∑;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;26;Obytné nemovitosti;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;27;Nebytové nemovitosti;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;28;Průmyslové nemovitosti;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;29;Nemovitostní fond s více strategiemi;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;30;Jiná nemovitostní strategie;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;31;Strategie fondu fondů ∑;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;32;Fond hedgeových fondů;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;33;Fond fondů soukromého kapitálu;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;34;Jiný fond fondů;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;35;Strategie jiných fondů ∑;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;36;Komoditní fond;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;37;Akciový fond;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;38;Fond s fixním příjmem;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;39;Infrastrukturní fond;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;řádek;40;Jiný fond;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;sloupec;1;Převažující strategie fondu;;;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;sloupec;2;Podíl na čisté hodnotě aktiv (NAV);;;
+ROFOS35;ROFO35_12;Seznam hlavních makléřů fondu;řádek;1;Dynamický;;AIF0080;LEI
+ROFOS35;ROFO35_12;Seznam hlavních makléřů fondu;sloupec;1;Pořadové číslo;;;
+ROFOS35;ROFO35_12;Seznam hlavních makléřů fondu;sloupec;2;Název;;;
+ROFOS35;ROFO35_12;Seznam hlavních makléřů fondu;sloupec;3;BIC;;;
+ROFOS35;ROFO35_12;Seznam hlavních makléřů fondu;sloupec;4;LEI;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;1;Hotovost a peněžní ekvivalenty (PE);;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;2;Vkladové listy;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;3;Obchodní cenné papíry;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;4;Ostatní vklady;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;5;Ostatní hotovost a PE;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;6;Kotované akcie;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;7;Kotované akcie emitované FI;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;8;Ostatní kotované akcie;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;9;Nekotované akcie;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;10;Korporátní dluhopisy neemitované FI - Investiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;11;Korporátní dluhopisy neemitované FI - Neinvestiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;12;Korporátní dluhopisy emitované finančními institucemi (FI);;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;13;Korporátní dluhopisy emitované FI - Investiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;14;Korporátní dluhopisy emitované FI - Neinvestiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;15;Dluhopisy členských států EU;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;16;Dluhopisy zemí EU s dobou do splatnosti do 1 roku;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;17;Dluhopisy zemí EU s dobou do splatnosti nejméně 1 rok;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;18;Dluhopisy nečlenských států EU;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;19;Dluhopisy zemí mimo G10 s dobou do splatnosti do 1 roku;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;20;Dluhopisy zemí mimo G10 s dobou do splatnosti nejméně 1 rok;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;21;Dluhopisy zemí G10 mimo státy EU s dobou do splatnosti do 1 roku;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;22;Dluhopisy zemí G10 mimo státy EU s dobou do splatnosti nejméně 1 rok;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;23;Komunální dluhopisy;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;24;Konvertibilní dluhopisy;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;25;Konvertibilní dluhopisy neemitované FI - Investiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;26;Konvertibilní dluhopisy neemitované FI - Neinvestiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;27;Konvertibilní dluhopisy emitované FI - Investiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;28;Konvertibilní dluhopisy emitované FI - Neinvestiční stupeň;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;29;Úvěry;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;30;Úvěry s pákovým efektem;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;31;Jiné úvěry;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;32;Strukturované/sekuritizované produkty;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;33;Cenný papír zajištěný aktivy - ABS;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;34;Cenný papír krytý hypotečním úvěrem na obytné nemovitosti - RMBS;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;35;Cenný papír krytý hypotečním úvěrem na nebytové nemovitosti - CMBS;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;36;Cenný papír krytý hypotečním úvěrem se zárukou státu - (Agency MBS);;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;37;Krátkodobý cenný papír zajištěný aktivy - ABCP;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;38;Zajištěný dluhový/úvěrový závazek - CDO/CLO;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;39;Strukturované certifikáty;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;40;Produkt obchodovaný na burze - ETP;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;řádek;41;Jiné strukturované/sekuritizované produkty;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;sloupec;1;Dlouhá pozice;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;sloupec;2;Krátká pozice;;;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;sloupec;3;Tržní hodnota obratu;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;1;Akciové deriváty;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;2;Akciové deriváty související s finančními institucemi;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;3;Ostatní akciové deriváty;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;4;Deriváty s fixním příjmem;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;5;Swapy úvěrového selhání - CDS;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;6;Finanční CDS na jedno jméno;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;7;CDS na státní dluhopisy na jedno jméno;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;8;Ostatní CDS na jedno jméno;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;9;Indexové CDS;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;10;Exotické (včetně tranše úvěrového selhání);;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;11;Jiné CDS;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;12;Měnové deriváty (pro účely zajištění);;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;13;Měnové deriváty (pro účely investování);;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;14;Úrokové deriváty;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;15;Komoditní deriváty;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;16;Komoditní deriváty - ropa;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;17;Komoditní deriváty - zemní plyn;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;18;Komoditní deriváty - energie;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;19;Jiné energetické komoditní deriváty;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;20;Komoditní deriváty - zlato;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;21;Komoditní deriváty - ostatní drahé kovy;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;22;Komoditní deriváty - průmyslové kovy;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;23;Komoditní deriváty - hospodářská zvířata;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;24;Komoditní deriváty - zemědělské produkty;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;25;Komoditní deriváty - ostatní komodity;;;
+ROFOS35;ROFO35_22;Struktura derivátů;řádek;26;Ostatní deriváty;;;
+ROFOS35;ROFO35_22;Struktura derivátů;sloupec;1;Dlouhá pozice;;;
+ROFOS35;ROFO35_22;Struktura derivátů;sloupec;2;Krátká pozice;;;
+ROFOS35;ROFO35_22;Struktura derivátů;sloupec;3;Nominální hodnota obratu;;;
+ROFOS35;ROFO35_22;Struktura derivátů;sloupec;4;Tržní hodnota obratu;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;1;Nemovitosti;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;2;Obytné nemovitosti;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;3;Obchodní nemovitosti;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;4;Jiné nemovitosti;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;5;Komodity;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;6;Užitkové dříví;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;7;Umění a sběratelské předměty;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;8;Aktiva v odvětví dopravy;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;9;Ostatní hmotná aktiva;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;10;Investiční fondy;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;11;Fondy peněžního trhu obhospodařované stejným správcem;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;12;ETF fondy obchodované na burze obhospodařované stejným správcem;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;13;Ostatní investiční fondy obhospodařované stejným správcem;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;14;Fondy peněžního trhu obhospodařované jiným správcem;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;15;ETF fondy obchodované na burze obhospodařované jiným správcem;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;16;Ostatní investiční fondy obhospodařované jiným správcem;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;řádek;17;Investice do ostatních tříd aktiv;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;sloupec;1;Dlouhá pozice;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;sloupec;2;Krátká pozice;;;
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;sloupec;3;Tržní hodnota obratu;;;
+ROFOS35;ROFO35_24;Struktura expozic podle měn;řádek;1;Součet;;;
+ROFOS35;ROFO35_24;Struktura expozic podle měn;řádek;2;Dynamický;;;
+ROFOS35;ROFO35_24;Struktura expozic podle měn;sloupec;1;Struktura sledovaných měn;;;
+ROFOS35;ROFO35_24;Struktura expozic podle měn;sloupec;2;Dlouhá pozice;;;
+ROFOS35;ROFO35_24;Struktura expozic podle měn;sloupec;3;Krátká pozice;;;
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;1;Region Afrika;;AIF0035;Region Afrika
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;2;Region Asie a Tichomoří;;AIF0036;Region Asie a Tichomoří
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;3;Region Evropa (EHP);;AIF0037;Region Evropa (EHP)
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;4;Region Evropa (kromě EHP);;AIF0038;Region Evropa (kromě EHP)
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;5;Region Blízký východ;;AIF0039;Region Blízký východ
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;6;Region Severní Amerika;;AIF0040;Region Severní Amerika
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;7;Region Jižní Amerika;;AIF0041;Region Jižní Amerika
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;řádek;8;Nadnárodní/více regionů;;AIF0042;Nadnárodní/více regionů
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;sloupec;1;Podíl na čisté hodnotě aktiv (NAV);;;
+ROFOS35;ROFO35_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;řádek;1;1. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;řádek;2;2. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;řádek;3;3. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;sloupec;1;Typ kódu trhu;;;
+ROFOS35;ROFO35_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;sloupec;2;MIC trhu;;;
+ROFOS35;ROFO35_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;sloupec;3;Hodnota spravovaných aktiv (AUM);;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;1;1. největší;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;2;2. největší;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;3;3. největší;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;4;4. největší;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;5;5. největší;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;1;Typ podskupiny aktiv;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;2;Název aktiva;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;3;Typ kódu aktiva;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;4;ISIN aktiva;;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;5;Alternativní kód aktiva (AII);;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;6;Hodnota spravovaných aktiv (AUM);;;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;7;Dlouhá/Krátká pozice;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;1;1. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;2;2. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;3;3. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;4;4. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;5;5. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;6;6. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;7;7. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;8;8. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;9;9. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;řádek;10;10. největší;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;1;Kategorie aktiv;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;2;Typ podskupiny aktiv;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;3;Hodnota spravovaných aktiv (AUM);;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;4;Podíl na celkové hodnotě spravovaných aktiv (AUM);;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;5;Dlouhá/Krátká pozice;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;6;Název protistrany;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;7;BIC protistrany;;;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;sloupec;8;LEI protistrany;;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;řádek;1;1. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;řádek;2;2. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;řádek;3;3. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;řádek;4;4. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;řádek;5;5. největší;;AIF0026;MIC trhu
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;1;Skupina aktiv;;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;2;Typ kódu trhu;;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;3;MIC trhu;;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;4;Hodnota spravovaných aktiv (AUM);;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;5;Podíl na celkové hodnotě spravovaných aktiv (AUM);;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;6;Dlouhá/Krátká pozice;;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;7;Název protistrany;;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;8;BIC protistrany;;;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;sloupec;9;LEI protistrany;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;řádek;1;1. největší;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;řádek;2;2. největší;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;řádek;3;3. největší;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;řádek;4;4. největší;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;řádek;5;5. největší;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;1;Vztah fondu k protistraně / Název;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;2;BIC;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;3;LEI;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;4;Celková expozice;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;5;Vztah protistrany vůči fondu / Název;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;6;BIC;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;7;LEI;;;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;sloupec;8;Celková expozice;;;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;řádek;1;1. největší CCP;;;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;řádek;2;2. největší CCP;;;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;řádek;3;3. největší CCP;;;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;sloupec;1;Název;;;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;sloupec;2;BIC;;;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;sloupec;3;LEI;;;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;sloupec;4;Hodnota v držení;;;
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;řádek;1;Dynamický;;AIF0080, AIF0078, AIF0077;LEI
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;sloupec;1;Pořadové číslo;;;
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;sloupec;2;Název;;;
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;sloupec;3;BIC;;;
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;sloupec;4;LEI;;;
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;sloupec;5;Typ transakce;;;
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;sloupec;6;Podíl na  hlasovacích právech;;;
+ROFOS35;ROFO35_38;Koncentrace investorů;řádek;1;Podíl pěti největších investorů na vlastním kapitálu;;;
+ROFOS35;ROFO35_38;Koncentrace investorů;řádek;2;Podíl profesionálních investorů na vlastním kapitálu;;;
+ROFOS35;ROFO35_38;Koncentrace investorů;řádek;3;Podíl retailových investorů na vlastním kapitálu;;;
+ROFOS35;ROFO35_38;Koncentrace investorů;sloupec;1;;;;
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;1;Očekávané roční ROI;;;
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;2;Vnitřní míra návratnosti (IRR);;;
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;3;Net Equity Delta;;;
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;4;Net DV01 celkem ∑;;AIF0087;Net DV01 celkem
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;5;"Net DV01 &lt; 5 let";;AIF0088;Net DV01 < 5 let
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;6;Net DV01 5 - 15 let;;AIF0089;Net DV01 5 - 15 let
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;7;Net DV01 nad 15 let;;AIF0090;Net DV01 nad 15 let
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;8;Net CS01 celkem ∑;;AIF0091;Net CS01 celkem
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;9;"Net CS01 &lt; 5 let";;AIF0092;Net CS01 < 5 let
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;10;Net CS01 5 - 15 let;;AIF0093;Net CS01 5 - 15 let
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;řádek;11;Net CS01 nad 15 let;;AIF0094;Net CS01 nad 15 let
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;sloupec;1;;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;řádek;1;Obchodované na regulované burze;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;řádek;2;Obchodované na OTC trhu;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;řádek;3;Vypořádané centrální protistranou;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;řádek;4;Vypořádané dvoustranně;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;řádek;5;Vypořádané trojstranně;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;sloupec;1;Odhadovaný podíl cenných papírů;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;sloupec;2;Odhadovaný podíl derivátů;;;
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;sloupec;3;Odhadovaný podíl repo operací;;;
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;řádek;1;Hodnota složeného zajištění celkem ∑;;AIF0048;Hodnota složeného zajištění celkem
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;řádek;2;Peníze a peněžní ekvivalenty;;AIF0049;Peníze a peněžní ekvivalenty
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;řádek;3;Ostatní CP;;AIF0050;Ostatní CP
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;řádek;4;Ostatní zajištění kolaterály a úvěrová podpora;;AIF0051;Ostatní zajištění kolaterály a úvěrová podpora
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;řádek;5;z toho znovu zastaveno v %;;;
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;řádek;6;Hodnota nezatížené hotovosti;;;
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;sloupec;1;;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;řádek;1;Portfolio celkem (přeměna na hotovost);;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;řádek;2;Čistá hodnota aktiv (NAV) z pozice investora;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;řádek;3;Výpůjčky a hotovostní financování;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;sloupec;1;Do 1 dne včetně;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;sloupec;2;Nad 1 den do 7 dnů včetně;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;sloupec;3;Nad 7 dnů  do 1 měsíce včetně;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;sloupec;4;Nad 1 měsíc do 3 měsíců včetně;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;sloupec;5;Nad 3 měsíce do 6 měsíců včetně;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;sloupec;6;Nad 6 měsíců do 1 roku včetně;;;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;sloupec;7;Nad 1 rok;;;
+ROFOS35;ROFO35_52;Vybraná zvláštní opatření;řádek;1;Zvláštní opatření celkem;;;
+ROFOS35;ROFO35_52;Vybraná zvláštní opatření;řádek;2;Vyčleněná aktiva (side pockets);;;
+ROFOS35;ROFO35_52;Vybraná zvláštní opatření;řádek;3;Omezení odkupovat (gates);;;
+ROFOS35;ROFO35_52;Vybraná zvláštní opatření;řádek;4;Pozastavení obchodování;;;
+ROFOS35;ROFO35_52;Vybraná zvláštní opatření;řádek;5;Jiná opatření pro řízení nelikvidních aktiv;;;
+ROFOS35;ROFO35_52;Vybraná zvláštní opatření;sloupec;1;Podíl na čisté hodnotě aktiv (NAV);;;
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;1;Banky (včetně centrálních bank);;AIF0105;Banky (včetně centrálních bank)
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;2;Ostatní subjekty kolektivního investování (IF včetně fondů peněžního trhu);;AIF0106;Ostatní subjekty kolektivního investování (IF včetně fondů peněžního trhu)
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;3;Ostatní finanční instituce;;AIF0107;Ostatní finanční instituce
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;4;Pojišťovací společnosti;;AIF0108;Pojišťovací společnosti
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;5;Penzijní fondy;;AIF0109;Penzijní fondy
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;6;Vládní instituce;;AIF0110;Vládní instituce
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;7;Domácnosti;;AIF0111;Domácnosti
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;8;Nefinanční instituce;;AIF0112;Nefinanční instituce
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;9;Neznámé typy investorů;;AIF0113;Neznámé typy investorů
+ROFOS35;ROFO35_53;Struktura investorů fondu;řádek;10;Žádní investoři;;;
+ROFOS35;ROFO35_53;Struktura investorů fondu;sloupec;1;Podíl na NAV;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;řádek;1;Hrubá ROI / IRR v %;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;řádek;2;Čistá ROI / IRR v %;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;řádek;3;Změna NAV v %;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;řádek;4;Upisování během období;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;řádek;5;Vyplácení během období;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;1;Období 1;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;2;Období 2;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;3;Období 3;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;4;Období 4;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;5;Období 5;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;6;Období 6;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;7;Období 7;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;8;Období 8;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;9;Období 9;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;10;Období 10;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;11;Období 11;;;
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;sloupec;12;Období 12;;;
+ROFOS35;ROFO35_61;Výpůjčky;řádek;1;Výpůjčky celkem;;;
+ROFOS35;ROFO35_61;Výpůjčky;řádek;2;Hodnota hotovosti/CP ∑;;AIF0121;Hodnota hotovosti/CP
+ROFOS35;ROFO35_61;Výpůjčky;řádek;3;nezajištěné hotovostní půjčky;;AIF0122;nezajištěné hotovostní půjčky
+ROFOS35;ROFO35_61;Výpůjčky;řádek;4;hotovostní půjčky zajištěné - prostřednictvím  hlavního makléře;;AIF0123;hotovostní půjčky zajištěné - prostřednictvím hlavního makléře
+ROFOS35;ROFO35_61;Výpůjčky;řádek;5;hotovostní půjčky zajištěné - prostřednictvím repo operací;;AIF0124;hotovostní půjčky zajištěné - prostřednictvím repo operací
+ROFOS35;ROFO35_61;Výpůjčky;řádek;6;hotovostní půjčky zajištěné jinými prostředky;;AIF0125;hotovostní půjčky zajištěné jinými prostředky
+ROFOS35;ROFO35_61;Výpůjčky;řádek;7;Výpůjčky vložené do finančních nástrojů ∑;;AIF0127;Výpůjčky vložené do finančních nástrojů
+ROFOS35;ROFO35_61;Výpůjčky;řádek;8;Burzovní deriváty;;AIF0128;Burzovní deriváty
+ROFOS35;ROFO35_61;Výpůjčky;řádek;9;OTC deriváty;;AIF0129;OTC deriváty
+ROFOS35;ROFO35_61;Výpůjčky;řádek;10;Hodnota CP na krátké pozice;;;
+ROFOS35;ROFO35_61;Výpůjčky;sloupec;1;;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);řádek;1;1. největší protistrana;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);řádek;2;2. největší protistrana;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);řádek;3;3. největší protistrana;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);řádek;4;4. největší protistrana;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);řádek;5;5. největší protistrana;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);sloupec;1;Název protistrany;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);sloupec;2;BIC protistrany;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);sloupec;3;LEI protistrany;;;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);sloupec;4;Celková expozice;;;
+ROFOS35;ROFO35_63;Expozice vůči finančním strukturám, případně osobám kontrolovaných fondem;řádek;1;Dynamický;;AIF0080;LEI
+ROFOS35;ROFO35_63;Expozice vůči finančním strukturám, případně osobám kontrolovaných fondem;sloupec;1;Pořadové číslo;;;
+ROFOS35;ROFO35_63;Expozice vůči finančním strukturám, případně osobám kontrolovaných fondem;sloupec;2;Název;;;
+ROFOS35;ROFO35_63;Expozice vůči finančním strukturám, případně osobám kontrolovaných fondem;sloupec;3;BIC;;;
+ROFOS35;ROFO35_63;Expozice vůči finančním strukturám, případně osobám kontrolovaných fondem;sloupec;4;LEI;;;
+ROFOS35;ROFO35_63;Expozice vůči finančním strukturám, případně osobám kontrolovaných fondem;sloupec;5;Hodnota pro výpočet expozice;;;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;řádek;1;"Popis k typu strategie ""Jiná""";;;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;řádek;2;"Popis  k typu transakce ""Ostatní""";;;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;řádek;3;"Popis k nulové či nevyplněné hodnotě ""Ukazatele rizika""";;;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;řádek;4;"Popis k ""Jiným opatřením"" pro řízení nelikvidních aktiv";;;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;řádek;5;Zátěžový test podle čl. 15 odst. 3 písm. b) AIFMD;;;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;řádek;6;Zátěžový test podle čl. 16 odst. 1 AIFMD;;;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;sloupec;1;;;;
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;1;1. největší;;AIF0026;MIC trhu
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;2;2. největší;;AIF0026;MIC trhu
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;3;3. největší;;AIF0026;MIC trhu
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;4;4. největší;;AIF0026;MIC trhu
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;řádek;5;5. největší;;AIF0026;MIC trhu
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;1;Ve sloupcích 1 až 3 je hodnota spravovaných aktiv (AUM) rozdělena podle jednotlivých trhů, seřazených sestupně dle jejich významu, počínaje největším. / Typ kódu trhu;;;
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;2;MIC trhu;;;
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;3;Hodnota  spravovaných aktiv (AUM)/Trh;;;
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;4;Ve sloupcích 4 až 5 je hodnota spravovaných aktiv (AUM) rozdělena podle jednotlivých podskupin aktiv, seřazených sestupně dle jejich velikosti, počínaje tou největší. / Podskupina aktiv;;;
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;sloupec;5;Hodnota  spravovaných aktiv (AUM)/Nástroj;;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;1;Typ mezinárodního identifikačního kódu;;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;2;Mezinárodní identifikační kód;;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;3;Typ investičního fondu;;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;4;Velikost pozice fondu soukromého kapitálu;;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;5;Domovská země fondu;;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;6;Základní měna fondu;;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;7;Hodnota spravovaných aktiv (AUM);;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;8;Čistá hodnota aktiv (NAV);;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;9;*Jurisdikce hlavních zdrojů financování (1. nejvýznamnější země);;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;10;*Jurisdikce hlavních zdrojů financování (2. nejvýznamnější země);;;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);sloupec;11;*Jurisdikce hlavních zdrojů financování (3. nejvýznamnější země);;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;1;Strategie hedgeového fondu ∑;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;2;Akcie: tendence ve prospěch dlouhých pozic;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;3;Akcie: dlouhé/krátké pozice;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;4;Akcie: neutrální z hlediska trhu;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;5;Akcie: tendence ve prospěch krátkých pozic;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;6;Relativní hodnota: arbitráž fixního příjmu;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;7;Relativní hodnota: arbitráž konvertibilních dluhopisů;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;8;Relativní hodnota: arbitráž volatility;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;9;Na základě událostí: obtíže/restrukturalizace;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;10;Na základě událostí: riziková/fúzová arbitráž;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;11;Na základě událostí: zvláštní situace akcií;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;12;Úvěr: dlouhé/krátké pozice;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;13;Úvěr: půjčování zajištěné aktivy;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;14;Makro;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;15;Správa futures / poradce pro obchodování s komoditami: základní;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;16;Správa futures / poradce pro obchodování s komoditami: kvantitativní;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;17;Hedgeový fond s více strategiemi;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;18;Jiná strategie hedgeového fondu;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;19;Strategie fondu soukromého kapitálu ∑;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;20;Rizikový kapitál;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;21;Růstový kapitál;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;22;Mezaninový kapitál;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;23;Fond soukromého kapitálu s více strategiemi;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;24;Jiná strategie fondu soukromého kapitálu;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;25;Strategie nemovitostního fondu ∑;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;26;Obytné nemovitosti;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;27;Nebytové nemovitosti;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;28;Průmyslové nemovitosti;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;29;Nemovitostní fond s více strategiemi;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;30;Jiná nemovitostní strategie;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;31;Strategie fondu fondů ∑;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;32;Fond hedgeových fondů;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;33;Fond fondů soukromého kapitálu;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;34;Jiný fond fondů;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;35;Strategie jiných fondů ∑;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;36;Komoditní fond;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;37;Akciový fond;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;38;Fond s fixním příjmem;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;39;Infrastrukturní fond;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;řádek;40;Jiný fond;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;sloupec;1;Převažující strategie fondu;;;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;sloupec;2;Podíl na čisté hodnotě aktiv (NAV);;;
+ROFOS37;ROFO37_12;Seznam hlavních makléřů fondu;řádek;1;Dynamický;;AIF0080;LEI
+ROFOS37;ROFO37_12;Seznam hlavních makléřů fondu;sloupec;1;Pořadové číslo;;;
+ROFOS37;ROFO37_12;Seznam hlavních makléřů fondu;sloupec;2;Název;;;
+ROFOS37;ROFO37_12;Seznam hlavních makléřů fondu;sloupec;3;BIC;;;
+ROFOS37;ROFO37_12;Seznam hlavních makléřů fondu;sloupec;4;LEI;;;
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;1;Region Afrika;;AIF0035;Region Afrika
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;2;Region Asie a Tichomoří;;AIF0036;Region Asie a Tichomoří
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;3;Region Evropa (EHP);;AIF0037;Region Evropa (EHP)
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;4;Region Evropa (kromě EHP);;AIF0038;Region Evropa (kromě EHP)
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;5;Region Blízký východ;;AIF0039;Region Blízký východ
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;6;Region Severní Amerika;;AIF0040;Region Severní Amerika
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;7;Region Jižní Amerika;;AIF0041;Region Jižní Amerika
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;řádek;8;Nadnárodní/více regionů;;AIF0042;Nadnárodní/více regionů
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;sloupec;1;Podíl na čisté hodnotě aktiv (NAV);;;
+ROFOS37;ROFO37_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;řádek;1;1. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;řádek;2;2. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;řádek;3;3. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;sloupec;1;Typ kódu trhu;;;
+ROFOS37;ROFO37_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;sloupec;2;MIC trhu;;;
+ROFOS37;ROFO37_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;sloupec;3;Hodnota spravovaných aktiv (AUM);;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;1;1. největší;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;2;2. největší;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;3;3. největší;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;4;4. největší;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;řádek;5;5. největší;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;1;Typ podskupiny aktiv;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;2;Název aktiva;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;3;Typ kódu aktiva;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;4;Kód aktiva;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;5;AII nástroje;;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;6;Hodnota spravovaných aktiv (AUM);;;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;sloupec;7;Dlouhá/Krátká pozice;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;1;1. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;2;2. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;3;3. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;4;4. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;5;5. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;6;6. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;7;7. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;8;8. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;9;9. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;řádek;10;10. největší;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;1;Kategorie aktiv;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;2;Typ podskupiny aktiv;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;3;Hodnota spravovaných aktiv (AUM);;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;4;Podíl na celkové hodnotě spravovaných aktiv (AUM);;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;5;Dlouhá/Krátká pozice;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;6;Název protistrany;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;7;BIC protistrany;;;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;sloupec;8;LEI protistrany;;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;řádek;1;1. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;řádek;2;2. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;řádek;3;3. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;řádek;4;4. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;řádek;5;5. největší;;AIF0026;MIC trhu
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;1;Skupina aktiv;;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;2;Typ kódu trhu;;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;3;MIC trhu;;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;4;Hodnota spravovaných aktiv (AUM);;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;5;Podíl na celkové hodnotě spravovaných aktiv (AUM);;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;6;Dlouhá/Krátká pozice;;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;7;Název protistrany;;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;8;BIC protistrany;;;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;sloupec;9;LEI protistrany;;;
+ROFOS37;ROFO37_35;Koncentrace investorů;řádek;1;Podíl pěti největších investorů na vlastním kapitálu;;;
+ROFOS37;ROFO37_35;Koncentrace investorů;řádek;2;Podíl profesionálních investorů na vlastním kapitálu;;;
+ROFOS37;ROFO37_35;Koncentrace investorů;řádek;3;Podíl retailových investorů na vlastním kapitálu;;;
+ROFOS37;ROFO37_35;Koncentrace investorů;sloupec;1;;;;
+ROFOS37;ROFO37_41;Doplňující popis k AIFMD reportingu;řádek;1;"Popis k typu strategie ""Ostatní""";;;
+ROFOS37;ROFO37_41;Doplňující popis k AIFMD reportingu;sloupec;1;;;;
+TISIFI10;TIS10_01;Změny z přecenění;řádek;1;Finanční deriváty - kladná reálná hodnota - změny z přec.;;TFO0042;Finanční deriváty - kladná reálná hodnota - změny z přec.
+TISIFI10;TIS10_01;Změny z přecenění;řádek;2;Finanční deriváty - záporná reálná hodnota - změny z přec.;;TFO0043;Finanční deriváty - záporná reálná hodnota - změny z přec.
+TISIFI10;TIS10_01;Změny z přecenění;řádek;3;Nefinanční aktiva - změny z přecenění;;TFO0041;Nefinanční aktiva - změny z přecenění
+TISIFI10;TIS10_01;Změny z přecenění;sloupec;1;;;;
+VISIFI10;VISI10_01;Příjmy investičního fondu;řádek;1;Dynamický;;;
+VISIFI10;VISI10_01;Příjmy investičního fondu;sloupec;1;Identifikační kód CP;;;
+VISIFI10;VISI10_01;Příjmy investičního fondu;sloupec;2;Přijatý příjem;;;
+VISIFI10;VISI10_02;Vyplacené dividendy investičním fondem;řádek;1;Dynamický;;;
+VISIFI10;VISI10_02;Vyplacené dividendy investičním fondem;sloupec;1;Identifikační kód CP;;;
+VISIFI10;VISI10_02;Vyplacené dividendy investičním fondem;sloupec;2;Měna vyplacené dividendy;;;
+VISIFI10;VISI10_02;Vyplacené dividendy investičním fondem;sloupec;3;Vyplacená dividenda;;;
+VISIFI20;VISI20_01;Roční výkaz o úplatách investičnímu fondu;řádek;1;Poplatky zaplacené investory investičnímu fondu;;;
+VISIFI20;VISI20_01;Roční výkaz o úplatách investičnímu fondu;sloupec;1;;;;
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;1;Úrokové výnosy ∑;;ZFO0007;Úrokové výnosy
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;2;Úroky z finančních aktiv k obchodování;;ZFO0008;Úroky z finančních aktiv k obchodování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;3;Úroky z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty;;ZFO0009;Úroky z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;4;Úroky z finančních aktiv v reálné hodnotě vykázané do zisku nebo ztráty;;ZFO0010;Úroky z finančních aktiv v reálné hodnotě vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;5;Úroky z finančních aktiv v reálné hodnotě vykázané do OCI;;ZFO0011;Úroky z finančních aktiv v reálné hodnotě vykázané do OCI
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;6;Úroky z finančních aktiv v naběhlé hodnotě;;ZFO0012;Úroky z finančních aktiv v naběhlé hodnotě
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;7;Zisk ze zajišťovacích úrokových derivátů;;ZFO0013;Zisk ze zajišťovacích úrokových derivátů
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;8;Úroky z ostatních aktiv;;ZFO0014;Úroky z ostatních aktiv
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;9;Úroky ze závazků;;ZFO0015;Úroky ze závazků
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;10;Úrokové náklady ∑;;ZFO0016;Úrokové náklady
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;11;Úroky na finanční závazky k obchodování;;ZFO0017;Úroky na finanční závazky k obchodování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;12;Úroky na finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty;;ZFO0018;Úroky na finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;13;Úroky na finanční závazky v naběhlé hodnotě;;ZFO0019;Úroky na finanční závazky v naběhlé hodnotě
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;14;Ztráta ze zajišťovacích úrokových derivátů;;ZFO0020;Ztráta ze zajišťovacích úrokových derivátů
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;15;Úroky na ostatní závazky;;ZFO0021;Úroky na ostatní závazky
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;16;Úroky na aktiva;;ZFO0022;Úroky na aktiva
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;17;Výnosy z dividend ∑;;ZFO0023;Výnosy z dividend
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;18;Výnosy z dividend z finančních aktiv k obchodování;;ZFO0024;Výnosy z dividend z finančních aktiv k obchodování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;19;Výnosy z dividend z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty;;ZFO0025;Výnosy z dividend z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;20;Výnosy z dividend z fnančních aktiv v reálné hodnotě vykázané do OCI;;ZFO0026;Výnosy z dividend z fnančních aktiv v reálné hodnotě vykázané do OCI
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;21;Výnosy z dividend z účastí v dceřiných, společných a přidružených podnicích neoceňovaných metodou ekvivalence;;ZFO0027;Výnosy z dividend z účastí v dceřiných, společných a přidružených podnicích neoceňovaných metodou ekvivalence
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;22;Výnosy z poplatků a provizí;;ZFO0028;Výnosy z poplatků a provizí
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;23;Náklady na poplatky a provize;;ZFO0029;Náklady na poplatky a provize
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;24;Zisk nebo (-) ztráta z odúčtování finančních aktiv a závazků nevykázaných v RH do Z/Z ∑;;ZFO0030;Zisk nebo (-) ztráta z odúčtování finančních aktiv a závazků nevykázaných v RH do Z/Z
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;25;Zisk nebo (-) ztráta z finančních aktiv v reálné hodnotě vykázané do OCI;;ZFO0031;Zisk nebo (-) ztráta z finančních aktiv v reálné hodnotě vykázané do OCI
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;26;Zisk nebo (-) ztráta z finančních aktiv v naběhlé hodnotě;;ZFO0032;Zisk nebo (-) ztráta z finančních aktiv v naběhlé hodnotě
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;27;Zisk nebo (-) ztráta z finančních závazků v naběhlé hodnotě;;ZFO0033;Zisk nebo (-) ztráta z finančních závazků v naběhlé hodnotě
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;28;Zisk nebo (-) ztráta z ostatních finančních závazků;;ZFO0034;Zisk nebo (-) ztráta z ostatních finančních závazků
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;29;Zisk nebo (-) ztráta z finančních aktiv a závazků k obchodování;;ZFO0035;Zisk nebo (-) ztráta z finančních aktiv a závazků k obchodování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;30;Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty;;ZFO0036;Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;31;Zisk nebo (-) ztráta z finančních aktiv a závazků v RH vykázané do zisku nebo ztráty;;ZFO0037;Zisk nebo (-) ztráta z finančních aktiv a závazků v RH vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;32;Zisk nebo (-) ztráta ze zajišťovacího účetnictví;;ZFO0038;Zisk nebo (-) ztráta ze zajišťovacího účetnictví
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;33;Kurzové rozdíly - zisk nebo (-) ztráta;;ZFO0039;Kurzové rozdíly - zisk nebo (-) ztráta
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;34;Zisk nebo (-) ztráta z odúčtování nefinančních aktiv;;ZFO0040;Zisk nebo (-) ztráta z odúčtování nefinančních aktiv
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;35;Ostatní provozní výnosy;;ZFO0041;Ostatní provozní výnosy
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;36;Ostatní provozní náklady;;ZFO0042;Ostatní provozní náklady
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;37;Zisk nebo (-) ztráta z provozní činnosti;;ZFO0043;Zisk nebo (-) ztráta z provozní činnosti
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;38;Správní náklady ∑;;ZFO0044;Správní náklady
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;39;Náklady na zaměstnance;;ZFO0045;Náklady na zaměstnance
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;40;Ostatní správní náklady;;ZFO0046;Ostatní správní náklady
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;41;Odpisy ∑;;ZFO0047;Odpisy
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;42;Odpisy pozemků, budov a zařízení;;ZFO0048;Odpisy pozemků, budov a zařízení
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;43;Odpisy nehmotného majetku;;ZFO0049;Odpisy nehmotného majetku
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;44;Zisk nebo (-) ztráta z modifikace ∑;;ZFO0050;Zisk nebo (-) ztráta z modifikace
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;45;Zisk nebo (-) ztráta z modifikace finančních aktiv v RH vykázané do OCI;;ZFO0051;Zisk nebo (-) ztráta z modifikace finančních aktiv v RH vykázané do OCI
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;46;Zisk nebo (-) ztráta z modifikace finančních aktiv v naběhlé hodnotě;;ZFO0052;Zisk nebo (-) ztráta z modifikace finančních aktiv v naběhlé hodnotě
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;47;(-) Tvorba rezerv nebo jejich reverzování ∑;;ZFO0053;(-) Tvorba rezerv nebo jejich reverzování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;48;(-) Rezervy na poskytnuté přísliby a záruky nebo jejich reverzování;;ZFO0054;(-) Rezervy na poskytnuté přísliby a záruky nebo jejich reverzování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;49;(-) Ostatní rezervy nebo jejich reverzování;;ZFO0055;(-) Ostatní rezervy nebo jejich reverzování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;50;(-) Ztráty ze znehodnocení aktiv nebo jejich reverzování ∑;;ZFO0056;(-) Ztráty ze znehodnocení aktiv nebo jejich reverzování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;51;(-) Ztráty ze znehodnocení finan. aktiv v RH vykázané do OCI nebo jejich reverzování;;ZFO0057;(-) Ztráty ze znehodnocení finan. aktiv v RH vykázané do OCI nebo jejich reverzování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;52;(-) Ztráty ze znehodnocení ostatních aktiv nebo jejich reverzování;;ZFO0058;(-) Ztráty ze znehodnocení ostatních aktiv nebo jejich reverzování
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;53;Negativní goodwill účtovaný do výkazu zisku nebo ztráty;;ZFO0059;Negativní goodwill účtovaný do výkazu zisku nebo ztráty
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;54;Podíl na zisku nebo (-) ztrátě dceřiných, společných a přidružených podniků oceňovaných metodou ekvivalence;;ZFO0060;Podíl na zisku nebo (-) ztrátě dceřiných, společných a přidružených podniků oceňovaných metodou ekvivalence
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;55;Zisk nebo (-) ztráta z neoběžných aktiv a vyřazovaných skupin;;ZFO0061;Zisk nebo (-) ztráta z neoběžných aktiv a vyřazovaných skupin
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;56;Zisk nebo (-) ztráta před zdaněním;;ZFO0062;Zisk nebo (-) ztráta před zdaněním
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;57;(-) Náklady nebo výnosy na daň z příjmů činností;;ZFO0063;(-) Náklady nebo výnosy na daň z příjmů činností
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;řádek;58;Zisk nebo (-) ztráta běžného roku po zdanění;;ZFO0064;Zisk nebo (-) ztráta běžného roku po zdanění
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;sloupec;1;;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;1;Úrokové výnosy ∑;;ZFO0007;Úrokové výnosy
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;2;Úroky z finančních aktiv k obchodování;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;3;Úroky z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;4;Úroky z finančních aktiv v reálné hodnotě vykázané do zisku nebo ztráty;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;5;Úroky z finančních aktiv v reálné hodnotě vykázané do OCI;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;6;Úroky z finančních aktiv v naběhlé hodnotě;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;7;Zisk ze zajišťovacích úrokových derivátů;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;8;Úroky z ostatních aktiv;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;9;Úroky ze závazků;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;10;Úrokové náklady ∑;;ZFO0016;Úrokové náklady
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;11;Úroky na finanční závazky k obchodování;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;12;Úroky na finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;13;Úroky na finanční závazky v naběhlé hodnotě;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;14;Ztráta ze zajišťovacích úrokových derivátů;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;15;Úroky na ostatní závazky;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;16;Úroky na aktiva;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;17;Výnosy z dividend ∑;;ZFO0023;Výnosy z dividend
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;18;Výnosy z dividend z finančních aktiv k obchodování;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;19;Výnosy z dividend z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;20;Výnosy z dividend z fnančních aktiv v reálné hodnotě vykázané do OCI;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;21;Výnosy z dividend z účastí v dceřiných, společných a přidružených podnicích neoceňovaných metodou ekvivalence;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;22;Výnosy z poplatků a provizí;;ZFO0028;Výnosy z poplatků a provizí
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;23;Náklady na poplatky a provize;;ZFO0029;Náklady na poplatky a provize
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;24;Zisk nebo (-) ztráta z odúčtování finančních aktiv a závazků nevykázaných v RH do Z/Z ∑;;ZFO0030;Zisk nebo (-) ztráta z odúčtování finančních aktiv a závazků nevykázaných v RH do Z/Z
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;25;Zisk nebo (-) ztráta z finančních aktiv v reálné hodnotě vykázané do OCI;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;26;Zisk nebo (-) ztráta z finančních aktiv v naběhlé hodnotě;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;27;Zisk nebo (-) ztráta z finančních závazků v naběhlé hodnotě;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;28;Zisk nebo (-) ztráta z ostatních finančních závazků;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;29;Zisk nebo (-) ztráta z finančních aktiv a závazků k obchodování;;ZFO0035;Zisk nebo (-) ztráta z finančních aktiv a závazků k obchodování
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;30;Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty;;ZFO0036;Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;31;Zisk nebo (-) ztráta z finančních aktiv a závazků v RH vykázané do zisku nebo ztráty;;ZFO0037;Zisk nebo (-) ztráta z finančních aktiv a závazků v RH vykázané do zisku nebo ztráty
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;32;Zisk nebo (-) ztráta ze zajišťovacího účetnictví;;ZFO0038;Zisk nebo (-) ztráta ze zajišťovacího účetnictví
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;33;Kurzové rozdíly - zisk nebo (-) ztráta;;ZFO0039;Kurzové rozdíly - zisk nebo (-) ztráta
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;34;Zisk nebo (-) ztráta z odúčtování nefinančních aktiv;;ZFO0040;Zisk nebo (-) ztráta z odúčtování nefinančních aktiv
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;35;Ostatní provozní výnosy;;ZFO0041;Ostatní provozní výnosy
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;36;Ostatní provozní náklady;;ZFO0042;Ostatní provozní náklady
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;37;Zisk nebo (-) ztráta z provozní činnosti;;ZFO0043;Zisk nebo (-) ztráta z provozní činnosti
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;38;Správní náklady ∑;;ZFO0044;Správní náklady
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;39;Náklady na zaměstnance;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;40;Ostatní správní náklady;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;41;Odpisy ∑;;ZFO0047;Odpisy
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;42;Odpisy pozemků, budov a zařízení;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;43;Odpisy nehmotného majetku;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;44;Zisk nebo (-) ztráta z modifikace ∑;;ZFO0050;Zisk nebo (-) ztráta z modifikace
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;45;Zisk nebo (-) ztráta z modifikace finančních aktiv v RH vykázané do OCI;;ZFO0051;Zisk nebo (-) ztráta z modifikace finančních aktiv v RH vykázané do OCI
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;46;Zisk nebo (-) ztráta z modifikace finančních aktiv v naběhlé hodnotě;;ZFO0052;Zisk nebo (-) ztráta z modifikace finančních aktiv v naběhlé hodnotě
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;47;(-) Tvorba rezerv nebo jejich reverzování ∑;;ZFO0053;(-) Tvorba rezerv nebo jejich reverzování
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;48;(-) Rezervy na poskytnuté přísliby a záruky nebo jejich reverzování;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;49;(-) Ostatní rezervy nebo jejich reverzování;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;50;(-) Ztráty ze znehodnocení aktiv nebo jejich reverzování ∑;;ZFO0056;(-) Ztráty ze znehodnocení aktiv nebo jejich reverzování
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;51;(-) Ztráty ze znehodnocení finan. aktiv v RH vykázané do OCI nebo jejich reverzování;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;52;(-) Ztráty ze znehodnocení ostatních aktiv nebo jejich reverzování;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;53;Negativní goodwill účtovaný do výkazu zisku nebo ztráty;;ZFO0059;Negativní goodwill účtovaný do výkazu zisku nebo ztráty
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;54;Podíl na zisku nebo (-) ztrátě dceřiných, společných a přidružených podniků oceňovaných metodou ekvivalence;;ZFO0060;Podíl na zisku nebo (-) ztrátě dceřiných, společných a přidružených podniků oceňovaných metodou ekvivalence
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;55;Zisk nebo (-) ztráta z neoběžných aktiv a vyřazovaných skupin;;ZFO0061;Zisk nebo (-) ztráta z neoběžných aktiv a vyřazovaných skupin
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;56;Zisk nebo (-) ztráta před zdaněním;;ZFO0062;Zisk nebo (-) ztráta před zdaněním
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;57;(-) Náklady nebo výnosy na daň z příjmů činností;;ZFO0063;(-) Náklady nebo výnosy na daň z příjmů činností
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;řádek;58;Zisk nebo (-) ztráta běžného roku po zdanění;;ZFO0064;Zisk nebo (-) ztráta běžného roku po zdanění
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;sloupec;1;Činnosti celkem ∑;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;sloupec;2;Investiční činnost;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;sloupec;3;Ostatní činnost;;;
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;sloupec;4;Vzájemný zápočet;;;
+VYFOS20;VYFO20_21;Účetní rámec při sestavení výkazu zisku a ztráty;řádek;1;Účetní rámec při sestavení výkazu;;;
+VYFOS20;VYFO20_21;Účetní rámec při sestavení výkazu zisku a ztráty;sloupec;1;;;;

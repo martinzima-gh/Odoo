@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 154 -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 157 -->
 
 # Investra – architektura Odoo a IS
 
@@ -61,6 +61,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Třída na účetním řádku | Vlastní pole, prázdné = společná položka | Návrh, ověřit prototypem |
 | Číselník fondů a tříd | Vlastníkem je Odoo, IS dostává kopii | Rozhodnuto, lze změnit |
 | Plán verzí | Vývoj na Community, Enterprise zůstává otevřené | Předpoklad |
+| Katalog ČNB | Výkazy, položky, kontroly a číselníky v repozitáři (docs/cnb): CSV je zdroj, XLSX se generuje, verze podle metodiky | Rozhodnuto |
 |  |  |  |
 |  |  |  |
 |  |  |  |
@@ -475,7 +476,7 @@ SDAT u každého výkazu publikuje kontroly ve dvou skupinách: jednovýkazové 
 - **Limity:** DOFOS31 kontroluje limity podle NV 243/2013 (5, 10, 20, 25, 30, 35 % majetku, min. 85 % u feeder fondů), u nemovitostních fondů 40 % na jednu nemovitostní společnost a 55 % na úvěry. Kontroly limitů v `investra_limits` mohou použít stejnou klasifikaci nástrojů.
 - **Hodnoty k potvrzení:** záporné hodnoty v rozvaze, vysoké změny z přecenění (TISIFI10 proti RISIFI30), kryptoaktiva nad 10 % FK. V Odoo pole pro komentář, který se přenese do vydání.
 
-**Co z metodiky plyne pro implementaci:** kódy položek (např. EAR2285 Aktiva celkem), číselníky (země, sektory ESA, druhy cenných papírů, měny) a převodníky jsou veřejně v části Knihovna. Mapovací tabulky v Odoo použijí přímo tyto kódy a číselníky, aby export do SDAT nepotřeboval další překlad. Metodika má verze s platností (aktuálně FOFI20261201), takže mapování se bude verzovat stejně.
+**Co z metodiky plyne pro implementaci:** kódy položek (např. EAR2285 Aktiva celkem), číselníky (země, sektory ESA, druhy cenných papírů, měny) a převodníky jsou veřejně v části Knihovna. Mapovací tabulky v Odoo použijí přímo tyto kódy a číselníky, aby export do SDAT nepotřeboval další překlad. Metodika má verze s platností (aktuálně FOFI20261201), takže mapování se bude verzovat stejně. Katalog výkazů, položek, 705 kontrol a použitých číselníků je v repozitáři v `docs/cnb/`: CSV je zdroj, XLSX slouží ke čtení.
 
 ## Audit, bezpečnost a provoz
 
@@ -628,7 +629,7 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 - [ ] Dokumentace a API IS.
 - [ ] Kdo a kdy zajistí úpravy IS.
 - [ ] Oceňovací dokumentace, včetně „Výpočtu bonusů pro fondy s delší periodou“.
-- [ ] Pole výkazů ČNB: struktura a kontroly jsou převzaté z metodiky SDAT FOFI20261201. Zbývá stáhnout kódy položek, číselníky a převodníky z Knihovny a namapovat na ně role účtů; ověřit termíny RISIFI37 a ROFOS13 v záložce Vykazovací povinnost.
+- [ ] Pole výkazů ČNB: struktura a kontroly jsou převzaté z metodiky SDAT FOFI20261201. Zbývá doplnit ukazatele u položek bez kontroly, převodníky z Knihovny a namapovat na ně role účtů; ověřit termíny RISIFI37 a ROFOS13 v záložce Vykazovací povinnost.
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
 - [ ] Účetní politika přecenění: účty, kurz, frekvence, protiúčty, metoda, P&L a OCI.
 - [ ] Naběhlý úrok a klasifikace podle IFRS 9.

@@ -1,0 +1,51 @@
+﻿kod;nazev;obor_hodnot;pocet_pouziti
+L0019;Typ kódu aktiva;FO0001;4
+L0020;Poskytnuté přísliby a záruky;FO0002;8
+L0021;Typ hodnoty zatížení aktiv;FO0003;30
+L0022;Kód aktiva;an80;11
+L0101;Typ kódu aktiva;FO0001;2
+L0106;Prezentované délky držení v letech;FO0005;137
+L0190;Kód cenného papíru/majetkové účasti;an_20;2
+L0206;Úvěry s pákovým efektem;FO0017;96
+L0276;Nástroj pro řízení likvidity;BA9120;182
+P0009;Jednotka veličiny;BA0009;3165
+P0011;Časová charakteristika;YY0102;403
+P0013;Povaha hodnoty ukazatele;YY0101;163
+P0014;Typ ukazatele;BA0014;322
+P0019;Struktura sledovaných měn;BA0010;2662
+P0021;Typ úvěru;BA0021;53
+P0024;Typ vkladu;BA0024;47
+P0025;Země (stát);BA0025;28
+P0034;Vazba údaje na opravné položky a oprávky;BA0034;40
+P0065;Smluvní doba splatnosti;BA0022;263
+P0088;Druh cenného papíru;BA0088;3
+P0102;Klasifikace fondů podle charakteru investorů;BA0102;8
+P0108;Typ osoby;BA0008;13
+P0125;Země (ekonomické teritorium);BA0025;258
+P0194;Pracovní zařazení;BA0194;53
+P0196;Hlavní pracovní oblasti;BA0196;73
+P0236;Ekonomické sektory podle ESA2010;BA0036;262
+P0301;ISIN;ISIN;7
+P0417;Typ nemovitosti;BA0407;2
+P0486;Ocenění aktiv, závazků a derivátů;BA0086;20
+P0506;Klasifikace investičních nástrojů;BA0506;33
+P0511;Vztah k legislativě;BA0511;6
+P0631;Hierarchie pro stanovení reálné hodnoty;BA0631;118
+P0632;LEI kód;an_20;2
+P0701;Druhy strategie AIF;BA0701;354
+P0702;Typ úrovně aktiva;BA0702;1563
+P0703;Evropská právní specifika;BA0703;233
+P0704;Pořadí dle velikosti;BA0704;904
+P0711;Vztah ke stranám;BA0711;11
+P0712;Podíl na hodnotě aktiv;BA0712;55
+P0713;Typ činnosti;BA0713;833
+P0904;Možnost podstatně ovlivňovat řízení;BA0901;4
+P1051;Objekt vykazování podle ekonomických činností CZ-NACE (rev. 2.1);BA1051;3
+P1311;Ukazatel obezřetnosti;BA0311;3
+P1506;Podkladové aktivum mimoburzovních derivátů;BA0506;1
+P4511;Limit na majetek fondu;BA0511;6
+P5511;Limit na emitenta;BA0511;6
+P6125;Státní občanství;BA0025;2
+P9902;Vztah k datové oblasti;BA0902;2367
+P9903;Účel využití nemovitosti;BA9118;2
+R0138;Kód (pod)fondu;an_10;4

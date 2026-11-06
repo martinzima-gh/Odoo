@@ -1,0 +1,1437 @@
+﻿domena;nazev_domeny_nebo_hierarchie;kod;hodnota
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;01;01 - Rostlinná a živočišná výroba, myslivost a související činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;02;02 - Lesnictví a těžba dřeva
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;03;03 - Rybolov a akvakultura
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;05;05 - Těžba černého a hnědého uhlí
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;06;06 - Těžba ropy a zemního plynu
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;07;07 - Těžba rud
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;08;08 - Těžba a dobývání ostatních nerostných surovin
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;09;09 - Podpůrné činnosti pro těžbu a dobývání nerostných surovin
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;10;10 - Výroba potravinářských výrobků
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;11;11 - Výroba nápojů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;12;12 - Výroba tabákových výrobků
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;13;13 - Výroba textilií
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;14;14 - Výroba oděvů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;15;15 - Výroba usní a souvisejících výrobků z jakýchkoli materiálů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;16;16 - Zpracování dřeva, výroba dřevěných, korkových, proutěných a slaměných výrobků, kromě nábytku
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;17;17 - Výroba papíru a výrobků z papíru
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;18;18 - Tisk a rozmnožování nahraných nosičů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;19;19 - Výroba koksu a rafinovaných ropných produktů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;20;20 - Výroba chemických látek a chemických výrobků
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;21;21 - Výroba základních farmaceutických výrobků a farmaceutických přípravků
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;22;22 - Výroba pryžových a plastových výrobků
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;23;23 - Výroba ostatních nekovových minerálních výrobků
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;24;24 - Výroba základních kovů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;25;25 - Výroba kovových výrobků, kromě strojů a zařízení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;26;26 - Výroba počítačů a elektronických a optických přístrojů a zařízení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;27;27 - Výroba elektrických zařízení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;28;28 - Výroba strojů a zařízení j. n.
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;29;29 - Výroba motorových vozidel, přívěsů a návěsů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;30;30 - Výroba ostatních dopravních prostředků a zařízení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;31;31 - Výroba nábytku
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;32;32 - Ostatní zpracovatelský průmysl
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;33;33 - Opravy, údržba a instalace strojů a zařízení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;35;35 - Dodávání elektřiny, plynu, páry a klimatizovaného vzduchu
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;36;36 - Shromažďování, úprava a distribuce vody
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;37;37 - Činnosti související s odpadními vodami
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;38;38 - Sběr odpadů, zpracování odpadů k dalšímu využití a odstraňování odpadů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;39;39 - Sanace a jiné činnosti související s odpady
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;41;41 - Výstavba bytových a nebytových budov
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;42;42 - Výstavba inženýrských děl
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;43;43 - Specializované stavební činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;46;46 - Velkoobchod
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;47;47 - Maloobchod
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;49;49 - Pozemní a potrubní doprava
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;50;50 - Vodní doprava
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;51;51 - Letecká doprava
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;52;52 - Skladování a podpůrné činnosti pro dopravu
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;53;53 - Poštovní a kurýrní činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;55;55 - Poskytování ubytování
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;56;56 - Poskytování stravování a podávání nápojů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;58;58 - Vydavatelské činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;59;59 - Činnosti v oblasti filmů, videozáznamů a televizních pořadů, pořizování zvukových nahrávek a hudební vydavatelské činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;60;60 - Tvorba programů, vysílání, činnosti zpravodajských tiskových kanceláří a agentur a ostatní činnosti související s distribucí obsahu
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;61;61 - Telekomunikační činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;62;62 - Počítačové programování, poradenství a související činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;63;63 - Poskytování počítačové infrastruktury, zpracování dat, hosting a ostatní informační činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;64;64 - Finanční činnosti, kromě pojišťování a penzijního financování
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;65;65 - Pojišťovací a zajišťovací činnosti, penzijní financování, kromě povinného sociálního zabezpečení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;66;66 - Pomocné činnosti k finančním a pojišťovacím činnostem
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;68;68 - Činnosti v oblasti nemovitostí
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;69;69 - Právní a účetnické činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;70;70 - Činnosti řízení podniků a poradenství v oblasti podnikání
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;71;"71 - Architektonické a inženýrské činnosti; technické zkoušky a analýzy"
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;72;72 - Výzkum a vývoj
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;73;73 - Činnosti v oblasti reklamy, průzkumu trhu a vztahů s veřejností
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;74;74 - Ostatní odborné, vědecké a technické činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;75;75 - Veterinární činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;77;77 - Činnosti v oblasti pronájmu a leasingu
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;78;78 - Činnosti související se zaměstnáním
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;79;79 - Činnosti cestovních agentur, kanceláří a ostatní rezervační a související činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;80;80 - Pátrací a bezpečnostní činnosti
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;81;81 - Činnosti související se stavbami a úpravou krajiny
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;82;82 - Administrativní, kancelářské a jiné podpůrné činnosti pro podnikání
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;84;84 - Činnosti v oblasti veřejné správy, obrany a povinného sociálního zabezpečení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;85;85 - Vzdělávání
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;86;86 - Zdravotní péče
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;87;87 - Pobytové služby sociální péče
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;88;88 - Ambulantní nebo terénní sociální služby
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;90;90 - Umělecká tvorba a činnosti v oblasti scénických umění
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;91;91 - Činnosti knihoven, archivů, muzeí a jiných kulturních zařízení
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;92;92 - Činnosti heren, kasin a sázkových kanceláří
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;93;93 - Činnosti v oblasti sportu, zábavy a rekreace
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;94;94 - Činnosti organizací sdružujících osoby za účelem prosazování společných a veřejných zájmů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;95;95 - Opravy a údržba počítačů, výrobků pro osobní potřebu a převážně pro domácnost a motorových vozidel a motocyklů
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;96;96 - Poskytování osobních služeb
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;97;97 - Činnosti domácností jako zaměstnavatelů domácího personálu
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;98;98 - Činnosti domácností produkujících blíže neurčené výrobky a služby pro vlastní potřebu
+A_S_NACE_REV21_2;A_S_NACE_REV21_2;99;99 - Činnosti exteritoriálních organizací a institucí
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;31;Správa majetku investičních fondů
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;29;Řízení rizik
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;03;Vnitřní audit
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;33;Administrace investičních fondů
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;26;Compliance
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;05;Výkaznictví pro ČNB
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;40;Nabízení investic do fondů
+A_S_OUTSOURCING50_1;A_S_OUTSOURCING50_1;41;Kontaktní osoba AML
+A_S_PAMD_1;A_S_PAMD_1;04;Investiční CP
+A_S_PAMD_1;A_S_PAMD_1;12;Nástroje peněžního trhu
+A_S_PAMD_1;A_S_PAMD_1;08;Cenné papíry kolektivního investování
+A_S_PAMD_1;A_S_PAMD_1;20;Úroková sazba
+A_S_PAMD_1;A_S_PAMD_1;22;Měnový kurz
+A_S_PAMD_1;A_S_PAMD_1;18;Finanční index
+A_S_PAMD_1;A_S_PAMD_1;142;Komodita
+A_S_PAMD_1;A_S_PAMD_1;144;Ostatní
+A_S_VSE_1;A_S_VSE_1;01;vklady v zahraničí
+A_S_VSE_1;A_S_VSE_1;02;Ostatní (např. cashpooling)
+A_S_VYB_DNEM_1;A_S_VYB_DNEM_1;D2;Budova
+A_S_VYB_DNEM_1;A_S_VYB_DNEM_1;D5;Jednotka
+A_S_VYB_DNEM_1;A_S_VYB_DNEM_1;D1;Pozemek
+A_S_VYB_DNEM_1;A_S_VYB_DNEM_1;D4;Ostatní druhy nemovitosti
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;01;Kancelářská
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;02;Průmyslová
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;03;Maloobchodní
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;04;Logistická
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;05;Rezidenční
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;06;Víceúčelová
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;07;Development
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;08;Zemědělství
+A_S_VYUZ_NEM_1;A_S_VYUZ_NEM_1;99;Jiný
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AT;Rakouská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BE;Belgické království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;DE;Spolková republika Německo
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;DK;Dánské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ES;Španělské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;FI;Finská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LU;Lucemburské velkovévodství
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;S_FR;Francie  včetně teritorií
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AD;Andorrské knížectví
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AE;Stát Spojené arabské emiráty
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AF;Afghánská islámská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AG;Antigua a Barbuda
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AI;Anguilla
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AL;Albánská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AM;Arménská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AO;Angolská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AQ;Antarktida
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AR;Argentinská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AS;Území Americká Samoa
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AU;Australské společenství
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AW;Aruba
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;AZ;Ázerbájdžánská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BA;Bosna a Hercegovina
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BB;Barbados
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BD;Bangladéšská lidová republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BF;Burkina Faso
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BG;Bulharská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BH;Království Bahrajn
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BI;Burundská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BJ;Beninská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BM;Bermudy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BN;Stát Brunej Darussalam
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BO;Mnohonárodní stát Bolívie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BQ;Bonaire, Svatý Eustach a Saba
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BR;Brazilská federativní republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BS;Bahamské společenství
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BT;Bhútánské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BV;Bouvetův ostrov
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BW;Botswanská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BY;Běloruská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;BZ;Belize
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CA;Kanada
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CC;Území Kokosové (Keelingovy) ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CD;Konžská demokratická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CF;Středoafrická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CG;Konžská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CH;Švýcarská konfederace
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CI;Republika Pobřeží slonoviny
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CK;Cookovy ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CL;Chilská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CM;Kamerunská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CN;Čínská lidová republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CO;Kolumbijská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CR;Kostarická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CU;Kubánská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CV;Kapverdská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CW;Země Curaçao
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CX;Území Vánoční ostrov
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CY;Kyperská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;CZ;Česká republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;DJ;Džibutská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;DM;Dominické společenství
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;DO;Dominikánská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;DZ;Alžírská demokratická a lidová republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;EC;Ekvádorská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;EE;Estonská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;EG;Egyptská arabská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ER;Stát Eritrea
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ET;Etiopská federativní demokratická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;FJ;Fidžijská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;FK;Falklandy (Malvíny)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;FM;Federativní státy Mikronésie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;FO;Faerské ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GA;Gabonská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GB;Spojené království Velké Británie a Severního Irska
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GD;Grenada
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GE;Gruzie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GG;Bailiwick Guernsey
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GH;Ghanská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GI;Gibraltar
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GL;Grónsko
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GM;Gambijská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GN;Guinejská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GQ;Republika Rovníková Guinea
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GR;Řecká republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GS;Jižní Georgie a Jižní Sandwichovy ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GT;Guatemalská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GU;Teritorium Guam
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GW;Republika Guinea-Bissau
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;GY;Guyanská kooperativní republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;HK;Zvláštní administrativní oblast Čínské lidové republiky Hongkong
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;HM;Heardův ostrov a MacDonaldovy ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;HN;Honduraská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;HR;Chorvatská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;HT;Republika Haiti
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;HU;Maďarsko
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ID;Indonéská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IE;Irsko
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IL;Stát Izrael
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IM;Ostrov Man
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IN;Indická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IO;Britské území v Indickém oceánu
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IQ;Irácká republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IR;Íránská islámská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IS;Islandská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;IT;Italská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;JE;Bailiwick Jersey
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;JM;Jamajka
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;JO;Jordánské hášimovské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;JP;Japonsko
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KE;Keňská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KG;Kyrgyzská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KH;Kambodžské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KI;Republika Kiribati
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KM;Komorský svaz
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KN;Federace Svatý Kryštof a Nevis
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KP;Korejská lidově demokratická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KR;Korejská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KW;Kuvajtský stát
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KY;Kajmanské ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;KZ;Republika Kazachstán
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LA;Laoská lidově demokratická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LB;Libanonská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LC;Svatá Lucie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LI;Lichtenštejnské knížectví
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LK;Šrílanská demokratická socialistická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LR;Liberijská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LS;Lesothské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LT;Litevská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LV;Lotyšská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;LY;Libyjský stát
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MA;Marocké království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MD;Moldavská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ME;Černá Hora
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MG;Madagaskarská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MH;Republika Marshallovy ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MK;Republika Severní Makedonie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ML;Republika Mali
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MM;Republika Myanmarský svaz
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MN;Mongolsko
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MO;Zvláštní administrativní oblast Čínské lidové republiky Macao
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MP;Společenství Severní Mariany
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MR;Mauritánská islámská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MS;Montserrat
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MT;Maltská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MU;Mauricijská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MV;Maledivská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MW;Malawiská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MX;Spojené státy mexické
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MY;Malajsie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;MZ;Mosambická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NA;Namibijská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NC;Nová Kaledonie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NE;Nigerská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NF;Území Norfolk
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NG;Nigerijská federativní republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NI;Nikaragujská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NL;Nizozemsko
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NO;Norské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NP;Nepálská federativní demokratická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NR;Republika Nauru
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NU;Niue
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;NZ;Nový Zéland
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;OM;Sultanát Omán
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PA;Panamská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PE;Peruánská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PF;Francouzská Polynésie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PG;Nezávislý stát Papua Nová Guinea
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PH;Filipínská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PK;Pákistánská islámská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PL;Polská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PN;Pitcairnovy ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PS;Palestinská autonomní území
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PT;Portugalská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PW;Republika Palau
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;PY;Paraguayská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;QA;Stát Katar
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;RO;Rumunsko
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;RS;Srbská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;RU;Ruská federace
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;RW;Rwandská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SA;Království Saúdská Arábie
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SB;Šalomounovy ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SC;Seychelská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SD;Súdánská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SS;Jihosúdánská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SE;Švédské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SG;Singapurská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SH;Svatá Helena, Ascension a Tristan da Cunha
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SI;Slovinská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SK;Slovenská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SL;Republika Sierra Leone
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SM;Republika San Marino
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SN;Senegalská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SO;Somálská federativní republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SR;Surinamská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ST;Demokratická republika Svatý Tomáš a Princův ostrov
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SV;Salvadorská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SX;Svatý Martin (NL)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SY;Syrská arabská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;SZ;Svazijské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TC;Ostrovy Turks a Caicos
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TD;Čadská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TF;Francouzská jižní a antarktická území
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TG;Tožská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TH;Thajské království
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TJ;Republika Tádžikistán
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TK;Tokelau
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TL;Demokratická republika Východní Timor
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TM;Turkmenistán
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TN;Tuniská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TO;Království Tonga
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TR;Turecká republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TT;Republika Trinidad a Tobago
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TV;Tuvalu
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TW;Čínská republika (Tchaj-wan)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;TZ;Tanzanská sjednocená republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;UA;Ukrajina
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;UG;Ugandská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;UM;Menší odlehlé ostrovy USA
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;US;Spojené státy americké
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;UY;Uruguayská východní republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;UZ;Republika Uzbekistán
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;VA;Vatikánský městský stát
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;VC;Svatý Vincenc a Grenadiny
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;VE;Bolívarovská republika Venezuela
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;VG;Britské Panenské ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;VI;Americké Panenské ostrovy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;VN;Vietnamská socialistická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;VU;Republika Vanuatu
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;WF;Teritorium Wallisovy ostrovy a Futuna
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;WS;Nezávislý stát Samoa
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;XK;Kosovská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;YE;Jemenská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ZA;Jihoafrická republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ZM;Zambijská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;ZW;Zimbabwská republika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1C;IMF  (Mezinárodní měnový fond )
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1D;WTO (Organizace světového obchodu)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1E;IBRD (Mezinárodní banka  pro obnovu a rozvoj)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1F;IDA (Mezinárodní asociace pro rozvoj)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1G;ICSID (Mezinárodní středisko pro řešení sporů z investic)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1H;UNESCO (Organizace Spojených národů pro vzděl.,vědu a kult.)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1J;FAO (Organizace pro výživu a zemědělství)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1K;WHO (Světová zdravotnická organizace)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1L;IFAD (Mezinárodní fond pro rozvoj zemědělství)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1M;IFC (Mezinárodní finanční korporace)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1N;MIGA ( Úřad pro mnohostranné záruky investic)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1O;UNICEF (Dětský fond spojených národů)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1P;UNHRC (Vysoký komisař Spojených národů pro uprchlíky)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1Q;UNRWA (Podpůr. a prac. úřad spojených národ. pro Palestinu)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1R;IAEA (Mezinárodní úřad pro atomovou energii)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1S;ILO (Mezinárodní organizace práce)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1T;ITU (Mezinárodní telekomunikační unie)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;1U;Ostatní organizace národů jinde neuvedené
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4B;EMS (Evropský měnový systém)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4C;EIB (Evropská investiční banka)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4D;EC (Evroská komise)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J1;Evropský parlament
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J2;Rada Evropské Unie ( Council of the European Union)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J3;Soudní dvůr
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J4;Evropský účetní dvůr
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J5;Evropská rada
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J6;Hospodářský a sociální výbor
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J7;Oblastní výbor
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4J8;Ostatní malé EU instituce (Ombudsman,Data Protector Superv.)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4E;EDF (Evropský fond rozvoje)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4F;ECB (Evropská centrální banka)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4G;EIF (Evropský investiční fond)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4H;ECSC (Evropské společenství uhlí a oceli)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4I;Neighbourhood Investment Facility
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4M;SRB (Jednotný výbor pro řešení krizí)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4R;Svěřenecký fond pro infrastrukturu EU-Afrika
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4S;Evropský mechanismus stability (ESM)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4T1;EBA (Evropský orgán pro bankovnictví)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4T2;ESMA (Evropský orgán pro cenné papíry a trhy)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4T3;EIOPA (Evropský orgán pro pojišťovnictví a zaměstnanecké penzijní pojištění)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4U;EURATOM
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4V;FEMIP (Facility for Euro-Mediterranean Investment and Partnership)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;4W;EFSF (European Financial Stability Facility)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5B;BIS (Banka pro mezinárodní účtování)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5C;IADB (Banka pro meziamerický rozvoj)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5D;AfDB (Africká rozvojová banka)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5E;AsDB (Asijská rozvojová banka)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5F;EBRD (Evropská banka pro obnovu a rozvoj)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5G;IIC (Společnost pro meziamerické investice)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5H;NIB (Severská investiční banka)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5I;Východní  karibská centrální banka (ECCB)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5J;IBEC (Mezinárodní banka pro hospodářskou spolupráci)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5K;IIB (Mezinárodní investiční banka)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5L;CDB (Karibská rozvojová banka)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5M;AMF (Arabský měnový fond)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5N;BADEA (Arabská banka pro ekonomický rozvoj v Africe)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5O;Banque Centrale des États de l'  Afrique de l' Ouest (BCEAO)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5P;CASDB (Rozvojová banka států Centrální Afriky)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5Q;Africký rozvojový fond
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5R;Asijský rozvojový fond
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5S;Zvláštní sdružené fondy pro rozvoj
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5T;CABEI (Středoafrická banka pro hospodářskou integraci)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5U;ADC (Společnost pro rozvoj And)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5W;Banque des États de l' Afrique centrale (BEAC)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5X;Asian Infrastructure Investment Bank
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;5Z;Ostatní  mezinárodní finanční organizace  jinde neuvedené
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7A;West African Economic and Monetary Union (WAEMU)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7B;Islámská  rozvojová banka (IDB)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7C;Euroasijská rozvojová banka (EDB)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7D;Paris Club Creditors Institutions
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7E;Rozvojová banka Rady Evropy (CEB)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7F;International Union of Credit and Investment Insurers
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7G;Black Sea Trade and Development Banks (BSTDB)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7H;AFREXIMBANK (African Export - Import Bank)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7I;BLADEX (Banco Latino Americano De Comercio Exterior)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7J;FLAR (Fondo Latino Americano de Reservas)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7K;Fonds Belgo-Congolais d´Amortissement et de Gestion
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7L;IFFIm (Mezinárodní finanční nástroj pro imunizaci)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;7M;EUROFIMA (Evropská společnost pro financování železničních vozů)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6B;NATO (Organizace Severoatlantické smlouvy)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6C;Rada  Evropy
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6D;ICRD (Mezinárodní výbor Červeného kříže)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6E;ESA (Evropský úřad pro kosmonautiku)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6F;EPO (Evropský patentový úřad)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6G;EUROCONTROL (Evropská org. pro bezpečnost letecké navigace)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6H;EUTELSAT (Evropská organizace pro satelitní telekomunikaci)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6I;EMBL (Evropská laboratoř molekulární biologie)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6J;ITSO (Mezinárodní organizace pro satelitní komunikaci)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6K;EBU/UER (Evropská rozhlasová a satelitní unie)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6L;EUMETSAT (Evropská org. pro využití meteorologic. satelitů)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6M;ESO ( Evropská jižní observatoř)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6N;ECMWF (Evropské středisko pro střednědobé předpovědi počasí)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6O;OECD (Organisation for Economic Co-opration and Development)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6P;CERN (Evropská organizace pro jaderný výzkum)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6Q;IOM ( Mezinárodní organizace pro migraci)
+D_S_A1TER1;Svět včetně začlenění vybraných teritorií;6Z;Ostatní mezinárodní organizace (nefinační instituce) jinde nezařažené
+D_S_AN1;Ano, ne;N;NE
+D_S_AN1;Ano, ne;Y;ANO
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;111;Státní pokladniční poukázky
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;112;Ostatní státní bezkuponové dluhopisy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;12;Bezkuponové dluhopisy centrálních bank
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;13;Ostatní  bezkuponové dluhopisy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;141;Státní kuponové dluhopisy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;142;Komunální dluhopisy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;149;Ostatní kupónové dluhopisy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;15;Hypotéční zástavní listy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;41;Veřejnoprávní zástavní listy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;42;Smíšené zástavní listy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;17;Cenné papíry zajištěné aktivy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;19;Ostatní dluhopisy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;211;Kmenové akcie
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;212;Prioritní akcie
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;217;Akcie ostatních investičních fondů
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;218;Akcie fondů peněžního trhu
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;219;Ostatní akcie
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;225;Podílové listy fondů peněžního trhu
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;226;Podílové listy ostatních investičních fondů
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;23;Zatímní listy
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;24;Poukázky na akcie
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;27;Globální depozitní certifikáty  (GDR)
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;29;Ostatní majetkové CP nedefinované v jiných položkách skup. 2
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;311;Depozitní směnky
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;312;Ostatní směnky
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;36;Kupóny k dluhopisům -samostatné
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;37;Kupóny k majetkovým cenným papírům  -samostatné
+D_S_CPSBS_1;Cennné papíry - základní druhy pro SBS;8;Majetkové podíly
+D_S_CZEMU_1;CZ+EMUTER;CZ;Česká republika
+D_S_CZEMU_1;CZ+EMUTER;S_EMUTER;Země eurozóny včetně vybraných teritorií
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;104;Investiční cenné papíry podle §3/1a) bod 1
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;106;Investiční cenné papíry podle §3/1a) bod 2
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;108;Investiční cenné papíry podle §3/1b)
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;112;Investiční cenné papíry podle §3/1d)
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;114;Investiční cenné papíry podle §3/1e)
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;116;Nástroje peněžního trhu podle §5
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;118;Nástroje peněžního trhu podle §6
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;120;Nástroje peněžního trhu podle §9
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;128;Investiční cenné papíry podle §46/1a)
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;130;Dluhopisy podle §46/1b)
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;131;Komoditní certifikát podle §45/1c)
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;132;Investiční cenné papíry podle §46/1c)
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;134;Dluhopisy podle §46/2
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;140;Nástroje peněžního trhu podle §48/1
+D_S_DLUHCPL1_1;Dluhové CP - limit 1;141;Nástroje peněžního trhu podle § 48/2
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;148;Limit standardního fondu podle §17/1
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;150;Limit standardního fondu podle §17/2a)
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;152;Limit standardního fondu podle §17/2b)
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;154;Limit standardního fondu podle §17/2c)
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;156;Limit standardního fondu podle §17/5
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;158;Limit standardního fondu podle §20/3
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;162;Limit standardního fondu podle §24/1
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;164;Limit standardního fondu podle §24/2
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;166;Limit speciálního fondu podle §60/1
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;168;Limit speciálního fondu podle §60/2
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;169;Limit speciálního fondu podle §60/3 ve vztahu k §17/2b)
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;167;Limit speciálního fondu podle §60/3 ve vztahu k §20/3
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;171;Limit speciálního fondu podle §60/4
+D_S_DLUHCPL2_1;Dluhové CP - limit 2;176;Ostatní (limit 2)
+D_S_DLUHCPL3_1;Dluhové CP - limit 3;180;Limit standardního fondu podle §19/1b)
+D_S_DLUHCPL3_1;Dluhové CP - limit 3;182;Limit standardního fondu podle §19/1c)
+D_S_DLUHCPL3_1;Dluhové CP - limit 3;184;Limit standardního fondu podle §19/2
+D_S_DLUHCPL3_1;Dluhové CP - limit 3;188;Limit speciálního fondu podle §61
+D_S_DLUHCPL3_1;Dluhové CP - limit 3;194;Ostatní (limit 3)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNMEFIIN;Měnové finanční instituce (rezidenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNVLADA;Vládní instituce ( rezidenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNNEFP;Nefinanční podniky ( rezidenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNFKIBFPT;Fondy  kolektivního investování jiné než fondy peněžního trhu (rez. + nerez.)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNOSTFZ;Ostatní fin. zprostředkovatelé ( rezidenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNPOMFI;Pomocné finanční instituce ( rezidenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNKAPFI;Kaptivní finanční instituce a půjčovatelé peněz (rezidenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNPOJSP;Pojišťovací společnosti ( rezidenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNPENZF;Penzijní fondy ( rezudenti a nerezidenti)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_DOMASVJ;Domácnosti celkem ( rezid. + nerezid.) včetně SVJ
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;S_RNNIDOM;Neziskové instituce sloužící domácnostem ( rez. a nerez.)
+D_S_ESACNB_21;Rezidenti a nerezidenti celkem;2009030;Mezinárodní instituce
+D_S_ISOMENY_1;Měny podle ISO normy 4217;AED;dirham SAE
+D_S_ISOMENY_1;Měny podle ISO normy 4217;AFN;afghání
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ALL;lek
+D_S_ISOMENY_1;Měny podle ISO normy 4217;AMD;dram
+D_S_ISOMENY_1;Měny podle ISO normy 4217;AOA;kwanza
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ARS;argentinské peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;AUD;australský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;AWG;arubský zlatý
+D_S_ISOMENY_1;Měny podle ISO normy 4217;AZN;ázerbájdžánský manat
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BAM;konvertibilní marka
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BBD;barbadoský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BDT;taka
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BHD;bahrajnský dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BIF;burundský frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BMD;bermudský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BND;brunejský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BOB;boliviano
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BOV;mvdol
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BRL;real
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BSD;bahamský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BTN;ngultrum
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BWP;pula
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BYN;běloruský rubl
+D_S_ISOMENY_1;Měny podle ISO normy 4217;BZD;belizský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CAD;kanadský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CDF;konžský frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CHF;švýcarský frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CLF;Unidad de Fomento
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CLP;chilské peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CNY;čínský jüan
+D_S_ISOMENY_1;Měny podle ISO normy 4217;COP;kolumbijské peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CRC;kostarický colón
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CUP;kubánské peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CVE;kapverdské escudo
+D_S_ISOMENY_1;Měny podle ISO normy 4217;CZK;koruna česká
+D_S_ISOMENY_1;Měny podle ISO normy 4217;DJF;džibutský frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;DKK;dánská koruna
+D_S_ISOMENY_1;Měny podle ISO normy 4217;DOP;dominikánské peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;DZD;alžírský dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;EGP;egyptská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ERN;nakfa
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ETB;birr
+D_S_ISOMENY_1;Měny podle ISO normy 4217;EUR;euro
+D_S_ISOMENY_1;Měny podle ISO normy 4217;FJD;fidžijský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;FKP;falklandská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GBP;libra šterlinků
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GEL;lari
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GHS;cedi
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GIP;gibraltarská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GMD;dalasi
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GNF;guinejský frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GTQ;quetzal
+D_S_ISOMENY_1;Měny podle ISO normy 4217;GYD;guyanský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;HKD;hongkongský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;HNL;lempira
+D_S_ISOMENY_1;Měny podle ISO normy 4217;HTG;gourde
+D_S_ISOMENY_1;Měny podle ISO normy 4217;HUF;forint
+D_S_ISOMENY_1;Měny podle ISO normy 4217;IDR;indonéská rupie
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ILS;izraelský nový šekel
+D_S_ISOMENY_1;Měny podle ISO normy 4217;INR;indická rupie
+D_S_ISOMENY_1;Měny podle ISO normy 4217;IQD;irácký dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;IRR;íránský rijál
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ISK;islandská koruna
+D_S_ISOMENY_1;Měny podle ISO normy 4217;JMD;jamajský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;JOD;jordánský dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;JPY;jen
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KES;keňský šilink
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KGS;som
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KHR;riel
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KMF;komorský frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KPW;severokorejský won
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KRW;jihokorejský won
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KWD;kuvajtský dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KYD;dolar Kajmanských ostrovů
+D_S_ISOMENY_1;Měny podle ISO normy 4217;KZT;tenge
+D_S_ISOMENY_1;Měny podle ISO normy 4217;LAK;kip
+D_S_ISOMENY_1;Měny podle ISO normy 4217;LBP;libanonská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;LKR;šrílanská rupie
+D_S_ISOMENY_1;Měny podle ISO normy 4217;LRD;liberijský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;LSL;loti
+D_S_ISOMENY_1;Měny podle ISO normy 4217;LYD;libyjský dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MAD;marocký dirham
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MDL;moldavský leu
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MGA;ariary
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MKD;denár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MMK;kyat
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MNT;tugrik
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MOP;pataca
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MRU;ukíja
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MUR;mauricijská rupie
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MVR;rufiyaa
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MWK;malawiská kwacha
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MXN;mexické peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MYR;malajsijský ringgit
+D_S_ISOMENY_1;Měny podle ISO normy 4217;MZN;metical
+D_S_ISOMENY_1;Měny podle ISO normy 4217;NAD;namibijský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;NGN;naira
+D_S_ISOMENY_1;Měny podle ISO normy 4217;NIO;nikaragujská córdoba
+D_S_ISOMENY_1;Měny podle ISO normy 4217;NOK;norská koruna
+D_S_ISOMENY_1;Měny podle ISO normy 4217;NPR;nepálská rupie
+D_S_ISOMENY_1;Měny podle ISO normy 4217;NZD;novozélandský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;OMR;ománský rijál
+D_S_ISOMENY_1;Měny podle ISO normy 4217;PAB;balboa
+D_S_ISOMENY_1;Měny podle ISO normy 4217;PEN;sol
+D_S_ISOMENY_1;Měny podle ISO normy 4217;PGK;kina
+D_S_ISOMENY_1;Měny podle ISO normy 4217;PHP;filipínské peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;PKR;pákistánská rupie
+D_S_ISOMENY_1;Měny podle ISO normy 4217;PLN;zlotý
+D_S_ISOMENY_1;Měny podle ISO normy 4217;PYG;guaraní
+D_S_ISOMENY_1;Měny podle ISO normy 4217;QAR;katarský rijál
+D_S_ISOMENY_1;Měny podle ISO normy 4217;RON;rumunský leu
+D_S_ISOMENY_1;Měny podle ISO normy 4217;RSD;srbský dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;RUB;ruský rubl
+D_S_ISOMENY_1;Měny podle ISO normy 4217;RWF;rwandský frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SAR;saúdský rijál
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SBD;dolar Šalomounových ostrovů
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SCR;seychelská rupie
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SDG;súdánská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SSP;jihosúdánská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SEK;švédská koruna
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SGD;singapurský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SHP;svatohelenská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SLE;leone
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SOS;somálský šilink
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SRD;surinamský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;STN;dobra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SVC;salvadorský colón
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SYP;syrská libra
+D_S_ISOMENY_1;Měny podle ISO normy 4217;SZL;lilangeni
+D_S_ISOMENY_1;Měny podle ISO normy 4217;THB;baht
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TJS;somoni
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TMT;turkmenský manat
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TND;tuniský dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TOP;pa´anga
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TRY;turecká lira
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TTD;dolar Trinidadu a Tobaga
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TWD;tchajwanský nový dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;TZS;tanzanský šilink
+D_S_ISOMENY_1;Měny podle ISO normy 4217;UAH;hřivna
+D_S_ISOMENY_1;Měny podle ISO normy 4217;UGX;ugandský šilink
+D_S_ISOMENY_1;Měny podle ISO normy 4217;USD;americký dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;UYU;uruguayské peso
+D_S_ISOMENY_1;Měny podle ISO normy 4217;UZS;sum
+D_S_ISOMENY_1;Měny podle ISO normy 4217;VES;bolívar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;VND;dong
+D_S_ISOMENY_1;Měny podle ISO normy 4217;VUV;vatu
+D_S_ISOMENY_1;Měny podle ISO normy 4217;WST;tala
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XAD;arabský účetní dinár
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XAF;středoafrický CFA frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XCG;karibský gulden
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XCD;východokaribský dolar
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XDR;zvláštní práva čerpání - MMF
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XOF;západoafrický CFA frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XPF;pacifický frank
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XSU;SUCRE
+D_S_ISOMENY_1;Měny podle ISO normy 4217;XUA;zúčtovací jednotka Africké rozvojové banky
+D_S_ISOMENY_1;Měny podle ISO normy 4217;YER;jemenský rijál
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ZAR;rand
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ZMW;zambijská kwacha
+D_S_ISOMENY_1;Měny podle ISO normy 4217;ZWG;zimbabwský zlatý
+D_S_MAJCPL1_1;Majetkové CP - limit 1;102;Cenné papíry podle §2/2a)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;104;Investiční cenné papíry podle §3/1a) bod 1
+D_S_MAJCPL1_1;Majetkové CP - limit 1;106;Investiční cenné papíry podle §3/1a) bod 2
+D_S_MAJCPL1_1;Majetkové CP - limit 1;108;Investiční cenné papíry podle §3/1b)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;110;Investiční cenné papíry podle §3/1c)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;112;Investiční cenné papíry podle §3/1d)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;114;Investiční cenné papíry podle §3/1e)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;122;Cenné papíry podle §10/1
+D_S_MAJCPL1_1;Majetkové CP - limit 1;124;Cenné papíry podle §10/2
+D_S_MAJCPL1_1;Majetkové CP - limit 1;126;Cenné papíry podle §45/2a)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;128;Investiční cenné papíry podle §46/1a)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;132;Investiční cenné papíry podle §46/1c)
+D_S_MAJCPL1_1;Majetkové CP - limit 1;136;Cenné papíry podle §47/1
+D_S_MAJCPL1_1;Majetkové CP - limit 1;138;Cenné papíry podle §47/2
+D_S_MAJCPL1_1;Majetkové CP - limit 1;139;Cenné papíry podle §47/3
+D_S_MAJCPL2_1;Majetkové CP - limit 2;148;Limit standardního fondu podle §17/1
+D_S_MAJCPL2_1;Majetkové CP - limit 2;150;Limit standardního fondu podle §17/2a)
+D_S_MAJCPL2_1;Majetkové CP - limit 2;152;Limit standardního fondu podle §17/2b)
+D_S_MAJCPL2_1;Majetkové CP - limit 2;156;Limit standardního fondu podle §17/5
+D_S_MAJCPL2_1;Majetkové CP - limit 2;158;Limit standardního fondu podle §20/3
+D_S_MAJCPL2_1;Majetkové CP - limit 2;160;Limit standardního fondu podle §21/1
+D_S_MAJCPL2_1;Majetkové CP - limit 2;162;Limit standardního fondu podle §24/1
+D_S_MAJCPL2_1;Majetkové CP - limit 2;164;Limit standardního fondu podle §24/2
+D_S_MAJCPL2_1;Majetkové CP - limit 2;166;Limit speciálního fondu podle §60/1
+D_S_MAJCPL2_1;Majetkové CP - limit 2;168;Limit speciálního fondu podle §60/2
+D_S_MAJCPL2_1;Majetkové CP - limit 2;169;Limit speciálního fondu podle §60/3 ve vztahu k §17/2b)
+D_S_MAJCPL2_1;Majetkové CP - limit 2;167;Limit speciálního fondu podle §60/3 ve vztahu k §20/3
+D_S_MAJCPL2_1;Majetkové CP - limit 2;170;Limit speciálního fondu podle §63/1
+D_S_MAJCPL2_1;Majetkové CP - limit 2;172;Limit speciálního fondu podle §63/2
+D_S_MAJCPL2_1;Majetkové CP - limit 2;174;Limit speciálního fondu podle §63/3
+D_S_MAJCPL2_1;Majetkové CP - limit 2;173;Limit speciálního fondu podle §63/5
+D_S_MAJCPL2_1;Majetkové CP - limit 2;193;Limit podřízeného fondu podle §246 ZISIF
+D_S_MAJCPL2_1;Majetkové CP - limit 2;176;Ostatní (limit 2)
+D_S_MAJCPL3_1;Majektové CP - limit 3;178;Limit standardního fondu podle §19/1a)
+D_S_MAJCPL3_1;Majektové CP - limit 3;184;Limit standardního fondu podle §19/2
+D_S_MAJCPL3_1;Majektové CP - limit 3;186;Limit standardního fondu podle §21/3
+D_S_MAJCPL3_1;Majektové CP - limit 3;188;Limit speciálního fondu podle §61
+D_S_MAJCPL3_1;Majektové CP - limit 3;190;Limit speciálního fondu podle §64/1
+D_S_MAJCPL3_1;Majektové CP - limit 3;187;Limit řídícího fondu podle §245 ZISIF
+D_S_MAJCPL3_1;Majektové CP - limit 3;194;Ostatní (limit 3)
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1100100;Nefinanční podniky veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1100200;Nefinanční podniky soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1100300;Nefinanční podniky soukromé pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1210000;Centrální banka
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1221100;Banky veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1221200;Banky soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1221300;Banky pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1222100;Jiné instituce přijímající vklady veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1222200;Spořitelní a úvěrní družstva soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1222300;Spořitelní a úvěrní družstva pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1224200;Jiné instituce přijímající vklady soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1224300;Jiné instituce přijímající vklady pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1230100;Fondy peněžního trhu veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1230200;Fondy peněžního trhu soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1230300;Fondy peněžního trhu pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1240100;Fondy kolektivního investování (kromě FPT) veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1240200;Fondy kolektivního investování (kromě FPT) soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1240300;Fondy kolektivního investování (kromě FPT) pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1250100;Ostatní finanční zprostředkovatelé (kromě IC a PF) veřejní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1250200;Ostatní finanční zprostředkovatelé (kromě IC a PF) soukromí národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1250300;Ostatní finanční zprostředkovatelé (kromě IC a PF) pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1260100;Pomocné finanční instituce veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1260200;Pomocné finanční instituce soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1260300;Pomocné finanční instituce pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1270100;Kaptivní finanční instituce a půjčovatelé peněz veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1270200;Kaptivní finanční instituce a půjčovatelé peněz soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1270300;Kaptivní finanční instituce a půjčovatelé peněz pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1280100;Pojišťovací společnosti (IC) veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1280200;Pojišťovací společnosti (IC) soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1280300;Pojišťovací společnosti (IC) pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1290100;Penzijní fondy (PF) veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1290200;Penzijní fondy (PF) soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1290300;Penzijní fondy (PF) pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1311000;Ústřední vládní instituce
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1312000;Národní vládní instituce
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1313000;Místní vládní instituce
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1314000;Fondy sociálního zabezpečení
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1500000;Neziskové instituce sloužící domácnostem
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2001001;Nefinanční podniky veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2001002;Nefinanční podniky soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2001003;Nefinanční podniky soukromé pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002100;Centrální banka
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002211;Banky veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002212;Banky soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002213;Banky pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002221;Jiné instituce přijímající vklady veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002222;Spořitelní a úvěrní družstva soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002223;Spořitelní a úvěrní družstva pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002242;Jiné instituce přijímající vklady soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002243;Jiné instituce přijímající vklady pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002301;Fondy peněžního trhu veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002302;Fondy peněžního trhu soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002303;Fondy peněžního trhu pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002401;Investiční fondy jiné než fondy peněžního trhu, veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002402;Fondy kolektivního investování (kromě FPT) soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002403;Investiční fondy jiné než fondy peněžního trhu, pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002501;Ostatní finanční zprostředkovatelé (kromě IC a PF) veřejní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002502;Ostatní finanční zprostředkovatelé (kromě IC a PF) soukromí národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002503;Ostatní finanční zprostředkovatelé (kromě IC a PF) pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002601;Pomocné finanční instituce veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002602;Pomocné finanční instituce soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002603;Pomocné finanční instituce pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002701;Kaptivní finanční instituce a půjčovatelé peněz veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002702;Kaptivní finanční instituce a půjčovatelé peněz soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002703;Kaptivní finanční instituce a půjčovatelé peněz pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002801;Pojišťovací společnosti (IC) veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002802;Pojišťovací společnosti (IC) soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002803;Pojišťovací společnosti (IC) pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002901;Penzijní fondy (PF) veřejné
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002902;Penzijní fondy (PF) soukromé národní
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2002903;Penzijní fondy (PF) pod zahraniční kontrolou
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2003110;Ústřední vládní instituce
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2003120;Národní vládní instituce
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2003130;Místní vládní instituce
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2003140;Fondy sociálního zabezpečení
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2005000;Neziskové instituce sloužící domácnostem
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2009031;Mezinárodní rozvojové banky
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2009035;Ostatní mezinárodní instituce
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;1443000;Příjemci ostatních transferů (obsahuje výhradně SVJ)
+D_S_RNBD_4;Rezidenti a nerezidenti bez domácností celkem;2004430;Příjemci ostatních transferů (obsahuje výhradně SVJ)
+D_S_VSEMEN3;Všechny měny;CZK;koruna česká
+D_S_VSEMEN3;Všechny měny;EUR;euro
+D_S_VSEMEN3;Všechny měny;AUD;australský dolar
+D_S_VSEMEN3;Všechny měny;CAD;kanadský dolar
+D_S_VSEMEN3;Všechny měny;DKK;dánská koruna
+D_S_VSEMEN3;Všechny měny;GBP;libra šterlinků
+D_S_VSEMEN3;Všechny měny;HUF;forint
+D_S_VSEMEN3;Všechny měny;CHF;švýcarský frank
+D_S_VSEMEN3;Všechny měny;JPY;jen
+D_S_VSEMEN3;Všechny měny;NOK;norská koruna
+D_S_VSEMEN3;Všechny měny;NZD;novozélandský dolar
+D_S_VSEMEN3;Všechny měny;SEK;švédská koruna
+D_S_VSEMEN3;Všechny měny;PLN;zlotý
+D_S_VSEMEN3;Všechny měny;USD;americký dolar
+D_S_VSEMEN3;Všechny měny;XDR;zvláštní práva čerpání - MMF
+D_S_VSEMEN3;Všechny měny;RON;rumunský leu
+D_S_VSEMEN3;Všechny měny;CNY;čínský jüan
+D_S_VSEMEN3;Všechny měny;S_OSTATNI;Zbytek konvertib. , kovy a nekonvertibilní měny
+D_S_VSEZEME2;Všechny země;AD;Andorrské knížectví
+D_S_VSEZEME2;Všechny země;AE;Stát Spojené arabské emiráty
+D_S_VSEZEME2;Všechny země;AF;Afghánistán
+D_S_VSEZEME2;Všechny země;AG;Antigua a Barbuda
+D_S_VSEZEME2;Všechny země;AI;Anguilla
+D_S_VSEZEME2;Všechny země;AL;Albánská republika
+D_S_VSEZEME2;Všechny země;AM;Arménská republika
+D_S_VSEZEME2;Všechny země;AO;Angolská republika
+D_S_VSEZEME2;Všechny země;AQ;Antarktida
+D_S_VSEZEME2;Všechny země;AR;Argentinská republika
+D_S_VSEZEME2;Všechny země;AS;Americká Samoa
+D_S_VSEZEME2;Všechny země;AT;Rakouská republika
+D_S_VSEZEME2;Všechny země;AU;Austrálie
+D_S_VSEZEME2;Všechny země;AW;Aruba
+D_S_VSEZEME2;Všechny země;AX;Alandské ostrovy
+D_S_VSEZEME2;Všechny země;AZ;Azerbajdžánská republika
+D_S_VSEZEME2;Všechny země;BA;Bosna a Hercegovina
+D_S_VSEZEME2;Všechny země;BB;Barbados
+D_S_VSEZEME2;Všechny země;BD;Bangladéšská lidová republika
+D_S_VSEZEME2;Všechny země;BE;Belgické království
+D_S_VSEZEME2;Všechny země;BF;Burkina Faso
+D_S_VSEZEME2;Všechny země;BG;Bulharská republika
+D_S_VSEZEME2;Všechny země;BH;Bahrajnské království
+D_S_VSEZEME2;Všechny země;BI;Burundská republika
+D_S_VSEZEME2;Všechny země;BJ;Beninská republika
+D_S_VSEZEME2;Všechny země;BL;Svatý Bartoloměj
+D_S_VSEZEME2;Všechny země;BM;Bermudy (brit.)
+D_S_VSEZEME2;Všechny země;BN;Brunej Darussalam
+D_S_VSEZEME2;Všechny země;BO;Bolivijská republika
+D_S_VSEZEME2;Všechny země;BQ;Bonaire,Svatý Eustach a Saba
+D_S_VSEZEME2;Všechny země;BR;Brazilská federativní republika
+D_S_VSEZEME2;Všechny země;BS;Bahamské společenství
+D_S_VSEZEME2;Všechny země;BT;Bhútánské království
+D_S_VSEZEME2;Všechny země;BV;Bouvetův ostrov
+D_S_VSEZEME2;Všechny země;BW;Botswanská republika
+D_S_VSEZEME2;Všechny země;BY;Běloruská republika
+D_S_VSEZEME2;Všechny země;BZ;Belize
+D_S_VSEZEME2;Všechny země;CA;Kanada
+D_S_VSEZEME2;Všechny země;CC;Kokosové ostrovy
+D_S_VSEZEME2;Všechny země;CD;Konžská demokratická republika
+D_S_VSEZEME2;Všechny země;CF;Středoafrická republika
+D_S_VSEZEME2;Všechny země;CG;Konžská republika
+D_S_VSEZEME2;Všechny země;CH;Švýcarská konfederace
+D_S_VSEZEME2;Všechny země;CI;Republika Pobřeží  slonoviny
+D_S_VSEZEME2;Všechny země;CK;Cookovy ostrovy
+D_S_VSEZEME2;Všechny země;CL;Chilská republika
+D_S_VSEZEME2;Všechny země;CM;Kamerunská republika
+D_S_VSEZEME2;Všechny země;CN;Čínská lidová republika
+D_S_VSEZEME2;Všechny země;CO;Kolumbijská republika
+D_S_VSEZEME2;Všechny země;CR;Kostarická republika
+D_S_VSEZEME2;Všechny země;CU;Kubánská republika
+D_S_VSEZEME2;Všechny země;CV;Kapverdská republika
+D_S_VSEZEME2;Všechny země;CW;Curaçao
+D_S_VSEZEME2;Všechny země;CX;Vánoční ostrov
+D_S_VSEZEME2;Všechny země;CY;Kyperská republika
+D_S_VSEZEME2;Všechny země;CZ;Česká republika
+D_S_VSEZEME2;Všechny země;DE;Spolková republika Německo
+D_S_VSEZEME2;Všechny země;DJ;Džibutská republika
+D_S_VSEZEME2;Všechny země;DK;Dánské království
+D_S_VSEZEME2;Všechny země;DM;Dominické společenství
+D_S_VSEZEME2;Všechny země;DO;Dominikánská republika
+D_S_VSEZEME2;Všechny země;DZ;Alžírská lidová demokratická republika
+D_S_VSEZEME2;Všechny země;EC;Ekvádorská republika
+D_S_VSEZEME2;Všechny země;EE;Estonská republika
+D_S_VSEZEME2;Všechny země;EG;Egyptská arabská republika
+D_S_VSEZEME2;Všechny země;EH;Západní Sahara
+D_S_VSEZEME2;Všechny země;ER;Eritrea
+D_S_VSEZEME2;Všechny země;ES;Španělské království
+D_S_VSEZEME2;Všechny země;ET;Etiopská federativní demokratická republika
+D_S_VSEZEME2;Všechny země;FI;Finská republika
+D_S_VSEZEME2;Všechny země;FJ;Republika Fidžijské ostrovy
+D_S_VSEZEME2;Všechny země;FK;Falklandy (Malvíny)
+D_S_VSEZEME2;Všechny země;FM;Federativní státy Mikronésie
+D_S_VSEZEME2;Všechny země;FO;Faerské ostrovy
+D_S_VSEZEME2;Všechny země;FR;Francouzská republika
+D_S_VSEZEME2;Všechny země;GA;Gabonská republika
+D_S_VSEZEME2;Všechny země;GB;Spojené království Velké Británie a Severního Irska
+D_S_VSEZEME2;Všechny země;GD;Grenada
+D_S_VSEZEME2;Všechny země;GE;Gruzie
+D_S_VSEZEME2;Všechny země;GF;Francouzská Guyana
+D_S_VSEZEME2;Všechny země;GG;Guernsey
+D_S_VSEZEME2;Všechny země;GH;Ghanská republika
+D_S_VSEZEME2;Všechny země;GI;Gibraltar (brit.)
+D_S_VSEZEME2;Všechny země;GL;Grónsko
+D_S_VSEZEME2;Všechny země;GM;Gambijská republika
+D_S_VSEZEME2;Všechny země;GN;Guinejská republika
+D_S_VSEZEME2;Všechny země;GP;Guadeloupe
+D_S_VSEZEME2;Všechny země;GQ;Republika Rovníková Guinea
+D_S_VSEZEME2;Všechny země;GR;Řecká republika
+D_S_VSEZEME2;Všechny země;GS;Jižní Georgie a Jižní Sandwichovy ostrovy
+D_S_VSEZEME2;Všechny země;GT;Guatemalská republika
+D_S_VSEZEME2;Všechny země;GU;Guam
+D_S_VSEZEME2;Všechny země;GW;Republika Guinea - Bissau
+D_S_VSEZEME2;Všechny země;GY;Guayanská republika
+D_S_VSEZEME2;Všechny země;HK;Zvláštní administr. oblast Čínské lidové republiky Hongkong
+D_S_VSEZEME2;Všechny země;HM;Heardův ostrov a McDonaldovy ostrovy
+D_S_VSEZEME2;Všechny země;HN;Honduraská republika
+D_S_VSEZEME2;Všechny země;HR;Chorvatská republika
+D_S_VSEZEME2;Všechny země;HT;Haitská republika
+D_S_VSEZEME2;Všechny země;HU;Maďarská republika
+D_S_VSEZEME2;Všechny země;ID;Indonéská republika
+D_S_VSEZEME2;Všechny země;IE;Irsko
+D_S_VSEZEME2;Všechny země;IL;Izraelský stát
+D_S_VSEZEME2;Všechny země;IM;Ostrov Man
+D_S_VSEZEME2;Všechny země;IN;Indická republika
+D_S_VSEZEME2;Všechny země;IO;Britské území v Indickém oceánu
+D_S_VSEZEME2;Všechny země;IQ;Irácká republika
+D_S_VSEZEME2;Všechny země;IR;Íránská islámská republika
+D_S_VSEZEME2;Všechny země;IS;Islandská republika
+D_S_VSEZEME2;Všechny země;IT;Italská republika
+D_S_VSEZEME2;Všechny země;JE;Bailiwick Jersey
+D_S_VSEZEME2;Všechny země;JM;Jamajka
+D_S_VSEZEME2;Všechny země;JO;Jordánské hášimovské království
+D_S_VSEZEME2;Všechny země;JP;Japonsko
+D_S_VSEZEME2;Všechny země;KE;Keňská republika
+D_S_VSEZEME2;Všechny země;KG;Republika Kyrgyzstán
+D_S_VSEZEME2;Všechny země;KH;Kambodžské království
+D_S_VSEZEME2;Všechny země;KI;Republika Kiribati
+D_S_VSEZEME2;Všechny země;KM;Komorský svaz
+D_S_VSEZEME2;Všechny země;KN;Svatý Kryštof a Nevis
+D_S_VSEZEME2;Všechny země;KP;Korejská lidově demokratická republika
+D_S_VSEZEME2;Všechny země;KR;Korejská republika
+D_S_VSEZEME2;Všechny země;KW;Kuvajtský stát
+D_S_VSEZEME2;Všechny země;KY;Kajmanské ostrovy (brit.)
+D_S_VSEZEME2;Všechny země;KZ;Kazašská republika
+D_S_VSEZEME2;Všechny země;LA;Laoská lidově demokratická republika
+D_S_VSEZEME2;Všechny země;LB;Libanonská republika
+D_S_VSEZEME2;Všechny země;LC;Svatá Lucie
+D_S_VSEZEME2;Všechny země;LI;Lichtenštejnské knížectví
+D_S_VSEZEME2;Všechny země;LK;Srílanská demokratická socialistická republika
+D_S_VSEZEME2;Všechny země;LR;Liberijská republika
+D_S_VSEZEME2;Všechny země;LS;Lesothské království
+D_S_VSEZEME2;Všechny země;LT;Litevská republika
+D_S_VSEZEME2;Všechny země;LU;Lucemburské velkovévodství
+D_S_VSEZEME2;Všechny země;LV;Lotyšská republika
+D_S_VSEZEME2;Všechny země;LY;Libyjská arabská  lidová socialistická džamahírije
+D_S_VSEZEME2;Všechny země;MA;Marocké království
+D_S_VSEZEME2;Všechny země;MC;Monacké knížectví
+D_S_VSEZEME2;Všechny země;MD;Moldavsko
+D_S_VSEZEME2;Všechny země;ME;Černá Hora
+D_S_VSEZEME2;Všechny země;MF;Svatý Martin
+D_S_VSEZEME2;Všechny země;MG;Madagaskarská republika
+D_S_VSEZEME2;Všechny země;MH;Republika Marshallovy ostrovy
+D_S_VSEZEME2;Všechny země;MK;Bývalá jugoslávská republika Makedonie
+D_S_VSEZEME2;Všechny země;ML;Malijská republika
+D_S_VSEZEME2;Všechny země;MM;Myanmarský svaz
+D_S_VSEZEME2;Všechny země;MN;Mongolsko
+D_S_VSEZEME2;Všechny země;MO;Zvláštní adminstr. oblast Čínské lidové republiky, Macao
+D_S_VSEZEME2;Všechny země;MP;Společenství Severní Mariany
+D_S_VSEZEME2;Všechny země;MQ;Martinik
+D_S_VSEZEME2;Všechny země;MR;Mauritánská islámská republika
+D_S_VSEZEME2;Všechny země;MS;Montserrat (brit.)
+D_S_VSEZEME2;Všechny země;MT;Maltská republika
+D_S_VSEZEME2;Všechny země;MU;Mauricijská republika
+D_S_VSEZEME2;Všechny země;MV;Maledivská republika
+D_S_VSEZEME2;Všechny země;MW;Malawská republika
+D_S_VSEZEME2;Všechny země;MX;Spojené státy mexické
+D_S_VSEZEME2;Všechny země;MY;Malajsie
+D_S_VSEZEME2;Všechny země;MZ;Mosambická republika
+D_S_VSEZEME2;Všechny země;NA;Namibijská republika
+D_S_VSEZEME2;Všechny země;NC;Nová Kaledonie
+D_S_VSEZEME2;Všechny země;NE;Nigerská republika
+D_S_VSEZEME2;Všechny země;NF;Norfolk
+D_S_VSEZEME2;Všechny země;NG;Nigerijská federativní republika
+D_S_VSEZEME2;Všechny země;NI;Nikaragujská republika
+D_S_VSEZEME2;Všechny země;NL;Nizozemsko
+D_S_VSEZEME2;Všechny země;NO;Norské království
+D_S_VSEZEME2;Všechny země;NP;Nepálské království
+D_S_VSEZEME2;Všechny země;NR;Nauruská republika
+D_S_VSEZEME2;Všechny země;NU;Niue
+D_S_VSEZEME2;Všechny země;NZ;Nový Zéland
+D_S_VSEZEME2;Všechny země;OM;Sultanát Omán
+D_S_VSEZEME2;Všechny země;PA;Panamská republika
+D_S_VSEZEME2;Všechny země;PE;Peruánská republika
+D_S_VSEZEME2;Všechny země;PF;Francouzská Polynésie
+D_S_VSEZEME2;Všechny země;PG;Nezávislý stát Papua Nová Guinea
+D_S_VSEZEME2;Všechny země;PH;Filipínská republika
+D_S_VSEZEME2;Všechny země;PK;Pákistánská islámská republika
+D_S_VSEZEME2;Všechny země;PL;Polská republika
+D_S_VSEZEME2;Všechny země;PM;Saint Pierre a Miquelon
+D_S_VSEZEME2;Všechny země;PN;Pitcairnovy ostrovy
+D_S_VSEZEME2;Všechny země;PR;Portorické společenství
+D_S_VSEZEME2;Všechny země;PS;Stát Palestina
+D_S_VSEZEME2;Všechny země;PT;Portugalská republika
+D_S_VSEZEME2;Všechny země;PW;Palauská republika
+D_S_VSEZEME2;Všechny země;PY;Paraguayská republika
+D_S_VSEZEME2;Všechny země;QA;Stát Katar
+D_S_VSEZEME2;Všechny země;RE;Réunion
+D_S_VSEZEME2;Všechny země;RO;Rumunsko
+D_S_VSEZEME2;Všechny země;RS;Republika Srbsko
+D_S_VSEZEME2;Všechny země;RU;Ruská federace
+D_S_VSEZEME2;Všechny země;RW;Rwandská republika
+D_S_VSEZEME2;Všechny země;SA;Saúdskoarabské království
+D_S_VSEZEME2;Všechny země;SB;Šalomounovy ostrovy
+D_S_VSEZEME2;Všechny země;SC;Seychelská republika
+D_S_VSEZEME2;Všechny země;SD;Súdánská republika
+D_S_VSEZEME2;Všechny země;SE;Švédské království
+D_S_VSEZEME2;Všechny země;SG;Singapurská republika
+D_S_VSEZEME2;Všechny země;SH;Svatá Helena, Ascension a Tristan da Cunha
+D_S_VSEZEME2;Všechny země;SI;Slovinská republika
+D_S_VSEZEME2;Všechny země;SJ;Svalbard a ostrov Jan Mayen
+D_S_VSEZEME2;Všechny země;SK;Slovenská republika
+D_S_VSEZEME2;Všechny země;SL;Republika Sierra Leone
+D_S_VSEZEME2;Všechny země;SM;Sanmarinská republika
+D_S_VSEZEME2;Všechny země;SN;Senegalská republika
+D_S_VSEZEME2;Všechny země;SO;Somálská republika
+D_S_VSEZEME2;Všechny země;SR;Surinamská republika
+D_S_VSEZEME2;Všechny země;SS;Jižní Súdán
+D_S_VSEZEME2;Všechny země;ST;Demokratická republika Svatý Tomáš a Princovův ostrov
+D_S_VSEZEME2;Všechny země;SV;Salvadorská republika
+D_S_VSEZEME2;Všechny země;SX;Svatý Martin (nizozemská část)
+D_S_VSEZEME2;Všechny země;SY;Syrská arabská republika
+D_S_VSEZEME2;Všechny země;SZ;Svazijské království
+D_S_VSEZEME2;Všechny země;TC;Turks a Caicos (brit.)
+D_S_VSEZEME2;Všechny země;TD;Čadská republika
+D_S_VSEZEME2;Všechny země;TF;Francouzská jižní a antarktická území
+D_S_VSEZEME2;Všechny země;TG;Tožská  republika
+D_S_VSEZEME2;Všechny země;TH;Thajské království
+D_S_VSEZEME2;Všechny země;TJ;Republika Tadžikistán
+D_S_VSEZEME2;Všechny země;TK;Tokelau
+D_S_VSEZEME2;Všechny země;TL;Demokratická republika Východní Timor
+D_S_VSEZEME2;Všechny země;TM;Turkmenistán
+D_S_VSEZEME2;Všechny země;TN;Tuniská republika
+D_S_VSEZEME2;Všechny země;TO;Království Tonga
+D_S_VSEZEME2;Všechny země;TR;Turecká republika
+D_S_VSEZEME2;Všechny země;TT;Republika Trinidad a Tobago
+D_S_VSEZEME2;Všechny země;TV;Tuvalu
+D_S_VSEZEME2;Všechny země;TW;Čínská republika (Tchaj-wan)
+D_S_VSEZEME2;Všechny země;TZ;Tanzanská sjednocená republika
+D_S_VSEZEME2;Všechny země;UA;Ukrajina
+D_S_VSEZEME2;Všechny země;UG;Ugandská republika
+D_S_VSEZEME2;Všechny země;UM;Menší odlehlé ostrovy USA
+D_S_VSEZEME2;Všechny země;US;Spojené státy americké
+D_S_VSEZEME2;Všechny země;UY;Uruguayská východní republika
+D_S_VSEZEME2;Všechny země;UZ;Republika Uzbekistán
+D_S_VSEZEME2;Všechny země;VA;Svatý stolec (Vatikánský městký stát)
+D_S_VSEZEME2;Všechny země;VC;Svatý Vincenc a Grenadiny
+D_S_VSEZEME2;Všechny země;VE;Bolívarovská republika Venezuela
+D_S_VSEZEME2;Všechny země;VG;Britské Panenské ostrovy
+D_S_VSEZEME2;Všechny země;VI;Americké Panenské ostrovy
+D_S_VSEZEME2;Všechny země;VN;Vietnamská socialistická republika
+D_S_VSEZEME2;Všechny země;VU;Vanuatská republika
+D_S_VSEZEME2;Všechny země;WF;Teritorium Wallisovy ostrovy a Futuna
+D_S_VSEZEME2;Všechny země;WS;Nezávislý stát Západní Samoa
+D_S_VSEZEME2;Všechny země;XK;Kosovská republika
+D_S_VSEZEME2;Všechny země;YE;Jemenská republika
+D_S_VSEZEME2;Všechny země;YT;Mayotte
+D_S_VSEZEME2;Všechny země;ZA;Jihoafrická republika
+D_S_VSEZEME2;Všechny země;ZM;Zambijská republika
+D_S_VSEZEME2;Všechny země;ZW;Republika Zimbabwe
+FREKDOFOS70;Frekvence pro DOFOS70;010;Denně
+FREKDOFOS70;Frekvence pro DOFOS70;015;Vícekrát v jednom týdnu
+FREKDOFOS70;Frekvence pro DOFOS70;020;Týdně
+FREKDOFOS70;Frekvence pro DOFOS70;030;Jednou za 14 dní
+FREKDOFOS70;Frekvence pro DOFOS70;040;Měsíčně
+FREKDOFOS70;Frekvence pro DOFOS70;050;Čtvrtletně
+FREKDOFOS70;Frekvence pro DOFOS70;060;Pololetně
+FREKDOFOS70;Frekvence pro DOFOS70;070;Ročně
+FREKDOFOS70;Frekvence pro DOFOS70;101;Nad 1 rok do 2 let včetně
+FREKDOFOS70;Frekvence pro DOFOS70;080;Jinak
+KODY_AKTIVA_OMEZENA;Typ kódu aktiva třídy;ISIN;Share class ISIN code
+KODY_AKTIVA_OMEZENA;Typ kódu aktiva třídy;NATC;Share class national code
+Z_DRUHID_FO;Druh identifikačního kódu.;CUSIP;CUSIP
+Z_DRUHID_FO;Druh identifikačního kódu.;SEDOL;SEDOL
+Z_DRUHID_FO;Druh identifikačního kódu.;BLOOMBERG;Bloomberg
+Z_DRUHID_FO;Druh identifikačního kódu.;REUTERS;Reuters
+Z_DRUHID_FO;Druh identifikačního kódu.;BBGID;Bloomberg Global ID
+Z_DRUHID_FO;Druh identifikačního kódu.;WKN;Alfanumerické německé ID
+Z_DRUHID_FO;Druh identifikačního kódu.;FIGI;Financial Instrument Global Identifier
+Z_DRUHID_FO;Druh identifikačního kódu.;IID;Interní identifikace
+Z_DRUHID_FO;Druh identifikačního kódu.;OST;Ostatní
+Z_ESA2010;Sektor emitenta dle ESA2010;1100000;Nefinanční podniky
+Z_ESA2010;Sektor emitenta dle ESA2010;1210000;Centrální banka
+Z_ESA2010;Sektor emitenta dle ESA2010;1220000;Instituce přijímající vklady
+Z_ESA2010;Sektor emitenta dle ESA2010;1230000;Fondy peněžního trhu
+Z_ESA2010;Sektor emitenta dle ESA2010;1240000;Fondy kolektivního investování (kromě FPT)
+Z_ESA2010;Sektor emitenta dle ESA2010;1250000;Ostatní finanční zprostředkovatelé (kromě IC a PF)
+Z_ESA2010;Sektor emitenta dle ESA2010;1260000;Pomocné finanční instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;1270000;Kaptivní finanční instituce a půjčovatelé peněz
+Z_ESA2010;Sektor emitenta dle ESA2010;1280000;Pojišťovací společnosti (IC)
+Z_ESA2010;Sektor emitenta dle ESA2010;1290000;Penzijní fondy (PF)
+Z_ESA2010;Sektor emitenta dle ESA2010;1311000;Ústřední vládní instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;1312000;Národní vládní instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;1313000;Místní vládní instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;1314000;Fondy sociálního zabezpečení
+Z_ESA2010;Sektor emitenta dle ESA2010;1400000;Domácnosti
+Z_ESA2010;Sektor emitenta dle ESA2010;1500000;Neziskové instituce sloužící domácnostem
+Z_ESA2010;Sektor emitenta dle ESA2010;2001000;Nefinanční podniky
+Z_ESA2010;Sektor emitenta dle ESA2010;2002100;Centrální banka
+Z_ESA2010;Sektor emitenta dle ESA2010;2002200;Instituce přijímající vklady
+Z_ESA2010;Sektor emitenta dle ESA2010;2002300;Fondy peněžního trhu
+Z_ESA2010;Sektor emitenta dle ESA2010;2002400;Investiční fondy jiné než fondy peněžního trhu
+Z_ESA2010;Sektor emitenta dle ESA2010;2002500;Ostatní finanční zprostředkovatelé (kromě IC a PF)
+Z_ESA2010;Sektor emitenta dle ESA2010;2002600;Pomocné finanční instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;2002700;Kaptivní finanční instituce a půjčovatelé peněz
+Z_ESA2010;Sektor emitenta dle ESA2010;2002800;Pojišťovací společnosti (IC)
+Z_ESA2010;Sektor emitenta dle ESA2010;2002900;Penzijní fondy (PF)
+Z_ESA2010;Sektor emitenta dle ESA2010;2003110;Ústřední vládní instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;2003120;Národní vládní instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;2003130;Místní vládní instituce
+Z_ESA2010;Sektor emitenta dle ESA2010;2003140;Fondy sociálního zabezpečení
+Z_ESA2010;Sektor emitenta dle ESA2010;2004000;Domácnosti
+Z_ESA2010;Sektor emitenta dle ESA2010;2005000;Neziskové instituce sloužící domácnostem
+Z_ESA2010;Sektor emitenta dle ESA2010;2009030;Mezinárodní instituce
+(souhrnná položka);C3MENY;S_3MENY;CZK,EUR a USD
+(souhrnná položka);CDLUH;S_42_ABDE;Paragrafy pro cenné papíry
+(souhrnná položka);CAK_PL;S_42_CDE;Paragrafy pro majetkové cenné papíry
+(souhrnná položka);CSPCP;S_42_DE;Paragrafy pro ostatní cenné papíry
+(souhrnná položka);CELTIF;S_A;Kategorie aktiv podle čl. Nařízení
+(souhrnná položka);CZEMORG;S_A1BCZ;Svět bez CZ
+(souhrnná položka);CSVETTER;S_A1TER;Svět včetně začlenění vybraných teritorií
+(souhrnná položka);CELTIF;S_ABC;Články Nařízení o ELTIF a Koncentrace
+(souhrnná položka);CAKNEAK;S_AKNEAK;Aktivní a neaktivní zákazníci celkem
+(souhrnná položka);CEXIS;S_AN;Ano, ne
+(souhrnná položka);CELTIF;S_B;Limit na složení portfolia podle čl. Nařízení
+(souhrnná položka);CESBBANK;S_BANBCEN;Obchodní banky bez centrálních , rezidenti a nerezidenti
+(souhrnná položka);CMENFIIN;S_BANKY;Centrální a obchodní banky (rezidenti a nerezidenti)
+(souhrnná položka);CMENFIMO;S_BANMOR;Banky rezidenti a nerezidenti a mezinárodní instituce
+(souhrnná položka);CBANNEB;S_BANNEB;Bankovní, nebankovní subjekty a ek. spjaté skup
+(souhrnná položka);CSEKCZEMU;S_BCZEMU;Země kromě CZ a zemí eurozóny včetně vybraných teritorií
+(souhrnná položka);CBILAN;S_BCZKAEUR;Ostatní měny  bez CZK a  EUR
+(souhrnná položka);CTYPVKL;S_BEZUC;Běžné účty
+(souhrnná položka);CBILAN;S_BSDR;Měny nezahrnuté v koši SDR
+(souhrnná položka);CVKLADY;S_BUOVR;Běžné účty a netermínované overnight vklady
+(souhrnná položka);CELTIF;S_C;Limit podle čl. Nařízení a Koncentrace
+(souhrnná položka);CZEMTERG;S_C4BHK;Pobřežní finanční centra bez HK
+(souhrnná položka);CCBUVZ;S_CBUVZ;Centrální banka, zpracovatel a úvěrová instituce
+(souhrnná položka);CDRUHYFONDU;S_CELKFOND;Celkem fondy
+(souhrnná položka);CDRUHYFONDU;S_CELKVYB;Celkem za vybrané fondy
+(souhrnná položka);CCIN;S_CINCEL;Činnosti celkem
+(souhrnná položka);CZCIZI;S_CIZEM;Všechny země kromě České republiky
+(souhrnná položka);CZONY;S_CR_ZA;Státy zóny A - země OECD
+(souhrnná položka);CZETEOR;S_CZEMU;CZ+EMUTER
+(souhrnná položka);CCZKEUR;S_CZKEUR;EUR a CZK
+(souhrnná položka);CIVECB;S_DE;Spolková republika Německo včetně teritorií  a ECB
+(souhrnná položka);CUVNET;S_DENNET;Netermínováno a do 1 dne včetně
+(souhrnná položka);CDLUCPNPT;S_DLUCPNPT;Dluhové cenné papíry a nástroje peněžního trhu
+(souhrnná položka);CDLUHCP;S_DLUHCP;Dluhové CP za všechny limity
+(souhrnná položka);CDLUHCP;S_DLUHCPL1;Dluhové CP - limit 1
+(souhrnná položka);CDLUHCP;S_DLUHCPL2;Dluhové CP - limit 2
+(souhrnná položka);CDLUHCP;S_DLUHCPL3;Dluhové CP - limit 3
+(souhrnná položka);C_DNEM;S_DNEM;Druhy nemovitosti  celkem
+(souhrnná položka);CDO1NAD5;S_DO1NAD5;Souhrn za dobu splatnosti do 1 roku vč., nad 1 rok do 5 let vč., nad 5 let
+(souhrnná položka);CZBYSPL;S_DO7DNU;Do 7 dnů včetně
+(souhrnná položka);CDOAPOSPL;S_DOAPOSPL;Do a po splatnosti
+(souhrnná položka);CDIS60;S_DOMACT;Domácnosti  celkem bez SVJ (rezidenti a nerezidenti)
+(souhrnná položka);CRNSPOL;S_DOMASVJ;Domácnosti celkem ( rezid. + nerezid.) včetně SVJ
+(souhrnná položka);CESAFIN;S_DOMASVJ15;Domácnosti, SVJ a neziskové instituce sloužící domácnostem (Rez. + Ner.)
+(souhrnná položka);CDOSPL;S_DOSPL;Doba do splatnosti
+(souhrnná položka);CDOSPL;S_DOSPL3M;Do splatnosti a až do 3 měsíců
+(souhrnná položka);CZPKRNE;S_DVAANET;Do dvou let a netermínováno
+(souhrnná položka);CSVET2;S_E1BEZEHP;Evropa (země mimo EHP)
+(souhrnná položka);CSVET2;S_E1EHPEUIN;Evropa (země EHP a vybrané EU instituce)
+(souhrnná položka);CSVET2;S_E9AF1;Země Střední a Jižní Ameriky
+(souhrnná položka);CECONER;S_ECONER;Země bez CR v ECO rozlišení a geograficky nerozlišeno
+(souhrnná položka);CEHP;S_EHP;Země Evropského hospodářského prostoru
+(souhrnná položka);CVYBRTRID;S_EMISBA;Emisní banky
+(souhrnná položka);CVYBRTRID;S_EMISFI;Emisní banky a mezinár. bankovní a finanční instituce
+(souhrnná položka);CEMITPK;S_EMITPK;Emitenti platebních karet
+(souhrnná položka);CIVECB;S_EMUACZ;Země měnové unie a ČR
+(souhrnná položka);CIVECB;S_EMUTER;Země eurozóny včetně vybraných teritorií
+(souhrnná položka);HCZEMUTOR;S_EMUTERBEZ4S4W;EMUTER bez  4S a 4W
+(souhrnná položka);CESACNB;S_ESACNB;Rezidenti a  nerezidenti  celkem
+(souhrnná položka);CESBBANK;S_ESBBAMO;Ekonomické sektory bez bank včetně nezisk. a mez. institucí
+(souhrnná položka);CESBBANK;S_ESBBANK;Ekonomické sektory bez bank
+(souhrnná položka);CESBBANK;S_ESBBDNI;Ekonom. sektory bez bank a domác.včetně nezisk.inst. dom.
+(souhrnná položka);CESBBANK;S_ESBBDOM;Ekomonické sektory bez bank a domácností
+(souhrnná položka);CESVO;S_ESVOBCR;Členské státy ESVO (bez EU)
+(souhrnná položka);CESVO;S_EU21BCR;Členské státy EU (bez ČR)
+(souhrnná položka);CEHP;S_EUBCR;Členské státy  EU a GB bez ČR
+(souhrnná položka);CESVO;S_EUESVBCR;Členské státy EU a ESVO (bez ČR)
+(souhrnná položka);CUVEVKL;S_FIUVERY;Finanční úvěry
+(souhrnná položka);CFLDO3M;S_FLDO3;Floating a do 3 měsíců včetně
+(souhrnná položka);CFLOAT;S_FLOAT;Floating a do 1 roku včetně
+(souhrnná položka);CIVECB;S_FR;Francie  včetně teritorií
+(souhrnná položka);CHYPO;S_HUBBYD;Ostatní hypoteční úvěry bez bydlení
+(souhrnná položka);CHYPO;S_HUNEMB;Úvěry hypoteční finacování nemovitostí na bydlení
+(souhrnná položka);CHYPO;S_HUNEMO;Úvěry hypoteční  k financování nemovitostí ostatní
+(souhrnná položka);CHYPO;S_HUOSTA;Úvěry ostatní s možností hypotéky
+(souhrnná položka);CHYPO;S_HUSPOT;Úvěry spotřebitelské  s možností hypotéky
+(souhrnná položka);CHYPO;S_HYPOCEL;Hypoteční úvěry celkem
+(souhrnná položka);CUVEVKL;S_HYPOUV;Úvěry hypoteční k financování nemovitostí
+(souhrnná položka);CINASKBR;S_INASK;Úvěrové a neúvěrové instituce a skupiny (COREP)
+(souhrnná položka);CINVNAS;S_INVNAS;Investiční CP,CP kolektivního investování a nástroje PT
+(souhrnná položka);CESACOR;S_INVPODNIK;Investiční podniky (rezidenti a nerezidenti)
+(souhrnná položka);CUVEVKL;S_INVUV;Investiční úvěry
+(souhrnná položka);CISOMENY;S_ISOMENY;Měny podle ISO normy 4217
+(souhrnná položka);CJIPVN;S_JIPVN;Jiné instituce přijímající vklady (nerezidenti)
+(souhrnná položka);CJPOFO;S_JPOFO;Právnická osoba jiná než banka nebo FI + FO
+(souhrnná položka);CVYBRTRID;S_KLIBA;Klientela banky
+(souhrnná položka);CKLIESP;S_KLIESP;Klient a ekonomicky splatá skupina klientů celkem
+(souhrnná položka);CKMBSDR;S_KMBSDR;Konvertibilní měny bez SDR
+(souhrnná položka);CVSEMEN;S_KONCEL;Všechny konvertibilní měny
+(souhrnná položka);CVSEMEN;S_KONEAU;Všechny konvertibilní měny a kovy
+(souhrnná položka);CVSEMEN;S_KOVY;Kovy
+(souhrnná položka);CVSEMEN;S_KURLIS;Vybrané měny devizového trhu
+(souhrnná položka);CMAJCP;S_MAJCP;Majetkové CP za všechny limity
+(souhrnná položka);CMAJCP;S_MAJCPL1;Majetkové CP - limit 1
+(souhrnná položka);CMAJCP;S_MAJCPL2;Majetkové CP - limit 2
+(souhrnná položka);CMAJCP;S_MAJCPL3;Majektové CP - limit 3
+(souhrnná položka);CMBANVKL;S_MBANVKL;Vklady a úvěry ve vztahu k přijatým úvěrům
+(souhrnná položka);CMBVKLUV;S_MBVKLUV;Vklady  a úvěry ve vztahu k úvěrovým institucím
+(souhrnná položka);CMENFIMO;S_MENFIMO;Měnové finanční instituce a mezinárodní organizace
+(souhrnná položka);CVYBRTRID;S_MISORG;Orgány územních samospr. celků vč. organizací v působ. ÚSC
+(souhrnná položka);HCZNACEUR2;S_NACE_REV21;Souhrn ekonomických činností CZ-NACE rev.2.1
+(souhrnná položka);CINSPCP;S_NAD10LET;Nad 10 let
+(souhrnná položka);CESAFON;S_NBANKY;Centrální banka a obchodní banky (nerezidenti)
+(souhrnná položka);CESAFON;S_NBMFI;Nerezidenti bez měnových fin. institucí
+(souhrnná položka);CEMITPAP;S_NDOMBSVJ;Domácnosti bez SVJ nerezidenti
+(souhrnná položka);CESAFON;S_NDONIN;Domácnosti a neziskové inst. sloužící domácnostem (nerez.)
+(souhrnná položka);CVSEMEN;S_NEKON;Nekonvertibilní měny
+(souhrnná položka);CRIS38;S_NETA3M;Netermínováno a do 3 měsíců včetně
+(souhrnná položka);CUVVKLBR;S_NETA5LET;Netermínováno a do 5 let
+(souhrnná položka);CDRZAL;S_NFIJNUV;Finanční instituce jiné než úvěrové nerezidenti
+(souhrnná položka);CMENFDZ;S_NFPTJMFI;Fondy peněžního trhu a jiné MFI (nerezidenti)
+(souhrnná položka);CROBD;S_NJFIBFPT;Finanční instituce jiné než úvěrové bez FPT ( nerezidenti)
+(souhrnná položka);CVST;S_NJMPIN;Jiné instituce přijímající vklady
+(souhrnná položka);CESAFON;S_NMFI;Měnové finanční instituce (nerezidenti)
+(souhrnná položka);CNROBMFI;S_NMFIBCB;MFI jiné než centrální banka ( nerezidenti)
+(souhrnná položka);CESAFON;S_NOB13MFI;Ostatní nerezidenti bez MFI a vládních institucí
+(souhrnná položka);CNROBMFI;S_NOBMFI;Ostatní finanční instituce bez MFI ( nerezidenti)
+(souhrnná položka);CESAFON;S_NOFIBPO;Ostatní FI bez MFI a pojišťoven (nerezidenti)
+(souhrnná položka);CPROTI;S_NOFZAPFI;Ost. fin. zprostředkovatelé a pom. fin. instituce - nerezi
+(souhrnná položka);CSEKUR;S_NOFZBFKI;Ostatní finanční zprostředkovatelé a pomocné finanční instituce bez FKI (nerezidenti)
+(souhrnná položka);CROBD;S_NOKLBFPT;Ostatní klienti/zákazníci bez FPT (nerezidenti)
+(souhrnná položka);CNROBMFI;S_NOSTBFIV;Ostatní nerezidenti bez finančních institucí a vlády
+(souhrnná položka);CDRZAL;S_NOSTKZ;Ostatní klienti/zákazníci nerezidenti
+(souhrnná položka);CNPDONI;S_NPDONI;Nefinanční podniky, domácnosti a neziskové instituce
+(souhrnná položka);CNEREU;S_NREU;Nerezidenti - Evropská Unie  a ost. země
+(souhrnná položka);CESAFON;S_NROB;Obchodní banky (nerezidenti)
+(souhrnná položka);CESBBANK;S_NROBY;Domácnosti - obyvatelstvo  bez SVJ (nerezidenti)
+(souhrnná položka);CESAFON;S_NROMFI;Ostat. měnové finanč. instituce bez  bank (nerezidenti)
+(souhrnná položka);CESBBANK;S_NRZIV;Domácnosti - živnosti (nerezidenti)
+(souhrnná položka);CVST;S_NSPUVDR;Spořitelní a úvěrní družstva nerezidenti
+(souhrnná položka);CVKLUVBREP;S_NTVSPLUVBREP;Netermínované, termínované vklady se splatností a přijaté úvěry kromě repo obchodů
+(souhrnná položka);CROBD;S_NUVIN;Úvěrové instituce nerezidenti
+(souhrnná položka);CROBDMI;S_NUVINMBR;Úvěrové instituce  nerezidenti a mezinárodní rozv. banky
+(souhrnná položka);CVKLADY;S_NVK;Netermínované vklady
+(souhrnná položka);CROBDMI;S_NVLAOMI;Vládní instituce nerezidenti a ostatní mezinárodní instituce
+(souhrnná položka);CPROTI;S_NVLBU;Vládní instituce bez ústř. vládních institucí (nerezidenti)
+(souhrnná položka);CVYBRTRID;S_OBAVSE;Banky bez emisních bank bez duplicit
+(souhrnná položka);CIVECB;S_OBECABEIB;Mezinárodní organizace bez ECB a EIB
+(souhrnná položka);CVYBRTRID;S_OBPOFY;Obch. banky tuzem. a zahran., právnic. a fyzic. osoby
+(souhrnná položka);CUV98;S_OD1DNE;Intervaly delší než 1 den
+(souhrnná položka);CIVECB;S_OEMUZS;Zbytek zemí EU (které nejsou v EMU) a GB a zbytek světa
+(souhrnná položka);CKMBSDR;S_OKMBKL;Ostatní konvertibilní měny bez měn kurz. lístku
+(souhrnná položka);CBILAN;S_OSTATNI;Zbytek konvertib. , kovy a nekonvertibilní měny
+(souhrnná položka);CEHP;S_OSTBEHP;Ostatní státy bez EHP
+(souhrnná položka);CEHP;S_OSTBEHPATER;Ostatní státy bez EHP a vybraných teritorií
+(souhrnná položka);CESVO;S_OSTBEUESVCR;Ostatní státy bez EU, ESVO a ČR
+(souhrnná položka);CEHP;S_OSTEHP;Ostatní státy EHP (bez EU a GB)
+(souhrnná položka);CIVECB;S_OSTEMU;Souhrn  za DK, GB a SE
+(souhrnná položka);CVSEMEN;S_OSTKON;Ostatní konver. měny (bez vybraných měn devizového trhu)
+(souhrnná položka);CVSEMEN;S_OSTKUR;Ostatní vybrané měny devizového trhu bez  Eur
+(souhrnná položka);CVSEMEN;S_OSTNEK;Ostatní nekonvertibillní měny
+(souhrnná položka);CZETEOR;S_OSTORBEZ;Ostatní země a MO bez ČR a  eurozóny vč. vybr. teritorií
+(souhrnná položka);COSUC;S_OSVZUC;Osoby se vztahem k účtu
+(souhrnná položka);CPAMD;S_PAMD;Podkladová aktiva mimoburzovních derivátů pro datovou oblast DOFOS31_22
+(souhrnná položka);CPAMIRDER;S_PAMIMDER;Podkladová aktiva mimoburzovních derivátů
+(souhrnná položka);CUVEVKL;S_PODFIUV;Podnikatelské finanční úvěry
+(souhrnná položka);CUVEVKL;S_PODPRUV;Provozní úvěry
+(souhrnná položka);CPOPFO;S_POPFO;Právnická osoba a podnikající fyzická osoba
+(souhrnná položka);CPOSD;S_POSP1;Po splatnosti celkem
+(souhrnná položka);CPOSD;S_POSP1C;Pohledávky do a po splatnosti celkem
+(souhrnná položka);CDOAPOSPL;S_POSPL;Po splatnosti
+(souhrnná položka);CPRECEN;S_PRECEN;Souhrn za doby přecenění
+(souhrnná položka);CUVVKLBBU;S_PREVKL;Převoditelné vklady
+(souhrnná položka);CVKLADY;S_PRIJUV;Přijaté úvěry
+(souhrnná položka);CIVECB;S_PRISZEME;Členské státy EU bez eurozóny ,ČR,DK,GB,SE
+(souhrnná položka);CVYBRTRID;S_PROFY;Právnická a fyzická osoba
+(souhrnná položka);CPRIJUV;S_PUVBKZ;Přijaté úvěry bez kreditních zůstatků na BÚ
+(souhrnná položka);CPVKLNO;S_PVKLNO;Přijaté vklady pro nové obchody
+(souhrnná položka);CESAFON;S_RBANKY;Centrální banka a obchodní banky ( rezidenti )
+(souhrnná položka);CESAFON;S_RBMFI;Rezidenti bez měnových fin. institucí
+(souhrnná položka);CEMITPAP;S_RDOMBSVJ;Domácnosti bez SVJ rezidenti
+(souhrnná položka);CESAFON;S_RDONIN;Domácnosti a neziskové inst. sloužící domácnostem (rezid.)
+(souhrnná položka);CJISIJIPI;S_RDONIOS;Domácnosti , neziskové instit. a ostatní instit. (rezidenti)
+(souhrnná položka);CVYBRTRID;S_REPORG;Orgány státu včetně organizací v jejich působnosti
+(souhrnná položka);CJISIJIPI;S_RFIBBA;Finanční instit. bez centr. banky a obchod. bank (rezidenti)
+(souhrnná položka);CMENFDZ;S_RFPTJMFI;Fondy peněžního trhu a jiné MFI ( rezidenti)
+(souhrnná položka);CROBD;S_RJFIBFPT;Finanční instituce jiné než úvěrové bez FPT - rezidenti
+(souhrnná položka);CDRZAL;S_RJFINUV;Finanční instituce jiné než úvěrové rezidenti
+(souhrnná položka);CEMITPAP;S_RJMFIN;Jiné měnové finanční instituce celkem (rezidenti)
+(souhrnná položka);CESAFON;S_RMFI;Měnové finanční instituce (rezidenti)
+(souhrnná položka);CDRZAL;S_RNBAAROB;Banky bez CB( rez. a nerez.) a mez. rozvojové banky
+(souhrnná položka);CDRZAL;S_RNBABCB;Banky bez centrálních bank ( rezidenti a nerezidenti)
+(souhrnná položka);CDRZAL;S_RNBCB;Rezidenti a nerezidenti bez centrálních bank
+(souhrnná položka);CRNBCBVLMID;S_RNBCBVLMID;Rezidenti a nerezidenti bez centrálních bank,ostatních vládních institucí a domácností
+(souhrnná položka);CDIS60;S_RNBD;Rezidenti a nerezidenti bez domácností včetně SVJ celkem
+(souhrnná položka);CRNDBMO;S_RNBDMO;Rezidenti a nerezidenti bez domácností a MO a SVJ
+(souhrnná položka);CRNBDOMNID;S_RNBDOMNID;Ekonomické sektory  bez domácností  a neziskových institucí sloužící domácnostem
+(souhrnná položka);CRNBDOMSVJ;S_RNBDOMSVJ;Rezidenti a nerezidenti bez domácností celkem
+(souhrnná položka);CESAFON;S_RNBEZMFI;Ostatní instituce bez MFI (rezidenti a nerezidenti)
+(souhrnná položka);CRNBNPCB;S_RNBNPCB;Vláda a ost. klienti bez nefin. institucí a ost. MFI a CB
+(souhrnná položka);CPROTI;S_RNBRMFI;Rezidenti a nerezidenti bez rezidentských měnově fin. institucí
+(souhrnná položka);CROBD;S_RNBUIACB;Rezidenti a nerezidenti bez úvěrových institucí a CB
+(souhrnná položka);CROBDMI;S_RNBUIMRB;Rezid. a nerezid. bez úvěr.institucí,cent.bank a bez MRB
+(souhrnná položka);CDRZAL;S_RNCB;Centrální banky ( rezidenti a nerezidenti)
+(souhrnná položka);CRNBNPCB;S_RNCENVLA;Centrální vláda (rezid + nerezident)
+(souhrnná položka);CPROOCP;S_RNFINUV;Finanční instituce jiné než úvěrové a CB ( rez. a nerezid.)
+(souhrnná položka);CRNSPOL;S_RNFKIBFPT;Fondy  kolektivního investování jiné než fondy peněžního trhu (rez. + nerez.)
+(souhrnná položka);CROBD;S_RNFPT;Fondy peněžního trhu (rezidenti a nerezidenti )
+(souhrnná položka);CMENFDZ;S_RNFPTJMFI;Fondy peněžního trhu a jiné MFI ( rezidenti a nerezidenti)
+(souhrnná položka);CINPRIJVKL;S_RNINPVKL;Instituce přijímající vklady ( rezidenti a nerezidenti)
+(souhrnná položka);CRNSPOL;S_RNKAPFI;Kaptivní finanční instituce a půjčovatelé peněz (rezidenti a nerezidenti)
+(souhrnná položka);CMENFIIN;S_RNKLOMFI;Klienti bez bank a ost. měnově finan. institucí(rez. a ner.)
+(souhrnná položka);CESAFON;S_RNMEFIIN;Měnové finanční instituce (rezidenti a nerezidenti)
+(souhrnná položka);CMENFIIN;S_RNMFINS;Ostatní měnové finanční instituce bez bank (rez. a ner.)
+(souhrnná položka);CPROOCP;S_RNNEDOM;Ostatní zákazníci  - nefin. instit. a domác.( rezi. a ner.)
+(souhrnná položka);CRNSPOL;S_RNNEFP;Nefinanční podniky ( rezidenti a nerezidenti)
+(souhrnná položka);CRNSPOL;S_RNNIDOM;Neziskové instituce sloužící domácnostem ( rez. a nerez.)
+(souhrnná položka);CESBBANK;S_RNOBY;Domácnosti obyvatelstvo bez SVJ (rezidenti a nerezidenti)
+(souhrnná položka);CESAFIN;S_RNOFINB15;Ostatní finační instituce bez  nez. ist. sloužící domácnostem (rezidenti a nerezidenti)
+(souhrnná položka);CESACOR;S_RNOFINB15I;Ostatní fin. instituce bez  nez. inst. sloužící domácnostem a bez inv. podniků  (rezid. a nerezid.)
+(souhrnná položka);CPROTI;S_RNOFZAPFI;Ost. fin. zprostředkov. a pom. fin. instituce ( rez.+nerez.)
+(souhrnná položka);CROBD;S_RNOSTBFPT;Ostatní klienti/zákazníci bez FPT ( rezidenti a nerezidenti)
+(souhrnná položka);CRNBCBVLMID;S_RNOSTFIN;Ostatní finační instituce (rezidenti a nerezidenti)
+(souhrnná položka);CRNSPOL;S_RNOSTFZ;Ostatní fin. zprostředkovatelé ( rezidenti a nerezidenti)
+(souhrnná položka);CDRZAL;S_RNOSTKZ;Ostatní klienti/zákazníci ( rezidenti a nerezidenti)
+(souhrnná položka);CRNBNPCB;S_RNOSTSEK;Ostatní klienti ( rezid. + nerezidenti)
+(souhrnná položka);CRNBNPCB;S_RNOSTVLA;Ostatní vláda (rezid.+ nerezident)
+(souhrnná položka);CRNBNPCB;S_RNOVLAMI;Ostatní vláda a mezinárodní instituce
+(souhrnná položka);CRNPDOM;S_RNPDOM;Nefinanční podniky,domácnosti a nezisk.inst. sloužící domác.
+(souhrnná položka);CRNSPOL;S_RNPENZF;Penzijní fondy ( rezudenti a nerezidenti)
+(souhrnná položka);CRNSPOL;S_RNPOJSP;Pojišťovací společnosti ( rezidenti a nerezidenti)
+(souhrnná položka);CRNSPOL;S_RNPOMFI;Pomocné finanční instituce ( rezidenti a nerezidenti)
+(souhrnná položka);CDRZAL;S_RNSAUDR;Spořitelní a úvěrní družstva ( rezidenti a nerezidenti)
+(souhrnná položka);CPROOCP;S_RNUIACB;Úvěrové instituce a centrální banky ( rezident a nerezident)
+(souhrnná položka);CFIMIDZ;S_RNUIMIBC;Úvěrové instituce (bez CB) rezidenti a nerezidenti včetně mezinárodních institucí
+(souhrnná položka);CROBD;S_RNUVIN;Úvěrové instituce (rezidenti  a nerezidenti)
+(souhrnná položka);CMENFDZ;S_RNUVINMI;Úvěrové instituce rezid. a nerezidenti a mezinár. instituce
+(souhrnná položka);CDRZAL;S_RNUVINMRB;Úvěrové instituce (rezid. a nerezidenti) a mez. rozv. banky
+(souhrnná položka);CRNSPOL;S_RNVLADA;Vládní instituce ( rezidenti a nerezidenti)
+(souhrnná položka);CPROOCP;S_RNVLAMI;Vládní instituce a mezinárodní instituce ( rezid. a nerez.)
+(souhrnná položka);CDRZAL;S_RNVLAOMI;Vládní instituce ( rezid. a nerezid) a ostat. mez. instituce
+(souhrnná položka);CESBBANK;S_RNZIV;Domácnosti živnosti (rezidenti a nerezidenti)
+(souhrnná položka);CESAFON;S_ROB13MFI;Ostatní rezidenti bez MFI a vládních institucí
+(souhrnná položka);CESAFON;S_ROFIBPO;Ostatní FI bez MFI a pojišťoven (rezidenti)
+(souhrnná položka);CPROTI;S_ROFZAPFI;Ost. finanční zprostředkovatelé a pom. fin. instituce - rez
+(souhrnná položka);CSEKUR;S_ROFZBFKI;Ostatní finanční zprostředkovatelé  a pomocné finanční instituce bez FKI (rezidenti)
+(souhrnná položka);CROBD;S_ROKLBFPT;Ostatní klienti /zákazníci bez FPT (rezidenti)
+(souhrnná položka);CDRZAL;S_ROSTKZ;Ostatní klienti/zákazníci rezidenti
+(souhrnná položka);CEMITPAP;S_RSPUVDR;Spořitelní a úvěrní družstva celkem (rezidenti)
+(souhrnná položka);CROBD;S_RUVIN;Úvěrové instituce rezidenti
+(souhrnná položka);CJISIJIPI;S_RVLBU;Vládní instituce bez ústřed. vládních institucí  (rezidenti)
+(souhrnná položka);CRISI40;S_RZBYTEK;Rezidenti  bez bank, vlád. institucí a domácností
+(souhrnná položka);CESAFON;S_RZOB;Obchodní banky (rezidenti)
+(souhrnná položka);CESBBANK;S_RZOBY;Domácnosti - obyvatelstvo bez SVJ (rezidenti)
+(souhrnná položka);CESAFON;S_RZOTMF;Ostat. měnové finanční instituce bez bank (rezidenti)
+(souhrnná položka);CESBBANK;S_RZZIV;Domácnosti - živnosti (rezidenti)
+(souhrnná položka);CSKSPC;S_SKSP6;Interval splatnosti nad 1 den až do 5 let a nespecifikováno
+(souhrnná položka);CUVEVKL;S_SPOFIUV;Spotřebitelské finanční úvěry
+(souhrnná položka);CSPOTUV;S_SPOTUV;Spotřebitelské úvěry a úvěry domácnostem (nákup nemovitostí)
+(souhrnná položka);CUVEVKL;S_SPOUCUV;Spotřebitelské účelové úvěry
+(souhrnná položka);CEHP;S_STATYEU;Členské státy EU a GB
+(souhrnná položka);CUVEVKL;S_STAVSP;Úvěry ze stavebního spoření
+(souhrnná položka);CSUVDOBY;S_SUVDOBY;Spotřebitelské úvěry a úvěry na bydlení domácnostem- obyv.
+(souhrnná položka);CTERVK;S_TERVK;Intervaly splatnosti termínovaných vkladů od 1 dne do 20 let
+(souhrnná položka);CTEVK;S_TERVK1;Termín. vklady (krátkodobé) členěné dle doby uložení
+(souhrnná položka);CTEVK;S_TERVK2;Termín.vklady (střednědobé) členěné dle doby  uložení
+(souhrnná položka);CTEVK;S_TERVK3;Termín. vklady (dlouhodobé) členěné dle doby uložení
+(souhrnná položka);CTEVK;S_TEVK;Souhrn za termínované intervaly
+(souhrnná položka);C_TNEM;S_TNCEL;Typy nemovitostí celkem
+(souhrnná položka);CVKLADY;S_TVK;Termínované vklady
+(souhrnná položka);CVKLADY;S_TVKSP;Termínované vklady se splatností
+(souhrnná položka);CVKLADY;S_TVKVL;Termínované vklady s výpovědní lhůtou
+(souhrnná položka);CTYPVKL;S_TYPVKL;Souhrn typů běžných a vkladových účtů
+(souhrnná položka);CUVEVKL;S_UCELUV;Účelové úvěry
+(souhrnná položka);CUIOCP;S_UIOCP;Úvěrová instituce a obchodník (nebankovní)
+(souhrnná položka);CUVEVKL;S_ULVKLA;Uložené vklady
+(souhrnná položka);CUROVENAKTIV;S_UROVAKTIV;Úroveň aktiva celkem
+(souhrnná položka);CUROVEN;S_UROVEN;Součet za úrovně stanovení reálné hodnoty
+(souhrnná položka);CUVKLFO;S_UVERFO;Pohledávky FKI obdobné úvěrům
+(souhrnná položka);CUVEVKL;S_UVERY;Úvěry celkem
+(souhrnná položka);CUVEVKL;S_UVEVKL;Úvěry a vklady celkem
+(souhrnná položka);CUVKLFO;S_UVKLFO;Uložené vklady a pohledávky FKI obd. úvěrům
+(souhrnná položka);CUVNET;S_UVNET;Do 1 dne vč., netermínováno a do 6 měsíců včetně
+(souhrnná položka);CUVVKL;S_UVR;Souhrn za všechny časové intervaly
+(souhrnná položka);CPRIJUV;S_UVSSPL;Přijaté úvěry bez repo obchodů a KBÚ
+(souhrnná položka);CUVVKL;S_UVVKL;Souhrn za všechny časové intervaly a netermínováno
+(souhrnná položka);CUVVKLBBU;S_UVVKLBBU;Přijaté vklady a úvěry bez kontokorentních
+(souhrnná položka);CUVVKLBBU;S_UVVKLBRE;Přijaté úvěry a vklady  bez repo obchodů
+(souhrnná položka);CVKLADY;S_VKLADUV;Vklady a úvěry celkem
+(souhrnná položka);CVKLADY;S_VKLADY;Vklady celkem
+(souhrnná položka);CTYPVKL;S_VKLUC;Vkladové účty
+(souhrnná položka);CVKLUVBREP;S_VKLUVBREP;Vklady a přijaté úvěry kromě repo obchodů
+(souhrnná položka);CROBD;S_VLADAMI;Vládní instituce nerezidenti a mezinárodní instituce
+(souhrnná položka);CVSEMEN;S_VSECR;Všechny cizí měny (bez CZK)
+(souhrnná položka);CVSEMEN;S_VSEMEN;Všechny měny
+(souhrnná položka);CZONY;S_VSEZEME;Všechny země
+(souhrnná položka);CVYBTOS;S_VYBTOS;Vybrané typy osob
+(souhrnná položka);CVYBRTRID;S_VYBTRID;Výběr tříd a sledovaných objektů
+(souhrnná položka);CVYBVKL;S_VYBVKL;Vybrané vklady celkem
+(souhrnná položka);C_VYB_DNEM;S_VYB_DNEM;Vybrané druhy nemovitostí celkem
+(souhrnná položka);CVYUZNEM;S_VYUZ_NEM;Účel využití nemovitostí celkem
+(souhrnná položka);CZAKGF;S_VZGF;Zákazníci  podle vztahu ke Garančnímu fondu celkem
+(souhrnná položka);CZAKAZNICI;S_ZAKAZNICI;Zákazníci celkem
+(souhrnná položka);CZB18;S_ZB18;Krátkodobé bez 01 - do jednoho dne
+(souhrnná položka);CFLOAT;S_ZBFIX;Souhrn za dobu fixace
+(souhrnná položka);CZBSPFO;S_ZBSPFON;Zbytková splatnost pro fondy
+(souhrnná položka);CZBSPLAMM;S_ZBSPLAMM;Souhrn za časová pásma pro AMM
+(souhrnná položka);CIVECB;S_ZBSVEBTER;Země kromě ČR, EU, GB se začleněním  vybr. teritorií a mez.org.
+(souhrnná položka);CZBYSPL;S_ZBYSPL;Souhrn za zbytkovou splatnost
+(souhrnná položka);CZEMTERG;S_ZBZEMORG;Zbytek zemí světa a mez. organizací
+(souhrnná položka);CZEMEMORG;S_ZEMMORG;Všechny země a mezinárodní organizace (1A)
+(souhrnná položka);CIVECB;S_ZEMTEROR;Všechny země včetně vybraných  teritorií a mezinárod. org.
+(souhrnná položka);CZONY;S_ZONA_A;Zóna A - státy OECD  bez ČR
+(souhrnná položka);CZONY;S_ZONA_B;Zóna B - všechny státy mimo státy zóny A a ČR
+(souhrnná položka);CZPKRNE;S_ZPKRNE;Netermínováno a do 1 roku včetně

@@ -1,0 +1,391 @@
+﻿kod;nazev;pocet_pouziti
+AFO0002;Pokladní hotovost;3
+AFO0023;Dlouhodobý nehmotný majetek;1
+AFO0025;Goodwill;3
+AFO0026;Dlouhodobý hmotný majetek;2
+AFO0028;Ostatní aktiva;4
+AFO0031;Aktiva celkem;4
+AFO0032;Peněžní prostředky a ekvivalenty;1
+AFO0033;Cenné papíry dle § 32;1
+AFO0034;Ostatní likvidní majetkové hodnoty dle § 32;1
+AFO0035;Pokladní hotovost a ostatní vklady splatné na požádání;5
+AFO0036;Ostatní vklady splatné na požádání;3
+AFO0037;Finanční aktiva k obchodování;5
+AFO0038;Finanční aktiva jiná než k obchodování povinně v RH vykázané do zisku nebo ztráty;5
+AFO0039;Finanční aktiva v reálné hodnotě vykázané do zisku nebo ztráty;5
+AFO0040;Finanční aktiva v RH vykázané do úplného výsledku hospodaření;5
+AFO0041;Finanční aktiva v naběhlé hodnotě;5
+AFO0042;Dluhové cenné papíry v naběhlé hodnotě;3
+AFO0043;Úvěry a pohledávky v naběhlé hodnotě;3
+AFO0044;Zajišťovací deriváty;4
+AFO0045;Změny reálné hodnoty portfolia zajišťovaných nástrojů;3
+AFO0046;Účasti v dceřiných, společných a přidružených podnicích;3
+AFO0047;Hmotný majetek;5
+AFO0048;Pozemky, budovy a zařízení;3
+AFO0049;Investiční nemovitosti;3
+AFO0050;Nehmotný majetek;5
+AFO0051;Ostatní nehmotný majetek;3
+AFO0052;Daňové pohledávky;5
+AFO0053;Pohledávky ze splatné daně;3
+AFO0054;Pohledávky z odložené daně;3
+AFO0055;Neoběžná aktiva a vyřazované skupiny určené k prodeji;3
+AFO0056;Finanční aktiva v reálné hodnotě celkem;1
+AFO0057;Deriváty k obchodování;1
+AFO0058;Úvěry a pohledávky k obchodování;1
+AFO0059;Dluhopisy k obchodování;1
+AFO0060;Akcie a podíly k obchodování;1
+AFO0061;Podílové listy k obchodování;1
+AFO0062;Exchange Traded Funds k obchodování;1
+AFO0063;Strukturované produkty k obchodování;1
+AFO0064;Ostatní nástroje k obchodování;1
+AFO0065;Akcie a podíly povinně v RH vykázané do zisku nebo ztráty;1
+AFO0066;Podílové listy povinně v RH vykázané do zisku nebo ztráty;1
+AFO0067;Exchange Traded Funds povinně v RH vykázané do zisku nebo ztráty;1
+AFO0068;Strukturované produkty povinně v RH vykázané do zisku nebo ztráty;1
+AFO0069;Ostatní nástroje povinně v RH vykázané do zisku nebo ztráty;1
+AFO0070;Úvěry a pohledávky v reálné hodnotě vykázané do zisku nebo ztráty;1
+AFO0071;Dluhopisy v reálné hodnotě vykázané do zisku nebo ztráty;1
+AFO0072;Ostatní nástroje v reálné hodnotě vykázané do zisku nebo ztráty;1
+AFO0073;Úvěry a pohledávky v RH vykázané do OCI;1
+AFO0074;Dluhopisy v RH vykázané do OCI;1
+AFO0075;Akcie a podíly v RH vykázané do OCI;1
+AFO0076;Ostatní nástroje v RH vykázané do OCI;1
+AFO0077;Deriváty k obchodování celkem;1
+AFO0078;Úrokové riziko;2
+AFO0079;Úrokové OTC opce;1
+AFO0080;Ostatní úrokové OTC deriváty;1
+AFO0081;Úrokové opce obchodované na organizovaném trhu;1
+AFO0082;Ostatní úrokové deriváty obchodované na organizovaném trhu;1
+AFO0083;Akciové riziko;2
+AFO0084;Akciové OTC opce;1
+AFO0085;Ostatní akciové OTC deriváty;1
+AFO0086;Akciové opce obchodované na organizovaném trhu;1
+AFO0087;Ostatní akciové deriváty obchodované na organizovaném trhu;1
+AFO0088;Měnové riziko a zlato;2
+AFO0089;Měnové OTC opce;1
+AFO0090;Ostatní měnové OTC deriváty;1
+AFO0091;Měnové opce obchodované na organizovaném trhu;1
+AFO0092;Ostatní měnové deriváty obchodované na organizovaném trhu;1
+AFO0093;Úvěrové riziko;2
+AFO0094;Swap úvěrového selhání;1
+AFO0095;Opce úvěrového rozpětí;1
+AFO0096;Swapy veškerých výnosů;1
+AFO0097;Ostatní úvěrové deriváty;1
+AFO0098;Komoditní riziko;1
+AFO0099;Ostatní rizika;1
+AFO0105;Hodnota spravovaných aktiv (AUM) celkem;1
+AFO0106;Hotovost a pohledávky za bankami a družstevními záložnami;1
+AFO0107;Finanční aktiva;2
+AFO0108;z toho v investičních fondech;1
+AFO0109;z toho nemovitý majetek;1
+AFO0110;Akcie, podílové listy a ostatní podíly;2
+AFO0111;Ostatní finanční aktiva;1
+AIF0003;Typ mezinárodního identifikačního kódu;8
+AIF0004;Mezinárodní identifikační kód;8
+AIF0005;Typ investičního fondu;12
+AIF0006;Velikost pozice fondu soukromého kapitálu;2
+AIF0007;Domovská země fondu;1
+AIF0008;Základní měna fondu;1
+AIF0009;Hodnota spravovaných aktiv (AUM);8
+AIF0010;Čistá hodnota aktiv (NAV);7
+AIF0012;Expozice vůči riziku - pákový efekt metodou hrubé hodnoty aktiv;2
+AIF0013;Expozice vůči riziku - pákový efekt závazkovou metodou;2
+AIF0016;Výplaty investorům - právo na zpětný odkup;2
+AIF0017;Výplaty investorům - frekvence zpětného odkupu;1
+AIF0020;Zvláštní výhody investorům - existence investorů s výhodami;1
+AIF0021;Zvláštní výhody investorům - informování/podávání zpráv investorům;1
+AIF0022;Zvláštní výhody investorům - podmínky likvidity investorů;1
+AIF0023;Zvláštní výhody investorům - platební podmínky pro investory;1
+AIF0024;Zvláštní výhody investorům -jiné zvláštní výhody;1
+AIF0025;Typ kódu trhu;24
+AIF0026;MIC trhu;76
+AIF0030;Převažující strategie fondu;12
+AIF0031;Podíl na čisté hodnotě aktiv (NAV);12
+AIF0035;Region Afrika;4
+AIF0036;Region Asie a Tichomoří;4
+AIF0037;Region Evropa (EHP);4
+AIF0038;Region Evropa (kromě EHP);4
+AIF0039;Region Blízký východ;4
+AIF0040;Region Severní Amerika;4
+AIF0041;Region Jižní Amerika;4
+AIF0042;Nadnárodní/více regionů;4
+AIF0048;Hodnota složeného zajištění celkem;1
+AIF0049;Peníze a peněžní ekvivalenty;1
+AIF0050;Ostatní CP;1
+AIF0051;Ostatní zajištění kolaterály a úvěrová podpora;1
+AIF0056;Typ podskupiny aktiv;728
+AIF0058;Typ kódu aktiva;8
+AIF0059;ISIN;8
+AIF0063;Kategorie aktiv;12
+AIF0068;LEI protistrany;10
+AIF0074;LEI;4
+AIF0077;Typ transakce;2
+AIF0078;Podíl na hlasovacích právech;2
+AIF0079;BIC;1
+AIF0080;LEI;9
+AIF0087;Net DV01 celkem;1
+AIF0088;Net DV01 < 5 let;1
+AIF0089;Net DV01 5 - 15 let;1
+AIF0090;Net DV01 nad 15 let;1
+AIF0091;Net CS01 celkem;1
+AIF0092;Net CS01 < 5 let;1
+AIF0093;Net CS01 5 - 15 let;1
+AIF0094;Net CS01 nad 15 let;1
+AIF0105;Banky (včetně centrálních bank);2
+AIF0106;Ostatní subjekty kolektivního investování (IF včetně fondů peněžního trhu);2
+AIF0107;Ostatní finanční instituce;2
+AIF0108;Pojišťovací společnosti;2
+AIF0109;Penzijní fondy;2
+AIF0110;Vládní instituce;2
+AIF0111;Domácnosti;2
+AIF0112;Nefinanční instituce;2
+AIF0113;Neznámé typy investorů;2
+AIF0121;Hodnota hotovosti/CP;1
+AIF0122;nezajištěné hotovostní půjčky;1
+AIF0123;hotovostní půjčky zajištěné - prostřednictvím hlavního makléře;1
+AIF0124;hotovostní půjčky zajištěné - prostřednictvím repo operací;1
+AIF0125;hotovostní půjčky zajištěné jinými prostředky;1
+AIF0126;Název;1
+AIF0127;Výpůjčky vložené do finančních nástrojů;1
+AIF0128;Burzovní deriváty;1
+AIF0129;OTC deriváty;1
+AIF0133;AII nástroje;8
+AIF0136;"Popis k typu strategie ""Jiná""";4
+DFO0023;Počáteční kapitál dle § 29;1
+DFO0025;Minimální KP k fixním režijním nákladům dle § 30;1
+DFO0028;Dodatečné kapitálové požadavky;2
+DFO0029;Dodatečné KP z hodnot majetku dle § 31 odst. 1;2
+DFO0030;z toho dodatečný KP dle § 31 odst. 2 krytý zárukou;1
+DFO0031;Dodatečné KP k pokrytí odpovědnosti za škodu dle § 31 odst. 5a);1
+DFO0032;Dodatečný KP k míře spoluúčasti k pojištění dle § 31 odst. 5b);1
+DFO0033;Kapitál;1
+DFO0035;Kmenový tier 1 (CET1) kapitál;3
+DFO0036;Nástroje použitelné pro CET1 kapitál;3
+DFO0037;Splacené CET1 nástroje;1
+DFO0039;Doplňující informace: nástroje nepoužitelné pro CET1 kapitál;1
+DFO0040;Emisní ážio;1
+DFO0041;(-) Nabyté vlastní CET1 nástroje;2
+DFO0042;(-) Vlastní CET1 nástroje nabyté přímo;1
+DFO0043;(-) Vlastní CET1 nástroje nabyté nepřímo;1
+DFO0044;(-) Syntetické investice do CET1 nástrojů;1
+DFO0045;(-) Skutečné nebo podmíněné závazky k nákupu vlastních CET1 nástrojů;1
+DFO0046;Nerozdělený zisk/neuhrazená ztráta;3
+DFO0047;Nerozdělený zisk/neuhrazená ztráta za předchozí období;1
+DFO0048;Použitelný zisk/ztráta;2
+DFO0049;Zisk/ztráta;1
+DFO0050;(-) Nepoužitelný mezitímní zisk nebo nepoužitelný zisk z ukončeného účetního období;1
+DFO0051;Kumulovaný ostatní úplný výsledek hospodaření (OCI);2
+DFO0052;Ostatní rezervní fondy;2
+DFO0057;Úpravy CET1 kapitálu z důvodu použití obezřetnostních filtrů;3
+DFO0058;(-) Zvýšení vlastního kapitálu ze sekuritizace aktiv;1
+DFO0059;Rezervní fond na zajištění peněžních toků;1
+DFO0060;Kumulativní zisk/ztráta ze změn reálné hodnoty závazků při změně úvěrového rizika;1
+DFO0061;Reálná hodnota zisku nebo ztráty z vlastního úvěrového rizika souvisejícího s derivátovými závazky;1
+DFO0062;(-) Úpravy hodnot podle požadavků pro obezřetné oceňování;1
+DFO0063;(-) Goodwill;3
+DFO0064;(-) Goodwill z nehmotných aktiv;1
+DFO0065;(-) Goodwill zahrnutý v ocenění významných investic;1
+DFO0066;Odložené daňové závazky z goodwillu;1
+DFO0067;(-) Jiná nehmotná aktiva;3
+DFO0068;(-) Jiná nehmotná aktiva - hrubá hodnota;1
+DFO0069;Odložené daňové závazky související s jinými nehmotnými aktivy;1
+DFO0070;(-) Odložené daňové pohledávky závislé na budoucím zisku nevyplývající z přechodných rozdílů snížené o související daňové závazky;2
+DFO0071;(-) Nedostatek v krytí očekávaných ztrát úpravami o úvěrové riziko při IRB;2
+DFO0078;(-) Kvalifikované účasti mimo finanční sektor (alternativně s rizikovou váhou 1250 %);2
+DFO0079;(-) Sekuritizované expozice (alternativně s rizikovou váhou 1250 %);2
+DFO0080;(-) Volné dodávky (alternativně s rizikovou váhou 1250 %);2
+DFO0081;(-) Seskupení expozic, pro které nelze určit rizikovou váhu podle IRB (alternativně s rizikovou váhou 1250 %);2
+DFO0082;(-) Akciové expozice podle VaR (alternativně s rizikovou váhou 1250 %);2
+DFO0083;(-) Nadlimitní nevýznamné investice do osob z finančního sektoru;2
+DFO0084;(-) Odložené daňové pohledávky závislé na budoucím zisku vyplývající z přechodných rozdílů;2
+DFO0085;(-) Nadlimitní významné investice do osob z finančního sektoru;2
+DFO0086;(-) Hodnoty přesahující 17,65 % vlastního CET1 kapitálu;2
+DFO0087;Ostatní přechodné úpravy CET1 kapitálu;2
+DFO0090;Celkový kapitálový požadavek;1
+DFO0091;Dodatečný KP dle § 11 odst. 8;1
+EAR2285;Aktiva celkem;2
+EAR2316;Ostatní aktiva;2
+EAR2347;Finanční deriváty - kladná reálná hodnota;1
+EAR2455;Nabíhající příslušenství;1
+EAR2464;Celková reálná hodnota;1
+EAR2564;Rezidenční nemovitosti;1
+EAR2565;Komerční nemovitosti;1
+EAR2566;Průmyslové nemovitosti;1
+EAR2567;Ostatní nemovitosti;1
+EAR2574;Investiční politika dle převažujícího typu aktiv;2
+EAR2577;Fond korporátních/státních dluhopisů;2
+EAR2581;Typ nemovitostního fondu;2
+EAR2587;Datum emise;1
+EAR2588;Datum splatnosti;1
+EAR2592;Nefinanční aktiva;2
+EFO0218;Adresa elektronické pošty;1
+EFO0219;Telefonní číslo;1
+EFO0221;Jméno osoby;1
+EFO0222;Příjmení osoby;1
+EFO0225;Datum zahájení činnosti ve společnosti;1
+EFO0226;Datum převzetí odpovědnosti za oblast;1
+EFO0233;Expozice dané měny v portfoliu (bez derivátů):;2
+EFO0236;Počet investorů celkem;4
+EFO0237;z toho FO;4
+EFO0238;z toho PEP;2
+EFO0239;z toho PO;2
+EFO0245;Outsourcovaná činnost;1
+EFO0250;Zpráva auditora;1
+EFO0251;Počet pracovníků;1
+EFO0252;Přepočtený počet pracovníků (FTE);1
+EFO0259;Administrace investičních fondů;1
+EFO0260;z toho oceňování;1
+EFO0265;Identifikační číslo iniciátora fondu;4
+EFO0266;Název společnosti – iniciátora fondu;2
+EFO0267;Datum narození iniciátora fondu;2
+EFO0268;Jméno iniciátora fondu;2
+EFO0269;Příjmení iniciátora fondu;2
+EPR1879;Emitované akcie/podílové listy;1
+EPR1886;Ostatní pasiva;2
+EPR1887;Pasiva celkem;2
+EPR1891;Finanční deriváty - záporná reálná hodnota;1
+EPR1986;Objem prodaných podílových listů/akcií;3
+EPR1987;Objem odkoupených podílových listů/akcií;3
+EVD0004;Adresa sídla vykazující osoby - ulice, číslo popisné;2
+EVD0005;Adresa sídla vykazující osoby - PSČ;2
+EVD0006;Adresa sídla vykazující osoby - obec;2
+EVD0117;Doručovací adresa vykazující osoby-ulice, číslo popisné;2
+EVD0118;Doručovací adresa vykazující osoby - PSČ;2
+EVD0119;Doručovací adresa vykazující osoby - obec;2
+EVD0175;LEI kód vykazující osoby;2
+EVD0182;Doručovací adresa vykazující osoby - stát;2
+FOD0003;Komentář;2
+PFO0013;Rezervy;5
+PFO0018;Základní kapitál;2
+PFO0021;Emisní ážio;2
+PFO0034;Závazky a vlastní kapitál/fondový kapitál (NAV) celkem;3
+PFO0035;Závazky celkem (bez čistých aktiv připadajících držitelům investičních akcií/podílových listů);5
+PFO0036;Finanční závazky k obchodování;5
+PFO0037;Deriváty k obchodování;3
+PFO0038;Závazky z krátkých prodejů;3
+PFO0039;Emitované dluhové CP k obchodování;3
+PFO0040;Ostatní finanční závazky k obchodování;3
+PFO0041;Finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty;5
+PFO0042;Emitované dluhové CP v reálné hodnotě vykázané do zisku nebo ztráty;3
+PFO0043;Ostatní fin.závazky v reálné hodnotě vykázané do zisku nebo ztráty;3
+PFO0044;Finanční závazky v naběhlé hodnotě;5
+PFO0045;Emitované dluhové cenné papíry v naběhlé hodnotě;3
+PFO0046;Ostatní finanční závazky v naběhlé hodnotě;3
+PFO0047;Zajišťovací deriváty;3
+PFO0048;Změny reálné hodnoty portfolia zajišťovaných nástrojů;3
+PFO0049;Rezervy na penze a ostatní definované požitky;3
+PFO0050;Rezervy na ostatní dlouhodobé zaměstnanecké požitky;3
+PFO0051;Rezervy na restrukturalizaci;3
+PFO0052;Rezervy na právní problémy a daňové spory;3
+PFO0053;Rezervy na poskytnuté přísliby a záruky;3
+PFO0054;Ostatní rezervy;3
+PFO0055;Daňové závazky;5
+PFO0056;Závazky ze splatné daně;3
+PFO0057;Závazky z odložené daně;3
+PFO0058;Ostatní závazky;3
+PFO0059;Závazky spojené s vyřazovanými skupinami určenými k prodeji;3
+PFO0060;Vlastní kapitál celkem/Fondový kapitál (NAV);4
+PFO0061;Vydané kapitálové nástroje jiné než základní kapitál;2
+PFO0062;Ostatní vlastní kapitál / Ostatní fondový kapitál;2
+PFO0063;Kumulovaný ostatní úplný výsledek hospodaření (OCI);4
+PFO0064;OCI z položek, které se nereklasifikují do zisku nebo ztráty;4
+PFO0065;OCI z kapitálových nástrojů;2
+PFO0066;OCI z hmotného majetku;2
+PFO0067;OCI z nehmotného majetku;2
+PFO0068;OCI z ostatních nástrojů;2
+PFO0069;OCI z položek, které se reklasifikují do zisku nebo ztráty;4
+PFO0070;Změna RH dluhových nástrojů vykázaných v RH do OCI;2
+PFO0071;Změna RH ostatních nástrojů vykázaných v RH do OCI;2
+PFO0072;Nerozdělený zisk nebo neuhrazená ztráta z předchozích období/ Kumulovaný zisk nebo ztráta za předchozí období;2
+PFO0073;Rozdíly z ocenění;2
+PFO0074;Rezervní fondy;2
+PFO0075;(-) Vlastní akcie;2
+PFO0076;Zisk nebo ztráta za běžné účetní období;2
+PFO0077;(-) Mezitímní dividendy;2
+SFO0002;Počet jednotek;1
+SFO0003;Hodnota fondového kapitálu v příslušné třídě;2
+SFO0005;Vypracováno sdělení klíčových informací?;3
+SFO0006;Důvod nevypracování sdělení klíčových informací;4
+SFO0007;Popis jiného důvodu pro nevypracování sdělení klíčových informací;2
+SFO0010;Datum vypracování nebo poslední úpravy sdělení klíčových informací;5
+SFO0011;Datum poslední kontroly informací ze sdělení klíčových informací;6
+SFO0012;Internetová adresa zveřejnění;3
+SFO0014;Hodnota souhrnného ukazatele rizik (SRI);2
+SFO0015;Prezentované délky držení v letech;5
+SFO0033;Reprezentativní třída;3
+SFO0034;Typ investice;4
+SFO0036;Kategorie produktu;2
+SFO0037;Zaručen minimální výnos;3
+SFO0049;Hodnota fondového kapitálu připadající investorům z ČR;2
+SFO0050;Hodnota fondového kapitálu připadající investorům z EU (kromě ČR);2
+SFO0051;Hodnota fondového kapitálu připadající investorům z ESVO;2
+SFO0052;Hodnota fondového kapitálu připadající investorům mimo EU a ESVO;2
+TFO0041;Nefinanční aktiva - změny z přecenění;3
+TFO0042;Finanční deriváty - kladná reálná hodnota - změny z přec.;3
+TFO0043;Finanční deriváty - záporná reálná hodnota - změny z přec.;3
+TFO0053;Počet cenných papírů - počáteční stav;7
+TFO0054;Počet emitovaných cenných papírů;5
+TFO0055;Počet odkoupených cenných papírů;5
+TFO0056;Počet cenných papírů - konečný stav;7
+TFO0057;Objem cenných papírů - počáteční stav;6
+TFO0058;Objem emitovaných cenných papírů;5
+TFO0059;Objem odkoupených cenných papírů;5
+TFO0060;Objem cenných papírů - konečný stav;6
+ZFO0007;Úrokové výnosy;12
+ZFO0008;Úroky z finančních aktiv k obchodování;2
+ZFO0009;Úroky z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty;2
+ZFO0010;Úroky z finančních aktiv v reálné hodnotě vykázané do zisku nebo ztráty;2
+ZFO0011;Úroky z finančních aktiv v reálné hodnotě vykázané do OCI;2
+ZFO0012;Úroky z finančních aktiv v naběhlé hodnotě;2
+ZFO0013;Zisk ze zajišťovacích úrokových derivátů;2
+ZFO0014;Úroky z ostatních aktiv;2
+ZFO0015;Úroky ze závazků;2
+ZFO0016;Úrokové náklady;12
+ZFO0017;Úroky na finanční závazky k obchodování;2
+ZFO0018;Úroky na finanční závazky v reálné hodnotě vykázané do zisku nebo ztráty;2
+ZFO0019;Úroky na finanční závazky v naběhlé hodnotě;2
+ZFO0020;Ztráta ze zajišťovacích úrokových derivátů;2
+ZFO0021;Úroky na ostatní závazky;2
+ZFO0022;Úroky na aktiva;2
+ZFO0023;Výnosy z dividend;12
+ZFO0024;Výnosy z dividend z finančních aktiv k obchodování;2
+ZFO0025;Výnosy z dividend z finančních aktiv jiných než k obchodování povinně v RH vykázané do zisku nebo ztráty;2
+ZFO0026;Výnosy z dividend z fnančních aktiv v reálné hodnotě vykázané do OCI;2
+ZFO0027;Výnosy z dividend z účastí v dceřiných, společných a přidružených podnicích neoceňovaných metodou ekvivalence;2
+ZFO0028;Výnosy z poplatků a provizí;10
+ZFO0029;Náklady na poplatky a provize;10
+ZFO0030;Zisk nebo (-) ztráta z odúčtování finančních aktiv a závazků nevykázaných v RH do Z/Z;12
+ZFO0031;Zisk nebo (-) ztráta z finančních aktiv v reálné hodnotě vykázané do OCI;2
+ZFO0032;Zisk nebo (-) ztráta z finančních aktiv v naběhlé hodnotě;2
+ZFO0033;Zisk nebo (-) ztráta z finančních závazků v naběhlé hodnotě;2
+ZFO0034;Zisk nebo (-) ztráta z ostatních finančních závazků;2
+ZFO0035;Zisk nebo (-) ztráta z finančních aktiv a závazků k obchodování;10
+ZFO0036;Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty;10
+ZFO0037;Zisk nebo (-) ztráta z finančních aktiv a závazků v RH vykázané do zisku nebo ztráty;10
+ZFO0038;Zisk nebo (-) ztráta ze zajišťovacího účetnictví;10
+ZFO0039;Kurzové rozdíly - zisk nebo (-) ztráta;10
+ZFO0040;Zisk nebo (-) ztráta z odúčtování nefinančních aktiv;10
+ZFO0041;Ostatní provozní výnosy;10
+ZFO0042;Ostatní provozní náklady;10
+ZFO0043;Zisk nebo (-) ztráta z provozní činnosti;5
+ZFO0044;Správní náklady;8
+ZFO0045;Náklady na zaměstnance;3
+ZFO0046;Ostatní správní náklady;3
+ZFO0047;Odpisy;7
+ZFO0048;Odpisy pozemků, budov a zařízení;2
+ZFO0049;Odpisy nehmotného majetku;2
+ZFO0050;Zisk nebo (-) ztráta z modifikace;12
+ZFO0051;Zisk nebo (-) ztráta z modifikace finančních aktiv v RH vykázané do OCI;7
+ZFO0052;Zisk nebo (-) ztráta z modifikace finančních aktiv v naběhlé hodnotě;7
+ZFO0053;(-) Tvorba rezerv nebo jejich reverzování;7
+ZFO0054;(-) Rezervy na poskytnuté přísliby a záruky nebo jejich reverzování;2
+ZFO0055;(-) Ostatní rezervy nebo jejich reverzování;2
+ZFO0056;(-) Ztráty ze znehodnocení aktiv nebo jejich reverzování;7
+ZFO0057;(-) Ztráty ze znehodnocení finan. aktiv v RH vykázané do OCI nebo jejich reverzování;2
+ZFO0058;(-) Ztráty ze znehodnocení ostatních aktiv nebo jejich reverzování;2
+ZFO0059;Negativní goodwill účtovaný do výkazu zisku nebo ztráty;5
+ZFO0060;Podíl na zisku nebo (-) ztrátě dceřiných, společných a přidružených podniků oceňovaných metodou ekvivalence;5
+ZFO0061;Zisk nebo (-) ztráta z neoběžných aktiv a vyřazovaných skupin;5
+ZFO0062;Zisk nebo (-) ztráta před zdaněním;10
+ZFO0063;(-) Náklady nebo výnosy na daň z příjmů činností;5
+ZFO0064;Zisk nebo (-) ztráta běžného roku po zdanění;5
