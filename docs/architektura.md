@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 171. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 206. -->
 
 # Investra – architektura Odoo a IS
 
@@ -40,7 +40,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Závěrka klientských transakcí | Vytváří IS | Rozhodnuto |
 | Kurz úpisu v průběhu období | Poslední známý kurz, ruční úprava možná, řídí IS | Rozhodnuto |
 | Univerzální fondový modul | Musí pokrýt i výplatu dividend z tříd | Rozhodnuto |
-| Schvalování ocenění | Kontrola druhou osobou povinná u fondů Investry, stanovisko obhospodařovatele a depozitáře se eviduje v Odoo | Rozhodnuto |
+| Schvalování ocenění | Kontrola druhou osobou povinná u fondů Investry, stanovisko obhospodařovatele a depozitáře se eviduje v Odoo; ocenění schvaluje i administrátor podle parametru fondu | Rozhodnuto |
 | Výpočet tříd | Pouze z rozvahy, přesuny mezi třídou a společným majetkem přes vnitřní zúčtování | Rozhodnuto, ověřit prototypem |
 | Verze Odoo | Odoo 20, připnuté sestavení 20.0-20261102, aktualizace řízeně; výuková odoo\_cz zůstává na 19 | Rozhodnuto |
 | Pořadí nasazení | Investra Services, investiční společnost, potom fondy | Rozhodnuto |
@@ -62,8 +62,9 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Číselník fondů a tříd | Vlastníkem je Odoo, IS dostává kopii | Rozhodnuto, lze změnit |
 | Plán verzí | Vývoj na Community, Enterprise zůstává otevřené | Předpoklad |
 | Katalog ČNB | Výkazy, položky, kontroly a číselníky v repozitáři (docs/cnb): CSV je zdroj, XLSX se generuje, verze podle metodiky | Rozhodnuto |
-| Postup ocenění | Jeden záznam ocenění s kroky; návrhy dokladů a zaúčtování po schválení druhou osobou; typovaná pravidla poplatků | Návrh, k rozhodnutí |
-| Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Návrh, k rozhodnutí |
+| Postup ocenění | Jeden záznam ocenění s kroky; návrhy dokladů (zaúčtování viz řádek Zaúčtování ocenění); typovaná pravidla poplatků | Návrh, k rozhodnutí |
+| Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Rozhodnuto |
+| Zaúčtování ocenění | Varianta B: schvaluje se kompletní finální ocenění se sumářem z nezaúčtovaných návrhů; zaúčtuje se jedním krokem k datu ocenění před odesláním depozitáři; vrácení před zaúčtováním je oprava návrhů a nová verze, vrácení depozitářem storno všech dokladů a nová verze; uzamčení až po stanovisku depozitáře | Rozhodnuto, ověřit prototypem |
 |  |  |  |
 |  |  |  |
 |  |  |  |
@@ -211,17 +212,17 @@ Alokační poměr vzniká před výpočty přecenění.
 2. Předběžný kapitál třídy a alokační poměr.
 3. Přecenění aktiv a FX.
 4. Výpočty za třídy v pořadí podle statutu, výchozí je: úplaty, performance fee, očekávaná daňová povinnost, dohadné položky. Performance fee se počítá z hodnot před daní, pořadí je parametr fondu.
-5. Návrhy dokladů; zaúčtují se po kontrole druhou osobou (doporučení, viz Postup ocenění v Odoo).
+5. Návrhy dokladů; zaúčtují se jedním krokem po schválení, před odesláním depozitáři (viz Postup ocenění v Odoo).
 6. Finální kapitál tříd a kontrolní rovnice.
 7. Kontrola shody cenných papírů fondu s evidencí v IS.
 8. Kontrola shody majetku fondu s účetnictvím a změny vlastního kapitálu nad prahem (výchozí 5 %, parametr se zdrojem v předpisu).
 9. Výpočet hodnoty na kus (FKCP), výchozí zaokrouhlení na 4 desetinná místa dolů, pokud statut neurčí jinak.
-10. Kontrola druhou osobou, pro fondy Investry povinná.
-11. Odeslání NAV a kurzu obhospodařovateli a depozitáři a evidence jejich stanoviska.
-12. Uzamčení ocenění.
-13. Zveřejnění kurzu.
+10. Kontrola druhou osobou, pro fondy Investry povinná; další schvalovatelé před zaúčtováním jsou parametr fondu.
+11. Zaúčtování návrhů jedním krokem k datu ocenění.
+12. Odeslání zaúčtovaného ocenění depozitáři a evidence jeho stanoviska.
+13. Zveřejnění kurzu a uzamčení ocenění a období.
 
-**Stanovisko obhospodařovatele a depozitáře:** v Odoo se eviduje verze ocenění, datum odeslání, kdo a kdy schválil nebo vrátil, způsob a příloha. Vrácené ocenění se opraví jako nová verze a zaúčtované položky se stornují. Kurz jde do IS až po jejich stanovisku.
+**Stanovisko obhospodařovatele a depozitáře:** v Odoo se eviduje verze ocenění, datum odeslání, kdo a kdy schválil nebo vrátil, způsob a příloha. Ocenění vrácené před zaúčtováním se opraví v návrzích jako nová verze, bez storen. Když ho vrátí depozitář po zaúčtování, stornují se všechny doklady ocenění a zaúčtuje se nová verze. Kurz jde do IS až po stanovisku depozitáře.
 
 Předběžný kapitál třídy T ke dni D (pohyby za všechny závěrky od předchozího ocenění):
 
@@ -279,11 +280,20 @@ Ocenění je v `investra_nav` jeden záznam pro fond, datum a verzi. Účetní j
 | 4. Poplatky, dohady, daň | Pravidla fondu v pořadí podle statutu, rozpis výpočtu každé částky | Návrhy dokladů |
 | 5. NAV a cena za kus | FK z rozvahy včetně návrhů, rozdělení na třídy, kusy z IS, zaokrouhlení podle třídy | Výpočet NAV |
 | 6. Kontroly a sestava | Automatické kontroly se stavem OK, upozornění nebo stop | Sestava ke schválení |
-| 7. Schválení a zaúčtování | Kontrola druhou osobou, zaúčtování návrhů | Zaúčtované doklady |
-| 8. Stanovisko a zveřejnění | Obhospodařovatel a depozitář, uzamčení, kurz do IS, zveřejnění | Publikovaný kurz |
-| 9. Navazující kroky | Úhrada poplatků, snímek pro výkazy ČNB, výpočtový list pro řízení rizik | Podklady |
+| 7. Kontrola a schválení | Kompletní finální ocenění po poplatcích, dohadech a dani, sumář z nezaúčtovaných návrhů, zamčené návrhy a snímek. Kontrola druhou osobou je u fondů Investry povinná, schválení vedením fondu volitelné. Kdo a v jakém pořadí schvaluje před zaúčtováním, včetně administrátora a obhospodařovatele, je parametr fondu. Vrácení znamená opravu návrhů a novou verzi, bez storen | Schválený sumář |
+| 8. Zaúčtování | Zaúčtování jedním krokem k datu ocenění s kontrolou shody se schváleným sumářem | Zaúčtované doklady |
+| 9. Depozitář | Depozitář dostává finálně zaúčtované ocenění. Vrácení znamená storno všech dokladů ocenění a zaúčtování nové verze, ne rozdílový doklad | Stanovisko depozitáře |
+| 10. Zveřejnění a uzamčení | Kurz do IS a zveřejnění až po stanovisku depozitáře; uzamčení ocenění i období až potom, aby šlo storno zaúčtovat k datu ocenění | Publikovaný kurz, uzamčené období |
+| 11. Navazující kroky | Úhrada poplatků, snímek pro výkazy ČNB, výpočtový list pro řízení rizik | Podklady |
 
-**Zaúčtování (doporučení, k rozhodnutí):** kroky 2 až 4 vytvářejí návrhy dokladů a výpočet s nimi počítá. Zaúčtují se až po schválení druhou osobou, takže opravy před schválením nezanechají v účetnictví storna. Alternativa je účtovat po každém kroku; je jednodušší, ale každé vrácení znamená storno. Pokud ocenění vrátí depozitář, platí storno a nová verze.
+**Zaúčtování (rozhodnuto, varianta B):** na schválení jde kompletní finální ocenění, tedy po poplatcích, dohadech a dani. Kroky 2 až 4 vytvářejí návrhy dokladů a sumář vzniká z těchto nezaúčtovaných návrhů. Po schválení podle parametrů fondu se návrhy zaúčtují jedním krokem k datu ocenění a depozitář dostane finálně zaúčtované ocenění. Vrácení před zaúčtováním znamená opravu návrhů a novou verzi, bez storen. Vrácení depozitářem znamená storno všech dokladů ocenění a zaúčtování nové verze, ne rozdílový doklad. Oprava po zveřejnění se řídí částí Oprava chybného NAV.
+
+**Požadavky na zajištění (ověřeno v kódu Odoo 20, prototypem zatím ne):**
+
+- NAV a sumář počítají zaúčtovaný stav plus návrhy daného ocenění, protože standardní zůstatky berou jen zaúčtované doklady.
+- Po odeslání ke schválení se návrhy zamknou a uloží se snímek; každá změna znamená novou verzi.
+- Před zaúčtováním se zkontroluje, že stav odpovídá schválenému sumáři; jinak se ocenění vrací k přepočtu.
+- Ocenění a období se uzamknou až po stanovisku depozitáře, aby šlo storno zaúčtovat k datu ocenění.
 
 **Pravidla poplatků (doporučení, k rozhodnutí):** u fondu se vede sada typovaných pravidel s platností od data a odkazem na článek statutu. Pravidlo má typ, základ, sazbu nebo pásma, minimum a maximum, DPH, roční základ (365 nebo 366 dní), role účtů a třídu. Typy: pevná částka s pásmy, procento ze základu, výkonnostní odměna, daň, dohad a ruční položka s důvodem. Nový typ je malé rozšíření v kódu s testem. Volné vzorce ani tabulky mimo systém nedoporučujeme kvůli auditu.
 
@@ -542,7 +552,7 @@ SDAT u každého výkazu publikuje kontroly ve dvou skupinách: jednovýkazové 
 
 **Co z metodiky plyne pro implementaci:** kódy položek (např. EAR2285 Aktiva celkem), číselníky (země, sektory ESA, druhy cenných papírů, měny) a převodníky jsou veřejně v části Knihovna. Mapovací tabulky v Odoo použijí přímo tyto kódy a číselníky, aby export do SDAT nepotřeboval další překlad. Metodika má verze s platností (aktuálně FOFI20261201), takže mapování se bude verzovat stejně. Katalog výkazů, položek, 705 kontrol a použitých číselníků je v repozitáři v `docs/cnb/`: CSV je zdroj, XLSX slouží ke čtení.
 
-### Z účetnictví do výkazů (návrh)
+### Z účetnictví do výkazů
 
 Každá buňka výkazu je pravidlo v `investra_cnb`. Pravidla mají platnost od data a vazbu na verzi metodiky, protože se mapování v čase mění často. Změna pravidla se eviduje a starý výkaz jde vždy vygenerovat podle pravidel svého období.
 
@@ -617,8 +627,8 @@ Odkazy na ZISIF je před implementací potřeba ověřit proti aktuálnímu zně
 Každý výpočet NAV a FX musí jít zopakovat ze stejných vstupů. Provoz dvou systémů zároveň zvyšuje nároky na zálohy, monitoring a evidenci ICT služeb.
 
 - **Reprodukovatelnost:** ke každému výpočtu se ukládají vstupy, kurzy, ceny, parametry, verze pravidel a výsledné zápisy.
-- **Neměnnost:** provedené transakce, závěrky a schválená ocenění se nepřepisují. Oprava je storno a nový záznam.
-- **Schvalování:** parametrizovatelné pro ocenění, ceny a ruční úpravy kurzu. Lze nastavit kontrolu čtyř očí, kdy schvaluje jiná osoba než zadavatel, nebo schvalování nepoužívat. Pro fondy Investry je kontrola druhou osobou povinná podle vnitřních předpisů. Stanovisko obhospodařovatele a depozitáře je samostatný krok s evidencí v Odoo.
+- **Neměnnost:** provedené transakce, závěrky a zaúčtovaná ocenění se nepřepisují. Oprava je storno a nový záznam.
+- **Schvalování:** parametrizovatelné pro ocenění, ceny a ruční úpravy kurzu. Lze nastavit kontrolu čtyř očí, kdy schvaluje jiná osoba než zadavatel, nebo schvalování nepoužívat. Pro fondy Investry je kontrola druhou osobou povinná podle vnitřních předpisů. Stanovisko depozitáře je samostatný krok po zaúčtování, schválení obhospodařovatele a administrátora se řídí parametrem fondu.
 - **Osobní údaje:** zůstávají v IS. Do Odoo jdou jen identifikátory a agregace.
 - **Oddělení zakladatelů:** přístup k knihám se omezí podle zakladatele, jeho podoba závisí na rozhodnutí o databázích.
 - **Kritická logika:** NAV a alokace patří do verzovaného kódu s testy, ne do Studia ani ručních vzorců.

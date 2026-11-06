@@ -23,7 +23,7 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-04 | Závěrka klientských transakcí | Vytváří IS; více závěrek v jednom oceňovacím období | | R |
 | 2026-11-04 | Kurz úpisu v průběhu období | Poslední známý kurz, ruční úprava možná, řídí IS | Do Odoo přichází počet a cena | R |
 | 2026-11-04 | Fondový modul | Univerzální, včetně výplaty dividend z tříd | | R |
-| 2026-11-04 | Schvalování ocenění | Parametrizovatelné; u fondů Investry povinná druhá osoba; stanovisko obhospodařovatele a depozitáře se eviduje v Odoo | Ocenění schvaluje i administrátor | R |
+| 2026-11-04 | Schvalování ocenění | Parametrizovatelné; u fondů Investry povinná druhá osoba; stanovisko obhospodařovatele a depozitáře se eviduje v Odoo | Ocenění schvaluje i administrátor podle parametru fondu | R |
 | 2026-11-04 | Výpočet tříd | Pouze z rozvahy; přesuny mezi třídou a společným majetkem přes vnitřní zúčtování | | R+P |
 | 2026-11-04 | Účetní systém | Odoo je jediný účetní systém od začátku, včetně oběhu dokladů | | R |
 | 2026-11-04 | Databáze | Jedna databáze pro všechny zakladatele | | R |
@@ -50,5 +50,6 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-05 | Pořadí výpočtů za třídy | Výchozí pořadí úplaty → performance fee → daň → dohady; parametr fondu podle statutu | Kontrola, nález 4 | R |
 | 2026-11-05 | Definice ΔT | ΔT zahrnuje i řádky s třídou na účtu vnitřního zúčtování; příklad performance fee přepočten a bude prvním testem `investra_nav` | Kontrola, nález 3 | R+P |
 | 2026-11-06 | Katalog ČNB | Výkazy, položky, kontroly a číselníky uložené v `docs/cnb/`: CSV je zdroj, XLSX se z nich generuje; verze podle metodiky | Veřejná data SDAT, aby se nemusela znovu dohledávat a mohlo je načíst Odoo | R |
-| 2026-11-06 | Postup ocenění | Jeden záznam ocenění s kroky a uloženými vstupy; návrhy dokladů a zaúčtování po schválení druhou osobou; typovaná pravidla poplatků s řešením kruhové závislosti | Doporučení, čeká na rozhodnutí; popis v Doc | N |
-| 2026-11-06 | Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Mapování se v čase mění, výkazy mají vznikat bez ručního dorovnání; doporučení v Doc (Z účetnictví do výkazů) | N |
+| 2026-11-06 | Postup ocenění | Jeden záznam ocenění s kroky a uloženými vstupy; návrhy dokladů (zaúčtování viz řádek Zaúčtování ocenění); typovaná pravidla poplatků s řešením kruhové závislosti | Doporučení, čeká na rozhodnutí; popis v Doc | N |
+| 2026-11-06 | Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Mapování se v čase mění, výkazy mají vznikat bez ručního dorovnání; popis v Doc (Z účetnictví do výkazů) | R |
+| 2026-11-06 | Zaúčtování ocenění | Varianta B: schvaluje se kompletní finální ocenění po poplatcích, dohadech a dani, se sumářem z nezaúčtovaných návrhů; druhá osoba povinná, vedení fondu volitelné, další schvalovatelé a pořadí jsou parametr fondu; zaúčtuje se jedním krokem k datu ocenění před odesláním depozitáři; vrácení před zaúčtováním je oprava návrhů a nová verze, vrácení depozitářem storno všech dokladů ocenění a nová verze; kurz, zveřejnění a uzamčení ocenění i období až po stanovisku depozitáře | NAV a sumář počítají zaúčtovaný stav plus návrhy; návrhy se po odeslání zamknou se snímkem; kontrola proti sumáři před zaúčtováním. Ověřeno v kódu Odoo 20, prototypem zatím ne | R+P |
