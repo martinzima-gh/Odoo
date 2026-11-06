@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 162. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 171. -->
 
 # Investra – architektura Odoo a IS
 
@@ -149,7 +149,7 @@ Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Od
 
 **Portfoliová transakce:** nese datum sjednání i vypořádání, okamžik zaúčtování určí účetní politika.
 
-**Poplatky fondu:** výpočet úplat má vlastní parametry, například průměr fondového kapitálu za obchodní dny i při měsíčním NAV. Typy úplat ze statutů: fixní měsíční částka s pásmy podle objemu aktiv, procento z fondového kapitálu před výkonnostní odměnou poměrené délkou oceňovacího období, výkonnostní odměna s hurdle a DPH jako náklad. Výkonnostní odměna má dvě podoby: poplatek obhospodařovateli (BHS Iconic Cars, závazek fondu) nebo alokace části zhodnocení na jinou třídu akcií (BHS Real Estate, přesun mezi třídami). Model musí umět obě, s parametry sazba, hurdle, srovnávací období, high-water mark ano/ne a časové vážení toků. Pořadí je dáno: nejdřív úplaty, potom výkonnostní odměna. Vstupní a výstupní poplatky řeší IS.
+**Poplatky fondu:** výpočet úplat má vlastní parametry, například průměr fondového kapitálu za obchodní dny i při měsíčním NAV. Typy úplat ze statutů: fixní měsíční částka s pásmy podle objemu aktiv, procento z fondového kapitálu před výkonnostní odměnou poměrené délkou oceňovacího období, výkonnostní odměna s hurdle a DPH jako náklad. Výkonnostní odměna má dvě podoby: poplatek obhospodařovateli (závazek fondu) nebo alokace části zhodnocení na jinou třídu akcií (přesun mezi třídami). Model musí umět obě, s parametry sazba, hurdle, srovnávací období, high-water mark ano/ne a časové vážení toků. Pořadí je dáno: nejdřív úplaty, potom výkonnostní odměna. Vstupní a výstupní poplatky řeší IS.
 
 **FX skupiny:** skupina = účty, protiúčty a metoda (storno, nebo jen rozdíl). Cenné papíry v cizí měně by měly být mimo FX skupiny a kurz řešit v ocenění, jinak hrozí dvojí započtení.
 
@@ -369,7 +369,7 @@ Obě složky se účtují jako doplatek do potřebného zůstatku, takže opakov
 | Dluhové nástroje ve FVOCI | vlastní kapitál | výsledek, z naběhlé hodnoty (peněžní položka) | recyklace z vlastního kapitálu do výsledku |
 | Naběhlá hodnota (úvěry, dluhopisy držené do splatnosti) | nepřeceňuje se | výsledek, z naběhlé hodnoty | realizovaný výsledek |
 
-U dluhových nástrojů ve FVOCI a v naběhlé hodnotě se úrok počítá efektivní úrokovou mírou a opravné položky (očekávané úvěrové ztráty) jdou do výsledku. Kurzový rozdíl se pak nepočítá z pořizovací ceny, ale z naběhlé hodnoty v měně nástroje, takže vzorec FX výše platí jen pro nástroje bez úročení. Zdroje: IFRS 9 odst. 5.7.1, 5.7.5, 5.7.10–5.7.11, B5.7.2–B5.7.3; IAS 21 odst. 23, 28 a 30. Ve fondech BHS je zatím vše ve FVTPL nebo jako majetková účast ve FVOCI; dluhové FVOCI a naběhlou hodnotu musí model umět kvůli úvěrům do SPV a budoucím fondům.
+U dluhových nástrojů ve FVOCI a v naběhlé hodnotě se úrok počítá efektivní úrokovou mírou a opravné položky (očekávané úvěrové ztráty) jdou do výsledku. Kurzový rozdíl se pak nepočítá z pořizovací ceny, ale z naběhlé hodnoty v měně nástroje, takže vzorec FX výše platí jen pro nástroje bez úročení. Zdroje: IFRS 9 odst. 5.7.1, 5.7.5, 5.7.10–5.7.11, B5.7.2–B5.7.3; IAS 21 odst. 23, 28 a 30. V příkladech fondů je zatím vše ve FVTPL nebo jako majetková účast ve FVOCI; dluhové FVOCI a naběhlou hodnotu musí model umět kvůli úvěrům do SPV a budoucím fondům.
 
 ### Evidence výpočtu NAV
 
@@ -439,7 +439,7 @@ Systémy si vyměňují devět typů zpráv, hlavní je finalizovaná závěrka.
 
 Každý údaj se uloží jednou, u kmenových dat nebo na účetním řádku, a všechna členění se odvodí až ve snímku k datu. Členění se nekóduje do účtové osnovy, protože osnovy se liší podle zakladatelů a účtů by bylo neudržitelně mnoho.
 
-**Co vyžadují výroční zprávy a přílohy** (podle BHS Dynamic a Iconic Cars):
+**Co vyžadují výroční zprávy a přílohy** (podle příkladů fondů):
 
 - rozvaha a výsledovka ve formátu vyhlášky 501/2002, po částech fondu a za celek,
 - členění podle kategorie IFRS 9 a úrovně hierarchie reálné hodnoty,
@@ -670,61 +670,58 @@ Rozhodnutí Community, nebo Enterprise musí padnout před ostrým startem Inves
 
 Protože začínáme přímo na Odoo, musí od začátku pokrýt i oběh dokladů a finanční výkazy. Jejich rozsah závisí na volbě edice.
 
-## Ověření na fondech BHS
+## Ověření na příkladech fondů
 
-Návrh jsem porovnal se čtyřmi fondy skupiny z veřejného rejstříku (výroční zprávy a stanovy). Všechny spravuje Versute investiční společnost, depozitářem je ČSOB, účtují podle vyhlášky 501/2002 a IFRS s oceněním FVTPL. Jde o fondy kvalifikovaných investorů, žádný zatím nevytvořil podfondy. Nejde o fondy Investry, ale potvrzují smluvní rozsah.
+Návrh jsem porovnal se čtyřmi příklady fondů kvalifikovaných investorů, které účtují podle vyhlášky 501/2002 a IFRS. Žádný z nich zatím nevytvořil podfondy.
 
 | Fond | Interval | Vydané třídy | Třídy ve statutu | Hlavní aktiva |
 | --- | --- | --- | --- | --- |
-| BHS Dynamic | měsíčně | A | A | ETF, akcie, měnové zajištění, opce |
-| BHS Iconic Cars | čtvrtletně | A | A, B, C, D | automobily přes majetkovou účast |
-| BHS Real Estate | — | — | PI CZK, PI EUR, FI CZK, FI EUR, A… | nemovitosti přes SPV (např. Panattoni Bratislava) |
-| BHS Energy & Battery | — | — | A, B, C, D | — |
+| Fond A | měsíčně | jedna | jedna | ETF, akcie, měnové zajištění, opce |
+| Fond B | čtvrtletně | jedna | několik | hmotná aktiva přes majetkovou účast |
+| Fond C | — | — | několik v CZK i EUR | nemovitosti přes SPV |
+| Fond D | — | — | několik | neuvedeno |
 
 Co z toho pro návrh plyne:
 
-- **Třídy v různých měnách jsou reálný požadavek.** BHS Real Estate má třídy PI a FI v CZK i EUR v jednom fondu. Model třídy musí mít vlastní měnu. Měna třídy je měna, ve které se vydávají a odkupují akcie a vyhlašuje kurz; funkční měnu fondu podle IAS 21 neurčuje. Fond s třídou v EUR může mít dál funkční měnu CZK: účetnictví a FK se vedou v CZK a kapitál třídy se do EUR přepočítává kurzem k datu ocenění.
-- **Statut počítá až čtyři třídy (A–D), i když je zatím vydaná jedna.** Model musí zvládnout víc tříd od začátku.
-- **Aktiva bývají držená přes SPV.** Automobily i nemovitosti jsou často majetková účast ve společnosti, ne přímý nástroj. Pořizovací cena má složky jako příplatek mimo základní kapitál a úvěr SPV. Ocenění je přes DCF nebo posudek.
+- **Třídy v různých měnách jsou reálný požadavek.** Jeden fond může mít třídy v CZK i EUR. Model třídy musí mít vlastní měnu. Měna třídy je měna, ve které se vydávají a odkupují akcie a vyhlašuje kurz; funkční měnu fondu podle IAS 21 neurčuje. Fond s třídou v EUR může mít dál funkční měnu CZK: účetnictví a FK se vedou v CZK a kapitál třídy se do EUR přepočítává kurzem k datu ocenění.
+- **Statut počítá s více třídami, i když je zatím vydaná jedna.** Model musí zvládnout víc tříd od začátku.
+- **Aktiva bývají držená přes SPV.** Hmotná aktiva i nemovitosti jsou často majetková účast ve společnosti, ne přímý nástroj. Pořizovací cena má složky jako příplatek mimo základní kapitál a úvěr SPV. Ocenění je přes DCF nebo posudek.
 - **Interval ocenění se liší** (měsíčně i čtvrtletně), což potvrzuje parametr fondu.
 - **Alokace mezi třídami je ve statutu**, ne ve stanovách. Pro konkrétní vzorec budeme potřebovat statut daného fondu.
 
-BHS Iconic Cars se dříve jmenoval Engine Classic Cars. Analýza je z veřejných podkladů a nestačí pro migraci, k té jsou potřeba statuty a data po pozicích.
+Analýza nestačí pro migraci, k té jsou potřeba statuty a data po pozicích.
 
-**Performance fee potvrzuje náš model alokace.** KID fondu BHS Real Estate popisuje, že **20 % zhodnocení portfolia se alokuje na jiný druh akcií fondu**. Investor dostává 0,8 Kč na každou 1 Kč zhodnocení. Je to přesně přesun hodnoty mezi třídami přes vnitřní zúčtování, který máme v návrhu. Potvrzuje také, že performance fee mění kapitál tříd, ne jen celkové NAV.
+**Performance fee potvrzuje náš model alokace.** Část zhodnocení portfolia se může alokovat na jiný druh akcií fondu. Je to přesně přesun hodnoty mezi třídami přes vnitřní zúčtování, který máme v návrhu. Potvrzuje také, že performance fee mění kapitál tříd, ne jen celkové NAV.
 
-Veřejné poplatky (BHS Real Estate, třída PI CZK): vstup max 3 %, výstup 2 % do roka, správa 1,7 % ročně, performance fee kolem 1,3 % ročně. Vstupní a výstupní poplatky řeší IS, správu a performance fee účtuje Odoo.
+Vstupní a výstupní poplatky řeší IS, správu a performance fee účtuje Odoo.
 
-### BHS Iconic Cars – detail ze stanov
+### Požadavky ze stanov
 
-- **Až 10 druhů investičních akcií** (třídy A–I a Z), ke společnosti nebo ke každému podfondu. Model musí zvládnout víc tříd a budoucí podfondy.
-- **Třída Z je zakladatelská.** Jejím vlastníkem může být jen držitel zakladatelských akcií. Je to příjemce performance alokace. Performance třída bude v modelu parametr.
-- **Oceňování (čl. 15–16):** reálná hodnota, nemovitosti a majetkové účasti nejméně 1× ročně znalcem, mimořádné ocenění. Hodnota akcie = fondový kapitál / poměr podle statutu pro daný druh, zaokrouhleno na 4 desetinná místa, bez účetní závěrky, vyhlašuje se do 25. dne následujícího měsíce.
-- **Úplata (čl. 17):** pevná částka, nebo procento z průměrného fondového kapitálu, nebo procento z výsledku hospodaření (performance). Výpočet úplat musí umět všechny tři varianty.
-- **Podíl na zisku (čl. 13):** lze rozdělit do fondů, na jiné účely, členu správní rady nebo držitelům zakladatelských akcií; vyplácí se bankovním převodem. Potvrzuje dividendy i výplatu do zakladatelské části.
-- **Investiční akcie nemají hlasovací právo**, kromě per rollam ve vymezených případech.
+- **Víc druhů investičních akcií**, ke společnosti nebo ke každému podfondu. Model musí zvládnout víc tříd a budoucí podfondy.
+- **Zakladatelská třída.** Jejím vlastníkem může být jen držitel zakladatelských akcií. Může být příjemcem performance alokace. Performance třída bude v modelu parametr.
+- **Oceňování:** reálná hodnota, nemovitosti a majetkové účasti pravidelně znalcem, mimořádné ocenění. Hodnota akcie = fondový kapitál / poměr podle statutu pro daný druh, bez účetní závěrky. Zaokrouhlení a lhůta vyhlášení jsou parametry fondu.
+- **Úplata:** pevná částka, nebo procento z průměrného fondového kapitálu, nebo procento z výsledku hospodaření (performance). Výpočet úplat musí umět všechny tři varianty.
+- **Podíl na zisku:** lze rozdělit do fondů, na jiné účely, členu správní rady nebo držitelům zakladatelských akcií; vyplácí se bankovním převodem. Potvrzuje dividendy i výplatu do zakladatelské části.
+- **Investiční akcie mohou být bez hlasovacího práva**, s výjimkami ve vymezených případech.
 
-**KID třídy A (BHS Iconic Cars):**
+**Z klíčových informací (KID):**
 
 - **Růstová třída:** dividendy se nevyplácejí, reinvestují se. Potvrzuje, že třída může být růstová i dividendová, parametr třídy.
-- **Performance fee s hurdle 10 % p.a.** Poplatek se účtuje až při překročení výnosu 10 % ročně. Model performance fee musí mít hurdle jako parametr.
-- **Poplatky:** vstup max 3 %, výstup 5 % při odkupu do 5 let, správa 2,0 % ročně. Výstupní poplatek závisí na době držení, řeší ho IS.
-- **Doporučená doba držení 5 let, riziková třída SRI 6 ze 7.**
+- **Performance fee s hurdle.** Poplatek se účtuje až při překročení stanoveného výnosu. Model performance fee musí mít hurdle jako parametr.
+- **Výstupní poplatek může záviset na době držení**, řeší ho IS.
 
-Parametry se liší od BHS Real Estate (výstup 2 %, správa 1,7 %), takže poplatky i hurdle jsou nastavení třídy, ne globální.
+Poplatky i hurdle jsou parametry třídy, ne globální nastavení. Přesný alokační poměr mezi třídami určuje statut.
 
-Přesný alokační poměr mezi třídami je i zde odkázán do statutu, který zatím nemám.
+**Z výroční zprávy:**
 
-**Výroční zpráva 2025 (BHS Iconic Cars):**
-
-- **Majetková účast je ve FVOCI, ne ve FVTPL.** Přecenění 100% podílu v Iconic Cars Management s.r.o. jde do oceňovacích rozdílů ve vlastním kapitálu (zůstatek 5 328 tis. Kč), ne do výsledku. Při prodeji se nepřeúčtovává do výsledku, převádí se v rámci kapitálu do nerozděleného zisku. Kurzové rozdíly těchto nástrojů jdou také do kapitálu. BHS Dynamic má naopak vše ve FVTPL, takže **klasifikace podle IFRS 9 je vlastnost každého nástroje** a určuje protiúčty.
-- **Rozvahový výpočet NAV je tím potvrzený.** Fondový kapitál zahrnuje i oceňovací rozdíly ve FVOCI (v roce 2025 +2 883 tis. Kč), které výsledkovkou neprojdou. Výpočet přes výnosy a náklady by je minul.
-- **Portfolio fondu tvoří jen účast a úvěr do SPV.** Automobily drží dceřiná společnost a účast se oceňuje substanční metodou z reálné hodnoty sbírky (137,8 mil. Kč). Úroky z úvěru ve FVTPL se vykazují spolu s přeceněním ve „Zisku z finančních operací“.
-- **Neinvestiční část má vlastní bankovní účet a výsledek** (81 tis. Kč, neuhrazená ztráta 19 tis. Kč). Část se proto musí dát určit i výchozím nastavením bankovního účtu nebo deníku.
+- **Majetková účast může být ve FVOCI, ne ve FVTPL.** Přecenění účasti pak jde do oceňovacích rozdílů ve vlastním kapitálu, ne do výsledku. Při prodeji se nepřeúčtovává do výsledku, převádí se v rámci kapitálu do nerozděleného zisku. Kurzové rozdíly těchto nástrojů jdou také do kapitálu. Jiný fond může mít naopak vše ve FVTPL, takže **klasifikace podle IFRS 9 je vlastnost každého nástroje** a určuje protiúčty.
+- **Rozvahový výpočet NAV je tím potvrzený.** Fondový kapitál zahrnuje i oceňovací rozdíly ve FVOCI, které výsledkovkou neprojdou. Výpočet přes výnosy a náklady by je minul.
+- **Portfolio fondu může tvořit jen účast a úvěr do SPV.** Aktiva drží dceřiná společnost a účast se oceňuje substanční metodou z reálné hodnoty aktiv. Úroky z úvěru ve FVTPL se vykazují spolu s přeceněním ve „Zisku z finančních operací“.
+- **Neinvestiční část má vlastní bankovní účet a výsledek.** Část se proto musí dát určit i výchozím nastavením bankovního účtu nebo deníku.
 - **Výkazy:** rozvaha a výsledovka po částech a za celek, přehled změn vlastního kapitálu (neinvestiční část) a čistých aktiv (investiční část), podrozvaha „hodnoty předané k obhospodařování“ ve výši celkových aktiv, závazky vůči investorům z odkupů a dohadné položky (audit, posudek, FATCA/CRS, administrace, daň).
 - **Zpráva o vztazích** potřebuje evidenci ovládajících a spřízněných osob (IAS 24), včetně sesterských fondů a SPV.
 
-**Statut a investiční příloha (BHS Iconic Cars, neveřejné, k dispozici přes Investru nebo Versute):** pro návrh z nich plynou jen tyto obecné závěry, konkrétní hodnoty zůstávají v dokumentech:
+**Obecné požadavky na model:**
 
 - Úplaty mohou kombinovat pevnou částku s pásmy podle velikosti majetku a procento z FK; základem může být FK před výkonnostní odměnou. Pořadí výpočtů (úplaty, výkonnostní poplatek, daň) je parametr fondu.
 - Výkonnostní poplatek může být částí úplaty obhospodařovatele, ne alokací na jinou třídu. Model musí umět hurdle, variantu s high-water mark i bez ní, poměrné zohlednění pohybů v období a dohad při každém ocenění.
@@ -736,7 +733,7 @@ Přesný alokační poměr mezi třídami je i zde odkázán do statutu, který 
 - Změna parametrů třídy musí mít platnost od data a vazbu na verzi statutu; KID a statut se mohou rozcházet.
 - Zakladatelské akcie mohou být listinné bez ISIN a fondy běžně mění správce, takže převzetí knih je běžné.
 
-**Statut není veřejný.** U fondů kvalifikovaných investorů je jen na kontaktním místě správce. Alokační vzorec konkrétního fondu tedy získáme jen ze statutu přes Investru nebo Versute, ne z veřejných zdrojů.
+**Statut není veřejný.** U fondů kvalifikovaných investorů je jen na kontaktním místě správce. Alokační vzorec konkrétního fondu tedy získáme jen ze statutu daného fondu, ne z veřejných zdrojů.
 
 ## Otevřené body a rizika
 
@@ -776,7 +773,7 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 
 | Riziko | Dopad | Opatření |
 | --- | --- | --- |
-| Vzorce pokrývají jen zjednodušenou variantu | Nepočítá s převodem hodnoty mezi třídami; třídy v jiné měně už jsou potvrzené (BHS Real Estate má třídy v CZK i EUR) | Ověřit na ukázkách od zakladatelů |
+| Vzorce pokrývají jen zjednodušenou variantu | Nepočítá s převodem hodnoty mezi třídami; třídy v jiné měně už jsou potvrzené (fond může mít třídy v CZK i EUR) | Ověřit na ukázkách od zakladatelů |
 | Vstup nových investorů za starší kurz | Možné zvýhodnění nebo poškození stávajících investorů | Nastavení podle statutu, přehled ručních úprav |
 | Fondové moduly vyvíjené svépomocí | Trvalá práce na migracích a testech při nových verzích Odoo | Testy, omezit zásahy do core na minimum |
 | Odoo jako NAV systém | Může se ukázat méně vhodné než specializovaný systém | Ověřit prototypem před produkcí |
