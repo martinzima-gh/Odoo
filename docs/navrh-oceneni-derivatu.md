@@ -5,11 +5,35 @@ Modely schvaluje představenstvo a navrhuje oddělení oceňování (Pravidla oc
 
 ## Východiska
 
-- **IFRS 13** předepisuje hierarchii vstupů, ne konkrétní model.
-- **Vyhláška 244/2013 Sb.**, § 34, řeší jen zvláštní případy; o modelech derivátů v úplném znění z roku 2016 nic není. Pozdější změny ověřit.
-- **NV 243/2013 Sb.**, § 13 (podmínky pro OTC deriváty): text jsem nečetl; ověřit v platném znění včetně 103/2026 Sb.
-- **Pravidla oceňování:** obchodované deriváty kurzem z aktivního trhu; měnové deriváty podle Přílohy 1; úrokové swapy podle Přílohy 2; opce podle části Opce; opce na svolání podle Přílohy 5.
-- **EMIR:** dopad na denní přecenění a hlášení OTC derivátů ověřit podle druhu fondu.
+| Zdroj | Co z něj plyne | Stav ověření |
+|---|---|---|
+| AIFMR 231/2013, čl. 67 | Metodika pro každý druh aktiva; nový druh aktiva až po určení metodiky | Přečteno z vyhledávání |
+| AIFMR, čl. 68 | Model je zdokumentovaný, před použitím ho ověří odborník, který ho nestavěl, a předem ho schválí vrcholné vedení | Přečteno |
+| AIFMR, čl. 70 a 71 | Pravidelný přezkum pravidel a přezkum jednotlivých hodnot | Nadpisy přečteny, čl. 71 ze souhrnu |
+| EMIR 648/2012, čl. 11 odst. 2 | Finanční protistrany přeceňují OTC smlouvy denně tržně; když to trh neumožní, spolehlivým a obezřetným modelem | Z EUR-Lex a ESMA, ověřit podle EMIR 3 |
+| Nařízení 149/2013, čl. 16 a 17 | Kdy jde použít model; model používá tržní data v co největší míře, odpovídá uznávaným metodám a je kalibrovaný a testovaný | Z výňatků |
+| Směrnice 2007/16/ES, čl. 8 odst. 4 | UCITS: ocenění se nesmí opírat jen o kotaci protistrany; model s uznanou metodikou; ověření nezávislou třetí stranou, nebo nezávislým útvarem | Přečteno; odkazy na starší směrnici ověřit |
+| IFRS 13, odst. 61, 64 až 67 | Co nejvíc pozorovatelných vstupů, kalibrace na transakční cenu, změna techniky jako změna odhadu | Přečteno |
+| IFRS 13, odst. 72 až 90, B35, B36 | Úroveň určuje nejnižší významný vstup; u úrovně 2 pozorovatelnost po téměř celou dobu; opce s historickou volatilitou je úroveň 3 | Přečteno, B35 a B36 ze souhrnu |
+| IFRS 13, odst. 42, 48, B11 | Riziko neplnění u závazku; portfoliová výjimka; Black-Scholes-Merton a binomický model jako příklady techniky | Přečteno |
+| ESMA34-45-1802 (2023) | Slabiny dohledu: nejasná definice a validace modelů, nezávislost oceňování, zachycení chyb; zaměřeno na méně likvidní aktiva, ne na deriváty | Přečteno |
+| Basel, pokyny k reálné hodnotě (2009) | Citlivost parametrů a přiměřenost předpokladů modelu; pro banky, jen jako dobrá praxe | Z výňatků |
+| IOSCO, zásady 2013 a doporučení FR/03/2026 | Nezávislé ověření a odpovědnost za ocenění; novější text je třeba přečíst | Zásady 2013 z výňatků, FR/03/2026 nedostupné |
+| ZISIF, § 196 | Reálná hodnota podle IFRS | Z výňatků |
+| Vyhláška 244/2013 Sb., § 34 | Jen zvláštní případy; o modelech derivátů nic v úplném znění z roku 2016 | Přečteno, pozdější změny ověřit |
+| NV 243/2013 Sb., § 13 | Podmínky pro OTC deriváty | Nečteno; ověřit včetně 103/2026 Sb. |
+| Pravidla oceňování | Část Opce, tabulka metod, Přílohy 1, 2 a 5 | Přečteno |
+
+Druh fondu rozhoduje, co platí: AIFMR pro AIF, směrnice 2007/16/ES pro UCITS. Zda a jak se EMIR vztahuje na konkrétní fond, ověřit právně.
+
+## Řízení modelů
+
+- **Blokace:** derivát bez schváleného modelu nejde založit do ocenění.
+- **Stavy modelu:** návrh, validace jinou osobou než autorem, schválení vedením, platný, vyřazený. Odoo eviduje doklady a verze; AI nic neschvaluje.
+- **Kalibrace:** při sjednání se model porovná s transakční cenou a rozdíl se vysvětlí.
+- **Nezávislé ověření:** ocenění se porovná s protistranou, cena protistrany ale nestačí sama o sobě.
+- **Přezkum:** alespoň ročně, s porovnáním výsledků a citlivostí parametrů. Změna modelu je nová verze a změna odhadu.
+- **Chyby:** oprava chybného ocenění jde stejným postupem jako oprava NAV, který zbývá doplnit.
 
 ## Pořadí zdrojů hodnoty
 
