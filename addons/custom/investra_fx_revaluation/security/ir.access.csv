@@ -2,3 +2,9 @@ id,name,model_id,group_id/id,operation,domain
 access_investra_fx_profile_readonly,investra.fx.profile,investra.fx.profile,account.group_account_readonly,r,
 access_investra_fx_profile_manager,investra.fx.profile,investra.fx.profile,account.group_account_manager,crud,
 investra_fx_profile_comp_rule,Investra FX profile multi-company,investra.fx.profile,,crud,"[('company_id', 'in', company_ids)]"
+access_investra_fx_run_readonly,investra.fx.run read,investra.fx.run,account.group_account_readonly,r,
+access_investra_fx_run_manager,investra.fx.run manager,investra.fx.run,account.group_account_manager,crud,
+investra_fx_run_comp_rule,Přecenění podle společnosti,investra.fx.run,,crud,"[('company_id', 'in', company_ids)]"
+access_investra_fx_run_line_readonly,investra.fx.run.line read,investra.fx.run.line,account.group_account_readonly,r,
+access_investra_fx_run_line_manager,investra.fx.run.line manager,investra.fx.run.line,account.group_account_manager,crud,
+investra_fx_run_line_comp_rule,Rozpis přecenění podle společnosti,investra.fx.run.line,,crud,"[('run_id.company_id', 'in', company_ids)]"

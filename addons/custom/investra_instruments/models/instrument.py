@@ -199,6 +199,8 @@ class InvestraInstrumentPrice(models.Model):
     def action_approve(self):
         if not self.env.user.has_group("investra_entity.group_valuation_approver"):
             raise UserError(self.env._("Ceny schvaluje jen uživatel se skupinou schvalování ocenění."))
+        if self.sudo().company_id - self.env.companies:
+            raise AccessError(self.env._("Cena patří jiné společnosti."))
         for price in self:
             if price.entered_by == self.env.user:
                 raise UserError(self.env._("Zadavatel nemůže schválit vlastní cenu."))
@@ -267,6 +269,7 @@ class InvestraTrade(models.Model):
     def _require_preparer(self):
         if not self.env.user.has_group("investra_entity.group_valuation_preparer"):
             raise AccessError(self.env._("Na tento krok nemáte oprávnění."))
+        self.check_access("write")
 
     def _is_deferred(self):
         """Vypořádání je až po sjednání; stejný den nebo bez data jde obchod rovnou proti bance."""

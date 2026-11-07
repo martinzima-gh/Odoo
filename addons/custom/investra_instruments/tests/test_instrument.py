@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
 
 
@@ -198,3 +198,43 @@ class TestInstrumentType(InstrumentCase):
         })
         with self.assertRaises(UserError):
             trade._book()
+
+
+@tagged("post_install", "-at_install")
+class TestTradeCompanyAccess(InstrumentCase):
+    """Přípravář jedné společnosti nesmí účtovat obchod jiné společnosti."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        other_book = cls.env["investra.entity"].sudo().create_book("Fond cizí", "fund", "cas501", cls.czk, "investra_fund")
+        other = cls.env(su=True, context=dict(cls.env.context, allowed_company_ids=[other_book.company_id.id]))
+        fund = other["investra.fund"].create({"entity_id": other_book.id})
+        cls.foreign_trade = other["investra.trade"].create({
+            "fund_id": fund.id, "instrument_id": cls.instrument.id, "trade_date": "2026-11-02",
+            "settlement_date": "2026-11-04", "quantity": 1, "price": 10,
+        })
+
+    def own_trade(self):
+        return self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "instrument_id": self.instrument.id, "trade_date": "2026-11-02",
+            "settlement_date": "2026-11-04", "quantity": 1, "price": 10, "fx_rate": 25,
+        })
+
+    def test_preparer_cannot_book_other_company_trade(self):
+        with self.assertRaises(AccessError):
+            self.foreign_trade.with_user(self.preparer).action_book()
+        self.assertEqual(self.foreign_trade.state, "draft")
+
+    def test_preparer_cannot_settle_other_company_trade(self):
+        self.foreign_trade.sudo()._book()
+        with self.assertRaises(AccessError):
+            self.foreign_trade.with_user(self.preparer).action_settle()
+        self.assertEqual(self.foreign_trade.state, "unsettled")
+
+    def test_preparer_books_and_settles_own_trade(self):
+        trade = self.own_trade()
+        trade.with_user(self.preparer).action_book()
+        self.assertEqual(trade.state, "unsettled")
+        trade.with_user(self.preparer).action_settle()
+        self.assertEqual(trade.state, "settled")

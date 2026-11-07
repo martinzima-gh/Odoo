@@ -96,6 +96,8 @@ class InvestraValuation(models.Model):
     def _require(self, group):
         if not self.env.su and not self.env.user.has_group(group):
             raise AccessError(self.env._("Na tento krok nemáte oprávnění."))
+        if not self.env.su and self.sudo().company_id - self.env.companies:
+            raise AccessError(self.env._("Ocenění patří jiné společnosti."))
 
     def _require_state(self, *states):
         for record in self:
