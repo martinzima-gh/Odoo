@@ -10,6 +10,27 @@ Stav 2026-11-07. Průzkum veřejných stránek poskytovatelů a otevřených rep
 - **Fondovou doménu žádný zdroj neřeší.**
 - **Data Dance** zveřejňuje největší otevřenou sadu pro Odoo 19 pod AGPL-3 a závisí na modulech OCA. Dobrý zdroj rozsahu; licenci a slučitelnost s Enterprise ověřit právně, než se kód použije.
 
+## Stav v Odoo 20 Community (kontrola 2026-11-07)
+
+Ověřeno v kódu a databázi naší instance `investra_dev`, bez testování v UI. Závisí na volbě edice.
+
+| Oblast A | Stav | Co doplnit |
+|---|---|---|
+| DPH přiznání | Řádky výkazu jsou v datech, Community ale nemá zobrazení ani export EPO | Sestava a XML, nebo Enterprise a ověření |
+| Souhrnné hlášení | Nenalezeno | Sestava a XML |
+| Režim DPH | Daně a 4 fiskální pozice jsou; režim registrované osoby není | Nastavení a ověření postupu |
+| DUZP a přenesená daň | DUZP je; daně EU jsou; oprava základu neověřena | Ověřit na dokladech |
+| VS, KS, SS, QR | QR platba je; samostatné VS, KS, SS nejsou | Pole a párování |
+| Interní doklady, zápočet | Deník ostatních operací je; zápočet neověřen | Ověřit postup |
+| Banka a výpisy | Import výpisů, české formáty a párování v menu nejsou | Import, párování se schválením účetní |
+| Platební příkazy | Nejsou | Export podle banky |
+| Registry | Automatické doplnění partnerů přes placenou službu Odoo; ARES, nespolehlivý plátce nejsou; VIES neověřen | ARES a kontrola plátce |
+| Kurzy | Bez automatického stahování a bez kurzů v databázi | Stahování kurzů ČNB |
+| Výkazy | Rozvaha, výsledovka, hlavní kniha, saldokonto nejsou; je analýza faktur a cash flow | Vlastní sestavy, nebo Enterprise |
+| Uzávěrka | Zámky a zabezpečení zápisů jsou; časové rozlišení a dohady neověřeny | Ověřit a doplnit |
+| Přijaté faktury | E-mailový deník je; vytěžení a schvalování nejsou | Oběh dokladů |
+| Mzdy | Není | Import účetního zápisu |
+
 ## Kontrolní seznam funkcí
 
 Priorita: **A** = potřeba pro Investra Services od začátku, **B** = brzy, **C** = později nebo podle potřeby.
@@ -36,7 +57,7 @@ Priorita: **A** = potřeba pro Investra Services od začátku, **B** = brzy, **C
 | Uzávěrka | Období, zámky, časové rozlišení, dohady, rozdělení výsledku | A | Data Dance, CyberMindNet |
 | Majetek | Účetní a daňové odpisy, odpisové skupiny, technické zhodnocení, vyřazení | B | Systee, Data Dance, Origamis |
 | Pokladna | Pokladní doklady a pokladní deník | C | Systee, Data Dance |
-| Mzdy | Mzdy, pojistné, ELDP, roční zúčtování; nebo napojení na mzdový systém | Upřesnit | Data Dance, CyberMindNet |
+| Mzdy | Mzdy vede externí dodavatel; do Odoo se importuje jen účetní zápis | A | Vlastní import, formát domluvit |
 | Cesty | Cestovní příkazy a stravné | C | Origamis |
 | Přijaté faktury | Vytěžení, schvalování, oběh dokladů | A | Synwase, standard Enterprise |
 | Podání | Datová schránka, automatické odeslání | C | Synwase; CyberMindNet plánuje |

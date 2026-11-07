@@ -1,7 +1,7 @@
-# Harmonogram a akceptace (návrh)
+# Harmonogram a akceptace
 
 Stav 2026-11-07. Plán je sestavený zpětně od cíle: start a převzetí prvních fondů ke konci Q1 2027.
-Termíny jsou návrh a platí až po potvrzení. Hlavní neznámé: kapacita vývoje, připravenost IS, edice Odoo a hosting.
+Termíny potvrzené 2026-11-07. Hlavní neznámé: kapacita vývoje, připravenost IS, edice Odoo a hosting.
 
 ## Rozdělení práce
 
