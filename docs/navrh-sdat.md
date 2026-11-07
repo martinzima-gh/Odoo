@@ -51,6 +51,8 @@ Po chybě sítě nebo vypršení času se zpráva opakuje se stejným UUID, jina
 | B. Podpis mimo Odoo | Odoo připraví soubor, člověk ho podepíše svým nástrojem, Odoo odešle | Klíč zůstává u osoby, jde o službu | Potřeba podpisového nástroje podle XAdES |
 | C. Elektronická pečeť | Klíč v HSM nebo trezoru, odeslání po kliknutí člověka | Nejméně ruční práce | Nejvyšší bezpečnostní nároky, nutné ověřit právně |
 
+Utilita ČNB `sdat-xades-podpis.jar` podle ČNB nefunguje s novou Javou; ČNB doporučuje podpis v prohlížeči s komponentou I.CA, což podporuje variantu A. Dokumenty TS 0, TS 4 a popis jazyka kontrol zatím nejsou přečtené.
+
 **Doporučení:** začít variantou A se čtením přes služby, později přejít na B. U C nejdřív vyřešit rozpor níže. Ve všech variantách odesílání spouští člověk; AI ani plánovač nic neodesílá.
 
 ## Bezpečnost

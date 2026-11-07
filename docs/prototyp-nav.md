@@ -12,10 +12,11 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_rates` | Kurzy ČNB a ECB, neměnný záznam se zdrojem, promítnutí do Odoo | 15 |
 | `investra_fund` | Fondy, třídy, kalendář, zaokrouhlení kurzu | 10 |
 | `investra_posting` | Události, ochrana dokladů, třída na řádku, hash, storno | 22 |
-| `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 22 |
+| `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 25 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
 | `investra_dashboard` | Přehled fondů, výjimky, termíny ČNB | 11 |
-| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu, měna kurzu | 99 |
+| `investra_fx_revaluation` | Profily přecenění, návrh dokladu, kontrola kurzu | 23 |
+| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu, měna kurzu, přístup podle společnosti | 102 |
 
 Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
 
@@ -104,6 +105,12 @@ Parametr fondu podle IFRS 9 odst. 3.1.2; výchozí je Trade date accounting. Po 
 
 Bez data vypořádání, nebo se stejným datem, jde obchod rovnou proti bance. Obchod po termínu bez vypořádání je upozornění v kontrolách ocenění.
 Kurzový rozdíl z vypořádání se účtuje až při ocenění, ne v den platby. Změna RH před vypořádáním je u cizí měny jedna částka, bez rozdělení na cenu a kurz.
+
+## Přecenění cizích měn
+
+Profil určí přeceňované účty, oddělené účty zisku a ztráty, deník, zdroj kurzu a nejvyšší stáří kurzu. Přecenění doúčtuje rozdíl do potřebného zůstatku po účtu, měně a partnerovi a vytvoří návrh dokladu; zaúčtuje ho účetní. Kurz se čte z `investra.rate`, ručně zadané kurzy v Odoo se nepoužijí. Návrh politiky je v `docs/navrh-politika-preceneni.md`.
+
+Měření výkonu: test s tagem `nav_benchmark` se spouští jen výslovně. Ocenění s 200 nástroji trvalo 0,76 s, s 30 třídami 1,10 s, optimalizace zatím není potřeba.
 
 ## Spuštění testů
 
