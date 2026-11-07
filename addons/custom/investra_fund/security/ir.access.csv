@@ -1,0 +1,10 @@
+id,name,model_id,group_id/id,operation,domain
+access_investra_fund_read,investra.fund read,investra.fund,account.group_account_readonly,r,
+access_investra_fund_manager,investra.fund manager,investra.fund,account.group_account_manager,crud,
+investra_fund_company_rule,Fondy podle společnosti,investra.fund,,crud,"[('company_id', 'in', company_ids)]"
+access_investra_class_read,investra.fund.class read,investra.fund.class,account.group_account_readonly,r,
+access_investra_class_manager,investra.fund.class manager,investra.fund.class,account.group_account_manager,crud,
+investra_class_company_rule,Třídy podle společnosti,investra.fund.class,,crud,"[('company_id', 'in', company_ids)]"
+access_investra_calendar_read,investra.valuation.calendar read,investra.valuation.calendar,account.group_account_readonly,r,
+access_investra_calendar_manager,investra.valuation.calendar manager,investra.valuation.calendar,account.group_account_manager,crud,
+investra_calendar_company_rule,Kalendář podle společnosti,investra.valuation.calendar,,crud,"[('company_id', 'in', company_ids)]"

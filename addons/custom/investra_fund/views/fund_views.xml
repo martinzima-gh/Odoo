@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fund_list" model="ir.ui.view">
+        <field name="name">investra.fund.list</field>
+        <field name="model">investra.fund</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="currency_id"/><field name="valuation_frequency"/></list>
+        </field>
+    </record>
+    <record id="view_fund_form" model="ir.ui.view">
+        <field name="name">investra.fund.form</field>
+        <field name="model">investra.fund</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="entity_id"/><field name="currency_id"/>
+                        <field name="valuation_frequency"/><field name="second_person_required"/>
+                    </group>
+                    <notebook>
+                        <page string="Třídy">
+                            <field name="class_ids">
+                                <list editable="bottom">
+                                    <field name="code"/><field name="name"/><field name="currency_id"/>
+                                    <field name="isin"/><field name="price_digits"/><field name="price_rounding"/>
+                                    <field name="distribution"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Kalendář ocenění">
+                            <field name="calendar_ids">
+                                <list editable="bottom"><field name="date"/><field name="published_on"/></list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_fund" model="ir.actions.act_window">
+        <field name="name">Fondy</field>
+        <field name="res_model">investra.fund</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_fund" name="Fondy" parent="investra_entity.menu_root" action="action_fund" sequence="10"/>
+</odoo>

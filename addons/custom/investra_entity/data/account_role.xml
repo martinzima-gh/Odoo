@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="role_bank" model="investra.account.role"><field name="code">bank</field><field name="name">Bankovní účet</field><field name="category">asset</field></record>
+    <record id="role_cash_in_transit" model="investra.account.role"><field name="code">cash_in_transit</field><field name="name">Peníze na cestě</field><field name="category">asset</field></record>
+    <record id="role_instrument" model="investra.account.role"><field name="code">instrument</field><field name="name">Investiční nástroje</field><field name="category">asset</field></record>
+    <record id="role_receivable_other" model="investra.account.role"><field name="code">receivable_other</field><field name="name">Ostatní pohledávky</field><field name="category">asset</field></record>
+    <record id="role_internal_clearing" model="investra.account.role"><field name="code">internal_clearing</field><field name="name">Vnitřní zúčtování tříd</field><field name="category">asset</field></record>
+    <record id="role_subscription_payable" model="investra.account.role"><field name="code">subscription_payable</field><field name="name">Závazek z úpisu</field><field name="category">liability</field></record>
+    <record id="role_redemption_payable" model="investra.account.role"><field name="code">redemption_payable</field><field name="name">Závazek z odkupu</field><field name="category">liability</field></record>
+    <record id="role_fee_payable" model="investra.account.role"><field name="code">fee_payable</field><field name="name">Závazek z úplat</field><field name="category">liability</field></record>
+    <record id="role_performance_payable" model="investra.account.role"><field name="code">performance_payable</field><field name="name">Závazek z výkonnostní odměny</field><field name="category">liability</field></record>
+    <record id="role_accrual" model="investra.account.role"><field name="code">accrual</field><field name="name">Dohadné položky pasivní</field><field name="category">liability</field></record>
+    <record id="role_tax_payable" model="investra.account.role"><field name="code">tax_payable</field><field name="name">Odložená a splatná daň</field><field name="category">liability</field></record>
+    <record id="role_class_capital" model="investra.account.role"><field name="code">class_capital</field><field name="name">Kapitál třídy</field><field name="category">equity</field></record>
+    <record id="role_retained_result" model="investra.account.role"><field name="code">retained_result</field><field name="name">Výsledek minulých let</field><field name="category">equity</field></record>
+    <record id="role_gain_fair_value" model="investra.account.role"><field name="code">gain_fair_value</field><field name="name">Zisk z přecenění na RH</field><field name="category">income</field></record>
+    <record id="role_gain_fx" model="investra.account.role"><field name="code">gain_fx</field><field name="name">Kurzový zisk</field><field name="category">income</field></record>
+    <record id="role_income_interest" model="investra.account.role"><field name="code">income_interest</field><field name="name">Úrokové výnosy</field><field name="category">income</field></record>
+    <record id="role_income_dividend" model="investra.account.role"><field name="code">income_dividend</field><field name="name">Dividendové výnosy</field><field name="category">income</field></record>
+    <record id="role_income_other" model="investra.account.role"><field name="code">income_other</field><field name="name">Ostatní výnosy</field><field name="category">income</field></record>
+    <record id="role_loss_fair_value" model="investra.account.role"><field name="code">loss_fair_value</field><field name="name">Ztráta z přecenění na RH</field><field name="category">expense</field></record>
+    <record id="role_loss_fx" model="investra.account.role"><field name="code">loss_fx</field><field name="name">Kurzová ztráta</field><field name="category">expense</field></record>
+    <record id="role_expense_management" model="investra.account.role"><field name="code">expense_management</field><field name="name">Úplata za obhospodařování</field><field name="category">expense</field></record>
+    <record id="role_expense_administration" model="investra.account.role"><field name="code">expense_administration</field><field name="name">Úplata za administraci</field><field name="category">expense</field></record>
+    <record id="role_expense_depositary" model="investra.account.role"><field name="code">expense_depositary</field><field name="name">Úplata depozitáři</field><field name="category">expense</field></record>
+    <record id="role_expense_performance" model="investra.account.role"><field name="code">expense_performance</field><field name="name">Výkonnostní odměna</field><field name="category">expense</field></record>
+    <record id="role_expense_other" model="investra.account.role"><field name="code">expense_other</field><field name="name">Ostatní náklady</field><field name="category">expense</field></record>
+    <record id="role_expense_tax" model="investra.account.role"><field name="code">expense_tax</field><field name="name">Daň z příjmů</field><field name="category">expense</field></record>
+</odoo>

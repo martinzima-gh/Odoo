@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_entity_list" model="ir.ui.view">
+        <field name="name">investra.entity.list</field>
+        <field name="model">investra.entity</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="entity_type"/>
+                <field name="framework"/>
+                <field name="currency_id"/>
+                <field name="rate_source"/>
+                <field name="parent_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_entity" model="ir.actions.act_window">
+        <field name="name">Účetní knihy</field>
+        <field name="res_model">investra.entity</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_root" name="Investra" web_icon="account,static/description/icon.png" groups="account.group_account_readonly"/>
+    <menuitem id="menu_setup" name="Nastavení" parent="menu_root" sequence="90"/>
+    <menuitem id="menu_entity" name="Účetní knihy" parent="menu_setup" action="action_entity"/>
+</odoo>

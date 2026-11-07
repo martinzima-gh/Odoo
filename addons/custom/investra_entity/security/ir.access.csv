@@ -1,0 +1,9 @@
+id,name,model_id,group_id/id,operation,domain
+access_investra_role_read,investra.account.role read,investra.account.role,account.group_account_readonly,r,
+access_investra_role_manager,investra.account.role manager,investra.account.role,account.group_account_manager,crud,
+access_investra_role_account_read,investra.role.account read,investra.role.account,account.group_account_readonly,r,
+access_investra_role_account_manager,investra.role.account manager,investra.role.account,account.group_account_manager,crud,
+investra_role_account_company_rule,Role účtů podle společnosti,investra.role.account,,crud,"[('company_id', 'in', company_ids)]"
+access_investra_entity_read,investra.entity read,investra.entity,account.group_account_readonly,r,
+access_investra_entity_manager,investra.entity manager,investra.entity,account.group_account_manager,crud,
+investra_entity_company_rule,Knihy podle společnosti,investra.entity,,crud,"[('company_id', 'in', company_ids)]"

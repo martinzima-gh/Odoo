@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rate_list" model="ir.ui.view">
+        <field name="name">investra.rate.list</field>
+        <field name="model">investra.rate</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="date"/><field name="source"/><field name="currency_id"/>
+                <field name="quantity"/><field name="rate"/><field name="fetched_at"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_rate" model="ir.actions.act_window">
+        <field name="name">Vyhlášené kurzy</field>
+        <field name="res_model">investra.rate</field>
+        <field name="view_mode">list</field>
+    </record>
+    <menuitem id="menu_rate" name="Vyhlášené kurzy" parent="investra_entity.menu_setup" action="action_rate"/>
+</odoo>
