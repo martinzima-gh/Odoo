@@ -2,6 +2,9 @@ from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
+PRICE_ROUNDING = [("down", "Dolů"), ("half_up", "Matematicky"), ("up", "Nahoru")]
+
+
 class InvestraFund(models.Model):
     _name = "investra.fund"
     _description = "Fond"
@@ -19,6 +22,8 @@ class InvestraFund(models.Model):
         default="monthly",
     )
     second_person_required = fields.Boolean(default=True, string="Kontrola druhou osobou")
+    price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
+    price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")
     calendar_ids = fields.One2many("investra.valuation.calendar", "fund_id", string="Kalendář ocenění")
 
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
@@ -43,13 +48,19 @@ class InvestraFundClass(models.Model):
     active = fields.Boolean(default=True)
     currency_id = fields.Many2one("res.currency", required=True, string="Měna třídy")
     isin = fields.Char(string="ISIN")
-    price_digits = fields.Integer(default=4, required=True, string="Desetinná místa kurzu")
-    price_rounding = fields.Selection(
-        [("down", "Dolů"), ("half_up", "Matematicky")], required=True, default="down"
-    )
+    price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Bez zadání platí hodnota fondu.")
+    price_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kurzu", help="Bez zadání platí hodnota fondu.")
     distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True)
 
     _fund_code_uniq = models.Constraint("unique(fund_id, code)", "Kód třídy musí být ve fondu jedinečný.")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            fund = self.env["investra.fund"].browse(vals.get("fund_id"))
+            vals.setdefault("price_digits", fund.price_digits)
+            vals.setdefault("price_rounding", fund.price_rounding)
+        return super().create(vals_list)
 
     @api.depends("code", "fund_id.name")
     def _compute_display_name(self):

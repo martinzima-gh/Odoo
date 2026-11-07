@@ -1,3 +1,4 @@
+import itertools
 import json
 from datetime import date, timedelta
 from decimal import Decimal
@@ -6,6 +7,7 @@ from pathlib import Path
 from odoo.tests import TransactionCase
 
 SCENARIOS = Path(__file__).parent / "scenarios"
+FUND_NUMBER = itertools.count(1)
 
 
 class NavCase(TransactionCase):
@@ -28,7 +30,7 @@ class NavCase(TransactionCase):
 
     def make_fund(self, currency=None, launch="2026-12-31", classes=()):
         book = self.env["investra.entity"].create_book(
-            f"Fond {self.id()[-30:]}", "fund", "cas501", currency or self.czk, "investra_fund"
+            f"Fond {self.id()[-30:]} {next(FUND_NUMBER)}", "fund", "cas501", currency or self.czk, "investra_fund"
         )
         company = book.company_id
         for user in (self.preparer, self.approver, self.approver2):

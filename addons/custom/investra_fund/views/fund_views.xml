@@ -16,6 +16,7 @@
                     <group>
                         <field name="entity_id"/><field name="currency_id"/>
                         <field name="valuation_frequency"/><field name="second_person_required"/>
+                        <field name="price_digits"/><field name="price_rounding"/>
                     </group>
                     <notebook>
                         <page string="Třídy">

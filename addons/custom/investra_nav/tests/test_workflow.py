@@ -188,6 +188,23 @@ class TestWorkflow(NavCase):
         for label in ("Reálná hodnota v měně fondu", "Pořizovací hodnota v měně", "Zdroj kurzu", "Bankovní účty CZK"):
             self.assertIn(label, strings)
 
+    def test_price_rounding_per_class(self):
+        # 1 000 / 3 kusy = 333,3333…; 2 000 / 3 = 666,6666…
+        fund = self.make_fund(classes=[
+            {"code": "D", "price_digits": 2, "price_rounding": "down"},
+            {"code": "M", "price_digits": 2, "price_rounding": "half_up"},
+            {"code": "N", "price_digits": 2, "price_rounding": "up"},
+            {"code": "Z", "price_digits": 0, "price_rounding": "down"},
+        ])
+        for code, amount in (("D", 2000), ("M", 2000), ("N", 1000), ("Z", 2000)):
+            self.subscribe(self.cls(fund, code), "2027-01-01", amount, 3)
+        valuation = self.valuation(fund, self.day)
+        valuation.action_compute()
+        self.assertEqual(self.result(valuation, "D").price, "666.66")
+        self.assertEqual(self.result(valuation, "M").price, "666.67")
+        self.assertEqual(self.result(valuation, "N").price, "333.34")
+        self.assertEqual(self.result(valuation, "Z").price, "666")
+
     def test_state_cannot_be_written_directly(self):
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()

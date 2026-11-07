@@ -10,13 +10,13 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_entity` | Kniha, založení s povinným nastavením, role účtů, skupiny | 6 |
 | `investra_chart_fund` | Pracovní osnova fondu a mapování rolí | 4 |
 | `investra_rates` | Kurzy ČNB a ECB, neměnný záznam se zdrojem, promítnutí do Odoo | 15 |
-| `investra_fund` | Fondy, třídy, kalendář | 6 |
+| `investra_fund` | Fondy, třídy, kalendář, zaokrouhlení kurzu | 10 |
 | `investra_posting` | Události, ochrana dokladů, třída na řádku, hash, storno | 22 |
 | `investra_instruments` | Nástroje, ceny se schválením, obchody, pozice | 9 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
-| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček | 62 |
+| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček | 66 |
 
-Výpočetní jádro a referenční výpočet mají dalších 39 testů mimo Odoo (`tools/nav_reference`).
+Výpočetní jádro a referenční výpočet mají dalších 53 testů mimo Odoo (`tools/nav_reference`).
 
 ## Co je ověřené
 

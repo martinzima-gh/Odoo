@@ -21,6 +21,10 @@ Každý výpočet ukládá rozpis. Nová varianta je malé rozšíření s teste
 | Období bez platné sazby je chyba, nedomýšlí se | Hotovo |
 | Konvence dnů: ACT/365, ACT/360, ACT/ACT (ISDA), 30E/360, 30/360 US, měsíce/12 | Hotovo |
 
+## Zaokrouhlení kurzu
+
+Výchozí počet desetinných míst a způsob (dolů, matematicky, nahoru) má fond, třída je může přepsat. V statutech se běžně objevují 4 místa dolů, u tříd v cizí měně i jiný počet. Hotovo.
+
 ## Úrokové konvence
 
 Šest nejběžnějších konvencí trhu. Rozhoduje vždy statut, smlouva nebo emisní podmínky konkrétního nástroje; typické použití je orientační.

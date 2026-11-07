@@ -39,6 +39,23 @@ class TestFund(TransactionCase):
         record = self._class(self.fund_a)
         self.assertEqual((record.price_digits, record.price_rounding), (4, "down"))
 
+    def test_class_takes_rounding_from_fund(self):
+        self.fund_b.write({"price_digits": 6, "price_rounding": "half_up"})
+        record = self._class(self.fund_b, "F")
+        self.assertEqual((record.price_digits, record.price_rounding), (6, "half_up"))
+
+    def test_class_can_override_fund(self):
+        self.fund_b.write({"price_digits": 6, "price_rounding": "half_up"})
+        record = self._class(self.fund_b, "G", price_digits=2, price_rounding="up")
+        self.assertEqual((record.price_digits, record.price_rounding), (2, "up"))
+
+    def test_zero_digits_is_kept_not_replaced_by_fund(self):
+        self.assertEqual(self._class(self.fund_a, "H", price_digits=0).price_digits, 0)
+
+    def test_digits_out_of_range_rejected(self):
+        with self.assertRaises(ValidationError):
+            self._class(self.fund_a, "I", price_digits=19)
+
     def test_duplicate_class_code_rejected(self):
         self._class(self.fund_a)
         with mute_logger("odoo.sql_db"), self.assertRaises(IntegrityError), self.cr.savepoint():

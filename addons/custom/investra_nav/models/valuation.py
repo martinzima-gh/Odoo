@@ -1,7 +1,7 @@
 import hashlib
 import json
 from datetime import date as date_type, timedelta
-from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
+from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
@@ -12,6 +12,7 @@ BALANCE_SHEET = ("asset", "liability")
 PREPARER = "investra_entity.group_valuation_preparer"
 APPROVER = "investra_entity.group_valuation_approver"
 STOPPING = ("stop",)
+PRICE_ROUNDING = {"down": ROUND_DOWN, "half_up": ROUND_HALF_UP, "up": ROUND_UP}
 # Pole, která smí nastavit jen postup ocenění; přes API je uživatel nezapíše.
 SYSTEM_FIELDS = {
     "state", "previous_id", "preparer_id", "fund_capital", "neutral_capital", "class_line_ids", "fee_line_ids",
@@ -589,7 +590,7 @@ class InvestraValuation(models.Model):
             if fund_class.currency_id != self.fund_id.currency_id:
                 value_class = value / self._fx(fund_class.currency_id)
             digits = Decimal(1).scaleb(-fund_class.price_digits)
-            method = ROUND_DOWN if fund_class.price_rounding == "down" else ROUND_HALF_UP
+            method = PRICE_ROUNDING[fund_class.price_rounding]
             price = (value_class / row["units"]).quantize(digits, rounding=method) if row["units"] else Decimal(0)
             perf = row.get("perf") or {}
             previous = row["previous"]
