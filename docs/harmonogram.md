@@ -15,13 +15,15 @@ Termíny jsou návrh a platí až po potvrzení. Hlavní neznámé: kapacita vý
 
 | Období | Etapa | Výstup | Brána |
 |---|---|---|---|
-| do 20. 11. 2026 | Rozhodnutí | Edice, hosting nebo jeho kritéria, rozsah práce Jana Polana, firemní repozitář, zadání prototypu | Můžeme začít |
-| 16. 11. – 18. 12. 2026 | Prototyp NAV | Jeden fond, více tříd, CZK a EUR, celý cyklus včetně zámku, zaúčtování a storna | **18. 12.: pokračovat, změnit rozsah, nebo změnit plán** |
-| 16. 11. 2026 – 29. 1. 2027 | Investra Services | Česká lokalizace, osnova, DPH, banka se schválením účetní, šablona společnosti | Zkušební uzávěrka měsíce |
-| 4. 1. – 12. 2. 2027 | Základ a fond | Knihy, role účtů, účtování, kurzy, FX, fondy, třídy, nástroje, ceny, pozice, IFRS 9 podle prvních fondů | **12. 2.: připraveno pro zkušební provoz** |
-| 18. 1. – 26. 2. 2027 | IS a provoz | Napojení IS, Dashboard, produkce, zálohy, test obnovy, Pravidla archivace, mapa DORA | Test obnovy prošel |
-| 15. 2. – 19. 3. 2027 | Zkušební provoz | Přenos prvního fondu, dvě po sobě jdoucí ocenění vedle stávajícího postupu, zkušební výkazy ČNB, manuál | **19. 3.: přechod** |
+| do 20. 11. 2026 | Příprava | Schůzka s Janem Polanem a Martinem Olivou, edice, kritéria hostingu, firemní repozitář | Můžeme začít |
+| 16. 11. – 18. 12. 2026 | **Investra Services** | Zkušební společnost, česká lokalizace, osnova, DPH, banka se schválením účetní, faktury, výkazy | **18. 12.: zkušební účetní měsíc** |
+| 7. 12. 2026 – 22. 1. 2027 | Prototyp NAV | Jeden fond, více tříd, CZK a EUR, celý cyklus včetně zámku, zaúčtování a storna | **22. 1.: pokračovat, změnit rozsah, nebo změnit plán** |
+| 25. 1. – 26. 2. 2027 | Základ a fond | Knihy, role účtů, účtování, kurzy, FX, fondy, třídy, nástroje, ceny, pozice, IFRS 9 podle prvních fondů | **26. 2.: připraveno pro zkušební provoz** |
+| 1. 2. – 5. 3. 2027 | IS a provoz | Napojení IS, Dashboard, produkce, zálohy, test obnovy, Pravidla archivace, mapa DORA | Test obnovy prošel |
+| 1. 3. – 26. 3. 2027 | Zkušební provoz | Přenos prvního fondu, dvě po sobě jdoucí ocenění na lednových a únorových datech, zkušební výkazy ČNB, manuál | **26. 3.: přechod** |
 | konec Q1 2027 | Převzetí | První fond v ostrém provozu; další fondy postupně | Přechod schválen |
+
+Start účetnictvím Investra Services posouvá prototyp NAV. Na konci plánu proto není rezerva a termín je potřeba znovu posoudit po bráně 22. 1.
 
 ## Povinný rozsah a co může počkat
 

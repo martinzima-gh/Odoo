@@ -70,3 +70,4 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-07 | Provozní manuál | Před převzetím fondů vznikne manuál pro účetní včetně zastupování | | R |
 | 2026-11-07 | Fakturace úplat | Úplaty mezi společnostmi vznikají automaticky u obou stran | Ověřit prototypem | R+P |
 | 2026-11-07 | Harmonogram a akceptace | Návrh v `docs/harmonogram.md` | Čeká na potvrzení | N |
+| 2026-11-07 | Začátek prací | Začíná se účetnictvím Investra Services s.r.o., prototyp NAV navazuje souběžně | Community, nebo Enterprise se domluví s Janem Polanem a Martinem Olivou | R |
