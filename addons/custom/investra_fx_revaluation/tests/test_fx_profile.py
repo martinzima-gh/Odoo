@@ -1,4 +1,4 @@
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -9,6 +9,13 @@ class TestFxProfile(TransactionCase):
 
         self.assertTrue(profile.active)
         self.assertEqual(profile.company_id, self.env.company)
+
+    def test_rate_source_follows_company_currency(self):
+        company = self.env["res.company"].create({"name": "Zdroj CZK", "currency_id": self.env.ref("base.CZK").id})
+        Profile = self.env["investra.fx.profile"]
+        self.assertEqual(Profile.create({"name": "ČNB", "company_id": company.id}).rate_source, "cnb")
+        with self.assertRaises(ValidationError):
+            Profile.create({"name": "ECB", "company_id": company.id, "rate_source": "ecb"})
 
 
 @tagged("post_install", "-at_install")

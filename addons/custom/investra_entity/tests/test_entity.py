@@ -12,6 +12,15 @@ class TestEntity(TransactionCase):
         (cls.czk | cls.eur).active = True
         cls.Entity = cls.env["investra.entity"]
 
+    def test_rate_source_follows_currency(self):
+        self.assertEqual(self.Entity.create_book("Fond CZK", "fund", "cas501", self.czk, "cz").rate_source, "cnb")
+        self.assertEqual(self.Entity.create_book("Fond EUR zdroj", "fund", "cas501", self.eur, "cz").rate_source, "ecb")
+
+    def test_wrong_rate_source_is_refused(self):
+        entity = self.Entity.create_book("Fond zdroj", "fund", "cas501", self.czk, "cz")
+        with self.assertRaises(ValidationError):
+            entity.rate_source = "ecb"
+
     def test_eur_fund_keeps_functional_currency_after_chart(self):
         entity = self.Entity.create_book("Fond EUR", "fund", "cas501", self.eur, "cz")
         self.assertEqual(entity.company_id.currency_id, self.eur)

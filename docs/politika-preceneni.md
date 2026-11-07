@@ -1,9 +1,9 @@
-# Politika přecenění cizích měn (návrh)
+# Politika přecenění cizích měn
 
-Stav 2026-11-07. Návrh s odpověďmi Martina Zímy, připravený ke schválení a k posouzení auditorem. Dvě verze, protože rámce se nemíchají: Investra Services podle vyhlášky 500/2002 Sb., fondy podle vyhlášky 501/2002 Sb. a IFRS.
+Stav 2026-11-07. Schválil Martin Zíma, bez posouzení auditorem. Dvě verze, protože rámce se nemíchají: Investra Services podle vyhlášky 500/2002 Sb., fondy podle vyhlášky 501/2002 Sb. a IFRS.
 Přečteno: zákon 563/1991 Sb. ve znění od 1. 1. 2026, vyhlášky 500 a 501 ve znění od 1. 1. 2024 na zakonyprolidi.cz. Ověřit v e-Sbírce. ČÚS jsem nečetl, IAS 21 cituji podle architektury.
 
-**Návrh ve zkratce:** obecný kurz ČNB ke dni přepočtu, bez pevného kurzu. Services povinně k rozvahovému dni, fondy při každém ocenění. Rozdíl z přecenění na oddělené účty, doúčtováním do potřebného zůstatku, bez automatického zaúčtování.
+**Ve zkratce:** obecný kurz ČNB ke dni přepočtu, bez pevného kurzu. Services povinně k rozvahovému dni, fondy při každém ocenění. Rozdíl z přecenění na oddělené účty, doúčtováním do potřebného zůstatku, bez automatického zaúčtování.
 
 ## Co říkají předpisy
 
@@ -49,9 +49,9 @@ Doklad zavalutovaný do přeceněného období se řeší novým přeceněním k
 ## Odpovědi na otázky
 
 1. Services přeceňuje měsíčně a na žádost účetního. Automatický návrh až s denním stahováním kurzů.
-2. Kurz se řídí měnou účetnictví: CZK ČNB, EUR ECB. Přepočet pro NAV podle statutu ověřit s auditorem.
+2. Kurz se řídí měnou účetnictví: CZK ČNB, EUR ECB. Přepočet pro NAV se řídí statutem fondu.
 3. Pevný kurz se nepoužívá v žádné účetní jednotce.
 4. Možnost § 24d odst. 6 se nepoužívá: směna se přepočte obecným kurzem a rozdíl proti skutečnému kurzu se účtuje jako realizovaný zisk nebo ztráta v den směny.
 5. Výchozí stáří kurzu je 5 dní, s možností změny v profilu a na fondu. Není to požadavek předpisu.
 
-Po schválení se bod „Účetní politika přecenění“ uzavře v `docs/otevrene-body.md` a pravidla se zapíšou do vnitřního předpisu.
+Účty pro Services vybere Martin Zíma při založení profilu. Pravidla je potřeba zapsat do vnitřního předpisu.

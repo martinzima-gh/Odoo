@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 251. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 252. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -854,7 +854,6 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 - [ ] Oceňovací dokumentace, včetně „Výpočtu bonusů pro fondy s delší periodou“.
 - [ ] Zbývající ukazatele u položek a převodníky ČNB z Knihovny SDAT (ostatní je v docs/cnb/).
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
-- [ ] Účetní politika přecenění: účty, kurz, frekvence, protiúčty, metoda, P&L a OCI.
 - [ ] Naběhlý úrok a klasifikace podle IFRS 9.
 
 ### Rizika

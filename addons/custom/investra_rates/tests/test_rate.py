@@ -81,14 +81,14 @@ class TestRate(TransactionCase):
 
     def test_ecb_rate_only_in_ecb_book(self):
         Entity = self.env["investra.entity"]
-        ecb_book = Entity.create_book("ECB", "fund", "cas501", self.czk, "cz", rate_source="ecb").company_id
+        ecb_book = Entity.create_book("ECB", "fund", "cas501", self.eur, "cz").company_id
         cnb_book = Entity.create_book("ČNB", "fund", "cas501", self.czk, "cz").company_id
         self.stored._publish()
         day = date(2026, 11, 6)
         ecb = self.Rate._store("ecb", *parse_ecb(ECB), ECB)
         ecb._publish()
         # 1 EUR = 24,30 CZK podle ECB, ale 24,345 CZK podle ČNB
-        self.assertAlmostEqual(self.eur._convert(1000, self.czk, ecb_book, day), 24300.0, places=2)
+        self.assertAlmostEqual(self.czk._convert(24300, self.eur, ecb_book, day), 1000.0, places=2)
         self.assertEqual(self.eur._convert(1000, self.czk, cnb_book, day), 24345.0)
 
     def test_ecb_rate_is_inverse_of_cnb_quotation(self):

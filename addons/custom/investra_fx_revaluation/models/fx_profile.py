@@ -1,5 +1,7 @@
-from odoo import fields, models
-from odoo.exceptions import UserError
+from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
+from odoo.addons.investra_entity.models.entity import RATE_SOURCE_BY_CURRENCY
 
 
 class InvestraFxProfile(models.Model):
@@ -20,6 +22,13 @@ class InvestraFxProfile(models.Model):
     )
     rate_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb", string="Zdroj kurzu")
     max_rate_age_days = fields.Integer(required=True, default=5, string="Nejvyšší stáří kurzu (dny)")
+
+    @api.constrains("rate_source", "company_id")
+    def _check_rate_source(self):
+        for profile in self:
+            required = RATE_SOURCE_BY_CURRENCY.get(profile.company_id.currency_id.name)
+            if required and profile.rate_source != required:
+                raise ValidationError(self.env._("Zdroj kurzu se řídí měnou účetnictví: %s.", profile.company_id.currency_id.name))
 
     def _check_ready(self):
         self.ensure_one()

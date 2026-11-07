@@ -3,6 +3,8 @@ from odoo.exceptions import UserError, ValidationError
 
 # Typy knih, jejichž deníky mají od založení neměnné zápisy (hash je nevratný).
 HASHED_TYPES = ("sicav", "fund", "subfund")
+# Kurz se řídí měnou účetnictví, § 24d odst. 1 zákona o účetnictví.
+RATE_SOURCE_BY_CURRENCY = {"CZK": "cnb", "EUR": "ecb"}
 
 
 class InvestraEntity(models.Model):
@@ -40,6 +42,13 @@ class InvestraEntity(models.Model):
 
     _company_uniq = models.Constraint("unique(company_id)", "Společnost může mít jen jednu knihu.")
 
+    @api.constrains("rate_source", "company_id")
+    def _check_rate_source(self):
+        for entity in self:
+            required = RATE_SOURCE_BY_CURRENCY.get(entity.company_id.currency_id.name)
+            if required and entity.rate_source != required:
+                raise ValidationError(self.env._("Zdroj kurzu se řídí měnou účetnictví: %s.", entity.company_id.currency_id.name))
+
     @api.constrains("parent_id")
     def _check_parent(self):
         if self._has_cycle():
@@ -64,6 +73,7 @@ class InvestraEntity(models.Model):
         Načtení osnovy přepíše měnu společnosti měnou šablony, proto se měna nastaví znovu
         a výsledek se zkontroluje. První načtení šablony může potvrdit transakci.
         """
+        values.setdefault("rate_source", RATE_SOURCE_BY_CURRENCY.get(currency.name, "cnb"))
         company = self.env["res.company"].sudo().create({
             "name": name,
             "currency_id": currency.id,

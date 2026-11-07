@@ -41,7 +41,6 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 - [ ] Oceňovací dokumentace, včetně „Výpočtu bonusů pro fondy s delší periodou“.
 - [ ] Zbývající ukazatele u položek a převodníky ČNB z Knihovny SDAT (ostatní je v `docs/cnb/`).
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
-- [ ] Účetní politika přecenění: účty, kurz, frekvence, protiúčty, metoda, P&L a OCI.
 - [ ] Naběhlý úrok a klasifikace podle IFRS 9.
 
 ## Rizika
