@@ -25,6 +25,6 @@ a pro účetnictví a výpočet NAV investičních fondů. Vypořádání úpis�
 
 ## Přístup k databázi pro čtení
 
-Vývojová databáze `investra_dev` je pro DBeaver dostupná jen z tohoto počítače na `127.0.0.1:5433`.
+Vývojová databáze `investra_dev` a testovací `investra_test` jsou pro DBeaver dostupné jen z tohoto počítače na `127.0.0.1:5433`.
 Účet `dbeaver_ro` smí pouze číst a nevidí hesla ani tajné údaje; heslo je v `.env`.
 Ukázkové dotazy jsou v `docs/sql/`.

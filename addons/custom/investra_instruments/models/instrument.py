@@ -10,7 +10,7 @@ VALUATION_METHOD = [
 DAY_COUNT = [
     ("act365", "ACT/365"), ("act360", "ACT/360"), ("act_act", "ACT/ACT ISDA"), ("thirty360_eu", "30E/360"), ("thirty360_us", "30/360 US"),
 ]
-# Pole, na kterých stojí zaúčtované hodnoty; klasifikace zatím nemá datum účinnosti.
+# Po prvním obchodu neměnná pole, na kterých stojí zaúčtované hodnoty.
 LOCKED_AFTER_TRADE = {"type_id", "role_id", "ifrs9_category", "valuation_method"}
 
 

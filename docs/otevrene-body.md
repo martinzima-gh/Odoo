@@ -26,9 +26,9 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Start Investra Services | Současné účetnictví, termín přechodu, plátcovství DPH, hosting, formát importu mezd | Upřesnit |
 | Zdrojové systémy fondů | Které systémy, zda mají údaje po pozicích a pořizovací kurzy | Upřesnit u prvních fondů |
 | Podrozvaha v Odoo | Podpora ve standardním Odoo neověřená; deriváty a opce jsou u fondů významné | Ověřit v prototypu |
-| Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání | Návrh: běžné obchody datem sjednání, jednotně pro kategorii nástrojů (IFRS 9 odst. 3.1.2, B3.1.3); ostatní podíly vlastním postupem platba a vypořádání; potvrdit s auditorem |
-| Naběhlá hodnota ve fondu | Majetek a dluhy fondu z investiční činnosti se oceňují reálnou hodnotou (§ 196 ZISIF); kde lze použít naběhlou hodnotu a EIR | Ověřit znění a výklad s auditorem před napojením účtování |
-| Klasifikace nástroje | Nástroj je společný pro fondy, ale obchodní model má každý fond svůj; klasifikace zatím nemá datum účinnosti | Přesunout klasifikaci na vazbu fond a nástroj s platností od data |
+| Naběhlá hodnota ve fondu | Fond je převážně v reálné hodnotě; EIR nebo lineárně se hodí hlavně pro krátké termínované vklady a úvěry s variabilní sazbou. Ověřit soulad s § 196 ZISIF | Potvrdit s auditorem před napojením účtování; u variabilní sazby přepočet EIR při změně sazby |
+| Klasifikace podle fondu | Nástroj je společný pro fondy, ale obchodní model má každý fond svůj | Přesunout klasifikaci na vazbu fond a nástroj |
+| Oceňování derivátů | Návrh v `docs/navrh-oceneni-derivatu.md`; Přílohy 1 a 2 Pravidel oceňování vyžadují aktualizaci referenčních sazeb, chybí metodiky pro některé nástroje | Rozhodnout rozsah podle pozic prvního fondu; změnu předpisu navrhne oddělení oceňování |
 | Evidence aktiv uvnitř SPV | Zda vést i aktiva dceřiných společností, nebo jen účast a úvěr | Upřesnit |
 | Automatické testy (CI) | Testy modulů se zatím spouštějí ručně | Po prvním funkčním modulu nastavit GitHub Actions s instalací modulu a testy |
 | Pole výkazů ČNB | Katalog výkazů, položek, kontrol a číselníků je v `docs/cnb/` (metodika FOFI20261201) | Doplnit ukazatele u položek bez kontroly a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |

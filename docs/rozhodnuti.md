@@ -77,3 +77,5 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-07 | Typy nástrojů | Číselník typů navrhuje kategorii IFRS 9, způsob ocenění, roli účtu a list ČNB; účetní může na nástroji změnit | Návrhy potvrdí účetní politika | R+P |
 | 2026-11-07 | Úročení nástrojů | Výchozí je efektivní úroková míra, lineární úročení je volba podle fondu a musí mít zdůvodnění | Platí pro nástroje v naběhlé hodnotě; soulad ověřit s auditorem | R+P |
 | 2026-11-07 | Ostatní podíly | Investice do fondů bez ISIN jsou samostatná skupina nástrojů s upisovacím závazkem, vazbou na fond a třídu | Účtování platby, vypořádání a podrozvahy se doplní | R+P |
+| 2026-11-07 | Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání je nastavení na úrovni fondu; doporučené je datum sjednání | Jednotně pro stejně klasifikovaná aktiva; ostatní podíly mají vlastní postup | R |
+| 2026-11-07 | Změna klasifikace | Klasifikace je po prvním obchodu neměnná; nahrazuje „s platností“ ze záznamu IFRS 9 | Reklasifikace při změně obchodního modelu podle IFRS 9 by byla samostatný schválený krok | R+P |

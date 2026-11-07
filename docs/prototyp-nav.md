@@ -40,7 +40,7 @@ hranice kontrol; UI ověřené člověkem; bezpečnostní revize; test na reáln
 
 Menu Portfolio → Typy nástrojů. Typ jen předvyplní kategorii IFRS 9, způsob ocenění, roli účtu a list ČNB; platí hodnota na nástroji.
 Účetní ji může změnit, formulář ukáže odchylku od návrhu a změna se zapíše do historie nástroje. Po prvním obchodu jsou typ, klasifikace,
-způsob ocenění a role zamčené, protože klasifikace zatím nemá datum účinnosti. Aktualizace modulu úpravy číselníku nepřepíše.
+způsob ocenění a role neměnné. Aktualizace modulu úpravy číselníku nepřepíše.
 
 | Typ | Skupina | IFRS 9 | Ocenění | Role účtu | List ČNB |
 |---|---|---|---|---|---|
@@ -100,10 +100,6 @@ docker compose -f docker-compose.investra.yml run -d --rm --no-deps --name inves
 docker stop investra-test-web
 ```
 
-Dotazy z `docs/sql/` nad testovací databází jdou spustit i bez DBeaveru, účet `dbeaver_ro` tam zatím nemá právo číst tabulky:
-
-```
-docker compose -f docker-compose.investra.yml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d investra_test' < docs/sql/04-typy-nastroju.sql
-```
+V DBeaveru použij stejné připojení jako k `investra_dev` (`127.0.0.1:5433`, účet `dbeaver_ro`), jen databázi `investra_test`.
 
 Testovací databáze má výchozí přihlášení správce. Slouží jen na tomto počítači a nesmí obsahovat reálná data.
