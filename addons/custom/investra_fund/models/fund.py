@@ -67,7 +67,7 @@ class InvestraFundClass(models.Model):
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
     currency_id = fields.Many2one(
-        "res.currency", required=True, string="Měna zveřejnění kurzu", help="NAV fondu a kapitál třídy zůstávají ve funkční měně."
+        "res.currency", required=True, string="Měna zveřejnění kurzu", help="V této měně se zveřejňuje kurz a probíhají úpisy a odkupy. NAV fondu a kapitál třídy zůstávají ve funkční měně."
     )
     isin = fields.Char(string="ISIN")
     price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Bez zadání platí hodnota fondu.")

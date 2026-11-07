@@ -250,13 +250,7 @@ class InvestraValuation(models.Model):
 
     def _fx(self, currency):
         """Měna fondu za jednotku měny, jen z vyhlášeného kurzu k datu."""
-        Rate = self.env["investra.rate"]
-        fund_currency = self.fund_id.currency_id
-        if currency == fund_currency:
-            return Decimal(1)
-        source = self._rate_source()
-        age = self.fund_id.max_rate_age_days
-        return Rate.get_rate(source, currency, self.date, age) / Rate.get_rate(source, fund_currency, self.date, age)
+        return self.fund_id._fx_at(currency, self.date)
 
     def _approved_price(self, instrument):
         price = self.env["investra.instrument.price"].search([

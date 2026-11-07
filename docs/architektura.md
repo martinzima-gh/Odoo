@@ -87,9 +87,9 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Úročení nástrojů | Výchozí je efektivní úroková míra, lineární úročení je volba podle fondu a musí mít zdůvodnění | Rozhodnuto |
 | Ostatní podíly | Investice do fondů bez ISIN jsou samostatná skupina nástrojů s upisovacím závazkem a vazbou na fond a třídu | Rozhodnuto |
 | Okamžik zaúčtování obchodu | Parametr fondu podle IFRS 9: Trade date accounting (výchozí), nebo Settlement date accounting | Rozhodnuto |
-| Změna klasifikace | Klasifikace je po prvním obchodu neměnná | Rozhodnuto |
+| Změna klasifikace | Klasifikace je po prvním obchodu neměnná; výjimkou je reklasifikace dluhových nástrojů při změně obchodního modelu jako samostatný schválený krok | Rozhodnuto |
 | Termíny ČNB | Termíny a výkazy zveřejňuje ČNB v SDAT a budou se stahovat odtud; zatím jen obecné příklady | Rozhodnuto |
-| Měna zveřejnění kurzu | Třída má měnu zveřejnění kurzu; NAV fondu a kapitál třídy zůstávají ve funkční měně | Rozhodnuto |
+| Měna zveřejnění kurzu | Třída má měnu zveřejnění kurzu, probíhají v ní úpisy a odkupy; NAV fondu a kapitál třídy zůstávají ve funkční měně | Rozhodnuto |
 
 ## Hranice systémů a vlastnictví dat
 
@@ -757,7 +757,7 @@ Návrh jsem porovnal se čtyřmi příklady fondů kvalifikovaných investorů, 
 
 Co z toho pro návrh plyne:
 
-- **Třídy v různých měnách jsou reálný požadavek.** Jeden fond může mít třídy v CZK i EUR. Model třídy musí mít vlastní měnu. Měna třídy je měna zveřejnění kurzu; funkční měnu fondu podle IAS 21 neurčuje. Fond s třídou v EUR může mít dál funkční měnu CZK: účetnictví a FK se vedou v CZK a kapitál třídy se do EUR přepočítává kurzem k datu ocenění.
+- **Třídy v různých měnách jsou reálný požadavek.** Jeden fond může mít třídy v CZK i EUR. Model třídy musí mít vlastní měnu. Měna třídy je měna zveřejnění kurzu, probíhají v ní i úpisy a odkupy; funkční měnu fondu podle IAS 21 neurčuje. Fond s třídou v EUR může mít dál funkční měnu CZK: účetnictví a FK se vedou v CZK a kapitál třídy se do EUR přepočítává kurzem k datu ocenění.
 - **Statut počítá s více třídami, i když je zatím vydaná jedna.** Model musí zvládnout víc tříd od začátku.
 - **Aktiva bývají držená přes SPV.** Hmotná aktiva i nemovitosti jsou často majetková účast ve společnosti, ne přímý nástroj. Pořizovací cena má složky jako příplatek mimo základní kapitál a úvěr SPV. Ocenění je přes DCF nebo posudek.
 - **Interval ocenění se liší** (měsíčně i čtvrtletně), což potvrzuje parametr fondu.

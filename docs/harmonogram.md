@@ -18,18 +18,19 @@ Termíny potvrzené 2026-11-07. Hlavní neznámé: kapacita vývoje, připraveno
 | do 20. 11. 2026 | Příprava | Schůzka s Janem Polanem a Martinem Olivou, edice, kritéria hostingu, firemní repozitář | Můžeme začít |
 | 16. 11. – 18. 12. 2026 | **Investra Services** | Zkušební společnost, česká lokalizace, osnova, DPH, banka se schválením účetní, faktury, výkazy | **18. 12.: zkušební účetní měsíc** |
 | 7. 12. 2026 – 22. 1. 2027 | Prototyp NAV | Jeden fond, více tříd, CZK a EUR, celý cyklus včetně zámku, zaúčtování a storna | **22. 1.: pokračovat, změnit rozsah, nebo změnit plán** |
-| 25. 1. – 26. 2. 2027 | Základ a fond | Knihy, role účtů, účtování, kurzy, FX, fondy, třídy, nástroje, ceny, pozice, IFRS 9 podle prvních fondů | **26. 2.: připraveno pro zkušební provoz** |
+| 25. 1. – 26. 2. 2027 | Základ a fond | Knihy, role účtů, účtování, kurzy, FX, fondy, třídy, nástroje, ceny, pozice, IFRS 9 podle prvních fondů, registr protistran, převodová tabulka na řádky výkazů, událost Převzetí, výchozí stav tříd, historie FK | **26. 2.: připraveno pro zkušební provoz** |
 | 1. 2. – 5. 3. 2027 | IS a provoz | Napojení IS, Dashboard, produkce, zálohy, test obnovy, Pravidla archivace, mapa DORA | Test obnovy prošel |
-| 1. 3. – 26. 3. 2027 | Zkušební provoz | Přenos prvního fondu, dvě po sobě jdoucí ocenění na lednových a únorových datech, zkušební výkazy ČNB, manuál | **26. 3.: přechod** |
+| 1. 3. – 26. 3. 2027 | Zkušební provoz | Přenos prvního fondu, dvě po sobě jdoucí ocenění na lednových a únorových datech, zkušební výkazy ČNB včetně měsíčních RISIFI30, RISIFI33, TISIFI10, VISIFI10, RISIFI37, manuál | **26. 3.: přechod** |
 | konec Q1 2027 | Převzetí | První fond v ostrém provozu; další fondy postupně | Přechod schválen |
 
+Doplněný rozsah 2026-11-07 (výkazy a kroky převzetí, viz `docs/pruzkum/`) zvyšuje objem etapy Základ a fond bez posunu termínů; posoudit na bráně 22. 1.
 Start účetnictvím Investra Services posouvá prototyp NAV. Na konci plánu proto není rezerva a termín je potřeba znovu posoudit po bráně 22. 1.
 
 ## Povinný rozsah a co může počkat
 
-**Nutné pro první fond:** knihy a role účtů, účtování, kurzy a FX, třídy a alokace, nástroje a ceny, ocenění se schválením, IFRS 9 modely prvních fondů, banka, napojení IS, práva, zálohy, Dashboard v základní podobě.
+**Nutné pro první fond:** první měsíční výkazy ČNB, knihy a role účtů, účtování, kurzy a FX, třídy a alokace, nástroje a ceny, ocenění se schválením, IFRS 9 modely prvních fondů, banka, napojení IS, práva, zálohy, Dashboard v základní podobě.
 
-**Může přijít po převzetí:** výroční zprávy, automatické limity, roční výkazy, další modely IFRS 9, které první fondy nepoužívají, AI nad rámec vývoje a faktur. První měsíční výkazy ČNB musí být hotové před svou lhůtou.
+**Může přijít po převzetí:** výroční zprávy, automatické limity, roční výkazy, další modely IFRS 9, které první fondy nepoužívají, AI nad rámec vývoje a faktur. 
 
 ## Akceptace prototypu
 

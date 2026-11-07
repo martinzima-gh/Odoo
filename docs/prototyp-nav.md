@@ -15,7 +15,7 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 22 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
 | `investra_dashboard` | Přehled fondů, výjimky, termíny ČNB | 11 |
-| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu | 93 |
+| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu, měna kurzu | 99 |
 
 Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
 
