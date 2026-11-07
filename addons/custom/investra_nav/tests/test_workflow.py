@@ -216,19 +216,21 @@ class TestWorkflow(NavCase):
 
 @tagged("post_install", "-at_install")
 class TestPortfolio(NavCase):
+    # Kurzy jsou v databázi společné a neměnné; rok 2028 se nepřekrývá s ukázkovými daty.
+
     def setUp(self):
         super().setUp()
         self.fund = self.make_fund(classes=[{"code": "A"}])
-        self.subscribe(self.cls(self.fund, "A"), "2027-01-01", 100000, 1000)
+        self.subscribe(self.cls(self.fund, "A"), "2028-01-01", 100000, 1000)
         self.instrument = self.env["investra.instrument"].create(
             {"name": "Akcie", "isin": "XS0000000000", "currency_id": self.eur.id, "instrument_type": "equity"}
         )
         trade = self.env["investra.trade"].create({
-            "fund_id": self.fund.id, "instrument_id": self.instrument.id, "trade_date": "2027-01-05",
+            "fund_id": self.fund.id, "instrument_id": self.instrument.id, "trade_date": "2028-01-05",
             "quantity": 10, "price": 100, "fx_rate": 25,
         })
         trade._book()
-        self.day = date(2027, 1, 31)
+        self.day = date(2028, 1, 31)
 
     def approved_price(self, value):
         price = self.env["investra.instrument.price"].with_user(self.preparer).create({
@@ -237,7 +239,7 @@ class TestPortfolio(NavCase):
         price.with_user(self.approver).action_approve()
 
     def test_missing_approved_price_stops(self):
-        self.rate("2027-01-29", 26)
+        self.rate("2028-01-29", 26)
         with self.assertRaises(UserError):
             self.valuation(self.fund, self.day).action_compute()
 
@@ -250,7 +252,7 @@ class TestPortfolio(NavCase):
         # Pořízení 1 000 EUR × 25 = 25 000; 1 100 EUR × 26 = 28 600
         # Cena: 100 EUR × 26 = 2 600; kurz: 1 000 EUR × 1 = 1 000
         self.approved_price(110)
-        self.rate("2027-01-29", 26)
+        self.rate("2028-01-29", 26)
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()
         line = valuation.portfolio_line_ids.filtered("instrument_id")
@@ -270,13 +272,20 @@ class TestPortfolio(NavCase):
         # Nákup šel z banky v EUR do mínusu −1 000 EUR, ta se při kurzu 26 přecení o −1 000 CZK
         self.assertAlmostEqual(valuation.fund_capital, 100000 + 3600 - 1000, places=2)
 
+    def test_package_shows_rate_source_with_diacritics(self):
+        self.approved_price(110)
+        self.rate("2028-01-29", 26)
+        valuation = self.run_to_posted(self.valuation(self.fund, self.day))
+        row = [r for r in valuation._package_rows_portfolio() if r["name"] == "Akcie"][0]
+        self.assertEqual(row["fx_source"], "ČNB")
+
     def test_second_valuation_revalues_only_change(self):
         self.approved_price(110)
-        self.rate("2027-01-29", 26)
+        self.rate("2028-01-29", 26)
         self.run_to_posted(self.valuation(self.fund, self.day))
-        self.day = date(2027, 2, 26)
+        self.day = date(2028, 2, 26)
         self.approved_price(110)
-        self.rate("2027-02-26", 26)
+        self.rate("2028-02-26", 26)
         second = self.valuation(self.fund, self.day)
         second.action_compute()
         self.assertFalse(second.event_ids)
@@ -284,13 +293,13 @@ class TestPortfolio(NavCase):
 
     def test_foreign_bank_is_revalued(self):
         # 1 000 EUR na účtu zaúčtovaných po 25; při 26 přecenění +1 000
-        self.book(self.fund, "banka", "2027-01-10", [
+        self.book(self.fund, "banka", "2028-01-10", [
             {"role": "bank", "amount": "25000", "currency_id": self.eur.id, "amount_currency": "1000"},
             {"role": "income_other", "amount": "-25000"},
         ])
         self.approved_price(100)
-        self.rate("2027-01-29", 25)
-        self.rate("2027-01-30", 26)
+        self.rate("2028-01-29", 25)
+        self.rate("2028-01-30", 26)
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()
         row = valuation.portfolio_line_ids.filtered(lambda l: l.kind == "bank" and l.currency_id == self.eur)

@@ -100,7 +100,7 @@ a účtováním. Doporučení: nové pravidlo naprogramovat, až se opakuje u v�
 ## Otevřené
 
 - Zjišťovat u přebíraných fondů, co používají, a podle toho doplnit stavy Mimo a Jádro.
-- Statuty správců BH Securities a Long River jsem veřejně nenašel; Accolade a REICO jen v klíčových informacích.
+- U dvou zadaných správců se veřejné statuty nepodařilo najít; u největších nemovitostních fondů jsou dostupné jen klíčové informace.
 - Odhad výkonnostní odměny v příkladu jednoho statutu nesouhlasí s uvedeným průměrným NAV: u podobných vzorců číst i příklady, ne jen text.
 
 ## Zdroje

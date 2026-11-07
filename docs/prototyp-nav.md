@@ -48,3 +48,17 @@ docker compose -f docker-compose.investra.yml run --rm --no-deps -T odoo odoo \
 ```
 
 Pozor: `-i` u už nainstalovaného modulu testy nespustí, zpráva „0 tests“ není úspěch.
+Kurzy jsou v databázi společné a neměnné: testy s kurzy nesmí používat stejné období jako ukázková data.
+
+## Ukázka
+
+Data vytvoří `tools/nav_demo/demo.py` (všechno smyšlené). Web nad testovací databází se spustí na portu 8071, vývojové instance se to nedotkne:
+
+```
+docker compose -f docker-compose.investra.yml run -d --rm --no-deps --name investra-test-web -p 127.0.0.1:8071:8069 odoo odoo \
+  --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom \
+  -d investra_test --db-filter='^investra_test$' --max-cron-threads=0
+docker stop investra-test-web
+```
+
+Testovací databáze má výchozí přihlášení správce. Slouží jen na tomto počítači a nesmí obsahovat reálná data.

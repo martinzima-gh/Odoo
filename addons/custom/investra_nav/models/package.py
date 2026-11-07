@@ -36,7 +36,7 @@ class InvestraValuation(models.Model):
                 "cost": line.cost,
                 "fair_value_currency": line.fair_value_currency,
                 "fx_rate": line.fx_rate,
-                "fx_source": (line.fx_source or "").upper(),
+                "fx_source": {"cnb": "ČNB", "ecb": "ECB"}.get(line.fx_source, ""),
                 "fair_value": line.fair_value,
                 "change": line.fair_value - line.cost,
                 "weight": line.fair_value / total,
