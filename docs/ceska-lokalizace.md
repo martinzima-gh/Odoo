@@ -25,7 +25,7 @@ Ověřeno v kódu a databázi naší instance `investra_dev`, bez testování v 
 | Banka a výpisy | Import výpisů, české formáty a párování v menu nejsou | Import, párování se schválením účetní |
 | Platební příkazy | Nejsou | Export podle banky |
 | Registry | Automatické doplnění partnerů přes placenou službu Odoo; ARES, nespolehlivý plátce nejsou; VIES neověřen | ARES a kontrola plátce |
-| Kurzy | Bez automatického stahování a bez kurzů v databázi | Stahování kurzů ČNB |
+| Kurzy | `investra_rates` v `investra_dev`, kurzy ČNB od 1. 1. 2026 načtené jednorázově (2026-11-07), automatika a tlačítko zatím nejsou | Denní stahování, až se rozhodne o provozu |
 | Výkazy | Rozvaha, výsledovka, hlavní kniha, saldokonto nejsou; je analýza faktur a cash flow | Vlastní sestavy, nebo Enterprise |
 | Uzávěrka | Zámky a zabezpečení zápisů jsou; časové rozlišení a dohady neověřeny | Ověřit a doplnit |
 | Přijaté faktury | E-mailový deník je; vytěžení a schvalování nejsou | Oběh dokladů |

@@ -107,7 +107,7 @@ class InvestraRate(models.Model):
         """Selhání zdroje se zaloguje; chybějící kurz zastaví až ocenění."""
         for fetch in (lambda: self.fetch_cnb(fields.Date.context_today(self)), self.fetch_ecb):
             try:
-                self._publish(fetch())
+                fetch()._publish()
             except (requests.RequestException, ValueError, ET.ParseError):
                 _logger.exception("Stažení kurzů selhalo")
 

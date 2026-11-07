@@ -102,6 +102,16 @@ class TestRate(TransactionCase):
             with self.assertLogs("odoo.addons.investra_rates.models.rate", "ERROR"):
                 self.Rate._cron_fetch()
 
+    def test_cron_publishes_downloaded_rates(self):
+        document = "27.07.2031 #143\nzemě|měna|množství|kód|kurz\nEMU|euro|1|EUR|24,500\n"
+        response = MagicMock(text=document)
+        Rates = self.env["res.currency.rate"].sudo()
+        with patch("odoo.addons.investra_rates.models.rate.requests.get", return_value=response):
+            self.env["investra.rate"]._cron_fetch()
+        rate = Rates.search([("currency_id.name", "=", "EUR"), ("name", "=", "2031-07-27"), ("company_id", "=", False)])
+        self.assertEqual(len(rate), 1)
+        self.assertAlmostEqual(rate.rate, 1 / 24.5, places=8)
+
     def test_fetch_uses_requested_date(self):
         response = MagicMock(text=CNB)
         with patch("odoo.addons.investra_rates.models.rate.requests.get", return_value=response) as get:
