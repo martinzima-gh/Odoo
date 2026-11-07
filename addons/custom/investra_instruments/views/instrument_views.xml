@@ -1,5 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_instrument_list" model="ir.ui.view">
+        <field name="name">investra.instrument.list</field><field name="model">investra.instrument</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/><field name="isin"/><field name="type_id"/><field name="currency_id"/>
+                <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/><field name="cnb_sheet"/>
+                <field name="deviates_from_type"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_instrument_form" model="ir.ui.view">
+        <field name="name">investra.instrument.form</field><field name="model">investra.instrument</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Nástroj">
+                            <field name="name"/><field name="type_id"/><field name="type_group"/>
+                            <field name="isin"/><field name="currency_id"/>
+                            <field name="market" invisible="type_group != 'listed'"/>
+                            <field name="counterparty_id" invisible="type_group not in ('money_market', 'loan', 'derivative')"/>
+                            <field name="collateral" invisible="type_group != 'money_market'"/>
+                        </group>
+                        <group string="Návrh z typu, účetní může změnit">
+                            <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/><field name="cnb_sheet"/>
+                            <field name="fair_value_level"/><field name="deviates_from_type"/>
+                        </group>
+                    </group>
+                    <group string="Ostatní podíl" invisible="type_group != 'other_holding'">
+                        <field name="fund_id" required="type_group == 'other_holding'"/><field name="class_id"/>
+                        <field name="holding_kind" required="type_group == 'other_holding'"/>
+                        <field name="commitment_amount"/><field name="order_ref"/>
+                    </group>
+                    <group string="Úročení" invisible="type_group not in ('debt', 'money_market', 'loan')">
+                        <field name="maturity_date"/><field name="coupon_rate"/><field name="day_count"/>
+                        <field name="accrual_method"/>
+                        <field name="accrual_note" invisible="accrual_method != 'linear'" required="accrual_method == 'linear'"/>
+                    </group>
+                    <notebook invisible="type_group not in ('debt', 'money_market', 'loan')">
+                        <page string="Smluvní peněžní toky">
+                            <field name="cashflow_ids">
+                                <list editable="bottom"><field name="date"/><field name="flow_type"/><field name="amount"/></list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_instrument_type_list" model="ir.ui.view">
+        <field name="name">investra.instrument.type.list</field><field name="model">investra.instrument.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="code"/><field name="name"/><field name="group"/><field name="kind"/>
+                <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/><field name="cnb_sheet"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_instrument_type" model="ir.actions.act_window">
+        <field name="name">Typy nástrojů</field><field name="res_model">investra.instrument.type</field><field name="view_mode">list</field>
+    </record>
     <record id="action_instrument" model="ir.actions.act_window">
         <field name="name">Nástroje</field><field name="res_model">investra.instrument</field><field name="view_mode">list,form</field>
     </record>
@@ -11,6 +73,7 @@
     </record>
     <menuitem id="menu_instruments" name="Portfolio" parent="investra_entity.menu_root" sequence="20"/>
     <menuitem id="menu_instrument" name="Nástroje" parent="menu_instruments" action="action_instrument"/>
+    <menuitem id="menu_instrument_type" name="Typy nástrojů" parent="menu_instruments" action="action_instrument_type"/>
     <menuitem id="menu_price" name="Ceny" parent="menu_instruments" action="action_price"/>
     <menuitem id="menu_trade" name="Obchody" parent="menu_instruments" action="action_trade"/>
 </odoo>

@@ -2,25 +2,159 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
+IFRS9_CATEGORY = [("fvtpl", "Reálná hodnota do výsledku"), ("fvoci", "Reálná hodnota do OCI"), ("amortised", "Naběhlá hodnota")]
+VALUATION_METHOD = [
+    ("price", "Cena × kusy"), ("amortised", "Naběhlá hodnota"), ("model", "Model nebo znalec"), ("contract", "Reálná hodnota podle smlouvy"),
+    ("position", "Zadaná hodnota pozice"),
+]
+DAY_COUNT = [
+    ("act365", "ACT/365"), ("act360", "ACT/360"), ("act_act", "ACT/ACT ISDA"), ("thirty360_eu", "30E/360"), ("thirty360_us", "30/360 US"),
+]
+# Pole, na kterých stojí zaúčtované hodnoty; klasifikace zatím nemá datum účinnosti.
+LOCKED_AFTER_TRADE = {"type_id", "role_id", "ifrs9_category", "valuation_method"}
+
+
+class InvestraInstrumentType(models.Model):
+    """Typ nástroje: nabízí výchozí hodnoty. Rozhoduje hodnota na nástroji, kterou může účetní změnit."""
+
+    _name = "investra.instrument.type"
+    _description = "Typ nástroje"
+    _order = "group, name"
+
+    code = fields.Char(required=True)
+    name = fields.Char(required=True)
+    active = fields.Boolean(default=True)
+    group = fields.Selection(
+        [("listed", "Kótované"), ("debt", "Dluhové"), ("money_market", "Peněžní trh"), ("loan", "Úvěry a účasti"), ("derivative", "Deriváty"),
+         ("other_holding", "Ostatní podíly")],
+        required=True,
+        string="Skupina",
+    )
+    kind = fields.Selection(
+        [("equity", "Akcie"), ("bond", "Dluhopis"), ("fund", "Fond"), ("participation", "Účast"), ("loan", "Úvěr"),
+         ("derivative", "Derivát"), ("deposit", "Termínovaný vklad"), ("repo", "Repo"), ("other_holding", "Ostatní podíl")],
+        required=True,
+        string="Druh v portfoliu",
+    )
+    ifrs9_category = fields.Selection(IFRS9_CATEGORY, required=True, string="Navržená kategorie IFRS 9")
+    valuation_method = fields.Selection(VALUATION_METHOD, required=True, string="Navržený způsob ocenění")
+    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Navržená role účtu")
+    cnb_sheet = fields.Char(string="Navržený list ČNB")
+
+    _code_uniq = models.Constraint("unique(code)", "Kód typu nástroje musí být jedinečný.")
+
+
 class InvestraInstrument(models.Model):
     _name = "investra.instrument"
+    _inherit = ["mail.thread"]
     _description = "Nástroj"
     _order = "name"
 
     name = fields.Char(required=True)
     isin = fields.Char(string="ISIN")
     currency_id = fields.Many2one("res.currency", required=True)
-    instrument_type = fields.Selection(
-        [("equity", "Akcie"), ("bond", "Dluhopis"), ("fund", "Fond"), ("participation", "Účast"), ("loan", "Úvěr"), ("derivative", "Derivát")],
-        required=True,
-    )
-    ifrs9_category = fields.Selection(
-        [("fvtpl", "Reálná hodnota do výsledku"), ("fvoci", "Reálná hodnota do OCI"), ("amortised", "Naběhlá hodnota")],
-        required=True,
-        default="fvtpl",
-        string="Kategorie IFRS 9",
-    )
+    type_id = fields.Many2one("investra.instrument.type", required=True, ondelete="restrict", string="Typ", tracking=True)
+    type_group = fields.Selection(related="type_id.group", string="Skupina")
+    ifrs9_category = fields.Selection(IFRS9_CATEGORY, required=True, string="Kategorie IFRS 9", tracking=True)
+    valuation_method = fields.Selection(VALUATION_METHOD, required=True, string="Způsob ocenění", tracking=True)
+    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Role účtu", tracking=True)
+    cnb_sheet = fields.Char(string="List ČNB", tracking=True)
+    deviates_from_type = fields.Boolean(compute="_compute_deviates", string="Odchylka od návrhu typu")
     fair_value_level = fields.Selection([("1", "Úroveň 1"), ("2", "Úroveň 2"), ("3", "Úroveň 3")], string="Úroveň RH")
+    market = fields.Char(string="Trh")
+    counterparty_id = fields.Many2one("res.partner", string="Protistrana", ondelete="restrict")
+    collateral = fields.Char(string="Kolaterál")
+    maturity_date = fields.Date(string="Splatnost")
+    coupon_rate = fields.Float(digits=(16, 6), string="Sazba %")
+    day_count = fields.Selection(DAY_COUNT, default="act365", string="Konvence dnů")
+    commitment_amount = fields.Float(digits=(20, 2), string="Upisovací závazek", help="Celková částka v měně nástroje, 0 = bez závazku.")
+    holding_kind = fields.Selection([("securities", "Cenné papíry"), ("shares", "Podíly")], string="Typ investice", tracking=True)
+    fund_id = fields.Many2one("investra.fund", ondelete="restrict", string="Fond", help="Vyplněno: nástroj patří jen tomuto fondu.")
+    class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída", domain="[('fund_id', '=', fund_id)]")
+    order_ref = fields.Char(string="Zakázka")
+    accrual_method = fields.Selection(
+        [("fund", "Podle fondu"), ("eir", "Efektivní úroková míra"), ("linear", "Lineárně")],
+        required=True,
+        default="fund",
+        string="Úročení",
+        tracking=True,
+    )
+    accrual_note = fields.Char(string="Zdůvodnění lineárního úročení")
+    cashflow_ids = fields.One2many("investra.instrument.cashflow", "instrument_id", string="Smluvní peněžní toky")
+
+    def _type_proposal(self, kind):
+        return {
+            "ifrs9_category": kind.ifrs9_category, "valuation_method": kind.valuation_method,
+            "role_id": kind.role_id.id, "cnb_sheet": kind.cnb_sheet,
+        }
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            kind = self.env["investra.instrument.type"].browse(vals.get("type_id"))
+            for field, value in self._type_proposal(kind).items():
+                vals.setdefault(field, value)
+        return super().create(vals_list)
+
+    @api.onchange("type_id")
+    def _onchange_type_id(self):
+        if self.type_id:
+            self.update(self._type_proposal(self.type_id))
+
+    @api.depends("type_id", "ifrs9_category", "valuation_method", "role_id", "cnb_sheet")
+    def _compute_deviates(self):
+        for instrument in self:
+            kind = instrument.type_id
+            instrument.deviates_from_type = bool(kind) and (
+                (instrument.ifrs9_category, instrument.valuation_method, instrument.role_id, instrument.cnb_sheet or False)
+                != (kind.ifrs9_category, kind.valuation_method, kind.role_id, kind.cnb_sheet or False)
+            )
+
+    @api.constrains("ifrs9_category", "valuation_method")
+    def _check_valuation_method(self):
+        for instrument in self:
+            if (instrument.ifrs9_category == "amortised") != (instrument.valuation_method == "amortised"):
+                raise ValidationError(self.env._("Naběhlou hodnotou se oceňuje právě kategorie Naběhlá hodnota: %s.", instrument.name))
+
+    @api.constrains("type_id", "fund_id", "class_id", "holding_kind", "commitment_amount")
+    def _check_other_holding(self):
+        for instrument in self:
+            if instrument.commitment_amount < 0:
+                raise ValidationError(self.env._("Upisovací závazek nemůže být záporný: %s.", instrument.name))
+            if instrument.class_id and instrument.class_id.fund_id != instrument.fund_id:
+                raise ValidationError(self.env._("Třída nepatří do fondu nástroje: %s.", instrument.name))
+            if instrument.type_group == "other_holding" and not (instrument.fund_id and instrument.holding_kind):
+                raise ValidationError(self.env._("Ostatní podíl musí mít fond a typ investice: %s.", instrument.name))
+
+    @api.constrains("accrual_method", "accrual_note")
+    def _check_accrual_note(self):
+        for instrument in self:
+            if instrument.accrual_method == "linear" and not instrument.accrual_note:
+                raise ValidationError(self.env._("Lineární úročení musí mít zdůvodnění: %s.", instrument.name))
+
+    def write(self, vals):
+        if not self.env.su and LOCKED_AFTER_TRADE & set(vals):
+            if self.env["investra.trade"].sudo().search_count([("instrument_id", "in", self.ids)], limit=1):
+                raise UserError(self.env._("Po prvním obchodu nejde měnit typ, klasifikaci, způsob ocenění ani roli účtu."))
+        return super().write(vals)
+
+    def _effective_accrual(self, fund):
+        """Metoda úročení pro fond; volba na nástroji má přednost před fondem."""
+        self.ensure_one()
+        return fund.accrual_method if self.accrual_method == "fund" else self.accrual_method
+
+
+class InvestraInstrumentCashflow(models.Model):
+    """Smluvní tok na jednotku nástroje, bez pořízení; to se bere z obchodu."""
+
+    _name = "investra.instrument.cashflow"
+    _description = "Smluvní peněžní tok nástroje"
+    _order = "date, id"
+
+    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="cascade", index=True)
+    date = fields.Date(required=True, string="Datum")
+    amount = fields.Float(required=True, digits=(20, 8), string="Částka na jednotku")
+    flow_type = fields.Selection([("interest", "Úrok"), ("principal", "Jistina")], required=True, default="principal", string="Druh")
 
 
 class InvestraInstrumentPrice(models.Model):
@@ -95,6 +229,8 @@ class InvestraTrade(models.Model):
     def _book(self):
         """Zaúčtuje nákup proti bance; v prototypu bez poplatků a bez sjednaného nevypořádaného stavu."""
         for trade in self:
+            if trade.instrument_id.type_group == "other_holding":
+                raise UserError(self.env._("Operace s ostatními podíly zatím nejsou napojené na účtování: %s.", trade.instrument_id.name))
             amount = trade.quantity * trade.price * trade.fx_rate
             foreign = trade.quantity * trade.price
             company = trade.company_id
@@ -105,7 +241,7 @@ class InvestraTrade(models.Model):
             event = self.env["investra.accounting.event"]._create_event(
                 company, f"trade:{trade.id}", f"Obchod {trade.instrument_id.name}", trade.trade_date, "trade",
                 [
-                    {"role": "instrument", "amount": amount, "movement_type": "transaction", "extra": extra, **currency},
+                    {"role": trade.instrument_id.role_id.code, "amount": amount, "movement_type": "transaction", "extra": extra, **currency},
                     {"role": "bank", "amount": -amount, "movement_type": "transaction",
                      **({"currency_id": currency["currency_id"], "amount_currency": -foreign} if currency else {})},
                 ],

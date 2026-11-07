@@ -12,11 +12,11 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_rates` | Kurzy ČNB a ECB, neměnný záznam se zdrojem, promítnutí do Odoo | 15 |
 | `investra_fund` | Fondy, třídy, kalendář, zaokrouhlení kurzu | 10 |
 | `investra_posting` | Události, ochrana dokladů, třída na řádku, hash, storno | 22 |
-| `investra_instruments` | Nástroje, ceny se schválením, obchody, pozice | 9 |
+| `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 22 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
-| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček | 66 |
+| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota | 75 |
 
-Výpočetní jádro a referenční výpočet mají dalších 53 testů mimo Odoo (`tools/nav_reference`).
+Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
 
 ## Co je ověřené
 
@@ -33,8 +33,47 @@ Výpočetní jádro a referenční výpočet mají dalších 53 testů mimo Odoo
 
 ## Co chybí
 
-Sjednáno, nevypořádáno; poplatky obchodů; dohadné položky; kupóny a dividendy; termínované vklady a deriváty v portfoliu; platnost kurzu;
+Sjednáno, nevypořádáno; poplatky obchodů; dohadné položky; kupóny a dividendy; účtování naběhlého úroku, termínované vklady, repo, deriváty a ostatní podíly v portfoliu; platnost kurzu;
 hranice kontrol; UI ověřené člověkem; bezpečnostní revize; test na reálném objemu.
+
+## Typy nástrojů
+
+Menu Portfolio → Typy nástrojů. Typ jen předvyplní kategorii IFRS 9, způsob ocenění, roli účtu a list ČNB; platí hodnota na nástroji.
+Účetní ji může změnit, formulář ukáže odchylku od návrhu a změna se zapíše do historie nástroje. Po prvním obchodu jsou typ, klasifikace,
+způsob ocenění a role zamčené, protože klasifikace zatím nemá datum účinnosti. Aktualizace modulu úpravy číselníku nepřepíše.
+
+| Typ | Skupina | IFRS 9 | Ocenění | Role účtu | List ČNB |
+|---|---|---|---|---|---|
+| Akcie | Kótované | FVTPL | Cena × kusy | `instrument` | DOFO31_11 |
+| Podílový list nebo ETF | Kótované | FVTPL | Cena × kusy | `instrument` | DOFO31_11 |
+| Dluhopis | Dluhové | FVTPL | Cena × kusy | `instrument_debt` | DOFO31_12 |
+| Termínovaný vklad | Peněžní trh | Naběhlá hodnota | Naběhlá hodnota | `deposit` | Neurčeno |
+| Reverzní repo | Peněžní trh | Naběhlá hodnota | Naběhlá hodnota | `repo` | Neurčeno |
+| Poskytnutý úvěr | Úvěry a účasti | FVTPL | Model nebo znalec | `loan_given` | RIS30_02 |
+| Účast | Úvěry a účasti | FVTPL | Model nebo znalec | `participation` | RIS33_13 |
+| Burzovní derivát | Deriváty | FVTPL | Cena × kusy | `derivative` | DOFO31_21 |
+| Mimoburzovní derivát | Deriváty | FVTPL | Podle smlouvy | `derivative` | DOFO31_22 |
+| Ostatní podíl (fond bez ISIN) | Ostatní podíly | FVTPL | Zadaná hodnota pozice | `other_holding` | RIS33_13 |
+
+Návrhy jsou pracovní, stejně jako čísla účtů; potvrdí je účetní politika fondu. Záporná hodnota derivátu zatím nemá vlastní pasivní roli.
+
+**Úročení:** fond má výchozí EIR, lineární úročení je volba fondu nebo nástroje a musí mít zdůvodnění. Nástroj má smluvní toky na jednotku,
+každý nákup má vlastní efektivní úrokovou míru. `_accrued_value` hodnotu jen spočítá, nic neúčtuje. Lineárně umí zatím jednu splátku,
+prodej není podporovaný. Ocenění fondu s pozicí v naběhlé hodnotě se zastaví, dokud není napojené účtování úroku.
+
+**Ostatní podíly:** investice do fondů bez ISIN, zpravidla s upisovacím závazkem. Nástroj patří jednomu fondu, případně třídě, a nese
+upisovací závazek, typ investice (cenné papíry, nebo podíly, kvůli různému daňovému režimu) a zakázku. Hotový je jen číselník a karta nástroje;
+zaúčtování obchodu se zastaví. Zbývá:
+
+- platba a vypořádání zvlášť: po platbě je částka na účtu pořízení, přeceňuje se jen kurzem, po vypořádání přejde na účet investice,
+- prodej: přijatá platba je závazek do vypořádání, snížení pořizovací ceny zadá uživatel, realizovaný výsledek a kurz jdou zvlášť,
+- změna závazku nemusí odpovídat celé platbě, protože platba může obsahovat příplatky a vratky,
+- reálná hodnota se zadává za vypořádanou investovanou částku, ne za kus,
+- podrozvaha v měně se přeceňuje jen v podrozvaze, bez dopadu do výsledku,
+- RIS33_13 má místo nominální hodnoty upisovací závazek.
+
+Odoo nedovolí podrozvahové a rozvahové účty v jednom dokladu (`_check_off_balance`). Podrozvaha proto potřebuje vlastní doklad.
+Stejný postup bude platit pro další závazky a přísliby.
 
 ## Spuštění testů
 
@@ -59,6 +98,12 @@ docker compose -f docker-compose.investra.yml run -d --rm --no-deps --name inves
   --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom \
   -d investra_test --db-filter='^investra_test$' --max-cron-threads=0
 docker stop investra-test-web
+```
+
+Dotazy z `docs/sql/` nad testovací databází jdou spustit i bez DBeaveru, účet `dbeaver_ro` tam zatím nemá právo číst tabulky:
+
+```
+docker compose -f docker-compose.investra.yml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d investra_test' < docs/sql/04-typy-nastroju.sql
 ```
 
 Testovací databáze má výchozí přihlášení správce. Slouží jen na tomto počítači a nesmí obsahovat reálná data.

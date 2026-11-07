@@ -151,6 +151,15 @@ class InvestraValuation(models.Model):
         account = self.env["investra.account.role"].account_for(self.company_id, role)
         return self._sum(("account_id", "=", account.id), *extra)
 
+    def _position_balance(self):
+        """Zůstatek všech účtů, na kterých jsou nástroje, podle rolí typů a nástrojů."""
+        roles = self.env["investra.instrument.type"].sudo().search([]).role_id
+        roles |= self.env["investra.instrument"].sudo().search([]).role_id
+        accounts = self.env["investra.role.account"].sudo().search(
+            [("company_id", "=", self.company_id.id), ("role_id", "in", roles.ids)]
+        ).account_id
+        return self._sum(("account_id", "in", accounts.ids))
+
     # --- výpočet -------------------------------------------------------------------------------
 
     def action_compute(self):
@@ -260,9 +269,13 @@ class InvestraValuation(models.Model):
     def _compute_portfolio(self):
         """Přecení nástroje a založí řádky listu portfolio; změna ceny a kurzu jde zvlášť."""
         Trade = self.env["investra.trade"].sudo()
-        instrument_account = self.env["investra.account.role"].account_for(self.company_id, "instrument")
+        Role = self.env["investra.account.role"]
         rows, lines = [], []
         for instrument, quantity in Trade._positions(self.fund_id, self.date).items():
+            if instrument.valuation_method == "amortised":
+                raise UserError(self.env._("Naběhlá hodnota zatím není napojená na účtování: %s.", instrument.name))
+            role = instrument.role_id.code
+            instrument_account = Role.account_for(self.company_id, role)
             price = self._approved_price(instrument)
             fx = self._fx(instrument.currency_id)
             value_ccy = d(quantity) * d(price.price)
@@ -283,7 +296,7 @@ class InvestraValuation(models.Model):
             currency_values = {"currency_id": instrument.currency_id.id} if foreign_currency else {}
             if price_effect:
                 lines.append({
-                    "role": "instrument", "amount": price_effect, "movement_type": "price_revaluation", "extra": extra,
+                    "role": role, "amount": price_effect, "movement_type": "price_revaluation", "extra": extra,
                     **({**currency_values, "amount_currency": str(value_ccy - foreign)} if foreign_currency else {}),
                 })
                 lines.append({
@@ -292,7 +305,7 @@ class InvestraValuation(models.Model):
                 })
             if fx_effect:
                 lines.append({
-                    "role": "instrument", "amount": fx_effect, "movement_type": "fx_revaluation", "extra": extra,
+                    "role": role, "amount": fx_effect, "movement_type": "fx_revaluation", "extra": extra,
                     **({**currency_values, "amount_currency": "0"} if foreign_currency else {}),
                 })
                 lines.append({
@@ -302,7 +315,7 @@ class InvestraValuation(models.Model):
             trades = Trade.search([("fund_id", "=", self.fund_id.id), ("instrument_id", "=", instrument.id), ("trade_date", "<=", self.date)])
             rows.append({
                 "valuation_id": self.id,
-                "kind": instrument.instrument_type,
+                "kind": instrument.type_id.kind,
                 "instrument_id": instrument.id,
                 "name": instrument.name,
                 "isin": instrument.isin,
@@ -634,7 +647,7 @@ class InvestraValuation(models.Model):
         self._check("classes_sum", "Součet tříd se rovná FK", sum(rounded.values()) == fund_capital, sum(rounded.values()))
         clearing = self._role_balance("internal_clearing")
         self._check("clearing_zero", "Vnitřní zúčtování je za fond nulové", clearing == 0, clearing)
-        instrument_ledger = self._role_balance("instrument")
+        instrument_ledger = self._position_balance()
         positions = sum(
             (d(line.fair_value) for line in self.portfolio_line_ids if line.kind != "bank"), Decimal(0)
         )
@@ -833,7 +846,7 @@ class InvestraValuationPortfolio(models.Model):
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
     kind = fields.Selection(
         [("bank", "Bankovní účet"), ("deposit", "Termínovaný vklad"), ("equity", "Akcie"), ("bond", "Dluhopis"),
-         ("fund", "Fond"), ("participation", "Účast"), ("loan", "Úvěr"), ("derivative", "Derivát")],
+         ("fund", "Fond"), ("participation", "Účast"), ("loan", "Úvěr"), ("derivative", "Derivát"), ("repo", "Repo"), ("other_holding", "Ostatní podíl")],
         required=True,
     )
     instrument_id = fields.Many2one("investra.instrument", ondelete="restrict")

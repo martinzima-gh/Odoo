@@ -3,6 +3,13 @@
     <record id="role_bank" model="investra.account.role"><field name="code">bank</field><field name="name">Bankovní účet</field><field name="category">asset</field></record>
     <record id="role_cash_in_transit" model="investra.account.role"><field name="code">cash_in_transit</field><field name="name">Peníze na cestě</field><field name="category">asset</field></record>
     <record id="role_instrument" model="investra.account.role"><field name="code">instrument</field><field name="name">Investiční nástroje</field><field name="category">asset</field></record>
+    <record id="role_instrument_debt" model="investra.account.role"><field name="code">instrument_debt</field><field name="name">Dluhové cenné papíry</field><field name="category">asset</field></record>
+    <record id="role_deposit" model="investra.account.role"><field name="code">deposit</field><field name="name">Termínované vklady</field><field name="category">asset</field></record>
+    <record id="role_repo" model="investra.account.role"><field name="code">repo</field><field name="name">Reverzní repo</field><field name="category">asset</field></record>
+    <record id="role_loan_given" model="investra.account.role"><field name="code">loan_given</field><field name="name">Poskytnuté úvěry</field><field name="category">asset</field></record>
+    <record id="role_participation" model="investra.account.role"><field name="code">participation</field><field name="name">Účasti</field><field name="category">asset</field></record>
+    <record id="role_derivative" model="investra.account.role"><field name="code">derivative</field><field name="name">Deriváty</field><field name="category">asset</field></record>
+    <record id="role_other_holding" model="investra.account.role"><field name="code">other_holding</field><field name="name">Ostatní podíly</field><field name="category">asset</field></record>
     <record id="role_receivable_other" model="investra.account.role"><field name="code">receivable_other</field><field name="name">Ostatní pohledávky</field><field name="category">asset</field></record>
     <record id="role_internal_clearing" model="investra.account.role"><field name="code">internal_clearing</field><field name="name">Vnitřní zúčtování tříd</field><field name="category">asset</field></record>
     <record id="role_subscription_payable" model="investra.account.role"><field name="code">subscription_payable</field><field name="name">Závazek z úpisu</field><field name="category">liability</field></record>

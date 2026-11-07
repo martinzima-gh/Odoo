@@ -240,7 +240,7 @@ class TestPortfolio(NavCase):
         self.fund = self.make_fund(classes=[{"code": "A"}])
         self.subscribe(self.cls(self.fund, "A"), "2028-01-01", 100000, 1000)
         self.instrument = self.env["investra.instrument"].create(
-            {"name": "Akcie", "isin": "XS0000000000", "currency_id": self.eur.id, "instrument_type": "equity"}
+            {"name": "Akcie", "isin": "XS0000000000", "currency_id": self.eur.id, "type_id": self.env.ref("investra_instruments.type_equity").id}
         )
         trade = self.env["investra.trade"].create({
             "fund_id": self.fund.id, "instrument_id": self.instrument.id, "trade_date": "2028-01-05",

@@ -74,3 +74,6 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-07 | Mzdy | Vede je externí dodavatel, do Odoo se importuje jen účetní zápis | Formát domluvit | R |
 | 2026-11-07 | Osnova Investra Services | Vychází ze standardní české osnovy pro podnikatele; úpravy podle `docs/osnova-investra-services.md` | Návrh, čeká na potvrzení | N |
 | 2026-11-07 | Osnova fondů | Cíl je jedna šablona pro všechny fondy; převzatý fond se ke dni přechodu převede převodovou tabulkou | Jiná než osnova Services | R |
+| 2026-11-07 | Typy nástrojů | Číselník typů navrhuje kategorii IFRS 9, způsob ocenění, roli účtu a list ČNB; účetní může na nástroji změnit | Návrhy potvrdí účetní politika | R+P |
+| 2026-11-07 | Úročení nástrojů | Výchozí je efektivní úroková míra, lineární úročení je volba podle fondu a musí mít zdůvodnění | Platí pro nástroje v naběhlé hodnotě; soulad ověřit s auditorem | R+P |
+| 2026-11-07 | Ostatní podíly | Investice do fondů bez ISIN jsou samostatná skupina nástrojů s upisovacím závazkem, vazbou na fond a třídu | Účtování platby, vypořádání a podrozvahy se doplní | R+P |

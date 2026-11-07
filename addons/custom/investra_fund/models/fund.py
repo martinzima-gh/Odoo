@@ -24,9 +24,22 @@ class InvestraFund(models.Model):
     second_person_required = fields.Boolean(default=True, string="Kontrola druhou osobou")
     price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")
+    accrual_method = fields.Selection(
+        [("eir", "Efektivní úroková míra"), ("linear", "Lineárně")],
+        required=True,
+        default="eir",
+        string="Úročení nástrojů v naběhlé hodnotě",
+    )
+    accrual_note = fields.Char(string="Zdůvodnění lineárního úročení")
     calendar_ids = fields.One2many("investra.valuation.calendar", "fund_id", string="Kalendář ocenění")
 
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
+
+    @api.constrains("accrual_method", "accrual_note")
+    def _check_accrual_note(self):
+        for fund in self:
+            if fund.accrual_method == "linear" and not fund.accrual_note:
+                raise ValidationError(self.env._("Lineární úročení fondu musí mít zdůvodnění."))
 
     @api.constrains("entity_id")
     def _check_entity_type(self):

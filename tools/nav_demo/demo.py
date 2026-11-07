@@ -36,8 +36,8 @@ for cls, amount, units in ((A, 60000000, 60000000), (B, 40000000, 16000)):
 Rate = E_["investra.rate"]
 for day, value in ((date(2027, 1, 4), "25.000"), (date(2027, 1, 29), "25.200"), (date(2027, 2, 26), "24.900")):
     Rate._store("cnb", day, {"EUR": (Decimal(1), Decimal(value))}, f"ukazka{day}{value}")
-bond = E_["investra.instrument"].create({"name": "Ukázkový dluhopis", "isin": "CZ0000000001", "currency_id": czk.id, "instrument_type": "bond", "fair_value_level": "2"})
-share = E_["investra.instrument"].create({"name": "Ukázková akcie", "isin": "XS0000000001", "currency_id": eur.id, "instrument_type": "equity", "fair_value_level": "1"})
+bond = E_["investra.instrument"].create({"name": "Ukázkový dluhopis", "isin": "CZ0000000001", "currency_id": czk.id, "type_id": env.ref("investra_instruments.type_bond").id, "fair_value_level": "2"})
+share = E_["investra.instrument"].create({"name": "Ukázková akcie", "isin": "XS0000000001", "currency_id": eur.id, "type_id": env.ref("investra_instruments.type_equity").id, "fair_value_level": "1"})
 conversion = E_["investra.accounting.event"]._create_event(company, "fx-nakup", "Nákup EUR", date(2027, 1, 5), "fx", [
     {"role": "bank", "amount": "37500000", "currency_id": eur.id, "amount_currency": "1500000", "movement_type": "transaction"},
     {"role": "bank", "amount": "-37500000", "movement_type": "transaction"},

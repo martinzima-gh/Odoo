@@ -7,3 +7,8 @@ investra_price_company_rule,Ceny podle společnosti,investra.instrument.price,,c
 access_trade_read,investra.trade read,investra.trade,account.group_account_readonly,r,
 access_trade_preparer,investra.trade preparer,investra.trade,investra_entity.group_valuation_preparer,cru,
 investra_trade_company_rule,Obchody podle společnosti,investra.trade,,crud,"[('company_id', 'in', company_ids)]"
+access_type_read,investra.instrument.type read,investra.instrument.type,account.group_account_readonly,r,
+access_type_preparer,investra.instrument.type preparer,investra.instrument.type,investra_entity.group_valuation_preparer,r,
+access_type_manager,investra.instrument.type manager,investra.instrument.type,account.group_account_manager,cru,
+access_cashflow_read,investra.instrument.cashflow read,investra.instrument.cashflow,account.group_account_readonly,r,
+access_cashflow_preparer,investra.instrument.cashflow preparer,investra.instrument.cashflow,investra_entity.group_valuation_preparer,crud,

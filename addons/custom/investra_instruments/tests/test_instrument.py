@@ -1,11 +1,10 @@
 from datetime import date
 
-from odoo.exceptions import UserError
-from odoo.tests import TransactionCase, tagged
+from odoo.exceptions import UserError, ValidationError
+from odoo.tests import Form, TransactionCase, tagged
 
 
-@tagged("post_install", "-at_install")
-class TestInstrument(TransactionCase):
+class InstrumentCase(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -17,7 +16,7 @@ class TestInstrument(TransactionCase):
         cls.env = cls.env(context=dict(cls.env.context, allowed_company_ids=[cls.company.id]))
         cls.fund = cls.env["investra.fund"].create({"entity_id": cls.book.id})
         cls.instrument = cls.env["investra.instrument"].create(
-            {"name": "Akcie X", "currency_id": cls.eur.id, "instrument_type": "equity"}
+            {"name": "Akcie X", "currency_id": cls.eur.id, "type_id": cls.env.ref("investra_instruments.type_equity").id}
         )
 
         def user(login, group):
@@ -29,6 +28,9 @@ class TestInstrument(TransactionCase):
         cls.preparer = user("inst_prep", "investra_entity.group_valuation_preparer")
         cls.approver = user("inst_appr", "investra_entity.group_valuation_approver")
 
+
+@tagged("post_install", "-at_install")
+class TestInstrument(InstrumentCase):
     def price(self, user=None):
         return self.env["investra.instrument.price"].with_user(user or self.preparer).create({
             "instrument_id": self.instrument.id, "fund_id": self.fund.id, "date": "2026-11-30", "price": 10, "source": "test",
@@ -98,3 +100,101 @@ class TestInstrument(TransactionCase):
 
     def test_instrument_in_hash(self):
         self.assertIn("investra_instrument_id", self.env["account.move.line"]._get_integrity_hash_fields())
+
+
+@tagged("post_install", "-at_install")
+class TestInstrumentType(InstrumentCase):
+    """Typ navrhuje hodnoty, rozhoduje nástroj."""
+
+    def make(self, code, **vals):
+        return self.env["investra.instrument"].create({
+            "name": code, "currency_id": self.czk.id, "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
+        })
+
+    def test_type_prefills_proposal(self):
+        deposit = self.make("deposit")
+        self.assertEqual(deposit.ifrs9_category, "amortised")
+        self.assertEqual(deposit.valuation_method, "amortised")
+        self.assertEqual(deposit.role_id.code, "deposit")
+        self.assertFalse(deposit.deviates_from_type)
+
+    def test_accountant_can_override_proposal(self):
+        bond = self.make("bond")
+        bond.with_user(self.preparer).write({"ifrs9_category": "fvoci"})
+        self.assertEqual(bond.ifrs9_category, "fvoci")
+        self.assertTrue(bond.deviates_from_type)
+        self.assertEqual(self.env.ref("investra_instruments.type_bond").ifrs9_category, "fvtpl")
+
+    def test_override_is_tracked(self):
+        bond = self.make("bond")
+        self.env.cr.flush()  # Změna ve stejné transakci jako založení se nezaznamenává.
+        bond.write({"ifrs9_category": "fvoci"})
+        self.env.cr.flush()
+        messages = self.env["mail.message"].search([
+            ("model", "=", "investra.instrument"), ("res_id", "=", bond.id), ("message_type", "=", "tracking"),
+        ])
+        self.assertEqual(len(messages), 1)
+        self.assertIn("Kategorie IFRS 9", str(messages.body))
+
+    def test_override_at_creation_keeps_rest_of_proposal(self):
+        bond = self.make("bond", ifrs9_category="fvoci")
+        self.assertEqual(bond.ifrs9_category, "fvoci")
+        self.assertEqual(bond.role_id.code, "instrument_debt")
+        self.assertEqual(bond.cnb_sheet, "DOFO31_12")
+
+    def test_form_type_change_fills_proposal(self):
+        with Form(self.env["investra.instrument"]) as form:
+            form.name = "Vklad"
+            form.currency_id = self.czk
+            form.type_id = self.env.ref("investra_instruments.type_deposit")
+            self.assertEqual(form.ifrs9_category, "amortised")
+
+    def test_amortised_needs_matching_method(self):
+        with self.assertRaises(ValidationError):
+            self.make("bond", ifrs9_category="amortised")
+
+    def test_classification_locked_after_trade(self):
+        bond = self.make("bond")
+        self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "instrument_id": bond.id, "trade_date": "2026-11-02", "quantity": 1, "price": 10,
+        })
+        with self.assertRaises(UserError):
+            bond.with_user(self.preparer).write({"ifrs9_category": "fvoci"})
+        bond.with_user(self.preparer).write({"name": "Nový název"})
+
+    def test_linear_needs_note(self):
+        with self.assertRaises(ValidationError):
+            self.make("deposit", accrual_method="linear")
+        with self.assertRaises(ValidationError):
+            self.fund.accrual_method = "linear"
+
+    def test_effective_accrual(self):
+        deposit = self.make("deposit")
+        self.assertEqual(self.fund.accrual_method, "eir")
+        self.assertEqual(deposit._effective_accrual(self.fund), "eir")
+        self.fund.write({"accrual_method": "linear", "accrual_note": "Nevýznamný rozdíl"})
+        self.assertEqual(deposit._effective_accrual(self.fund), "linear")
+        deposit.accrual_method = "eir"
+        self.assertEqual(deposit._effective_accrual(self.fund), "eir")
+
+    def test_other_holding_is_own_group(self):
+        holding = self.make("other_holding", fund_id=self.fund.id, holding_kind="shares", commitment_amount=5000)
+        self.assertEqual(holding.type_group, "other_holding")
+        self.assertEqual(holding.valuation_method, "position")
+        self.assertEqual(holding.cnb_sheet, "RIS33_13")
+
+    def test_other_holding_requires_fund_and_kind(self):
+        with self.assertRaises(ValidationError):
+            self.make("other_holding")
+
+    def test_commitment_cannot_be_negative(self):
+        with self.assertRaises(ValidationError):
+            self.make("other_holding", fund_id=self.fund.id, holding_kind="shares", commitment_amount=-1)
+
+    def test_other_holding_trade_is_not_booked(self):
+        holding = self.make("other_holding", fund_id=self.fund.id, holding_kind="shares")
+        trade = self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "instrument_id": holding.id, "trade_date": "2026-11-02", "quantity": 1, "price": 10,
+        })
+        with self.assertRaises(UserError):
+            trade._book()
