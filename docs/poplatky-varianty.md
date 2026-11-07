@@ -27,7 +27,7 @@ Každý výpočet ukládá rozpis. Nová varianta je malé rozšíření s teste
 
 | Konvence | Typické použití | Stav |
 |---|---|---|
-| ACT/360 | Peněžní trh, depozita, repo, pohyblivé úroky | Hotovo |
+| ACT/360 | Peněžní trh, depozita, repo, pohyblivé úroky; ověřeno u emise státního dluhopisu s pohyblivou sazbou | Hotovo |
 | ACT/365 Fixed | Depozita a úvěry, úplaty fondů | Hotovo |
 | ACT/ACT ISDA | Swapy, úroky přes přestupný rok | Hotovo |
 | ACT/ACT ICMA | Dluhopisy, počítá se v rámci kupónového období | Jádro, potřebuje kupónový kalendář nástroje |
@@ -48,7 +48,7 @@ Každý výpočet ukládá rozpis. Nová varianta je malé rozšíření s teste
 | Roční minimum a maximum | 0,1 %, min. 200 tis., max. 1,25 mil. | Hotovo |
 | Příplatek za třídy nad určitý počet | + 10 000 Kč za pátou a další třídu | Hotovo |
 | Průměrný FK od začátku roku, dohad v každém ocenění, doúčtování proti naúčtovanému | průměrná roční hodnota FK | Hotovo |
-| Průměr vážený dny místo průměru z ocenění | | Ověřit u konkrétního fondu |
+| Průměr z ocenění fondu: denní u denních fondů, měsíční u měsíčních | prostý průměr denních hodnot, průměr ke konci měsíců | Hotovo; jiná frekvence než ocenění chybí |
 | Zálohová měsíční výplata a roční vyúčtování | | Platby později, dohad Hotovo |
 | Úplata z hodnoty transakce | až 1 % z hodnoty transakce | Mimo |
 | Skutečné náklady do ročního stropu | vnitřní audit do 350 tis. | Mimo, faktura a dohad |
@@ -84,6 +84,7 @@ Každý výpočet ukládá rozpis. Nová varianta je malé rozšíření s teste
 | Dohad vážený pravděpodobností | | Hotovo |
 | Strop odměny | | Hotovo |
 | Vzdání se části odměny do čistého výnosu | část se neuplatní pod 9 % p. a. | Jádro |
+| High-on-high s klouzavým pětiletým obdobím (ESMA) | 5 % z přírůstku, reference zanikne po 5 letech bez odměny | Mimo, potřebuje historii kurzů; doplnit |
 | Reset HWM po určité době | | Mimo |
 | Vyrovnávací mechanismus po investorech | rovnost starých a nových investorů | Později, potřebuje data z IS, jinak Mimo |
 | Série po datu vstupu | běžné v zahraničí | Později |
@@ -120,10 +121,27 @@ Co nestojí za naprogramování, zůstává mimo Odoo, ale v postupu ocenění: 
 Účetní zadá částku, příloha s výpočtem a důvod jsou povinné, bez nich ocenění nejde spočítat. Částka prochází stejným schválením
 a účtováním. Doporučení: nové pravidlo naprogramovat, až se opakuje u více fondů nebo tvoří podstatnou část nákladů.
 
+## Největší fondy na trhu
+
+Pokrytí je výběrové, ne úplné. U velkých retailových a nemovitostních fondů převažuje jednoduchý model: procento z průměrného FK nebo z aktiv, konkrétní sazba v mezích statutu a výkonnostní poplatek žádný nebo jen v určité třídě. Složité modely jsou hlavně u menších fondů kvalifikovaných investorů.
+
+| Správce | Co bylo čteno | Závěr |
+|---|---|---|
+| ČSOB | Nemovitostní (speciální a FKI) | Nejvýše 2 % z průměru FK ke koncům měsíců, výkonnostní poplatek není |
+| Česká spořitelna, Erste | Top Stocks, Fond řízených výnosů, Universum | Průměr denních hodnot, měsíční výplata, úplata jen jednou u vlastních fondů |
+| REICO | Výroční zprávy, statut nenalezen | 1,75 % z průměrného kapitálu, data do roku 2018 až 2020 |
+| Generali | Vyvážený, Konzervativní, Fond realit, přehled sazeb 2026 | Třídy se sazbou v čase, třída P s high-on-high 5 % a pětiletým obdobím |
+| J&T, Amista | Naše Česko, J&T SICAV, IMOS, Thein, Rockaway, Alethes | Od žádné odměny po přesuny mezi třídami |
+| Amundi | KB Portfolio | Benchmark po třídách, krystalizace při odkupu |
+| Investika | Realitní fond, OK Smart Stability+ | Procento z aktiv, sazba podle třídy; PRIBOR a HWM čtvrtletně |
+| Conseq | Active Invest, soukromé financování | Vzorec s toky, vážený dohad, hurdle PRIBOR plus marže |
+| Partners | 13 statutů | Průměr FK, měsíční nebo roční etalon, inflace plus marže |
+| Accolade | Jen klíčové informace | Výkonnostní poplatek se neuplatňuje |
+
 ## Otevřené
 
 - Zjišťovat u přebíraných fondů, co používají, a podle toho doplnit stavy Mimo a Jádro.
-- U dvou zadaných správců se veřejné statuty nepodařilo najít; u největších nemovitostních fondů jsou dostupné jen klíčové informace.
+- U dvou zadaných správců se veřejné statuty nepodařilo najít; REICO a Accolade jen ze zpráv a klíčových informací; statut ČSOB Akciový se nepodařilo přečíst.
 - Odhad výkonnostní odměny v příkladu jednoho statutu nesouhlasí s uvedeným průměrným NAV: u podobných vzorců číst i příklady, ne jen text.
 
 ## Zdroje
@@ -145,7 +163,15 @@ Veřejné statuty a dokumenty, čteno 2026-11-07:
 [Findigo](https://findigofki.cz/),
 [Ascavia](https://ascavia.cz/pro-investory/),
 [Fondefi](https://www.fondefi.cz/informace-pro-investory/),
-[fondy Partners investiční společnosti](https://www.partnersis.cz/nase-fondy), 13 statutů včetně Universe, 7 Stars, Bond Opportunity, Simplea a Aspire.
+[fondy Partners investiční společnosti](https://www.partnersis.cz/nase-fondy), 13 statutů včetně Universe, 7 Stars, Bond Opportunity, Simplea a Aspire,
+[Generali Fond vyvážený](https://www.generali-investments.cz/media/generali/docs/STAT_CZ0008474806_FV_20250203.pdf),
+[přehled sazeb Generali 2026](https://www.generali-investments.cz/media/generali/docs/informace-aktualni-vysi-vyse-uplaty-za-obhospodarovani-a-vyse-sazby-vykonnostniho-poplatku-pro-fondy-spravovane-generali-investments-cee-01-2026-69551dc9b9f18.pdf),
+[ČSOB Nemovitostní](https://is.patria.cz/strapi/uploads/CSOB_Nemovitostni_Statut_specialni_fond_final_draft_signed_482c3f371c.pdf),
+[Fond řízených výnosů, Erste](https://data.erste-am.com/gem/erste-am/getDocumentContent/dce1ddcc-d7c8-4309-aeb8-9517ba5c149e),
+[INVESTIKA realitní fond](https://www.investika.cz/files/statut-irf.pdf),
+[ČS nemovitostní fond, výroční zpráva](https://www.reico.cz/content/dam/cz/csas/www_reico_cz/dokumenty/vyrocni-zpravy/CSNF/CSNF%20VZ%202018%20FINAL_LR.pdf).
+Úrokové konvence: [emisní podmínky státních dluhopisů, MF](https://mfcr.cz/assets/attachments/2025-05-29_Emisni-podminky-pro-Statni-dluhopis-Ceske-republiky-2025-2038.pdf),
+[Day count convention](https://en.wikipedia.org/wiki/Day_count_convention), [ACT Wiki](https://wiki.treasurers.org/wiki/ACT/360).
 Obecné modely: [ESMA Guidelines on performance fees](https://www.esma.europa.eu/sites/default/files/library/esma34-39-992%5Fguidelines%5Fon%5Fperformance%5Ffees%5Fen.pdf),
 [SS&C: Series vs Equalization](https://www.ssctech.com/blog/understanding-performance-fees-in-hedge-funds-series-vs-equalization),
 [Alter Domus: Private equity waterfalls](https://alterdomus.com/insight/private-equity-waterfall/).

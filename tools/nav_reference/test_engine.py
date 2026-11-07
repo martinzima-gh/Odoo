@@ -181,6 +181,17 @@ class Performance(unittest.TestCase):
                 "hurdle_margin": "0.02"}
         self.assertEqual(e.performance_fee(spec, gross=110, **self.Y)["required"], D("0.80"))
 
+    def test_high_on_high_example_from_public_statute(self):
+        # Příklad z veřejného statutu: referenční hodnota 1 000, sazba 20 %
+        spec = {"measure": "unit", "rate": "0.2", "reference": 1000, "hwm": 1000}
+        fee = lambda value, s=spec: e.performance_fee(s, gross=value, units=1, **self.Y)["required"]
+        self.assertEqual(1100 - fee(1100), D("1080.00"))
+        self.assertEqual(800 - fee(800), D("800.00"))
+        self.assertEqual(1050 - fee(1050), D("1040.00"))
+        # Po krystalizaci je referencí hodnota po odměně 1 040
+        following = {**spec, "reference": 1040, "hwm": 1040}
+        self.assertEqual(1200 - fee(1200, following), D("1168.00"))
+
     def test_negative_benchmark_floored_to_zero(self):
         # Index −10 %, fond +5 %: s podlahou se platí jen z kladné výkonnosti, 30 % z 5
         spec = {"rate": "0.3", "reference": 100, "hurdle_kind": "index", "index_start": 100, "index_end": 90,
