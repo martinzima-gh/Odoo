@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 228. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 234. -->
 
 # Investra – architektura Odoo a IS
 
@@ -66,7 +66,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Rozhodnuto |
 | Zaúčtování ocenění | Varianta B: schvaluje se kompletní finální ocenění se sumářem z nezaúčtovaných návrhů; zaúčtuje se jedním krokem k datu ocenění před odesláním depozitáři; vrácení před zaúčtováním je oprava návrhů a nová verze, vrácení depozitářem storno všech dokladů a nová verze; uzamčení až po stanovisku depozitáře | Rozhodnuto, ověřit prototypem |
 | IFRS 18 | Jednotky na plném IFRS používají IFRS 18 místo IAS 1 pro období od 1. 1. 2027 | Rozhodnuto |
-| Ochrana zaúčtování | Zamčené návrhy ocenění chrání serverová kontrola; automatické účtování přijatých faktur je v šabloně společnosti vypnuté | Rozhodnuto |
+| Ochrana zaúčtování | Zamčené návrhy ocenění chrání serverová kontrola; automatické účtování přijatých faktur je v šabloně společnosti vypnuté | Rozhodnuto, ověřit prototypem |
 | Pravidla archivace | Pravidla podle druhu záznamu a export archivu čitelný bez Odoo; lhůty ZISIF ověřit | Rozhodnuto |
 | Prototyp NAV | Ověřit celý cyklus na jednom fondu před plným vývojem fondových modulů | Rozhodnuto |
 | Bankovní tok | Výpisy se načítají automaticky a párování se připraví jako návrh; účetní ho vždy schválí, automatické zaúčtování je budoucí volba, zatím vypnutá | Rozhodnuto |
@@ -75,6 +75,14 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Třídy fondů | Fondy jsou vícetřídové, model i prototyp s tím počítají od začátku | Rozhodnuto |
 | Příprava před fondy | Napojení IS a mapa DORA jsou součástí přípravy před převzetím fondů | Rozhodnuto |
 | Cílový termín | Start a převzetí fondů reálně ke konci Q1 2027, upřesnit podle harmonogramu | Předpoklad |
+| Rozdělení vývoje | Záměr: externí vývojář hlavně česká lokalizace, fondové moduly interně s Claude; rozsah externí práce zatím není rozhodnutý, nezávislou kontrolu fondového kódu určit | Návrh, k rozhodnutí |
+| IFRS 9 | Systém podporuje všechny modely podle IFRS 9; klasifikace a model jsou na nástroji s platností, převzatý fond si zachová nastavení, implementace podle prvních fondů | Rozhodnuto |
+| Kontinuita | Náhradní aplikace nebude; kontinuitu zajistí zálohy, obnova a bezpečnost Odoo, požadavky DORA zůstávají | Rozhodnuto |
+| Provozní manuál | Před převzetím fondů vznikne manuál pro účetní včetně zastupování | Rozhodnuto |
+| Fakturace úplat | Úplaty mezi společnostmi vznikají automaticky u obou stran | Rozhodnuto, ověřit prototypem |
+| Harmonogram a akceptace | Termíny a akceptace podle docs/harmonogram.md, bez rezervy, znovu posoudit po bráně 22. 1. | Rozhodnuto |
+| Začátek prací | Začíná se účetnictvím Investra Services s.r.o., prototyp NAV navazuje souběžně | Rozhodnuto |
+| Mzdy | Vede je externí dodavatel, do Odoo se importuje jen účetní zápis; formát domluvit | Rozhodnuto |
 
 ## Hranice systémů a vlastnictví dat
 
@@ -214,6 +222,12 @@ Rozhodnutý je rámec: dividendu za třídu počítá a účtuje Odoo v hrubé v
 ### Bankovní tok
 
 Výpisy se načítají automaticky a párování se jen připraví jako návrh. Účetní ho vždy schválí, teprve potom se zaúčtuje. Automatické zaúčtování je budoucí volba, zatím vypnutá.
+
+### Mzdy a fakturace úplat
+
+**Mzdy** se vedou externě, do Odoo přichází jen účetní zápis k importu. Formát se teprve domluví.
+
+**Fakturace úplat** mezi společnostmi vzniká automaticky u obou stran; ověřit prototypem.
 
 ### Ocenění a alokace (rámcově)
 
@@ -393,6 +407,8 @@ Obě složky se účtují jako doplatek do potřebného zůstatku, takže opakov
 | Naběhlá hodnota (úvěry, dluhopisy držené do splatnosti) | nepřeceňuje se | výsledek, z naběhlé hodnoty | realizovaný výsledek |
 
 U dluhových nástrojů ve FVOCI a v naběhlé hodnotě se úrok počítá efektivní úrokovou mírou a opravné položky (očekávané úvěrové ztráty) jdou do výsledku. Kurzový rozdíl se pak nepočítá z pořizovací ceny, ale z naběhlé hodnoty v měně nástroje, takže vzorec FX výše platí jen pro nástroje bez úročení. Zdroje: IFRS 9 odst. 5.7.1, 5.7.5, 5.7.10–5.7.11, B5.7.2–B5.7.3; IAS 21 odst. 23, 28 a 30. V příkladech fondů je zatím vše ve FVTPL nebo jako majetková účast ve FVOCI; dluhové FVOCI a naběhlou hodnotu musí model umět kvůli úvěrům do SPV a budoucím fondům.
+
+**Modely IFRS 9:** datový model umí všechny modely podle IFRS 9. Klasifikace a model jsou na nástroji s platností od data a převzatý fond si zachová své nastavení. Implementace se děje podle prvních fondů.
 
 ### Evidence výpočtu NAV
 
@@ -649,6 +665,8 @@ Každý výpočet NAV a FX musí jít zopakovat ze stejných vstupů. Provoz dvo
 - **Produkce:** oddělené produkční, testovací a vývojové prostředí; šifrování dat v klidu i při přenosu; role a oddělení povinností; MFA pro privilegované účty; přístup z řízených zařízení a přes VPN s vícefaktorovým ověřením; denní šifrované zálohy mimo primární lokalitu; pravidelné testy obnovy; monitoring; správa aktualizací; registrace uživatelů vypnutá, účty zakládá správce. Současné lokální prostředí je jen prototyp.
 - **Uchování a archivace:** Pravidla archivace podle druhu záznamu. Obecně 5 let, účetní závěrka a výroční zpráva 10 let, daňové doklady podle daňových předpisů (zákon o účetnictví § 31, znění ověřit), lhůty ZISIF ověřit. Export archivu musí být čitelný bez Odoo.
 - **Dashboard:** přehled napříč fondy se stavem ocenění, výjimkami a termíny ČNB.
+- **Kontinuita:** náhradní aplikace nebude. Zálohy, obnova a kontinuita se řeší v rámci Odoo, požadavky DORA zůstávají.
+- **Provozní manuál:** před převzetím fondů vznikne manuál pro účetní včetně zastupování.
 - **Aktualizace Odoo:** vlastní addony je potřeba při každé nové verzi migrovat a otestovat, což je trvalý náklad.
 
 **DORA (vnitřní dokumenty Investry):** Odoo bude nový ICT systém, takže se na něj vztahují jejich požadavky na schválení projektu, evidenci aktiv a dodavatelů, bezpečný vývoj, řízení přístupů, zálohy, obnovu a testovací data. Konkrétní hodnoty (lhůty, frekvence) zůstávají v dokumentech DORA a převezmou se při návrhu produkčního provozu.
@@ -680,17 +698,18 @@ Fondy přecházejí ke dni uzávěrky nebo ocenění, ne migrací celé historie
 
 ## Plán prací
 
-Začínáme ověřovacím prototypem NAV, potom přijdou na řadu role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popisují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Cílem je start a převzetí fondů ke konci Q1 2027, přesnější termíny doplníme podle harmonogramu úprav IS.
+Začíná se účetnictvím Investra Services s.r.o., prototyp NAV navazuje souběžně. Potom přijdou na řadu role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popisují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Cílem je start a převzetí fondů ke konci Q1 2027, termíny a brány jsou níže.
 
-1. **Prototyp NAV (ověřovací etapa):** jeden fond, dvě třídy, CZK a EUR, celý cyklus včetně zámku návrhů, zaúčtování a storna od depozitáře.
-2. **Specifikace:** rozhodnutí z otevřených bodů, seznam rolí účtů, účetní politika pro FX.
-3. **Dvě zkušební knihy:** CZK a EUR, vlastní osnova, kurzy ČNB a ECB. Ověří návrh „kniha = společnost“.
-4. **Specifikace rozhraní s IS:** podle aktuálního zadání, aby mohl začít vývoj IS.
-5. **Účtování a FX:** `investra_posting` a FX skupiny, vyzkoušené na simulovaných událostech.
-6. **Fondy a portfolio:** fond, třídy, instrumenty, ceny, pozice. Prototyp pole třídy na účetním řádku a vnitřního zúčtování.
-7. **Napojení na IS:** závěrky, kurzy, párování plateb, denní kontroly.
-8. **Alokace a ocenění:** plná verze po ověření prototypu.
-9. **Výkazy:** snímky dat a první výkaz ČNB.
+1. **Investra Services:** zkušební společnost, česká lokalizace, osnova, DPH, banka se schválením účetní, faktury, výkazy.
+2. **Prototyp NAV (ověřovací etapa):** běží souběžně s Investra Services; jeden fond, více tříd, CZK a EUR, celý cyklus včetně zámku návrhů, zaúčtování a storna od depozitáře.
+3. **Specifikace:** rozhodnutí z otevřených bodů, seznam rolí účtů, účetní politika pro FX.
+4. **Dvě zkušební knihy:** CZK a EUR, vlastní osnova, kurzy ČNB a ECB, jako součást Investra Services a prototypu. Ověří návrh „kniha = společnost“.
+5. **Specifikace rozhraní s IS:** podle aktuálního zadání, aby mohl začít vývoj IS.
+6. **Účtování a FX:** `investra_posting` a FX skupiny, vyzkoušené na simulovaných událostech.
+7. **Fondy a portfolio:** fond, třídy, instrumenty, ceny, pozice. Prototyp pole třídy na účetním řádku a vnitřního zúčtování.
+8. **Napojení na IS:** závěrky, kurzy, párování plateb, denní kontroly.
+9. **Alokace a ocenění:** plná verze po ověření prototypu.
+10. **Výkazy:** snímky dat a první výkaz ČNB.
 
 **Etapa Investra Services (fáze 1) navíc zahrnuje:** šablonu společnosti, neměnnost, oddělení rolí a čtyři oči i pro nastavení, zálohy a test obnovy.
 
@@ -699,6 +718,20 @@ Začínáme ověřovacím prototypem NAV, potom přijdou na řadu role účtů a
 **Příprava před fondy:** napojení IS a mapa DORA musí být hotové před převzetím fondů.
 
 **Třídy fondů:** fondy jsou vícetřídové, model i prototyp s více třídami počítají od začátku, ne jako s výjimkou.
+
+**Termíny a brány** (podrobnosti a akceptace jsou v `docs/harmonogram.md`):
+
+| Období | Etapa | Brána |
+| --- | --- | --- |
+| do 20. 11. 2026 | Příprava | Můžeme začít |
+| 16. 11. – 18. 12. 2026 | Investra Services | 18. 12.: zkušební účetní měsíc |
+| 7. 12. 2026 – 22. 1. 2027 | Prototyp NAV | 22. 1.: pokračovat, změnit rozsah, nebo změnit plán |
+| 25. 1. – 26. 2. 2027 | Základ a fond | 26. 2.: připraveno pro zkušební provoz |
+| 1. 2. – 5. 3. 2027 | IS a provoz | Test obnovy prošel |
+| 1. 3. – 26. 3. 2027 | Zkušební provoz | 26. 3.: přechod |
+| konec Q1 2027 | Převzetí | Přechod schválen |
+
+Na konci plánu není rezerva, termín se znovu posoudí po bráně 22. 1.
 
 Rozhodnutí Community, nebo Enterprise musí padnout před ostrým startem Investra Services.
 
@@ -782,7 +815,7 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 | Zdroje cen | Jaká aktiva fondy drží, frekvence posudků | Upřesnit |
 | Možnosti IS | Zda umí závěrku, identifikátory, příjem číselníku a kurzu, dividendy a API | Získat dokumentaci |
 | Aktualizace předpisů | Funkční měna EUR, schvalování, střediska SICAV v předpisu 12; nyní se nemění | Projít později |
-| Start Investra Services | Současné účetnictví, termín přechodu, plátcovství DPH, mzdy, hosting | Upřesnit |
+| Start Investra Services | Současné účetnictví, termín přechodu, plátcovství DPH, hosting, formát importu mezd | Upřesnit |
 | Zdrojové systémy fondů | Které systémy a zda mají údaje po pozicích a pořizovací kurzy | Upřesnit u prvních fondů |
 | Podrozvaha v Odoo | Podpora ve standardním Odoo není ověřená, deriváty a opce jsou u fondů významné | Ověřit v prototypu |
 | Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání | Určit v účetní politice |
@@ -796,6 +829,7 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 | Lhůty uchování podle ZISIF | Zvláštní lhůty pro obhospodařovatele a administrátora nejsou ověřené | Ověřit v aktuálním znění a doplnit do Pravidel archivace |
 | Automatické testy (CI) | Testy modulů se zatím spouštějí ručně | Po prvním funkčním modulu nastavit automatickou instalaci modulu a testy |
 | Transakční výkazy a oznámení | Katalog pokrývá jen rámec Fondy; hlášení obchodů mají krátkou lhůtu a vlastní data | Ověřit povinnost Investry, pak rozhodnout o rozsahu a doplnit katalog |
+| Postup ocenění | Typovaná pravidla poplatků, pořadí modulů | Rozhodnout; doporučení je v části Postup ocenění v Odoo |
 | TISIFI10 u nových smluv | Zda je bez vypořádání přeceněním celá změna RH, nebo se vychází z první známé RH; mění výsledek v měsíci sjednání | Počítat celou změnu; potvrdit s ČNB před implementací |
 | Výkazy speciálních fondů | Speciální fondy mohou podávat jiné výkazy než FKI, například ROFOS11 a DOFOS70 | Ověřit v plánu výskytů SDAT a doplnit tabulku výkazů |
 | Příplatek mimo základní kapitál | Zda se počítá do CET1 a na který řádek DOFOS60 patří; ovlivňuje vykázaný kapitál | Potvrdit s auditorem nebo ČNB |
