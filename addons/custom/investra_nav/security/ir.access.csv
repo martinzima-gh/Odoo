@@ -34,3 +34,6 @@ access_val_check_read,investra.valuation.check read,investra.valuation.check,acc
 investra_val_check_rule,investra.valuation.check company,investra.valuation.check,,crud,"[('company_id', 'in', company_ids)]"
 access_val_approval_read,investra.valuation.approval read,investra.valuation.approval,account.group_account_readonly,r,
 investra_val_approval_rule,investra.valuation.approval company,investra.valuation.approval,,crud,"[('company_id', 'in', company_ids)]"
+access_repayment_read,investra.instrument.repayment read,investra.instrument.repayment,account.group_account_readonly,r,
+access_repayment_preparer,investra.instrument.repayment preparer,investra.instrument.repayment,investra_entity.group_valuation_preparer,cru,
+investra_repayment_rule,Splátky podle společnosti,investra.instrument.repayment,,crud,"[('company_id', 'in', company_ids)]"

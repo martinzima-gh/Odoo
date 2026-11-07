@@ -269,13 +269,17 @@ class InvestraValuation(models.Model):
         Role = self.env["investra.account.role"]
         rows, lines = [], []
         for instrument, quantity in Trade._positions(self.fund_id, self.date).items():
-            if instrument.valuation_method == "amortised":
-                raise UserError(self.env._("Naběhlá hodnota zatím není napojená na účtování: %s.", instrument.name))
+            amortised = instrument.valuation_method == "amortised"
             role = instrument.role_id.code
             instrument_account = Role.account_for(self.company_id, role)
-            price = self._approved_price(instrument)
             fx = self._fx(instrument.currency_id)
-            value_ccy = d(quantity) * d(price.price)
+            if amortised:
+                value_ccy = instrument._accrued_value(self.fund_id, self.date)
+                unit_price, price_source = float(value_ccy / d(quantity)), self.env._("Naběhlá hodnota")
+            else:
+                price = self._approved_price(instrument)
+                value_ccy = d(quantity) * d(price.price)
+                unit_price, price_source = price.price, price.source
             value = engine.money(value_ccy * fx)
             # Jen účet nástrojů: protiúčty přecenění nesou nástroj také, ale nejsou jeho účetní hodnotou.
             domain = [("investra_instrument_id", "=", instrument.id), ("account_id", "=", instrument_account.id)]
@@ -289,16 +293,17 @@ class InvestraValuation(models.Model):
                 fx_effect = value - carrying - price_effect
             else:
                 price_effect, fx_effect = value - carrying, Decimal(0)
+            movement = "accrued_interest" if amortised else "price_revaluation"
             extra = {"investra_instrument_id": instrument.id}
             currency_values = {"currency_id": instrument.currency_id.id} if foreign_currency else {}
             if price_effect:
                 lines.append({
-                    "role": role, "amount": price_effect, "movement_type": "price_revaluation", "extra": extra,
+                    "role": role, "amount": price_effect, "movement_type": movement, "extra": extra,
                     **({**currency_values, "amount_currency": str(value_ccy - foreign)} if foreign_currency else {}),
                 })
                 lines.append({
-                    "role": "gain_fair_value" if price_effect > 0 else "loss_fair_value",
-                    "amount": -price_effect, "movement_type": "price_revaluation", "extra": extra,
+                    "role": "income_interest" if amortised else "gain_fair_value" if price_effect > 0 else "loss_fair_value",
+                    "amount": -price_effect, "movement_type": movement, "extra": extra,
                 })
             if fx_effect:
                 lines.append({
@@ -309,6 +314,8 @@ class InvestraValuation(models.Model):
                     "role": "gain_fx" if fx_effect > 0 else "loss_fx",
                     "amount": -fx_effect, "movement_type": "fx_revaluation", "extra": extra,
                 })
+            if amortised and not value:
+                continue
             trades = Trade._recognised(self.fund_id, self.date, instrument)
             rows.append({
                 "valuation_id": self.id,
@@ -318,8 +325,8 @@ class InvestraValuation(models.Model):
                 "isin": instrument.isin,
                 "currency_id": instrument.currency_id.id,
                 "quantity": quantity,
-                "price": price.price,
-                "price_source": price.source,
+                "price": unit_price,
+                "price_source": price_source,
                 "cost_currency": sum(t.quantity * t.price for t in trades),
                 "cost": sum(t.quantity * t.price * t._booked_fx() for t in trades),
                 "fair_value_currency": float(value_ccy),

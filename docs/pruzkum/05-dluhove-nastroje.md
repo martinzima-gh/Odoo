@@ -50,7 +50,7 @@ Registr úvěrů musí unést dlužníka a propojené osoby, koncentraci, 5% ret
 
 ## Etapy
 
-1. Termínovaný vklad: kalendář, úrok v ocenění, splacení; odstraní dnešní zastavení ocenění.
+1. Termínovaný vklad: hotovo 2026-11-07 pro vklad s jednou splátkou; obnovení a předčasné ukončení zbývá.
 2. Dluhopis v RH: čistá cena, naběhlý úrok, kupóny.
 3. Reverzní repo s kolaterálem.
 4. Úvěry: registr, variabilní sazba, přepočet EIR.

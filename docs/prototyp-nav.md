@@ -18,7 +18,7 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_counterparty` | Registr protistran a emitentů s platností, sektor ESA 2010, LEI | 8 |
 | `investra_cnb` | Převodová tabulka rolí na řádky výkazů ČNB, kontrola úplnosti | 10 |
 | `investra_fx_revaluation` | Profily přecenění, doplňkové přecenění, návrh dokladu, kontrola kurzu | 29 |
-| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu, měna kurzu, přístup podle společnosti | 102 |
+| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu, měna kurzu, přístup podle společnosti, termínovaný vklad | 109 |
 
 Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
 
@@ -37,7 +37,7 @@ Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo
 
 ## Co chybí
 
-Poplatky obchodů; dohadné položky; kupóny a dividendy; účtování naběhlého úroku, termínované vklady, repo, deriváty a ostatní podíly v portfoliu; platnost kurzu;
+Poplatky obchodů; dohadné položky; kupóny a dividendy; repo, kupóny dluhopisů, úvěry, deriváty a ostatní podíly v portfoliu; platnost kurzu;
 hranice kontrol; UI ověřené člověkem; bezpečnostní revize; test na reálném objemu.
 
 ## Typy nástrojů
@@ -63,7 +63,7 @@ Návrhy jsou pracovní, stejně jako čísla účtů; potvrdí je účetní poli
 
 **Úročení:** fond má výchozí EIR, lineární úročení je volba fondu nebo nástroje a musí mít zdůvodnění. Nástroj má smluvní toky na jednotku,
 každý nákup má vlastní efektivní úrokovou míru. `_accrued_value` hodnotu jen spočítá, nic neúčtuje. Lineárně umí zatím jednu splátku,
-prodej není podporovaný. Ocenění fondu s pozicí v naběhlé hodnotě se zastaví, dokud není napojené účtování úroku.
+prodej není podporovaný. Ocenění doúčtuje úrok do naběhlé hodnoty typem pohybu Naběhlý úrok proti úrokovým výnosům. Kalendář vkladu s jednou splátkou vygeneruje tlačítko na nástroji z jistiny, sazby a konvence, splátka se zaúčtuje v menu Splátky nástrojů.
 
 **Ostatní podíly:** investice do fondů bez ISIN, zpravidla s upisovacím závazkem. Nástroj patří jednomu fondu, případně třídě, a nese
 upisovací závazek, typ investice (cenné papíry, nebo podíly, kvůli různému daňovému režimu) a zakázku. Hotový je jen číselník a karta nástroje;

@@ -1,11 +1,29 @@
-from odoo import models
-from odoo.exceptions import UserError
+from odoo import api, fields, models
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .. import engine
 
 
 class InvestraInstrument(models.Model):
     _inherit = "investra.instrument"
+
+    principal = fields.Float(digits=(20, 2), string="Jistina na jednotku")
+    start_date = fields.Date(string="Začátek úročení")
+
+    def action_generate_schedule(self):
+        """Vklad s jednou splátkou: jistina a úrok k splatnosti podle sazby a konvence dnů."""
+        for instrument in self:
+            if not (instrument.principal and instrument.start_date and instrument.maturity_date):
+                raise UserError(self.env._("Vyplňte jistinu, začátek a splatnost: %s.", instrument.name))
+            if self.env["investra.instrument.repayment"].sudo().search_count([("instrument_id", "=", instrument.id)], limit=1):
+                raise UserError(self.env._("Kalendář po splacení nejde měnit: %s.", instrument.name))
+            fraction = engine.year_fraction(instrument.start_date, instrument.maturity_date, instrument.day_count or "act365")
+            principal = engine.dec(instrument.principal)
+            interest = engine.money(principal * engine.dec(instrument.coupon_rate) / 100 * fraction)
+            instrument.cashflow_ids = [(5,), (0, 0, {
+                "date": instrument.maturity_date, "amount": float(principal), "flow_type": "principal",
+            }), (0, 0, {"date": instrument.maturity_date, "amount": float(interest), "flow_type": "interest"})]
+        return True
 
     def _accrued_value(self, fund, day):
         """Naběhlá hodnota pozice v měně nástroje; každý nákup má vlastní efektivní úrokovou míru.
@@ -24,7 +42,10 @@ class InvestraInstrument(models.Model):
         for trade in trades:
             quantity = engine.dec(trade.quantity)
             cost = quantity * engine.dec(trade.price)
-            flows = [(flow.date, engine.dec(flow.amount) * quantity) for flow in self.cashflow_ids if flow.date > trade.trade_date]
+            totals = {}
+            for flow in self.cashflow_ids.filtered(lambda f: f.date > trade.trade_date):
+                totals[flow.date] = totals.get(flow.date, engine.ZERO) + engine.dec(flow.amount) * quantity
+            flows = sorted(totals.items())
             if not flows:
                 raise UserError(self.env._("Nástroj nemá smluvní peněžní toky po pořízení: %s.", self.name))
             if method == "eir":
@@ -34,3 +55,54 @@ class InvestraInstrument(models.Model):
             elif day < flows[0][0]:
                 total += engine.linear_accrual(cost, flows[0][1], trade.trade_date, flows[0][0], day, basis)
         return engine.money(total)
+
+
+class InvestraInstrumentRepayment(models.Model):
+    """Skutečná splátka nástroje v naběhlé hodnotě; rozdíl proti naběhlé hodnotě doúčtuje ocenění."""
+
+    _name = "investra.instrument.repayment"
+    _description = "Splátka nástroje"
+    _order = "date desc, id desc"
+
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
+    company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
+    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", string="Nástroj")
+    date = fields.Date(required=True, string="Datum")
+    amount = fields.Float(required=True, digits=(20, 2), string="Částka v měně nástroje")
+    fx_rate = fields.Float(required=True, default=1, digits=(16, 6), string="Kurz")
+    event_id = fields.Many2one("investra.accounting.event", readonly=True)
+
+    @api.constrains("amount", "instrument_id")
+    def _check_repayment(self):
+        for repayment in self:
+            if repayment.amount <= 0:
+                raise ValidationError(self.env._("Splátka musí být kladná."))
+            if repayment.instrument_id.valuation_method != "amortised":
+                raise ValidationError(self.env._("Splátka je jen u nástroje v naběhlé hodnotě."))
+
+    def action_book(self):
+        if not self.env.user.has_group("investra_entity.group_valuation_preparer"):
+            raise AccessError(self.env._("Na tento krok nemáte oprávnění."))
+        self.check_access("write")
+        self.sudo()._book()
+        return True
+
+    def _book(self):
+        for repayment in self.filtered(lambda r: not r.event_id):
+            instrument = repayment.instrument_id
+            company = repayment.company_id
+            amount = repayment.amount * repayment.fx_rate
+            foreign = instrument.currency_id != company.currency_id
+            debit = {"currency_id": instrument.currency_id.id, "amount_currency": repayment.amount} if foreign else {}
+            credit = {"currency_id": instrument.currency_id.id, "amount_currency": -repayment.amount} if foreign else {}
+            event = self.env["investra.accounting.event"]._create_event(
+                company, f"repayment:{repayment.id}", f"Splátka {instrument.name}", repayment.date, "trade",
+                [
+                    {"role": "bank", "amount": amount, "movement_type": "transaction", **debit},
+                    {"role": instrument.role_id.code, "amount": -amount, "movement_type": "transaction",
+                     "extra": {"investra_instrument_id": instrument.id}, **credit},
+                ],
+            )
+            event._lock_events()
+            event._post_events()
+            repayment.sudo().event_id = event

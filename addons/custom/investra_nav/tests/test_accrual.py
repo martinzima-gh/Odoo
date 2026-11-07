@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from .common import NavCase
@@ -61,11 +61,82 @@ class TestAccrual(NavCase):
         with self.assertRaises(UserError):
             other._accrued_value(self.fund, date(2029, 3, 1))
 
-    def test_valuation_stops_on_amortised_position(self):
-        self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 1000, 10)
-        self.trade(self.deposit, 950, day="2029-01-02")._book()
+    def deposit_position(self):
+        self.purchase.unlink()
+        self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 2000, 20)
+        self.trade(self.deposit, 950)._book()
+
+    def balance(self, role):
+        account = self.env["investra.account.role"].account_for(self.fund.company_id, role)
+        lines = self.env["account.move.line"].sudo().search([("account_id", "=", account.id), ("parent_state", "=", "posted")])
+        return Decimal(str(round(sum(lines.mapped("balance")), 2)))
+
+    def test_valuation_accrues_interest_to_income(self):
+        self.deposit_position()
+        valuation = self.valuation(self.fund, date(2029, 7, 1))
+        self.run_to_posted(valuation)
+        self.assertEqual(self.balance("deposit"), Decimal("974.47"))
+        self.assertEqual(self.balance("income_interest"), Decimal("-24.47"))
+        self.assertEqual(self.balance("gain_fair_value"), 0)
+        lines = valuation.event_ids.move_id.line_ids.filtered(lambda l: l.investra_instrument_id == self.deposit)
+        self.assertEqual(set(lines.mapped("investra_movement_type")), {"accrued_interest"})
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "positions_ledger").status, "ok")
+        self.assertEqual(valuation.portfolio_line_ids.filtered("instrument_id").price_source, "Naběhlá hodnota")
+
+    def test_repayment_closes_position_and_keeps_full_interest(self):
+        self.deposit_position()
+        self.run_to_posted(self.valuation(self.fund, date(2029, 7, 1)))
+        repayment = self.env["investra.instrument.repayment"].create({
+            "fund_id": self.fund.id, "instrument_id": self.deposit.id, "date": "2030-01-01", "amount": 1000,
+        })
+        repayment.with_user(self.preparer).action_book()
+        valuation = self.valuation(self.fund, date(2030, 1, 31))
+        self.run_to_posted(valuation)
+        self.assertEqual(self.balance("deposit"), 0)
+        self.assertEqual(self.balance("income_interest"), -50)
+        self.assertEqual(self.balance("bank"), 2000 - 950 + 1000)
+        self.assertFalse(valuation.portfolio_line_ids.filtered("instrument_id"))
+
+    def test_repeated_compute_does_not_double_interest(self):
+        self.deposit_position()
+        valuation = self.valuation(self.fund, date(2029, 7, 1))
+        valuation.with_user(self.preparer).action_compute()
+        valuation.with_user(self.preparer).action_compute()
+        self.run_to_posted(valuation)
+        self.assertEqual(self.balance("income_interest"), Decimal("-24.47"))
+
+    def test_schedule_from_rate_and_day_count(self):
+        deposit = self.instrument("deposit", principal=1000000, start_date="2029-01-01", maturity_date="2029-04-01",
+                                  coupon_rate=4, day_count="act360")
+        deposit.action_generate_schedule()
+        self.assertEqual(sum(deposit.cashflow_ids.mapped("amount")), 1010000)
+        self.assertEqual(set(deposit.cashflow_ids.mapped("flow_type")), {"principal", "interest"})
+
+    def test_schedule_needs_terms(self):
         with self.assertRaises(UserError):
-            self.valuation(self.fund, date(2029, 1, 31)).action_compute()
+            self.instrument("repo").action_generate_schedule()
+
+    def test_schedule_locked_after_repayment(self):
+        self.deposit_position()
+        self.deposit.write({"principal": 950, "start_date": "2029-01-01", "maturity_date": "2030-01-01"})
+        self.env["investra.instrument.repayment"].create({
+            "fund_id": self.fund.id, "instrument_id": self.deposit.id, "date": "2030-01-01", "amount": 1000,
+        })._book()
+        with self.assertRaises(UserError):
+            self.deposit.action_generate_schedule()
+
+    def test_interest_and_principal_on_same_day_stay_one_payment_for_linear(self):
+        deposit = self.instrument("deposit", accrual_method="linear", accrual_note="Krátký vklad")
+        deposit.cashflow_ids = [(0, 0, {"date": "2030-01-01", "amount": 950}), (0, 0, {"date": "2030-01-01", "amount": 50, "flow_type": "interest"})]
+        self.trade(deposit, 950)
+        self.assertEqual(deposit._accrued_value(self.fund, date(2029, 7, 1)), Decimal("974.79"))
+
+    def test_repayment_only_for_amortised(self):
+        bond = self.instrument("bond")
+        with self.assertRaises(ValidationError):
+            self.env["investra.instrument.repayment"].create({
+                "fund_id": self.fund.id, "instrument_id": bond.id, "date": "2030-01-01", "amount": 1000,
+            })
 
     def test_bond_books_to_own_role_and_position_check_holds(self):
         self.purchase.unlink()
