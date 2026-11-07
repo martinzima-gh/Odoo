@@ -30,6 +30,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Klasifikace podle fondu | Nástroj je společný pro fondy, ale obchodní model má každý fond svůj | Přesunout klasifikaci na vazbu fond a nástroj |
 | Oceňování derivátů | Návrh v `docs/navrh-oceneni-derivatu.md`; Přílohy 1 a 2 Pravidel oceňování vyžadují aktualizaci referenčních sazeb, chybí metodiky pro některé nástroje | Rozhodnout rozsah podle pozic prvního fondu; změnu předpisu navrhne oddělení oceňování |
 | Napojení na SDAT | Návrh v `docs/navrh-sdat.md`; termíny poskytuje `ctiVykazovaciPovinnost`. Otevřené: varianta podpisu, soulad pečeti s § 10 vyhlášky 267/2020 Sb., přístupy do testu | Začít variantou se souborem a čtením přes služby |
+| Den kurzu v Odoo | Odoo 20 hledá kurz ostře před datem (`name < date`), doklad k 6. 11. tedy dostane kurz z 5. 11.; vlastní ocenění fondů bere kurz k datu | Rozhodnout v účetní politice: přijmout, nebo upravit vlastním modulem; ověřit § 24 zákona o účetnictví |
 | Evidence aktiv uvnitř SPV | Zda vést i aktiva dceřiných společností, nebo jen účast a úvěr | Upřesnit |
 | Automatické testy (CI) | Testy modulů se zatím spouštějí ručně | Po prvním funkčním modulu nastavit GitHub Actions s instalací modulu a testy |
 | Pole výkazů ČNB | Katalog výkazů, položek, kontrol a číselníků je v `docs/cnb/` (metodika FOFI20261201) | Doplnit ukazatele u položek bez kontroly a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
