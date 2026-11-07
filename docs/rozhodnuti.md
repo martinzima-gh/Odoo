@@ -56,5 +56,11 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-07 | Rámce jednotek | Každá jednotka má jeden rámec: vyhláška 500/2002 Sb., vyhláška 501/2002 Sb. s IFRS pro finanční nástroje, nebo plné IFRS | U rámce 501 nejde o souběh; znění § 4a ověřit | R |
 | 2026-11-07 | IFRS 18 | Jednotky na plném IFRS používají IFRS 18 místo IAS 1 pro období od 1. 1. 2027 | Přijato EU v únoru 2026 | R |
 | 2026-11-07 | Ochrana zaúčtování | Zamčené návrhy ocenění chrání serverová kontrola; automatické účtování přijatých faktur je v šabloně společnosti vypnuté | Standardní zaúčtování kontroluje jen účetní skupinu | R+P |
-| 2026-11-07 | Uchování a archivace | Matice uchování podle druhu záznamu a export archivu čitelný bez Odoo | Lhůty ZISIF ověřit | R |
+| 2026-11-07 | Pravidla archivace | Pravidla podle druhu záznamu a export archivu čitelný bez Odoo | Lhůty ZISIF ověřit | R |
 | 2026-11-07 | Prototyp NAV | Ověřit celý cyklus na jednom fondu před plným vývojem fondových modulů | Největší riziko se má ověřit brzy | R |
+| 2026-11-07 | Bankovní tok | Výpisy se načítají automaticky a párování se připraví jako návrh; účetní ho vždy schválí, automatické zaúčtování je budoucí volba, zatím vypnutá | | R |
+| 2026-11-07 | Dashboard | Přehled napříč fondy se stavem ocenění, výjimkami a termíny ČNB | | R |
+| 2026-11-07 | Registrace uživatelů | V produkci vypnutá, účty zakládá správce | | R |
+| 2026-11-07 | Třídy fondů | Fondy jsou vícetřídové, model i prototyp s tím počítají od začátku | | R |
+| 2026-11-07 | Příprava před fondy | Napojení IS a mapa DORA jsou součástí přípravy před převzetím fondů | | R |
+| 2026-11-07 | Cílový termín | Start a převzetí fondů reálně ke konci Q1 2027 | Upřesnit podle harmonogramu | Př |
