@@ -1,6 +1,6 @@
 # Modul pro SDAT (návrh)
 
-Stav 2026-11-07. Jen návrh, nic není naprogramované ani nic nebylo do SDAT odesláno. Zdroj: technická specifikace SDAT na cnb.cz (TS 1 až 6, testování, WSDL a XSD ve verzi 1.99.6), vyhláška 267/2020 Sb., § 10.
+Stav 2026-11-07. Jen návrh, odložený do získání přístupu do testovacího SDAT. Nic není naprogramované ani nic nebylo do SDAT odesláno. Zdroj: technická specifikace SDAT na cnb.cz (TS 1 až 6, testování, WSDL a XSD ve verzi 1.99.6), vyhláška 267/2020 Sb., § 10.
 
 ## Co SDAT nabízí
 
