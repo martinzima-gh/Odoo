@@ -10,7 +10,7 @@ Nová metodika = nové soubory se jménem podle metodiky; rozdíl proti minulé 
 |---|---|---|
 | `vykazy-*.csv` | Výkazy: akronym, název, verze, platnost, listy, počty kontrol, odkaz do SDAT | 22 |
 | `kontroly-*.csv` | Kontroly: kód, název, závažnost, platnost, sémantický a uživatelský tvar, vzorec s názvy položek, chybové hlášení | 705 (633 JVK, 72 MVK) |
-| `polozky-*.csv` | Struktura výkazů: list, řádek, sloupec, klíč, název, datový typ nebo číselník, ukazatel | 1 479 (99 listů) |
+| `polozky-*.csv` | Struktura výkazů: list, řádek, sloupec, klíč, název, datový typ nebo číselník, ukazatel | 1 479 (103 listů) |
 | `ciselniky-*.csv` | Hodnoty 25 použitých domén a souhrnné položky `S_…` z hierarchií | 1 436 |
 | `domeny-*.csv` | Přehled použitých domén | 25 |
 | `parametry-*.csv` | Parametry použité ve vzorcích a strukturách (`P0019` apod.) | 50 |

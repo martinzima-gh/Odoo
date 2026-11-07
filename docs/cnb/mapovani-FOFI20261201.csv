@@ -1,0 +1,104 @@
+﻿vykaz;list;nazev_listu;pocet_polozek;zdroj;stav_prototypu;poznamka
+DOFOS15;DOFO15_01;Zpráva auditora a počet investorů;3;Dokument, IS;Chybí;Počet investorů z IS, zpráva auditora jako příloha
+DOFOS31;DOFO31_11;Majetkové CP v majetku fondu;14;Portfolio a ocenění;Část dat;Doplnit emitenta, sektor, kód CFI a vazbu na limit
+DOFOS31;DOFO31_12;Dluhové CP v majetku fondu;14;Portfolio a ocenění;Část dat;Doplnit emitenta, splatnost, sektor, kód CFI
+DOFOS31;DOFO31_21;Burzovní deriváty v majetku fondu;6;Portfolio a ocenění;Chybí;Registr derivátů
+DOFOS31;DOFO31_22;Mimoburzovní deriváty v majetku fondu;10;Portfolio a ocenění;Chybí;Registr derivátů a protistran
+DOFOS31;DOFO31_31;Výpočet celkové expozice;5;Řízení rizik;Chybí;Výpočet expozice závazkovou metodou
+DOFOS31;DOFO31_41;Měnové expozice;4;Portfolio a ocenění;Část dat;Expozice dopočítat z CZK hodnoty řádků, vazba na aktiva a RH derivátů
+DOFOS31;DOFO31_51;Kryptoaktiva;5;Portfolio a ocenění;Chybí;Druh nástroje kryptoaktivum
+DOFOS40;DOFO40_11;Nemovitosti v majetku nemovit. fondu a nemovitostní společ.;19;Portfolio a ocenění;Chybí;Registr nemovitostí
+DOFOS40;DOFO40_12;Účasti speciálního fondu nemovitostí na nemovitostních spol.;9;Portfolio a ocenění;Chybí;Registr účastí v nemovitostních společnostech
+DOFOS50;DIS60_01;Identifikace vykazující osoby;14;Údaje společnosti;Chybí;Údaje knihy a protistrany
+DOFOS50;DOFO50_02;Pracovníci a členové orgánů společnosti;17;Údaje společnosti;Chybí;Ruční evidence
+DOFOS50;DOFO50_03;Osoby zodpovědné za klíčové oblasti;18;Údaje společnosti;Chybí;Ruční evidence
+DOFOS50;DOFO50_04;Outsourcing;13;Údaje společnosti;Chybí;Ruční evidence
+DOFOS50;DOFO50_05;Distribuce investičních fondů;2;Údaje společnosti, IS;Chybí;
+DOFOS50;DOFO50_06;Spravované neinvestiční svěřenské fondy;12;Údaje společnosti;Chybí;
+DOFOS50;DOFO50_07;Informace týkající se udržitelnosti;3;Parametry fondu;Chybí;
+DOFOS50;DOFO50_20;Identifikace (pod)fondů obhospodařovaných z podnětu jiného;10;Údaje společnosti;Chybí;
+DOFOS50;DOFO50_21;Identifikace (pod)fondů nabízených v jiném členském státě;5;Údaje společnosti;Chybí;
+DOFOS50;DIS60_42;Akcionáři vykazující osoby - právnické osoby;11;Údaje společnosti;Chybí;
+DOFOS50;DIS60_43;Akcionáři vykazující osoby - fyzické osoby;15;Údaje společnosti;Chybí;
+DOFOS50;DOFO50_11;Informace o činnosti hlavního administrátora;6;Údaje společnosti;Chybí;
+DOFOS60;DOFO60_11;Struktura kapitálu;58;Hlavní kniha podle rolí;Chybí;Kapitál obhospodařovatele, jiná kniha než fond
+DOFOS60;DOFO60_12;Kapitálové požadavky;11;Hlavní kniha podle rolí;Chybí;Výpočet požadavků podle kapitálových pravidel
+DOFOS60;DOFO60_13;Aktiva podle likvidnosti;5;Hlavní kniha podle rolí;Chybí;Likvidnost jako atribut role nebo nástroje
+DOFOS70;DOFO70_01;Informace o produktech;11;Parametry fondu;Chybí;Údaje produktu a sdělení klíčových informací
+DOFOS70;DOFO70_02;Informace o sdělení klíčových informací;14;Parametry fondu;Chybí;
+DOFOS70;DOFO70_03;Výkonnost a náklady v čase;17;Ocenění, Parametry fondu;Chybí;Výkonnost z historie kurzů, náklady z rozpisu úplat
+DOFOS70;DOFO70_04;Skladba nákladů produktu;8;Ocenění, Parametry fondu;Chybí;
+KLISIFI10;KLIS10_01;Klasifikační údaje o investičním fondu;12;Parametry fondu;Chybí;Klasifikační údaje fondu
+PEFOS10;PEFO10_01;Hlášení fondů peněžního trhu;2;Řízení rizik;Chybí;Jen fondy peněžního trhu
+RISIFI30;RIS30_01;Aktiva v základním členění;24;Hlavní kniha a atributy nástroje;Část dat;"Řádky podle rolí; druh, sektor a splatnost z nástroje a protistrany"
+RISIFI30;RIS30_02;Přehled poskytnutých úvěrů;16;Hlavní kniha a atributy nástroje;Chybí;Registr úvěrů
+RISIFI30;RIS30_06;Aktiva: Pozice vůči jednotlivým zemím;34;Hlavní kniha a atributy nástroje;Část dat;Země emitenta nebo protistrany
+RISIFI30;RIS30_03;Pasiva v základním členění;13;Hlavní kniha a atributy nástroje;Část dat;"Řádky podle rolí; závazky podle protistrany"
+RISIFI30;RIS30_04;Přehled přijatých úvěrů;17;Hlavní kniha a atributy nástroje;Chybí;Registr úvěrů
+RISIFI30;RIS30_07;Pasiva: Pozice vůči jednotlivým zemím;34;Hlavní kniha a atributy nástroje;Část dat;Země protistrany
+RISIFI30;RIS30_05;Doplňkové informace;2;Ocenění;Část dat;
+RISIFI33;RIS33_11;Security-by-security - držené cenné papíry s identifikátorem ISIN;5;Portfolio a ocenění;Část dat;"Jen vypořádané pozice; ISIN, měna, počet"
+RISIFI33;RIS33_13;Security-by-security - držené cenné papíry a majetkové účasti bez identifikátoru ISIN;14;Portfolio a ocenění;Část dat;Nástroje bez ISIN, účasti podle údajů společnosti
+RISIFI33;RIS33_12;Security-by-security - emitované cenné papíry;6;IS;Chybí;Emitované cenné papíry po třídách
+RISIFI37;RIS37_01;Objem vydaných a odkoupených podílových listů a akcií fondu;3;IS;Část dat;Objem vydaných a odkoupených z pohybů tříd
+ROFOS10;ROFO10_11;Aktiva;26;Hlavní kniha podle rolí;Část dat;Rozvaha podle rolí a účetního rámce
+ROFOS10;ROFO10_12;Aktiva SICAV bez podfondu;29;Hlavní kniha podle rolí;Chybí;SICAV bez podfondu: pole část fondu je, sestava chybí
+ROFOS10;ROFO10_21;Pasiva;48;Hlavní kniha podle rolí;Část dat;
+ROFOS10;ROFO10_22;Pasiva SICAV bez podfondu;51;Hlavní kniha podle rolí;Chybí;SICAV bez podfondu
+ROFOS10;ROFO10_41;Účetní rámec při sestavení výkazu rozvahy;2;Parametry fondu;Základ v prototypu;Rámec je na knize
+ROFOS10;ROFO10_31;Poskytnuté úvěrové a jiné přísliby a finanční záruky;6;Hlavní kniha podle rolí;Chybí;Podrozvaha a přísliby
+ROFOS10;ROFO10_51;Finanční aktiva v reálné hodnotě;30;Hlavní kniha a atributy nástroje;Část dat;Úroveň RH je na nástroji, kategorie IFRS 9 také
+ROFOS10;ROFO10_52;Deriváty k obchodování;25;Portfolio a ocenění;Chybí;Registr derivátů, řádek podle režimu účtování
+ROFOS10;ROFO10_53;Přehled zatížení aktiv;10;Portfolio a ocenění;Chybí;Registr zatížení aktiv
+ROFOS11;ROFO11_21;Bilance cenných papírů vydaných fondem;11;IS;Část dat;"Pohyby tříd; v CZK podle kurzu k rozhodnému dni, IS musí dodat datum žádosti"
+ROFOS11;ROFO11_41;Informace o jednotlivých třídách;21;Ocenění, IS;Část dat;Kurz a kapitál třídy jsou, počty investorů z IS
+ROFOS11;ROFO11_61;Nástroje pro řízení likvidity využívané ve fondu;12;Parametry fondu;Chybí;Nástroje řízení likvidity
+ROFOS13;ROFO13_10;Bilance cenných papírů vydaných fondem kvalifikovaných investorů;11;IS;Část dat;Stejně jako ROFO11_21
+ROFOS13;ROFO13_41;Informace o jednotlivých třídách;21;Ocenění, IS;Část dat;
+ROFOS13;ROFO13_61;Nástroje pro řízení likvidity využívané ve fondu kvalifikovaných investorů;12;Parametry fondu;Chybí;
+ROFOS33;ROFO33_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;10;Portfolio a ocenění;Chybí;Agregace přes fondy jednoho obhospodařovatele
+ROFOS35;ROFO35_01;Základní informace o obhospodařovaném fondu;24;Parametry fondu, Ocenění;Část dat;
+ROFOS35;ROFO35_11;Investiční strategie obhospodařovaného fondu;42;Parametry fondu;Chybí;Strategie
+ROFOS35;ROFO35_12;Seznam hlavních makléřů fondu;5;Parametry fondu;Chybí;
+ROFOS35;ROFO35_21;Struktura finančních nástrojů podle typu;44;Portfolio a ocenění;Část dat;
+ROFOS35;ROFO35_22;Struktura derivátů;30;Portfolio a ocenění;Chybí;Registr derivátů
+ROFOS35;ROFO35_23;Struktura ostatních aktiv;20;Hlavní kniha a atributy nástroje;Chybí;
+ROFOS35;ROFO35_24;Struktura expozic podle měn;5;Portfolio a ocenění;Část dat;Měna je na řádku portfolia
+ROFOS35;ROFO35_25;Struktura expozic podle regionů;9;Portfolio a ocenění;Chybí;Region z protistrany
+ROFOS35;ROFO35_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;6;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;12;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_33;Hlavní expozice vůči riziku;18;Řízení rizik;Chybí;
+ROFOS35;ROFO35_34;Hlavní koncentrace portfolia;14;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_35;Největší čisté úvěrové expozice fondu k protistranám a protistran vůči fondu;13;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_36;Největší čisté úvěrové expozice vůči CCP;7;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_37;Uplatňování rozhodujícího vlivu ve společnostech v portfoliu fondu soukromého kapitálu;7;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_38;Koncentrace investorů;4;IS;Chybí;Skutečnost z IS
+ROFOS35;ROFO35_41;Základní rizikové charakteristiky;12;Řízení rizik;Chybí;VaR, expozice, citlivost
+ROFOS35;ROFO35_42;Obchodní a clearingové mechanismy;8;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_43;Hodnota zajištění a jiné úvěrové podpory vůči protistranám;7;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_51;Vybrané ukazatele podle zbytkové splatnosti;10;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_52;Vybraná zvláštní opatření;6;Parametry fondu;Chybí;
+ROFOS35;ROFO35_53;Struktura investorů fondu;11;IS;Chybí;Skutečnost z IS, bez dorovnávání
+ROFOS35;ROFO35_54;Vybrané ukazatele v jednotlivých měsících;17;Ocenění, Řízení rizik;Část dat;Hrubá a čistá výkonnost z ocenění
+ROFOS35;ROFO35_61;Výpůjčky;11;Hlavní kniha a atributy nástroje;Chybí;
+ROFOS35;ROFO35_62;Koncentrace zdrojů vypůjčené hotovosti nebo cenných papírů (krátké pozice);9;Hlavní kniha a atributy nástroje;Chybí;
+ROFOS35;ROFO35_63;Expozice vůči finančním strukturám, případně osobám kontrolovaných fondem;6;Portfolio a ocenění;Chybí;
+ROFOS35;ROFO35_71;Doplňující popis k AIFMD reportingu;7;Dokument;Chybí;Text
+ROFOS36;ROFO36_11;Nejvýznamnější trhy a nástroje, na nichž společnost obchoduje jménem speciálních fondů a fondů kval. investorů;10;Portfolio a ocenění;Chybí;
+ROFOS37;ROFO37_01;Základní informace o obhospodařovaném fondu (čl. 3 AIFMD);11;Parametry fondu, Ocenění;Část dat;
+ROFOS37;ROFO37_11;Investiční strategie obhospodařovaného fondu;42;Parametry fondu;Chybí;
+ROFOS37;ROFO37_12;Seznam hlavních makléřů fondu;5;Parametry fondu;Chybí;
+ROFOS37;ROFO37_21;Struktura expozic podle  regionů;9;Portfolio a ocenění;Chybí;
+ROFOS37;ROFO37_31;Hlavní trhy, na nichž obhospodařovaný fond obchoduje;6;Portfolio a ocenění;Chybí;
+ROFOS37;ROFO37_32;Hlavní nástroje, s nimiž obhospodařovaný fond obchoduje;12;Portfolio a ocenění;Chybí;
+ROFOS37;ROFO37_33;Hlavní expozice vůči riziku;18;Řízení rizik;Chybí;
+ROFOS37;ROFO37_34;Hlavní koncentrace portfolia;14;Portfolio a ocenění;Chybí;
+ROFOS37;ROFO37_35;Koncentrace investorů;4;IS;Chybí;
+ROFOS37;ROFO37_41;Doplňující popis k AIFMD reportingu;2;Dokument;Chybí;
+TISIFI10;TIS10_01;Změny z přecenění;4;Hlavní kniha a atributy nástroje;Část dat;"Typ pohybu přecenění je na řádku; deriváty po smlouvě chybí"
+VISIFI10;VISI10_01;Příjmy investičního fondu;3;Hlavní kniha podle rolí;Část dat;Příjmy po třídách na jednotku
+VISIFI10;VISI10_02;Vyplacené dividendy investičním fondem;4;IS;Chybí;Vyplacené dividendy
+VISIFI20;VISI20_01;Roční výkaz o úplatách investičnímu fondu;2;Ocenění;Základ v prototypu;Rozpis úplat po pravidlech a třídách
+VYFOS20;VYFO20_11;Náklady, výnosy a zisky nebo ztráty;59;Hlavní kniha a atributy nástroje;Část dat;Výnosy a náklady podle rolí a druhu nástroje
+VYFOS20;VYFO20_12;Náklady, výnosy a zisky nebo ztráty SICAV bez podfondu;62;Hlavní kniha podle rolí;Chybí;SICAV bez podfondu
+VYFOS20;VYFO20_21;Účetní rámec při sestavení výkazu zisku a ztráty;2;Parametry fondu;Základ v prototypu;Rámec je na knize

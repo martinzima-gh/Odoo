@@ -175,3 +175,171 @@ class TestFees(NavCase):
         valuation.action_compute()
         self.assertAlmostEqual(self.result(valuation, "VIA").capital, 0, places=2)
         self.assertAlmostEqual(self.result(valuation, "PIA").capital, 950, places=2)
+
+
+@tagged("post_install", "-at_install")
+class TestRuleFields(NavCase):
+    """Varianty přes skutečné záznamy pravidel, ne jen přes výpočetní jádro."""
+
+    def setUp(self):
+        super().setUp()
+        self.Rule = self.env["investra.fee.rule"]
+
+    def fund(self, capital=1000000, classes=("A",), launch="2026-12-31"):
+        fund = self.make_fund(classes=[{"code": c} for c in classes], launch=launch)
+        for code in classes:
+            self.subscribe(self.cls(fund, code), "2027-01-01", capital, 1000)
+        return fund
+
+    def fee(self, fund, day, **version):
+        rule_values = version.pop("rule", {})
+        rule = self.Rule.create({"fund_id": fund.id, "name": "Pravidlo", "kind": "periodic", **rule_values,
+                                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", **version})]})
+        valuation = self.valuation(fund, day)
+        valuation.action_compute()
+        return sum(valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule).mapped("amount"))
+
+    def test_fixed_started_month(self):
+        self.assertAlmostEqual(self.fee(self.fund(), date(2027, 1, 31), fixed_monthly=110000, fixed_mode="started_month"), 110000, places=2)
+
+    def test_fixed_plus_percent_above_threshold(self):
+        # Rok: 1 000 × 12 + 1 % z (5 000 000 − 1 000 000) = 12 000 + 40 000
+        fund = self.fund(5000000)
+        amount = self.fee(fund, date(2027, 12, 31), fixed_monthly=1000, fixed_mode="started_month", rate=0.01, threshold=1000000)
+        self.assertAlmostEqual(amount, 52000, places=2)
+
+    def test_sliding_tiers_from_records(self):
+        # Rok: 0 do 1 mil., 1 % z dalšího 1 mil., 0,5 % ze zbývajícího 1 mil. = 10 000 + 5 000
+        fund = self.fund(3000000)
+        amount = self.fee(fund, date(2027, 12, 31), tier_ids=[
+            (0, 0, {"amount_from": 0, "rate": 0}),
+            (0, 0, {"amount_from": 1000000, "rate": 0.01}),
+            (0, 0, {"amount_from": 2000000, "rate": 0.005}),
+        ])
+        self.assertAlmostEqual(amount, 15000, places=2)
+
+    def test_step_price_from_records(self):
+        # FK 1,2 mil., pásmo 500 tis.: dvě započatá pásma nad prvním, 45 000 + 2 × 10 000
+        fund = self.fund(1200000)
+        amount = self.fee(fund, date(2027, 1, 31), fixed_monthly=45000, fixed_mode="started_month",
+                          step_size=500000, step_amount=10000)
+        self.assertAlmostEqual(amount, 65000, places=2)
+
+    def test_annual_minimum_and_maximum(self):
+        self.assertAlmostEqual(self.fee(self.fund(100000), date(2027, 12, 31), rate=0.001, min_annual=200), 200, places=2)
+
+    def test_annual_maximum(self):
+        self.assertAlmostEqual(self.fee(self.fund(100000000), date(2027, 12, 31), rate=0.01, max_annual=1000), 1000, places=2)
+
+    def test_extra_class_surcharge(self):
+        fund = self.fund(1000, classes=("A", "B", "C"))
+        amount = self.fee(fund, date(2027, 1, 31), fixed_monthly=100, fixed_mode="started_month", included_classes=2, extra_class_monthly=10)
+        self.assertAlmostEqual(amount, 110, places=2)
+
+    def test_base_from_assets(self):
+        # Aktiva 1 000 000 i po závazku 100 000: základ se nesnižuje o závazky
+        fund = self.fund()
+        self.book(fund, "z", "2027-01-10", [{"role": "bank", "amount": "100000"}, {"role": "fee_payable", "amount": "-100000"}])
+        amount = self.fee(fund, date(2027, 12, 31), rate=0.01, rule={"base_source": "assets"})
+        self.assertAlmostEqual(amount, 11000, places=2)
+
+    def test_day_count_months(self):
+        amount = self.fee(self.fund(), date(2027, 3, 31), rate=0.012, rule={"basis": "months"})
+        self.assertAlmostEqual(amount, 3000, places=2)
+
+    def performance(self, fund, day, rule=None, **version):
+        code = fund.class_ids[0]
+        values = {"rate": 0.2, "perf_measure": "unit", "initial_reference": 1000, **version}
+        self.Rule.create({"fund_id": fund.id, "name": "Odměna", "kind": "performance", "crystallisation": "none",
+                          "expense_role": "expense_performance", "class_ids": [(6, 0, code.ids)], **(rule or {}),
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", **values})]})
+        valuation = self.valuation(fund, day)
+        valuation.action_compute()
+        return valuation
+
+    def test_index_benchmark_with_margin(self):
+        # Index 100 → 104, marže 2 % za 365 dní, faktor 1,06; kus 1 000 → 1 100: 0,2 × 40 × 1 000 kusů = 8 000
+        fund = self.fund()
+        self.common_result(fund, "v", "2027-06-01", 100000)
+        benchmark = self.env["investra.benchmark"].create({"name": "Index", "value_ids": [
+            (0, 0, {"date": "2026-12-31", "value": 100}), (0, 0, {"date": "2027-12-31", "value": 104}),
+        ]})
+        valuation = self.performance(fund, date(2027, 12, 31), perf_use_hwm=False, hurdle_kind="index",
+                                     hurdle_margin=0.02, benchmark_id=benchmark.id)
+        self.assertAlmostEqual(valuation.fee_line_ids.amount, 8000, places=2)
+
+    def test_fee_on_negative_return_needs_flag(self):
+        # Index −10 %, fond −5 %: bez příznaku se platí, s příznakem ne
+        fund = self.fund()
+        self.common_result(fund, "v", "2027-06-01", -50000)
+        benchmark = self.env["investra.benchmark"].create({"name": "Index", "value_ids": [
+            (0, 0, {"date": "2026-12-31", "value": 100}), (0, 0, {"date": "2027-12-31", "value": 90}),
+        ]})
+        valuation = self.performance(fund, date(2027, 12, 31), perf_use_hwm=False, hurdle_kind="index",
+                                     benchmark_id=benchmark.id, require_positive_return=True)
+        self.assertAlmostEqual(valuation.fee_line_ids.amount, 0, places=2)
+
+    def test_soft_hurdle_catch_up_from_records(self):
+        # Kus 1 000 → 1 300, hurdle 8 %, plné dohánění: 20 % z celého zisku = 60 na kus, 60 000
+        fund = self.fund()
+        self.common_result(fund, "v", "2027-06-01", 300000)
+        valuation = self.performance(fund, date(2027, 12, 31), perf_use_hwm=False, hurdle_kind="fixed", hurdle_rate=0.08,
+                                     hurdle_type="soft", catch_up=1)
+        self.assertAlmostEqual(valuation.fee_line_ids.amount, 60000, places=2)
+
+    def test_probability_weighted_accrual(self):
+        fund = self.fund()
+        self.common_result(fund, "v", "2027-06-01", 100000)
+        valuation = self.performance(fund, date(2027, 12, 31), probability=0.5)
+        self.assertAlmostEqual(valuation.fee_line_ids.amount, 10000, places=2)
+
+    def test_cap_from_gross_value(self):
+        # Odměna 20 000 omezená na 1 % z hodnoty 1 100 000 = 11 000
+        fund = self.fund()
+        self.common_result(fund, "v", "2027-06-01", 100000)
+        valuation = self.performance(fund, date(2027, 12, 31), cap_rate=0.01)
+        self.assertAlmostEqual(valuation.fee_line_ids.amount, 11000, places=2)
+
+    def test_quarter_crystallises_only_at_quarter_end(self):
+        fund = self.fund()
+        rule = {"crystallisation": "quarter"}
+        self.common_result(fund, "v", "2027-01-20", 100000)
+        january = self.performance(fund, date(2027, 1, 31), rule=rule)
+        self.assertEqual(self.result(january, "A").perf_hwm, 1000)
+        self.assertAlmostEqual(self.result(january, "A").perf_accrued, 20000, places=2)
+
+    def test_quarter_end_sets_new_hwm(self):
+        fund = self.fund()
+        self.common_result(fund, "v", "2027-03-20", 100000)
+        march = self.performance(fund, date(2027, 3, 31), rule={"crystallisation": "quarter"})
+        self.assertAlmostEqual(self.result(march, "A").perf_hwm, 1080, places=4)
+        self.assertEqual(self.result(march, "A").perf_accrued, 0)
+
+    def test_waterfall_residual_half_by_capital(self):
+        # Zbytek 100: polovina podle kapitálů 3 : 1, polovina třídě V
+        fund = self.make_fund(classes=[{"code": "P"}, {"code": "V"}])
+        p, v = self.cls(fund, "P"), self.cls(fund, "V")
+        self.subscribe(p, "2027-01-01", 300, 3)
+        self.subscribe(v, "2027-01-01", 100, 1)
+        self.common_result(fund, "v", "2027-01-15", 100)
+        self.env["investra.allocation.scheme"].create({
+            "fund_id": fund.id, "valid_from": "2020-01-01", "method": "waterfall", "residual_pro_rata": 0.5,
+            "line_ids": [(0, 0, {"class_id": v.id, "rank": 2, "residual_share": 1}), (0, 0, {"class_id": p.id, "rank": 1})],
+        })
+        valuation = self.valuation(fund, date(2027, 1, 31))
+        valuation.action_compute()
+        self.assertAlmostEqual(self.result(valuation, "P").capital, 337.5, places=2)
+        self.assertAlmostEqual(self.result(valuation, "V").capital, 162.5, places=2)
+
+    def test_rule_order_changes_base(self):
+        # Pořadí podle statutu: druhá úplata má základ po první
+        fund = self.fund(1000000)
+        self.Rule.create({"fund_id": fund.id, "name": "První", "kind": "periodic", "sequence": 1,
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.1})]})
+        self.Rule.create({"fund_id": fund.id, "name": "Druhá", "kind": "periodic", "sequence": 2,
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.1})]})
+        valuation = self.valuation(fund, date(2027, 12, 31))
+        valuation.action_compute()
+        amounts = valuation.fee_line_ids.sorted("id").mapped("amount")
+        self.assertAlmostEqual(amounts[0], 100000, places=2)
+        self.assertAlmostEqual(amounts[1], 90000, places=2)
