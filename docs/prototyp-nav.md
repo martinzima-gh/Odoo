@@ -14,7 +14,7 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_posting` | Události, ochrana dokladů, třída na řádku, hash, storno | 22 |
 | `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 22 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
-| `investra_dashboard` | Přehled fondů, výjimky, termíny ČNB | 10 |
+| `investra_dashboard` | Přehled fondů, výjimky, termíny ČNB | 11 |
 | `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu | 93 |
 
 Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
@@ -88,7 +88,8 @@ vybraných v přepínači společností, proto je pro přehled napříč fondy p
 | Upozornění | Kontrola s upozorněním, termín ČNB do 7 dnů, obchod po termínu vypořádání, cena čekající na schválení |
 | Bez ocenění | Fond zatím nemá ocenění |
 
-Termíny ČNB zadává člověk v menu Termíny ČNB; automatické generování podle metodiky zatím není. Počet dnů upozornění je pracovní.
+Termíny a výkazy bude zveřejňovat ČNB v SDAT a budou se stahovat odtud; zatím jsou v menu Termíny ČNB jen obecné příklady se zdrojem Příklad. Počet dnů upozornění je pracovní.
+Ukázku stavů vytvoří `tools/nav_demo/demo_prehled.py`: Beta vyžaduje zásah, Gama má upozornění.
 
 ## Zaúčtování obchodu
 

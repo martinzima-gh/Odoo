@@ -6,7 +6,7 @@ SOON_DAYS = 7
 
 
 class InvestraRegulatoryDeadline(models.Model):
-    """Termín podání zadaný člověkem; dashboard ho jen vyhodnocuje a nic nepodává."""
+    """Termín podání; zdrojem bude SDAT. Dashboard ho jen vyhodnocuje a nic nepodává."""
 
     _name = "investra.regulatory.deadline"
     _description = "Termín podání ČNB"
@@ -18,6 +18,9 @@ class InvestraRegulatoryDeadline(models.Model):
     period_end = fields.Date(required=True, string="Období do")
     due_date = fields.Date(required=True, string="Termín")
     state = fields.Selection([("open", "Otevřeno"), ("submitted", "Podáno")], required=True, default="open", string="Stav")
+    source = fields.Selection(
+        [("example", "Příklad"), ("manual", "Ručně"), ("sdat", "SDAT")], required=True, default="manual", string="Zdroj"
+    )
 
     _uniq = models.Constraint("unique(fund_id, report, period_end)", "Termín výkazu za období už existuje.")
 

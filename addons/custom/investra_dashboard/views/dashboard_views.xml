@@ -51,7 +51,7 @@
         <field name="name">investra.regulatory.deadline.list</field><field name="model">investra.regulatory.deadline</field>
         <field name="arch" type="xml">
             <list editable="bottom">
-                <field name="fund_id"/><field name="report"/><field name="period_end"/><field name="due_date"/><field name="state"/>
+                <field name="fund_id"/><field name="report"/><field name="period_end"/><field name="due_date"/><field name="state"/><field name="source"/>
             </list>
         </field>
     </record>

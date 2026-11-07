@@ -64,6 +64,9 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.dashboard_status, "none")
         self.assertFalse(self.fund.dashboard_next_deadline)
 
+    def test_manual_is_default_source(self):
+        self.assertEqual(self.deadline(3).source, "manual")
+
     def test_pending_price_warns(self):
         instrument = self.env["investra.instrument"].create({
             "name": "Akcie", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_equity").id,
