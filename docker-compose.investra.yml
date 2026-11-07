@@ -9,6 +9,9 @@ services:
       POSTGRES_USER: odoo
       POSTGRES_PASSWORD: ${INVESTRA_DB_PASSWORD:?Nastavte INVESTRA_DB_PASSWORD v .env}
       POSTGRES_DB: postgres
+    ports:
+      # Jen pro tento počítač; přístup přes účet dbeaver_ro pouze pro čtení.
+      - "127.0.0.1:5433:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
   odoo:
