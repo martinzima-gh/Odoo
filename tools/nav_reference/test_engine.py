@@ -76,6 +76,67 @@ class Periodic(unittest.TestCase):
         self.assertEqual(e.year_fraction(date(2027, 12, 31), date(2028, 12, 31), "act_act"), D(1))
 
 
+class DayCount(unittest.TestCase):
+    def test_30_360_full_year(self):
+        self.assertEqual(e.year_fraction(date(2026, 1, 15), date(2027, 1, 15), "thirty360_eu"), D(1))
+
+    def test_30e_treats_31_as_30(self):
+        # 31. 1. → 31. 3.: 60 dní
+        self.assertEqual(e.year_fraction(date(2026, 1, 31), date(2026, 3, 31), "thirty360_eu"), D(60) / 360)
+
+    def test_us_keeps_31_when_start_before_30(self):
+        # 15. 1. → 31. 3.: americká 76 dní, evropská 75 dní
+        self.assertEqual(e.year_fraction(date(2026, 1, 15), date(2026, 3, 31), "thirty360_us"), D(76) / 360)
+        self.assertEqual(e.year_fraction(date(2026, 1, 15), date(2026, 3, 31), "thirty360_eu"), D(75) / 360)
+
+    def test_february_end_in_30e(self):
+        # 28. 2. → 31. 3.: 32 dní
+        self.assertEqual(e.year_fraction(date(2026, 2, 28), date(2026, 3, 31), "thirty360_eu"), D(32) / 360)
+
+    def test_act360_is_longer_than_year(self):
+        self.assertEqual(e.year_fraction(DEC31_25, DEC31_26, "act360"), D(365) / 360)
+
+    def test_act_act_splits_leap_year(self):
+        # 30. 6. 2027 → 30. 6. 2028: 184/365 + 182/366
+        self.assertEqual(e.year_fraction(date(2027, 6, 30), date(2028, 6, 30), "act_act"), D(184) / 365 + D(182) / 366)
+
+
+    def test_act_act_icma_full_coupon_is_one_over_frequency(self):
+        # Pololetní kupón: celé období je 1/2 roku bez ohledu na délku období
+        self.assertEqual(e.act_act_icma(date(2026, 1, 1), date(2026, 7, 1), date(2026, 1, 1), date(2026, 7, 1), 2), D("0.5"))
+
+    def test_act_act_icma_part_of_coupon(self):
+        # 90 dní z 181denního období, dva kupóny ročně: 90 / (181 × 2)
+        self.assertEqual(e.act_act_icma(date(2026, 1, 1), date(2026, 4, 1), date(2026, 1, 1), date(2026, 7, 1), 2), D(90) / D(362))
+
+
+class EffectiveRate(unittest.TestCase):
+    ZERO = [(date(2026, 1, 1), -950), (date(2027, 1, 1), 1000)]
+    BOND = [(date(2026, 1, 1), -1000), (date(2027, 1, 1), 50), (date(2028, 1, 1), 1050)]
+
+    def test_discount_instrument(self):
+        # 1 000 / 950 − 1 = 5,263158 %
+        self.assertAlmostEqual(float(e.effective_rate(self.ZERO)), 1000 / 950 - 1, places=6)
+
+    def test_par_bond_equals_coupon(self):
+        # Přestupný rok v druhém období dává jen malou odchylku proti kupónu 5 %
+        self.assertAlmostEqual(float(e.effective_rate(self.BOND)), 0.05, places=3)
+
+    def test_amortised_cost_at_start_and_maturity(self):
+        self.assertEqual(e.amortised_cost(self.ZERO, date(2026, 1, 1)), D("950.00"))
+        self.assertEqual(e.amortised_cost(self.ZERO, date(2026, 12, 31)), D("999.86"))
+
+    def test_eir_differs_from_linear_midway(self):
+        # Polovina doby: 950 × 1,05263^(181/365) = 974,47; lineárně 950 + 50 × 181/365 = 974,79
+        day = date(2026, 7, 1)
+        self.assertEqual(e.amortised_cost(self.ZERO, day), D("974.47"))
+        self.assertEqual(e.linear_accrual(950, 1000, date(2026, 1, 1), date(2027, 1, 1), day), D("974.79"))
+
+    def test_no_solution_is_error(self):
+        with self.assertRaises(ValueError):
+            e.effective_rate([(date(2026, 1, 1), 100), (date(2027, 1, 1), 100)])
+
+
 class Performance(unittest.TestCase):
     Y = dict(start=DEC31_25, end=DEC31_26)
 
@@ -119,6 +180,17 @@ class Performance(unittest.TestCase):
         spec = {"rate": "0.2", "reference": 100, "hurdle_kind": "index", "index_start": 100, "index_end": 104,
                 "hurdle_margin": "0.02"}
         self.assertEqual(e.performance_fee(spec, gross=110, **self.Y)["required"], D("0.80"))
+
+    def test_negative_benchmark_floored_to_zero(self):
+        # Index −10 %, fond +5 %: s podlahou se platí jen z kladné výkonnosti, 30 % z 5
+        spec = {"rate": "0.3", "reference": 100, "hurdle_kind": "index", "index_start": 100, "index_end": 90,
+                "hurdle_floor_zero": True}
+        self.assertEqual(e.performance_fee(spec, gross=105, **self.Y)["required"], D("1.50"))
+
+    def test_hwm_limits_fee_when_closer_than_benchmark(self):
+        # Etalon 110 by dal přebytek 10, ale HWM 115 omezí přebytek na 5
+        spec = {"rate": "0.3", "reference": 100, "hwm": 115, "hurdle_kind": "fixed", "hurdle_rate": "0.1"}
+        self.assertEqual(e.performance_fee(spec, gross=120, **self.Y)["required"], D("1.50"))
 
     def test_benchmark_fee_allowed_on_negative_return(self):
         # Index −10 %, fond −5 %: 12 % z 5 i při záporné výkonnosti

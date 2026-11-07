@@ -408,7 +408,29 @@ class InvestraValuation(models.Model):
             lines.append({"role": "internal_clearing", "amount": amount, "class_id": fund_class.id, "movement_type": "class_transfer"})
         return lines
 
+    def _apply_average(self, rule):
+        """Úplata z průměrného FK: nárok od začátku roku minus to, co už je v tomto roce naúčtované."""
+        year_start = date_type(self.date.year - 1, 12, 31)
+        start = max(year_start, self.fund_id.launch_date or year_start)
+        earlier = self.search([
+            ("fund_id", "=", self.fund_id.id), ("date", ">", year_start), ("date", "<", self.date),
+            ("state", "in", ("posted", "sent", "confirmed", "published")),
+        ])
+        capitals = [d(v.fund_capital) for v in earlier] + [self._net_assets()]
+        average = sum(capitals) / len(capitals)
+        result = engine.periodic_fee(
+            rule._engine_rule(start, self.date), start, self.date, average, classes_count=len(self.fund_id.class_ids)
+        )
+        booked = sum(
+            (d(line.amount) for line in earlier.fee_line_ids.filtered(lambda l: l.rule_id == rule)), Decimal(0)
+        )
+        amount = result["amount"] - booked
+        self._fee_record(rule, amount, None, {"average": average, "booked": booked, **result})
+        self._book_fee(rule, amount, None)
+
     def _apply_periodic(self, rule, context):
+        if rule.base_source == "average_fk":
+            return self._apply_average(rule)
         start, end = self._period_start(), self.date
         payers = rule.class_ids or [None]
         for fund_class in payers:
@@ -460,6 +482,7 @@ class InvestraValuation(models.Model):
                 "hurdle_margin": version.hurdle_margin,
                 "hurdle_type": version.hurdle_type,
                 "catch_up": version.catch_up,
+                "hurdle_floor_zero": version.hurdle_floor_zero,
                 "basis": rule.basis,
                 "require_positive_return": version.require_positive_return,
                 "probability": version.probability,

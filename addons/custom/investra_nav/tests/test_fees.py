@@ -247,6 +247,26 @@ class TestRuleFields(NavCase):
         amount = self.fee(self.fund(), date(2027, 3, 31), rate=0.012, rule={"basis": "months"})
         self.assertAlmostEqual(amount, 3000, places=2)
 
+    def test_day_count_30e_360(self):
+        # 31. 12. → 31. 3.: 90 dní, 1 000 000 × 1,2 % × 90/360 = 3 000
+        amount = self.fee(self.fund(), date(2027, 3, 31), rate=0.012, rule={"basis": "thirty360_eu"})
+        self.assertAlmostEqual(amount, 3000, places=2)
+
+    def test_average_fk_with_true_up(self):
+        # Sazba 3,65 %, leden 31 dní: průměr 1 000 000, úplata 3 100
+        fund = self.fund()
+        rule = self.Rule.create({"fund_id": fund.id, "name": "Fixní", "kind": "periodic", "base_source": "average_fk",
+                                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.0365})]})
+        january = self.run_to_posted(self.valuation(fund, date(2027, 1, 31)))
+        self.assertAlmostEqual(january.fee_line_ids.amount, 3100, places=2)
+        self.assertAlmostEqual(january.fund_capital, 996900, places=2)
+        # Únor: úpis 1 000 000, FK 1 996 900, průměr (996 900 + 1 996 900) / 2 = 1 496 900
+        # Nárok za 59 dní: 1 496 900 × 0,0365 × 59/365 = 8 831,71; doúčtování 8 831,71 − 3 100 = 5 731,71
+        self.subscribe(self.cls(fund, "A"), "2027-02-10", 1000000, 1000)
+        february = self.valuation(fund, date(2027, 2, 28))
+        february.action_compute()
+        self.assertAlmostEqual(february.fee_line_ids.filtered(lambda l: l.rule_id == rule).amount, 5731.71, places=2)
+
     def performance(self, fund, day, rule=None, **version):
         code = fund.class_ids[0]
         values = {"rate": 0.2, "perf_measure": "unit", "initial_reference": 1000, **version}

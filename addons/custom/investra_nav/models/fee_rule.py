@@ -34,13 +34,26 @@ class InvestraFeeRule(models.Model):
         default="periodic",
     )
     basis = fields.Selection(
-        [("act365", "Skutečné dny / 365"), ("act360", "Skutečné dny / 360"), ("act_act", "Skutečné dny / skutečný rok"), ("months", "Celé měsíce / 12")],
+        [
+            ("act365", "ACT/365"),
+            ("act360", "ACT/360"),
+            ("act_act", "ACT/ACT (ISDA)"),
+            ("thirty360_eu", "30E/360"),
+            ("thirty360_us", "30/360 US"),
+            ("months", "Celé měsíce / 12"),
+        ],
         required=True,
         default="act365",
         string="Konvence dnů",
     )
     base_source = fields.Selection(
-        [("fk", "Fondový kapitál"), ("class_fk", "Kapitál třídy"), ("assets", "Aktiva"), ("none", "Bez základu")],
+        [
+            ("fk", "Fondový kapitál"),
+            ("average_fk", "Průměrný FK od začátku roku"),
+            ("class_fk", "Kapitál třídy"),
+            ("assets", "Aktiva"),
+            ("none", "Bez základu"),
+        ],
         required=True,
         default="fk",
     )
@@ -114,6 +127,7 @@ class InvestraFeeVersion(models.Model):
     hurdle_margin = fields.Float(digits=(10, 8), string="Marže nad index")
     hurdle_type = fields.Selection([("hard", "Tvrdá"), ("soft", "Měkká s doháněním")], default="hard", required=True)
     catch_up = fields.Float(digits=(6, 4), default=1)
+    hurdle_floor_zero = fields.Boolean(string="Záporný etalon počítat jako nulu")
     benchmark_id = fields.Many2one("investra.benchmark", ondelete="restrict")
     require_positive_return = fields.Boolean(string="Jen při kladném výnosu")
     probability = fields.Float(digits=(6, 4), default=1, string="Váha pravděpodobnosti dohadu")

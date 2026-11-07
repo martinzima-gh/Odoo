@@ -19,7 +19,20 @@ Každý výpočet ukládá rozpis. Nová varianta je malé rozšíření s teste
 | Sazbu určuje statutární orgán v mezích statutu, eviduje se rozhodnutí | Hotovo |
 | Použitou verzi nejde přepsat, změna je nová verze s datem | Hotovo |
 | Období bez platné sazby je chyba, nedomýšlí se | Hotovo |
-| Konvence dnů: skutečné/365, skutečné/360, skutečné/skutečný rok, měsíce/12 | Hotovo |
+| Konvence dnů: ACT/365, ACT/360, ACT/ACT (ISDA), 30E/360, 30/360 US, měsíce/12 | Hotovo |
+
+## Úrokové konvence
+
+Šest nejběžnějších konvencí trhu. Rozhoduje vždy statut, smlouva nebo emisní podmínky konkrétního nástroje; typické použití je orientační.
+
+| Konvence | Typické použití | Stav |
+|---|---|---|
+| ACT/360 | Peněžní trh, depozita, repo, pohyblivé úroky | Hotovo |
+| ACT/365 Fixed | Depozita a úvěry, úplaty fondů | Hotovo |
+| ACT/ACT ISDA | Swapy, úroky přes přestupný rok | Hotovo |
+| ACT/ACT ICMA | Dluhopisy, počítá se v rámci kupónového období | Jádro, potřebuje kupónový kalendář nástroje |
+| 30E/360 | Eurobondy | Hotovo |
+| 30/360 US | Americké dluhopisy | Hotovo |
 
 ## Úplata za obhospodařování, administraci a depozitáři
 
@@ -34,7 +47,12 @@ Každý výpočet ukládá rozpis. Nová varianta je malé rozšíření s teste
 | Stupňová cena za započaté pásmo | 45 000 Kč + 10 000 Kč za každých dalších 500 mil. | Hotovo |
 | Roční minimum a maximum | 0,1 %, min. 200 tis., max. 1,25 mil. | Hotovo |
 | Příplatek za třídy nad určitý počet | + 10 000 Kč za pátou a další třídu | Hotovo |
-| Základ jako průměrná hodnota za období, denní součet | průměrná roční hodnota FK | Mimo, potom doplnit |
+| Průměrný FK od začátku roku, dohad v každém ocenění, doúčtování proti naúčtovanému | průměrná roční hodnota FK | Hotovo |
+| Průměr vážený dny místo průměru z ocenění | | Ověřit u konkrétního fondu |
+| Zálohová měsíční výplata a roční vyúčtování | | Platby později, dohad Hotovo |
+| Úplata z hodnoty transakce | až 1 % z hodnoty transakce | Mimo |
+| Skutečné náklady do ročního stropu | vnitřní audit do 350 tis. | Mimo, faktura a dohad |
+| Úplata hrazena jen jednou při investici do vlastního fondu | | Mimo |
 | Úvodní sleva na určité období | 25 000 Kč po dobu 6 měsíců | Hotovo novou verzí sazby |
 | Úplata se nemusí účtovat, odpuštění | „může rozhodnout, že nebude účtována“ | Hotovo nulovou verzí |
 | Rozdělení nákladu mezi podfondy podle počtu aktivních podfondů | | Mimo, později v SICAV |
@@ -54,6 +72,11 @@ Každý výpočet ukládá rozpis. Nová varianta je malé rozšíření s teste
 | Odměna i při záporném výnosu, když fond překoná benchmark; nebo jen při kladném | | Hotovo |
 | Měkká překážka s doháněním | běžné u private equity | Hotovo |
 | Složený benchmark z více indexů | vážený index | Mimo, vstupem je výsledný index |
+| Etalon odlišný po třídách a měnách | inflace ČSÚ a Eurostat plus marže | Hotovo, pravidlo na třídu; inflace jako řada hodnot |
+| Etalon známý až po skončení období | roční inflace | Ověřit dohad v průběhu roku |
+| Etalon třídy o rozdíl fixních úplat | 10 % p. a. + rozdíl sazeb | Hotovo ručně novou verzí |
+| Záporný etalon se počítá jako nula | 30 % z kladné výkonnosti | Hotovo |
+| HWM omezí odměnu, je-li blíž než etalon | | Hotovo |
 | Krystalizace měsíčně, čtvrtletně, ročně, nikdy | | Hotovo |
 | Dohad v každém ocenění, doplatek i záporný | | Hotovo |
 | Krystalizace při odkupu | podíl dohadu na odkoupené kusy | Jádro |
@@ -121,7 +144,8 @@ Veřejné statuty a dokumenty, čteno 2026-11-07:
 [Top Stocks, Erste](https://data.erste-am.com/gem/erste-am/getDocumentContent/7668c768-b8b0-404e-a6ed-6c3d35dca12e),
 [Findigo](https://findigofki.cz/),
 [Ascavia](https://ascavia.cz/pro-investory/),
-[Fondefi](https://www.fondefi.cz/informace-pro-investory/).
+[Fondefi](https://www.fondefi.cz/informace-pro-investory/),
+[fondy Partners investiční společnosti](https://www.partnersis.cz/nase-fondy), 13 statutů včetně Universe, 7 Stars, Bond Opportunity, Simplea a Aspire.
 Obecné modely: [ESMA Guidelines on performance fees](https://www.esma.europa.eu/sites/default/files/library/esma34-39-992%5Fguidelines%5Fon%5Fperformance%5Ffees%5Fen.pdf),
 [SS&C: Series vs Equalization](https://www.ssctech.com/blog/understanding-performance-fees-in-hedge-funds-series-vs-equalization),
 [Alter Domus: Private equity waterfalls](https://alterdomus.com/insight/private-equity-waterfall/).

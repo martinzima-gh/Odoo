@@ -24,6 +24,19 @@ def _months_between(start, end):
     return (end.year - start.year) * 12 + end.month - start.month
 
 
+def _days_30_360(start, end, basis):
+    """Dny v konvenci 30/360: evropská 30E/360, nebo americká 30/360 (bond basis)."""
+    d1, d2 = start.day, end.day
+    if basis == "thirty360_eu":
+        d1, d2 = min(d1, 30), min(d2, 30)
+    else:
+        if d1 == 31:
+            d1 = 30
+        if d2 == 31 and d1 == 30:
+            d2 = 30
+    return (end.year - start.year) * 360 + (end.month - start.month) * 30 + d2 - d1
+
+
 def year_fraction(start, end, basis="act365"):
     """Část roku za období (start, end]: den start se nezapočítává, den end ano."""
     days = (end - start).days
@@ -44,6 +57,8 @@ def year_fraction(start, end, basis="act365"):
         return total
     if basis == "months":
         return Decimal(_months_between(start, end)) / 12
+    if basis in ("thirty360_eu", "thirty360_us"):
+        return Decimal(_days_30_360(start, end, basis)) / 360
     raise ValueError(f"Neznámá konvence dnů: {basis}")
 
 
@@ -158,13 +173,14 @@ def growth_factor(start, end, spec):
     fraction = year_fraction(start, end, spec.get("basis", "act365"))
     if kind == "fixed":
         rate = dec(spec.get("hurdle_rate"))
-        if spec.get("compounding"):
-            return (1 + rate) ** fraction
-        return 1 + rate * fraction
-    if kind == "index":
+        factor = (1 + rate) ** fraction if spec.get("compounding") else 1 + rate * fraction
+    elif kind == "index":
         margin = dec(spec.get("hurdle_margin")) * fraction
-        return dec(spec["index_end"]) / dec(spec["index_start"]) + margin
-    raise ValueError(f"Neznámý druh překážky: {kind}")
+        factor = dec(spec["index_end"]) / dec(spec["index_start"]) + margin
+    else:
+        raise ValueError(f"Neznámý druh překážky: {kind}")
+    # Záporný etalon: odměna se počítá jen z kladné výkonnosti.
+    return max(factor, Decimal(1)) if spec.get("hurdle_floor_zero") else factor
 
 
 def performance_fee(spec, start, end, gross, units=None, flows=(), accrued=ZERO):
@@ -290,3 +306,47 @@ def waterfall(total_change, capitals, tiers, residual=None, residual_pro_rata=ZE
         for code, part in split_amount(loss, weights).items():
             result[code] -= part
     return result
+
+
+def act_act_icma(start, end, period_start, period_end, frequency):
+    """ACT/ACT ICMA: část kupónu za skutečné dny v kupónovém období krát počet kupónů ročně."""
+    return Decimal((end - start).days) / (Decimal((period_end - period_start).days) * frequency)
+
+
+def _present_value(rate, flows, start, basis):
+    return sum(dec(amount) / (1 + rate) ** year_fraction(start, day, basis) for day, amount in flows)
+
+
+def effective_rate(flows, basis="act365"):
+    """Efektivní úroková míra: sazba, při níž je současná hodnota peněžních toků nulová.
+
+    flows: seznam (datum, částka), první tok je pořízení se záporným znaménkem. Řeší se půlením intervalu.
+    """
+    flows = sorted(flows, key=lambda flow: flow[0])
+    start = flows[0][0]
+    low, high = Decimal("-0.99"), Decimal(10)
+    if _present_value(low, flows, start, basis) * _present_value(high, flows, start, basis) > 0:
+        raise ValueError("Peněžní toky nemají efektivní úrokovou míru v rozsahu výpočtu.")
+    for _step in range(200):
+        middle = (low + high) / 2
+        value = _present_value(middle, flows, start, basis)
+        if abs(value) < Decimal("0.0000001"):
+            return middle
+        if value * _present_value(low, flows, start, basis) > 0:
+            low = middle
+        else:
+            high = middle
+    return (low + high) / 2
+
+
+def amortised_cost(flows, day, rate=None, basis="act365"):
+    """Naběhlá hodnota k datu: současná hodnota budoucích toků při efektivní úrokové míře."""
+    rate = effective_rate(flows, basis) if rate is None else dec(rate)
+    remaining = [(d, a) for d, a in flows if d > day]
+    return money(sum(dec(a) / (1 + rate) ** year_fraction(day, d, basis) for d, a in remaining))
+
+
+def linear_accrual(purchase, redemption, start, end, day, basis="act365"):
+    """Lineární rozpuštění rozdílu mezi pořizovací a splatnou částkou."""
+    share = year_fraction(start, min(day, end), basis) / year_fraction(start, end, basis)
+    return money(dec(purchase) + (dec(redemption) - dec(purchase)) * share)
