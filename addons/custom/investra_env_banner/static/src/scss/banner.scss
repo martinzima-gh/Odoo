@@ -1,0 +1,21 @@
+// Testovací databáze se musí na první pohled lišit od vývojové.
+.o_main_navbar {
+    background-color: #b3261e !important;
+    border-bottom: 3px solid #7a1a14;
+}
+
+body.o_web_client::before {
+    content: "TEST";
+    position: fixed;
+    top: 0;
+    left: 50%;
+    z-index: 2000;
+    transform: translateX(-50%);
+    padding: 2px 24px;
+    border-radius: 0 0 6px 6px;
+    background: #ffffff;
+    color: #b3261e;
+    font-weight: 700;
+    letter-spacing: 2px;
+    pointer-events: none;
+}

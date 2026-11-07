@@ -145,7 +145,7 @@ docker compose -f docker-compose.investra.yml run -d --rm --no-deps --name inves
 docker stop investra-test-web
 ```
 
-V prohlížeči otevírej testovací web jako http://localhost:8071 a vývojový jako http://127.0.0.1:8070. Různý název hostitele oddělí přihlášení, stejný název by je sdílel.
+V prohlížeči otevírej testovací web jako http://localhost:8071 a vývojový jako http://127.0.0.1:8070. Různý název hostitele oddělí přihlášení, stejný název by je sdílel. Testovací databáze má navíc červený pruh TEST (modul `investra_env_banner`, do `investra_dev` se neinstaluje).
 
 V DBeaveru použij stejné připojení jako k `investra_dev` (`127.0.0.1:5433`, účet `dbeaver_ro`), jen databázi `investra_test`.
 
