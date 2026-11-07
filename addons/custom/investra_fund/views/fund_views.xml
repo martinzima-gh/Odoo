@@ -17,6 +17,7 @@
                         <field name="entity_id"/><field name="currency_id"/>
                         <field name="valuation_frequency"/><field name="second_person_required"/>
                         <field name="price_digits"/><field name="price_rounding"/>
+                        <field name="trade_recognition"/>
                         <field name="accrual_method"/>
                         <field name="accrual_note" invisible="accrual_method != 'linear'" required="accrual_method == 'linear'"/>
                     </group>

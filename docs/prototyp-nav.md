@@ -14,7 +14,7 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_posting` | Události, ochrana dokladů, třída na řádku, hash, storno | 22 |
 | `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 22 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
-| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota | 75 |
+| `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu | 93 |
 
 Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
 
@@ -33,7 +33,7 @@ Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo
 
 ## Co chybí
 
-Sjednáno, nevypořádáno; poplatky obchodů; dohadné položky; kupóny a dividendy; účtování naběhlého úroku, termínované vklady, repo, deriváty a ostatní podíly v portfoliu; platnost kurzu;
+Poplatky obchodů; dohadné položky; kupóny a dividendy; účtování naběhlého úroku, termínované vklady, repo, deriváty a ostatní podíly v portfoliu; platnost kurzu;
 hranice kontrol; UI ověřené člověkem; bezpečnostní revize; test na reálném objemu.
 
 ## Typy nástrojů
@@ -74,6 +74,20 @@ zaúčtování obchodu se zastaví. Zbývá:
 
 Odoo nedovolí podrozvahové a rozvahové účty v jednom dokladu (`_check_off_balance`). Podrozvaha proto potřebuje vlastní doklad.
 Stejný postup bude platit pro další závazky a přísliby.
+
+## Zaúčtování obchodu
+
+Parametr fondu podle IFRS 9 odst. 3.1.2; výchozí je Trade date accounting. Po prvním obchodu fondu nejde změnit.
+
+| Situace | Trade date accounting | Settlement date accounting |
+|---|---|---|
+| Sjednání | Nástroj proti závazku nebo pohledávce z nevypořádaného obchodu | Bez dokladu, stav Sjednáno, nevypořádáno |
+| Ocenění před vypořádáním | Nástroj se přecení, závazek v cizí měně přecení kurz | Změna RH na zvláštní účet proti výsledku (B3.1.6); u naběhlé hodnoty se neúčtuje, u FVOCI se ocenění zastaví |
+| Vypořádání | Závazek nebo pohledávka proti bance | Nástroj proti bance |
+| Po vypořádání | Kurzový rozdíl doúčtuje nejbližší ocenění | Zůstatek změny RH se rozpustí, přecenění jde přes nástroj |
+
+Bez data vypořádání, nebo se stejným datem, jde obchod rovnou proti bance. Obchod po termínu bez vypořádání je upozornění v kontrolách ocenění.
+Kurzový rozdíl z vypořádání se účtuje až při ocenění, ne v den platby. Změna RH před vypořádáním je u cizí měny jedna částka, bez rozdělení na cenu a kurz.
 
 ## Spuštění testů
 

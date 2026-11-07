@@ -24,6 +24,13 @@ class InvestraFund(models.Model):
     second_person_required = fields.Boolean(default=True, string="Kontrola druhou osobou")
     price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")
+    trade_recognition = fields.Selection(
+        [("trade_date", "Trade date accounting"), ("settlement_date", "Settlement date accounting")],
+        required=True,
+        default="trade_date",
+        string="Zaúčtování obchodu",
+        help="IFRS 9 odst. 3.1.2. Po prvním obchodu fondu nejde změnit.",
+    )
     accrual_method = fields.Selection(
         [("eir", "Efektivní úroková míra"), ("linear", "Lineárně")],
         required=True,

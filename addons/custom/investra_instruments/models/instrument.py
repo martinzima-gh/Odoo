@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 IFRS9_CATEGORY = [("fvtpl", "Reálná hodnota do výsledku"), ("fvoci", "Reálná hodnota do OCI"), ("amortised", "Naběhlá hodnota")]
@@ -12,6 +12,8 @@ DAY_COUNT = [
 ]
 # Po prvním obchodu neměnná pole, na kterých stojí zaúčtované hodnoty.
 LOCKED_AFTER_TRADE = {"type_id", "role_id", "ifrs9_category", "valuation_method"}
+SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id"}
+BOOKED_TRADE_FIELDS = {"fund_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate"}
 
 
 class InvestraInstrumentType(models.Model):
@@ -218,7 +220,13 @@ class InvestraTrade(models.Model):
     quantity = fields.Float(required=True, digits=(20, 6), help="Kladně nákup, záporně prodej.")
     price = fields.Float(required=True, digits=(20, 8))
     fx_rate = fields.Float(default=1, digits=(16, 6), required=True, help="Funkční měna za jednotku měny nástroje.")
+    settlement_fx_rate = fields.Float(digits=(16, 6), help="Kurz platby; bez zadání platí kurz obchodu.")
+    state = fields.Selection(
+        [("draft", "Návrh"), ("unsettled", "Sjednáno, nevypořádáno"), ("settled", "Vypořádáno")],
+        required=True, default="draft", readonly=True, string="Stav",
+    )
     event_id = fields.Many2one("investra.accounting.event", readonly=True)
+    settlement_event_id = fields.Many2one("investra.accounting.event", readonly=True)
 
     @api.constrains("quantity")
     def _check_quantity(self):
@@ -226,38 +234,139 @@ class InvestraTrade(models.Model):
             if not trade.quantity:
                 raise ValidationError(self.env._("Obchod musí mít množství."))
 
-    def _book(self):
-        """Zaúčtuje nákup proti bance; v prototypu bez poplatků a bez sjednaného nevypořádaného stavu."""
+    @api.constrains("trade_date", "settlement_date")
+    def _check_settlement_date(self):
         for trade in self:
-            if trade.instrument_id.type_group == "other_holding":
-                raise UserError(self.env._("Operace s ostatními podíly zatím nejsou napojené na účtování: %s.", trade.instrument_id.name))
-            amount = trade.quantity * trade.price * trade.fx_rate
-            foreign = trade.quantity * trade.price
-            company = trade.company_id
-            extra = {"investra_instrument_id": trade.instrument_id.id}
-            currency = {}
-            if trade.instrument_id.currency_id != company.currency_id:
-                currency = {"currency_id": trade.instrument_id.currency_id.id, "amount_currency": foreign}
-            event = self.env["investra.accounting.event"]._create_event(
-                company, f"trade:{trade.id}", f"Obchod {trade.instrument_id.name}", trade.trade_date, "trade",
-                [
-                    {"role": trade.instrument_id.role_id.code, "amount": amount, "movement_type": "transaction", "extra": extra, **currency},
-                    {"role": "bank", "amount": -amount, "movement_type": "transaction",
-                     **({"currency_id": currency["currency_id"], "amount_currency": -foreign} if currency else {})},
-                ],
-            )
-            event._lock_events()
-            event._post_events()
-            trade.sudo().event_id = event
+            if trade.settlement_date and trade.settlement_date < trade.trade_date:
+                raise ValidationError(self.env._("Vypořádání nemůže být před sjednáním."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su and any(SYSTEM_TRADE_FIELDS & set(vals) for vals in vals_list):
+            raise UserError(self.env._("Stav obchodu mění jen zaúčtování."))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if not self.env.su:
+            if SYSTEM_TRADE_FIELDS & set(vals):
+                raise UserError(self.env._("Stav obchodu mění jen zaúčtování."))
+            if self.filtered(lambda t: t.state == "settled") or (self.filtered("event_id") and BOOKED_TRADE_FIELDS & set(vals)):
+                raise UserError(self.env._("Zaúčtovaný obchod nejde změnit."))
+        return super().write(vals)
+
+    def action_book(self):
+        self._require_preparer()
+        self.sudo()._book()
+        return True
+
+    def action_settle(self):
+        self._require_preparer()
+        self.sudo()._settle()
+        return True
+
+    def _require_preparer(self):
+        if not self.env.user.has_group("investra_entity.group_valuation_preparer"):
+            raise AccessError(self.env._("Na tento krok nemáte oprávnění."))
+
+    def _is_deferred(self):
+        """Vypořádání je až po sjednání; stejný den nebo bez data jde obchod rovnou proti bance."""
+        self.ensure_one()
+        return bool(self.settlement_date) and self.settlement_date > self.trade_date
+
+    def _recognition_date(self):
+        """Den, od kterého je nástroj v pozici fondu."""
+        self.ensure_one()
+        if self.fund_id.trade_recognition == "settlement_date" and self._is_deferred():
+            return self.settlement_date
+        return self.trade_date
+
+    def _booked_fx(self):
+        """Kurz, kterým je nástroj zaúčtovaný."""
+        self.ensure_one()
+        if self.fund_id.trade_recognition == "settlement_date" and self._is_deferred():
+            return self.settlement_fx_rate or self.fx_rate
+        return self.fx_rate
+
+    def _event_lines(self, role, counter_role, fx):
+        """Dvojice řádků obchodu: role proti protiúčtu, v měně nástroje a ve funkční měně."""
+        amount = self.quantity * self.price * fx
+        foreign = self.quantity * self.price
+        extra = {"investra_instrument_id": self.instrument_id.id}
+        currency_id = self.instrument_id.currency_id.id
+        foreign_currency = self.instrument_id.currency_id != self.company_id.currency_id
+        debit = {"currency_id": currency_id, "amount_currency": foreign} if foreign_currency else {}
+        credit = {"currency_id": currency_id, "amount_currency": -foreign} if foreign_currency else {}
+        return [
+            {"role": role, "amount": amount, "movement_type": "transaction", "extra": extra, **debit},
+            {"role": counter_role, "amount": -amount, "movement_type": "transaction", **credit},
+        ]
+
+    def _post_trade_event(self, key, name, day, lines):
+        event = self.env["investra.accounting.event"]._create_event(self.company_id, key, name, day, "trade", lines)
+        event._lock_events()
+        event._post_events()
+        return event
+
+    def _book(self):
+        """Zaúčtuje obchod podle nastavení fondu; v prototypu bez poplatků."""
+        for trade in self.filtered(lambda t: t.state == "draft"):
+            instrument = trade.instrument_id
+            if instrument.type_group == "other_holding":
+                raise UserError(self.env._("Operace s ostatními podíly zatím nejsou napojené na účtování: %s.", instrument.name))
+            deferred = trade._is_deferred()
+            if deferred and trade.fund_id.trade_recognition == "settlement_date":
+                trade.sudo().state = "unsettled"
+                continue
+            counter = trade._unsettled_role() if deferred else "bank"
+            lines = trade._event_lines(instrument.role_id.code, counter, trade.fx_rate)
+            event = trade._post_trade_event(f"trade:{trade.id}", f"Obchod {instrument.name}", trade.trade_date, lines)
+            trade.sudo().write({"event_id": event.id, "state": "unsettled" if deferred else "settled"})
+
+    def _unsettled_role(self):
+        self.ensure_one()
+        return "unsettled_payable" if self.quantity > 0 else "unsettled_receivable"
+
+    def _settle(self):
+        """Zaúčtuje vypořádání. Rozdíl kurzu proti závazku doúčtuje nejbližší ocenění."""
+        for trade in self:
+            if trade.state != "unsettled":
+                raise UserError(self.env._("Vypořádat jde jen sjednaný nevypořádaný obchod."))
+            instrument = trade.instrument_id
+            fx = trade.settlement_fx_rate or trade.fx_rate
+            name = f"Vypořádání {instrument.name}"
+            if trade.fund_id.trade_recognition == "settlement_date":
+                lines = trade._event_lines(instrument.role_id.code, "bank", fx)
+                event = trade._post_trade_event(f"trade:{trade.id}", name, trade.settlement_date, lines)
+                trade.sudo().write({"event_id": event.id, "settlement_event_id": event.id, "state": "settled"})
+            else:
+                lines = trade._event_lines(trade._unsettled_role(), "bank", fx)
+                event = trade._post_trade_event(f"trade-settle:{trade.id}", name, trade.settlement_date, lines)
+                trade.sudo().write({"settlement_event_id": event.id, "state": "settled"})
+
+    @api.model
+    def _recognised(self, fund, day, instrument=None):
+        """Obchody, které jsou k datu v pozici fondu podle jeho nastavení."""
+        domain = [("fund_id", "=", fund.id), ("trade_date", "<=", day)]
+        if instrument:
+            domain.append(("instrument_id", "=", instrument.id))
+        return self.search(domain).filtered(lambda t: t._recognition_date() <= day)
 
     @api.model
     def _positions(self, fund, day):
         """Kusy a účetní hodnota po nástrojích k datu, z obchodů a z hlavní knihy."""
-        trades = self.search([("fund_id", "=", fund.id), ("trade_date", "<=", day)])
         quantities = {}
-        for trade in trades:
+        for trade in self._recognised(fund, day):
             quantities[trade.instrument_id] = quantities.get(trade.instrument_id, 0.0) + trade.quantity
         return {instrument: qty for instrument, qty in quantities.items() if qty}
+
+
+class InvestraFund(models.Model):
+    _inherit = "investra.fund"
+
+    def write(self, vals):
+        if "trade_recognition" in vals and self.env["investra.trade"].sudo().search_count([("fund_id", "in", self.ids)], limit=1):
+            raise UserError(self.env._("Po prvním obchodu fondu nejde způsob zaúčtování změnit."))
+        return super().write(vals)
 
 
 class AccountMoveLine(models.Model):

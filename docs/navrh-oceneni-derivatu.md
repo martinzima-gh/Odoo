@@ -1,6 +1,6 @@
 # Oceňování derivátů (návrh)
 
-Stav 2026-11-07. Jen návrh, nic z toho není naprogramované. Účetní rámec: fond, vyhláška 501/2002 Sb., IFRS 13 a IFRS 9, reálná hodnota podle § 196 ZISIF.
+Stav 2026-11-07. Jen návrh, odložené: nic z toho není naprogramované, stavět až podle pozic prvních fondů. Účetní rámec: fond, vyhláška 501/2002 Sb., IFRS 13 a IFRS 9, reálná hodnota podle § 196 ZISIF.
 Modely schvaluje představenstvo a navrhuje oddělení oceňování (Pravidla oceňování majetku a dluhů fondů). Odoo model neurčuje, jen použije schválený.
 
 ## Východiska

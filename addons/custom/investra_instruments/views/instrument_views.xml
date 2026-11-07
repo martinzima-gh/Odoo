@@ -50,6 +50,44 @@
             </form>
         </field>
     </record>
+    <record id="view_trade_list" model="ir.ui.view">
+        <field name="name">investra.trade.list</field><field name="model">investra.trade</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="fund_id"/><field name="instrument_id"/><field name="trade_date"/><field name="settlement_date"/>
+                <field name="quantity"/><field name="price"/><field name="fx_rate"/><field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_trade_form" model="ir.ui.view">
+        <field name="name">investra.trade.form</field><field name="model">investra.trade</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_book" type="object" string="Zaúčtovat" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_settle" type="object" string="Vypořádat" class="btn-primary" invisible="state != 'unsettled'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="fund_id" readonly="event_id or state == 'settled'"/>
+                            <field name="instrument_id" readonly="event_id or state == 'settled'"/>
+                            <field name="quantity" readonly="event_id or state == 'settled'"/>
+                            <field name="price" readonly="event_id or state == 'settled'"/>
+                        </group>
+                        <group>
+                            <field name="trade_date" readonly="event_id or state == 'settled'"/>
+                            <field name="settlement_date" readonly="state == 'settled'"/>
+                            <field name="fx_rate" readonly="event_id or state == 'settled'"/>
+                            <field name="settlement_fx_rate" readonly="state == 'settled'"/>
+                            <field name="event_id"/><field name="settlement_event_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
     <record id="view_instrument_type_list" model="ir.ui.view">
         <field name="name">investra.instrument.type.list</field><field name="model">investra.instrument.type</field>
         <field name="arch" type="xml">

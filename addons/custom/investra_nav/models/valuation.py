@@ -231,6 +231,7 @@ class InvestraValuation(models.Model):
         context = self._class_context()
         self._compute_portfolio()
         self._compute_bank_fx()
+        self._compute_unsettled()
         for rule in self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)]):
             if rule.kind == "periodic":
                 self._apply_periodic(rule, context)
@@ -312,7 +313,7 @@ class InvestraValuation(models.Model):
                     "role": "gain_fx" if fx_effect > 0 else "loss_fx",
                     "amount": -fx_effect, "movement_type": "fx_revaluation", "extra": extra,
                 })
-            trades = Trade.search([("fund_id", "=", self.fund_id.id), ("instrument_id", "=", instrument.id), ("trade_date", "<=", self.date)])
+            trades = Trade._recognised(self.fund_id, self.date, instrument)
             rows.append({
                 "valuation_id": self.id,
                 "kind": instrument.type_id.kind,
@@ -324,7 +325,7 @@ class InvestraValuation(models.Model):
                 "price": price.price,
                 "price_source": price.source,
                 "cost_currency": sum(t.quantity * t.price for t in trades),
-                "cost": sum(t.quantity * t.price * t.fx_rate for t in trades),
+                "cost": sum(t.quantity * t.price * t._booked_fx() for t in trades),
                 "fair_value_currency": float(value_ccy),
                 "fx_rate": float(fx),
                 "fx_source": self._rate_source() if foreign_currency else False,
@@ -366,6 +367,63 @@ class InvestraValuation(models.Model):
             })
         self._add_event("bank_fx", "FX přecenění bank", lines)
         self.env["investra.valuation.portfolio"].sudo().create(rows)
+
+    def _compute_unsettled(self):
+        """Nevypořádané obchody: přecenění pohledávek a závazků kurzem a změna RH před vypořádáním."""
+        Mapping = self.env["investra.role.account"].sudo()
+        Line = self.env["account.move.line"].sudo()
+        lines = []
+        for role in ("unsettled_receivable", "unsettled_payable"):
+            account = Mapping.search([("company_id", "=", self.company_id.id), ("role_id.code", "=", role)]).account_id
+            if not account:
+                continue
+            groups = Line._read_group(
+                self._line_domain(("account_id", "=", account.id)),
+                groupby=["currency_id"], aggregates=["amount_currency:sum", "balance:sum"],
+            )
+            for currency, amount, balance in groups:
+                if currency == self.fund_id.currency_id:
+                    continue
+                difference = engine.money(d(amount) * self._fx(currency)) - engine.money(balance)
+                if difference:
+                    lines.append({"role": role, "amount": difference, "movement_type": "fx_revaluation",
+                                  "currency_id": currency.id, "amount_currency": "0"})
+                    lines.append({"role": "gain_fx" if difference > 0 else "loss_fx", "amount": -difference,
+                                  "movement_type": "fx_revaluation"})
+        self._add_event("unsettled_fx", "FX přecenění nevypořádaných obchodů", lines)
+        self._compute_unsettled_fair_value(Mapping, Line)
+
+    def _compute_unsettled_fair_value(self, Mapping, Line):
+        """Settlement date accounting: změna RH do vypořádání, IFRS 9 B3.1.6. Po vypořádání se zůstatek rozpustí."""
+        account = Mapping.search([("company_id", "=", self.company_id.id), ("role_id.code", "=", "unsettled_fair_value")]).account_id
+        if not account:
+            return
+        targets = {}
+        pending = self.env["investra.trade"].sudo().search([
+            ("fund_id", "=", self.fund_id.id), ("trade_date", "<=", self.date), ("state", "=", "unsettled"),
+        ]).filtered(lambda t: t._recognition_date() > self.date)
+        for trade in pending:
+            instrument = trade.instrument_id
+            if instrument.ifrs9_category == "fvoci":
+                raise UserError(self.env._("Změna RH do OCI zatím není podporovaná: %s.", instrument.name))
+            if instrument.ifrs9_category == "amortised":
+                continue
+            value = d(trade.quantity) * d(self._approved_price(instrument).price) * self._fx(instrument.currency_id)
+            cost = d(trade.quantity) * d(trade.price) * d(trade.fx_rate)
+            targets[instrument] = targets.get(instrument, Decimal(0)) + value - cost
+        groups = Line._read_group(
+            self._line_domain(("account_id", "=", account.id)), groupby=["investra_instrument_id"], aggregates=["balance:sum"],
+        )
+        balances = {instrument: engine.money(balance) for instrument, balance in groups}
+        lines = []
+        for instrument in {*targets, *balances}:
+            difference = engine.money(targets.get(instrument, 0)) - balances.get(instrument, Decimal(0))
+            if difference:
+                extra = {"investra_instrument_id": instrument.id}
+                lines.append({"role": "unsettled_fair_value", "amount": difference, "movement_type": "price_revaluation", "extra": extra})
+                lines.append({"role": "gain_fair_value" if difference > 0 else "loss_fair_value", "amount": -difference,
+                              "movement_type": "price_revaluation", "extra": extra})
+        self._add_event("unsettled_fv", "Změna RH nevypořádaných obchodů", lines)
 
     def _fee_record(self, rule, amount, fund_class=None, detail=None):
         self.env["investra.valuation.fee"].sudo().create({
@@ -653,6 +711,10 @@ class InvestraValuation(models.Model):
         )
         self._check("positions_ledger", "Pozice se rovnají hlavní knize", instrument_ledger == engine.money(positions),
                     f"{instrument_ledger} / {positions}")
+        overdue = self.env["investra.trade"].sudo().search_count([
+            ("fund_id", "=", self.fund_id.id), ("state", "=", "unsettled"), ("settlement_date", "<=", self.date),
+        ])
+        self._check("trades_settled", "Obchody po termínu vypořádání jsou vypořádané", not overdue, overdue, severity="warning")
         transit = self._role_balance("cash_in_transit")
         self._check("transit_zero", "Peníze na cestě jsou nulové", transit == 0, transit, severity="warning")
         pending = self.env["account.move"].sudo().search_count([

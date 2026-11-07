@@ -10,6 +10,9 @@
     <record id="role_participation" model="investra.account.role"><field name="code">participation</field><field name="name">Účasti</field><field name="category">asset</field></record>
     <record id="role_derivative" model="investra.account.role"><field name="code">derivative</field><field name="name">Deriváty</field><field name="category">asset</field></record>
     <record id="role_other_holding" model="investra.account.role"><field name="code">other_holding</field><field name="name">Ostatní podíly</field><field name="category">asset</field></record>
+    <record id="role_unsettled_receivable" model="investra.account.role"><field name="code">unsettled_receivable</field><field name="name">Pohledávky z nevypořádaných obchodů</field><field name="category">asset</field></record>
+    <record id="role_unsettled_fair_value" model="investra.account.role"><field name="code">unsettled_fair_value</field><field name="name">Změna reálné hodnoty nevypořádaných obchodů</field><field name="category">asset</field></record>
+    <record id="role_unsettled_payable" model="investra.account.role"><field name="code">unsettled_payable</field><field name="name">Závazky z nevypořádaných obchodů</field><field name="category">liability</field></record>
     <record id="role_receivable_other" model="investra.account.role"><field name="code">receivable_other</field><field name="name">Ostatní pohledávky</field><field name="category">asset</field></record>
     <record id="role_internal_clearing" model="investra.account.role"><field name="code">internal_clearing</field><field name="name">Vnitřní zúčtování tříd</field><field name="category">asset</field></record>
     <record id="role_subscription_payable" model="investra.account.role"><field name="code">subscription_payable</field><field name="name">Závazek z úpisu</field><field name="category">liability</field></record>
