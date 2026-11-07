@@ -24,3 +24,6 @@ addons/third_party/odoomates/
 
 # Duverne podklady (statuty FKI, predpisy, DORA) - nikdy necommitovat
 duverne/
+
+# Lokální zálohy a kopie veřejné dokumentace
+zalohy/

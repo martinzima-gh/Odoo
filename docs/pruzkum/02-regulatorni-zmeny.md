@@ -10,6 +10,7 @@ Stav 2026-11-07. Přehled pro návrh systému. Část je z odborných článků;
 | AIFMD II, rozšířené hlášení | Směrnice 2024/927; ESMA v květnu 2026 navrhla společný rámec | Povinnosti od 16. 4. 2027, technické normy do dubna 2027, spuštění nejdřív v 1. pololetí 2029 podle odborných zdrojů | Dnešní šablony platí dál, mapování držet jako nastavení |
 | IFRS 18 | Přijato EU nařízením 2026/338 | Roky od 1. 1. 2027, se srovnávacími údaji | Účetní závěrky v IFRS; dopad na fondy upřesnit s auditorem |
 | Metodika FOFI20261201 | Publikována v SDAT | 1. 12. 2026 | Máme v `docs/cnb` |
+| Další metodiky rámce Fondy | V plánu ČNB: FOFI20270101, FOFI20270601, FOFI20271201, FOFI20280101, zatím bez publikace | 1. 1. 2027, 1. 6. 2027, 1. 12. 2027, 1. 1. 2028 | Převodová tabulka a katalog se budou měnit, první výkazy mohou stát na jiné metodice než dnešní |
 | Vyhláška 267/2020 Sb. | Aktuální znění od 1. 7. 2025 | Platí | Promítnuto v `docs/cnb/lhuty.md` |
 | NV 243/2013 Sb. | Aktuální znění od 25. 6. 2026; text 103/2026 Sb. samostatně nečten | Platí | § 13: OTC derivát standardního fondu se oceňuje spolehlivě a ověřitelně každý pracovní den |
 | Nařízení ECB 2024/1988 | Přijato | Viz architektura | Statistické výkazy, ověřit dopad |

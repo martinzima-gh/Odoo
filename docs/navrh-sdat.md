@@ -51,9 +51,18 @@ Po chybě sítě nebo vypršení času se zpráva opakuje se stejným UUID, jina
 | B. Podpis mimo Odoo | Odoo připraví soubor, člověk ho podepíše svým nástrojem, Odoo odešle | Klíč zůstává u osoby, jde o službu | Potřeba podpisového nástroje podle XAdES |
 | C. Elektronická pečeť | Klíč v HSM nebo trezoru, odeslání po kliknutí člověka | Nejméně ruční práce | Nejvyšší bezpečnostní nároky, nutné ověřit právně |
 
-Utilita ČNB `sdat-xades-podpis.jar` podle ČNB nefunguje s novou Javou; ČNB doporučuje podpis v prohlížeči s komponentou I.CA, což podporuje variantu A. Dokumenty TS 0, TS 4 a popis jazyka kontrol zatím nejsou přečtené.
+Utilita ČNB `sdat-xades-podpis.jar` podle ČNB nefunguje s novou Javou; ČNB doporučuje podpis v prohlížeči s komponentou I.CA, což podporuje variantu A. 
 
 **Doporučení:** začít variantou A se čtením přes služby, později přejít na B. U C nejdřív vyřešit rozpor níže. Ve všech variantách odesílání spouští člověk; AI ani plánovač nic neodesílá.
+
+## Doplnění z TS 4 a popisu kontrol
+
+- **Prázdná oblast:** nepovinná datová oblast bez údajů se ve zprávě vůbec neuvádí, ani prázdným elementem.
+- **Přílohy:** jsou součástí vydání a podepisují se s ním. Povolené formáty jsou v TS 4.
+- **Kontroly:** pro strojové provádění je určen uživatelský tvar kontrol (list, řádek, sloupec). Ten je v `docs/cnb`, stačí vlastní vyhodnocovač; jazyk je popsaný v TS 8 a v souboru `sdat.bnf.txt`. Sémantický tvar je jen informativní.
+- **Formáty rámce Fondy:** TS 4 popisuje XBRL a ISO 20022 pro rámce EBA, EIOPA a ESMA. Fondy podle dostupných podkladů míří na XMLSDAT, potvrdit z metapopisu.
+
+Kopie dokumentace je v `zalohy/sdat-dokumentace/`, mimo git, staženo 2026-11-07.
 
 ## Bezpečnost
 
