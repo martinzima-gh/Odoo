@@ -83,6 +83,13 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Harmonogram a akceptace | Termíny a akceptace podle docs/harmonogram.md, bez rezervy, znovu posoudit po bráně 22. 1. | Rozhodnuto |
 | Začátek prací | Začíná se účetnictvím Investra Services s.r.o., prototyp NAV navazuje souběžně | Rozhodnuto |
 | Mzdy | Vede je externí dodavatel, do Odoo se importuje jen účetní zápis; formát domluvit | Rozhodnuto |
+| Typy nástrojů | Číselník typů navrhuje kategorii IFRS 9, způsob ocenění, roli účtu a list ČNB; účetní může na nástroji změnit | Rozhodnuto |
+| Úročení nástrojů | Výchozí je efektivní úroková míra, lineární úročení je volba podle fondu a musí mít zdůvodnění | Rozhodnuto |
+| Ostatní podíly | Investice do fondů bez ISIN jsou samostatná skupina nástrojů s upisovacím závazkem a vazbou na fond a třídu | Rozhodnuto |
+| Okamžik zaúčtování obchodu | Parametr fondu podle IFRS 9: Trade date accounting (výchozí), nebo Settlement date accounting | Rozhodnuto |
+| Změna klasifikace | Klasifikace je po prvním obchodu neměnná | Rozhodnuto |
+| Termíny ČNB | Termíny a výkazy zveřejňuje ČNB v SDAT a budou se stahovat odtud; zatím jen obecné příklady | Rozhodnuto |
+| Měna zveřejnění kurzu | Třída má měnu zveřejnění kurzu; NAV fondu a kapitál třídy zůstávají ve funkční měně | Rozhodnuto |
 
 ## Hranice systémů a vlastnictví dat
 
@@ -153,7 +160,7 @@ V Odoo vznikne sada vlastních addonů nad standardním účetním jádrem, bez 
 
 Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Odoo 20 se přístupová práva a záznamová pravidla sloučila do nového modelu ir.access (soubor security/ir.access.csv s operacemi crud a doménou), kostra je na to upravená. Práce na ní bude pokračovat až po `investra_entity` a `investra_posting`.
 
-**Třídy:** každá má vlastní měnu (nezávislou na funkční měně fondu), parametry hurdle a performance a příjemce performance allocation. Performance allocation může přesouvat hodnotu mezi třídami, aniž by měnila celkové NAV podfondu. Třída může být růstová, nebo může vyplácet dividendy.
+**Třídy:** každá má vlastní měnu zveřejnění kurzu (nezávislou na funkční měně fondu, NAV a kapitál třídy zůstávají ve funkční měně), parametry hurdle a performance a příjemce performance allocation. Performance allocation může přesouvat hodnotu mezi třídami, aniž by měnila celkové NAV podfondu. Třída může být růstová, nebo může vyplácet dividendy.
 
 **Instrumenty:** Dluhopis, akcie, podíl ve společnosti, nemovitost, derivát a ostatní. Fondy často drží aktiva přes SPV jako majetkovou účast, takže pořizovací cena má složky (příplatek mimo základní kapitál, úvěr SPV). Hotovost instrument není, zůstává na bankovních účtech v hlavní knize. Evidence musí od začátku sbírat údaje pro ČNB, například LEI, CFI, sektor a zemi emitenta. U dluhopisů a derivátů také parametry pro ocenění: kupon, frekvenci, splácení, konvenci počítání dní, senioritu a rating.
 
@@ -163,7 +170,7 @@ Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Od
 
 **Deriváty a podrozvaha:** deriváty jsou samostatný typ s oběma stranami obchodu a nominály. Fondy vykazují podrozvahové položky, například pohledávky a závazky z termínových operací a opcí a hodnoty předané k obhospodařování.
 
-**Portfoliová transakce:** nese datum sjednání i vypořádání, okamžik zaúčtování určí účetní politika.
+**Portfoliová transakce:** nese datum sjednání i vypořádání, okamžik zaúčtování je parametr fondu: Trade date accounting (výchozí), nebo Settlement date accounting.
 
 **Poplatky fondu:** výpočet úplat má vlastní parametry, například průměr fondového kapitálu za obchodní dny i při měsíčním NAV. Typy úplat ze statutů: fixní měsíční částka s pásmy podle objemu aktiv, procento z fondového kapitálu před výkonnostní odměnou poměrené délkou oceňovacího období, výkonnostní odměna s hurdle a DPH jako náklad. Výkonnostní odměna má dvě podoby: poplatek obhospodařovateli (závazek fondu) nebo alokace části zhodnocení na jinou třídu akcií (přesun mezi třídami). Model musí umět obě, s parametry sazba, hurdle, srovnávací období, high-water mark ano/ne a časové vážení toků. Výchozí pořadí je nejdřív úplaty, potom výkonnostní odměna; je to parametr fondu podle rozhodnutí o pořadí výpočtů. Vstupní a výstupní poplatky řeší IS.
 
@@ -408,7 +415,7 @@ Obě složky se účtují jako doplatek do potřebného zůstatku, takže opakov
 
 U dluhových nástrojů ve FVOCI a v naběhlé hodnotě se úrok počítá efektivní úrokovou mírou a opravné položky (očekávané úvěrové ztráty) jdou do výsledku. Kurzový rozdíl se pak nepočítá z pořizovací ceny, ale z naběhlé hodnoty v měně nástroje, takže vzorec FX výše platí jen pro nástroje bez úročení. Zdroje: IFRS 9 odst. 5.7.1, 5.7.5, 5.7.10–5.7.11, B5.7.2–B5.7.3; IAS 21 odst. 23, 28 a 30. V příkladech fondů je zatím vše ve FVTPL nebo jako majetková účast ve FVOCI; dluhové FVOCI a naběhlou hodnotu musí model umět kvůli úvěrům do SPV a budoucím fondům.
 
-**Modely IFRS 9:** datový model umí všechny modely podle IFRS 9. Klasifikace a model jsou na nástroji s platností od data a převzatý fond si zachová své nastavení. Implementace se děje podle prvních fondů.
+**Modely IFRS 9:** datový model umí všechny modely podle IFRS 9. Klasifikace je po prvním obchodu neměnná a převzatý fond si zachová své nastavení; reklasifikace při změně obchodního modelu by byla samostatný schválený krok. Implementace se děje podle prvních fondů.
 
 ### Evidence výpočtu NAV
 
@@ -547,11 +554,11 @@ Výkazy pro fondy jsou převážně měsíční, takže data musí být k dispoz
 | VISIFI10 | Příjmy fondu a vyplacené dividendy | Měsíčně, do 25. dne | Hlavní kniha, IS |
 | VISIFI20 | Úplaty fondu | Ročně, do konce 4. měsíce | Hlavní kniha |
 | KLISIFI10 | Klasifikační údaje fondu | Při vzniku nebo změně | Registr fondů |
-| DOFOS31 | Struktura investičních nástrojů | Čtvrtletně | Portfolio |
-| DOFOS40 | Údaje o nemovitostech | Čtvrtletně | Portfolio |
-| ROFOS13 | Hlášení fondu kvalifikovaných investorů | Ročně | Registr fondů, ocenění |
-| ROFOS11 | Hlášení fondu kolektivního investování (speciální fondy) | Ověřit v plánu výskytů SDAT | Registr fondů, ocenění, IS |
-| VYFOS20 | Výkaz zisku a ztráty | Čtvrtletně, kumulativně od počátku roku | Hlavní kniha |
+| DOFOS31 | Struktura investičních nástrojů | Čtvrtletně, fondy kolektivního investování | Portfolio |
+| DOFOS40 | Údaje o nemovitostech | Čtvrtletně, speciální fondy nemovitostí | Portfolio |
+| ROFOS13 | Hlášení fondu kvalifikovaných investorů | Ročně, do konce 4. měsíce | Registr fondů, ocenění |
+| ROFOS11 | Hlášení fondu kolektivního investování (speciální fondy) | Měsíčně, do 30 dnů | Registr fondů, ocenění, IS |
+| VYFOS20 | Výkaz zisku a ztráty | FKI ročně do konce 4. měsíce; fond kolektivního investování čtvrtletně, kumulativně od počátku roku | Hlavní kniha |
 | ROFOS33, ROFOS35 | Hlášení obhospodařovatele | Do 30 dnů od konce období | Portfolio, rizika |
 
 Za Investru jako administrátora a obhospodařovatele se podávají ROFOS10, VYFOS20 a hlášení obhospodařovatele (ROFOS33, DOFOS60). Údaje v cizí měně se pro výkazy přepočítávají kurzem ČNB.
@@ -750,7 +757,7 @@ Návrh jsem porovnal se čtyřmi příklady fondů kvalifikovaných investorů, 
 
 Co z toho pro návrh plyne:
 
-- **Třídy v různých měnách jsou reálný požadavek.** Jeden fond může mít třídy v CZK i EUR. Model třídy musí mít vlastní měnu. Měna třídy je měna, ve které se vydávají a odkupují akcie a vyhlašuje kurz; funkční měnu fondu podle IAS 21 neurčuje. Fond s třídou v EUR může mít dál funkční měnu CZK: účetnictví a FK se vedou v CZK a kapitál třídy se do EUR přepočítává kurzem k datu ocenění.
+- **Třídy v různých měnách jsou reálný požadavek.** Jeden fond může mít třídy v CZK i EUR. Model třídy musí mít vlastní měnu. Měna třídy je měna zveřejnění kurzu; funkční měnu fondu podle IAS 21 neurčuje. Fond s třídou v EUR může mít dál funkční měnu CZK: účetnictví a FK se vedou v CZK a kapitál třídy se do EUR přepočítává kurzem k datu ocenění.
 - **Statut počítá s více třídami, i když je zatím vydaná jedna.** Model musí zvládnout víc tříd od začátku.
 - **Aktiva bývají držená přes SPV.** Hmotná aktiva i nemovitosti jsou často majetková účast ve společnosti, ne přímý nástroj. Pořizovací cena má složky jako příplatek mimo základní kapitál a úvěr SPV. Ocenění je přes DCF nebo posudek.
 - **Interval ocenění se liší** (měsíčně i čtvrtletně), což potvrzuje parametr fondu.
@@ -818,7 +825,6 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 | Start Investra Services | Současné účetnictví, termín přechodu, plátcovství DPH, hosting, formát importu mezd | Upřesnit |
 | Zdrojové systémy fondů | Které systémy a zda mají údaje po pozicích a pořizovací kurzy | Upřesnit u prvních fondů |
 | Podrozvaha v Odoo | Podpora ve standardním Odoo není ověřená, deriváty a opce jsou u fondů významné | Ověřit v prototypu |
-| Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání | Určit v účetní politice |
 | Evidence aktiv uvnitř SPV | Zda Odoo má vést i aktiva dceřiných společností (např. jednotlivé automobily) pro ocenění, limity a výkazy, nebo jen účast a úvěr | Upřesnit |
 | Pole výkazů ČNB | Katalog výkazů, položek, kontrol a číselníků je v docs/cnb/ (metodika FOFI20261201) | Doplnit ukazatele u položek bez kontroly a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
 | Hosting | Určuje provoz, zálohy, obnovu a dodavatelskou smlouvu | Rozhodnout před ostrým startem; posoudit proti závazkům v žádosti o povolení a DORA |
@@ -833,6 +839,10 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 | TISIFI10 u nových smluv | Zda je bez vypořádání přeceněním celá změna RH, nebo se vychází z první známé RH; mění výsledek v měsíci sjednání | Počítat celou změnu; potvrdit s ČNB před implementací |
 | Výkazy speciálních fondů | Speciální fondy mohou podávat jiné výkazy než FKI, například ROFOS11 a DOFOS70 | Ověřit v plánu výskytů SDAT a doplnit tabulku výkazů |
 | Příplatek mimo základní kapitál | Zda se počítá do CET1 a na který řádek DOFOS60 patří; ovlivňuje vykázaný kapitál | Potvrdit s auditorem nebo ČNB |
+| Naběhlá hodnota ve fondu | Fond je převážně v reálné hodnotě; EIR nebo lineárně se hodí hlavně pro krátké termínované vklady a úvěry s variabilní sazbou | Potvrdit soulad s § 196 ZISIF s auditorem před napojením účtování |
+| Klasifikace podle fondu | Nástroj je společný pro fondy, ale obchodní model má každý fond svůj | Přesunout klasifikaci na vazbu fond a nástroj |
+| Oceňování derivátů | Návrh je v docs/navrh-oceneni-derivatu.md, zatím odložený | Rozsah určit podle pozic prvních fondů |
+| Napojení na SDAT | Návrh je v docs/navrh-sdat.md; termíny poskytuje služba ctiVykazovaciPovinnost; varianta podpisu a soulad pečeti s § 10 vyhlášky 267/2020 Sb. jsou otevřené | Odloženo do získání přístupu do testovacího SDAT |
 
 ### Chybějící podklady
 

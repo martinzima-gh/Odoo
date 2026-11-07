@@ -81,3 +81,4 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-07 | Změna klasifikace | Klasifikace je po prvním obchodu neměnná; nahrazuje „s platností“ ze záznamu IFRS 9 | Reklasifikace při změně obchodního modelu podle IFRS 9 by byla samostatný schválený krok | R+P |
 | 2026-11-07 | Termíny ČNB | Termíny a výkazy zveřejňuje ČNB v SDAT a budou se stahovat odtud; v Odoo se negenerují podle vlastních pravidel | Zatím jen obecné příklady | R |
 | 2026-11-07 | Měna zveřejnění kurzu | Třída má měnu zveřejnění kurzu; dosavadní pojem „měna třídy“ znamená právě ji. NAV fondu a kapitál třídy zůstávají ve funkční měně | Upřesnění záznamu Funkční měna | R |
+| 2026-11-07 | Jedna pracovní relace | Kód, dokumenty, Claude Doc i export architektury se dělají v relaci ve VS Code; relace v aplikaci se pro projekt nepoužívá | Nahrazuje rozdělení relací v `CLAUDE.md` | R |
