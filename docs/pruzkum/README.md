@@ -9,3 +9,4 @@ Stav 2026-11-07. Podklady z veřejných zdrojů a z našich dat, ne rozhodnutí.
 | [03-vykazy-po-polozkach.md](03-vykazy-po-polozkach.md) | Výkazy ČNB | Pro FKI 760 položek, základ má 6; největší mezery jsou protistrany a registry |
 | [04-prevzeti-fondu.md](04-prevzeti-fondu.md) | Převzetí fondu | Postup, seznam dat a kontroly ke dni přechodu |
 | [05-dluhove-nastroje.md](05-dluhove-nastroje.md) | Dluhové nástroje | Jeden společný model toků pro vklady, repo, dluhopisy a úvěry |
+| [06-is-v-odoo.md](06-is-v-odoo.md) | IS v Odoo | Jde to, ale 170 až 290 člověkodnů; pro start externí IS, případně později samostatná instance |
