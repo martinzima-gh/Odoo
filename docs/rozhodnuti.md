@@ -36,7 +36,7 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-04 | Reálná hodnota | Poslední známá cena; Odoo eviduje cenu a podklad; FX a přecenění na RH odděleně; protiúčty podle matice IFRS 9 / IAS 21 (majetkové FVOCI bez recyklace, dluhové FVOCI s recyklací a FX do výsledku, naběhlá hodnota FX do výsledku) | Doplněno 2026-11-05 podle kontroly (nález 5); ověřit s auditorem | R |
 | 2026-11-04 | Částečný prodej | Pořizovací cena průměrem u počítatelných nástrojů, jinak určí uživatel; kurzový rozdíl se odúčtuje na samostatné P&L účty | | R |
 | 2026-11-04 | Odoo Mates | Ve vývoji se nepoužívají, zůstávají ve výukové `odoo_cz` | | R |
-| 2026-11-04 | Kniha = společnost | Každá účetní kniha je hlavní společnost, ne pobočka; SICAV i podfondy jsou samostatné společnosti | | R (ověřit v etapě 2) |
+| 2026-11-04 | Kniha = společnost | Každá účetní kniha je hlavní společnost, ne pobočka; SICAV i podfondy jsou samostatné společnosti | | R (ověřit v etapě zkušebních knih) |
 | 2026-11-04 | Třída na účetním řádku | Vlastní pole, prázdné = společná položka | | N |
 | 2026-11-04 | Číselník fondů a tříd | Vlastníkem je Odoo, IS dostává kopii | Lze změnit | R |
 | 2026-11-04 | Plán verzí | Vývoj na Community, Enterprise zůstává otevřené | | Př |
@@ -53,3 +53,8 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-06 | Postup ocenění | Jeden záznam ocenění s kroky a uloženými vstupy; návrhy dokladů (zaúčtování viz řádek Zaúčtování ocenění); typovaná pravidla poplatků s řešením kruhové závislosti | Doporučení, čeká na rozhodnutí; popis v Doc | N |
 | 2026-11-06 | Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Mapování se v čase mění, výkazy mají vznikat bez ručního dorovnání; popis v Doc (Z účetnictví do výkazů) | R |
 | 2026-11-06 | Zaúčtování ocenění | Varianta B: schvaluje se kompletní finální ocenění po poplatcích, dohadech a dani, se sumářem z nezaúčtovaných návrhů; druhá osoba povinná, vedení fondu volitelné, další schvalovatelé a pořadí jsou parametr fondu; zaúčtuje se jedním krokem k datu ocenění před odesláním depozitáři; vrácení před zaúčtováním je oprava návrhů a nová verze, vrácení depozitářem storno všech dokladů ocenění a nová verze; kurz, zveřejnění a uzamčení ocenění i období až po stanovisku depozitáře | NAV a sumář počítají zaúčtovaný stav plus návrhy; návrhy se po odeslání zamknou se snímkem; kontrola proti sumáři před zaúčtováním. Ověřeno v kódu Odoo 20, prototypem zatím ne | R+P |
+| 2026-11-07 | Rámce jednotek | Každá jednotka má jeden rámec: vyhláška 500/2002 Sb., vyhláška 501/2002 Sb. s IFRS pro finanční nástroje, nebo plné IFRS | U rámce 501 nejde o souběh; znění § 4a ověřit | R |
+| 2026-11-07 | IFRS 18 | Jednotky na plném IFRS používají IFRS 18 místo IAS 1 pro období od 1. 1. 2027 | Přijato EU v únoru 2026 | R |
+| 2026-11-07 | Ochrana zaúčtování | Zamčené návrhy ocenění chrání serverová kontrola; automatické účtování přijatých faktur je v šabloně společnosti vypnuté | Standardní zaúčtování kontroluje jen účetní skupinu | R+P |
+| 2026-11-07 | Uchování a archivace | Matice uchování podle druhu záznamu a export archivu čitelný bez Odoo | Lhůty ZISIF ověřit | R |
+| 2026-11-07 | Prototyp NAV | Ověřit celý cyklus na jednom fondu před plným vývojem fondových modulů | Největší riziko se má ověřit brzy | R |

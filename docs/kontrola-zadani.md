@@ -7,12 +7,13 @@ ani `main`. Jediný výstup je zpráva.
 ## Co číst
 
 1. `CLAUDE.md` – cíl, pravidla, prostředí.
-2. `docs/architektura.md` – export architektury z Claude Doc (zdroj pravdy je Doc).
-3. `docs/rozhodnuti.md` – deník rozhodnutí.
-4. `docs/otevrene-body.md` – otevřené body a rizika.
-5. `docs/kontroly/` – předchozí zprávy (co už bylo nalezeno a zda se to vyřešilo).
-6. Kód v `addons/custom/` a konfigurace (`docker-compose*.yml`, `.gitignore`, `.env.example`).
-7. Změny od minulé kontroly: `git log --since="8 days ago" --stat`.
+2. `docs/predpisy-a-standardy.md` – seznam předpisů a bezpečnostních standardů.
+3. `docs/architektura.md` – export architektury z Claude Doc (zdroj pravdy je Doc).
+4. `docs/rozhodnuti.md` – deník rozhodnutí.
+5. `docs/otevrene-body.md` – otevřené body a rizika.
+6. `docs/kontroly/` – předchozí zprávy (co už bylo nalezeno a zda se to vyřešilo).
+7. Kód v `addons/custom/` a konfigurace (`docker-compose*.yml`, `.gitignore`, `.env.example`).
+8. Změny od minulé kontroly: `git log --since="8 days ago" --stat`.
 
 ## Na co se dívat
 
@@ -26,13 +27,21 @@ ani `main`. Jediný výstup je zpráva.
 - Regulace: ZISIF (240/2013 Sb.), NV 243/2013 Sb., vyhlášky ČNB k výkaznictví, DORA.
 - Výkazy ČNB: veřejná metodika SDAT (https://sdat.cnb.cz/sdat_ext/ → Metodické informace → Výkazy,
   rámec „Fondy“). Hlídat novou verzi metodiky (aktuálně FOFI20261201) a dopady na datový model.
+- Platnost a změny: vycházet z platných předpisů; plánované změny hlásit se stavem a očekávanou účinností,
+  například novou metodiku ČNB, novelu ZISIF, nový zákon o účetnictví a IFRS přijaté EU.
+- U každého závěru uvést účetní jednotku a rámec (vyhláška 500, vyhláška 501 s IFRS pro nástroje, plné IFRS).
 - Odoo 20 Community: zda navržené řešení odpovídá tomu, co Odoo umí (modely, multi-company, kurzy, přístupová práva v `ir.access`).
 
 **C. Kvalita kódu a provozu**
 - Chyby, chybějící testy, práva (multi-company pravidla), bezpečnost (hesla mimo git, porty jen na localhost).
 - Konvence: vlastní kód jen v `addons/custom/`, žádné zásahy do core ani Odoo Mates.
 
-**D. Návrhy na zlepšení**
+**D. Bezpečnost a kontroly**
+- Návrh a provoz posuzovat podle `docs/predpisy-a-standardy.md`, zejména DORA, ISO/IEC 27001,
+  OWASP ASVS, NIST SSDF a CIS Benchmarks. Soulad netvrdit bez posouzení konkrétního požadavku.
+- Čtyři oči, oddělení rolí, ochrana zamčených návrhů, neměnnost, auditní stopa, zálohy, obnova, uchování a použití AI.
+
+**E. Návrhy na zlepšení**
 - Co zjednodušit, co chybí pro audit a provoz, co by mělo být parametr místo kódu,
   co je potřeba rozhodnout dřív, než se začne programovat.
 

@@ -8,7 +8,8 @@ Aktuální znění, účinnost a přechodná ustanovení vždy ověřit ve Sbír
 - Účetnictví: zákon č. 563/1991 Sb. o účetnictví; vyhláška č. 500/2002 Sb. (podnikatelé);
   vyhláška č. 501/2002 Sb. (finanční instituce); České účetní standardy; zákon č. 93/2009 Sb. o auditorech.
 - Fondy: zákon č. 240/2013 Sb. (ZISIF) včetně novely k AIFMD II; nařízení vlády č. 243/2013 Sb.;
-  vyhláška č. 244/2013 Sb.; vyhláška č. 267/2020 Sb. (výkazy pro ČNB); metodika ČNB v SDAT.
+  vyhláška č. 244/2013 Sb.; vyhláška č. 267/2020 Sb. (výkazy pro ČNB); vyhláška č. 58/2006 Sb.
+  (evidence investičních nástrojů); metodika ČNB v SDAT.
 - Kapitálový trh: zákon č. 256/2004 Sb. (ZPKT).
 - Daně: zákon č. 586/1992 Sb. o daních z příjmů; zákon č. 235/2004 Sb. o DPH;
   zákon č. 164/2013 Sb. o mezinárodní spolupráci při správě daní (FATCA, CRS).
@@ -19,7 +20,8 @@ Aktuální znění, účinnost a přechodná ustanovení vždy ověřit ve Sbír
 ## Evropská unie
 
 - Účetnictví: nařízení (ES) č. 1606/2002; nařízení Komise (EU) 2023/1803 (IFRS přijaté EU, zejména
-  IFRS 7, 9, 10, 13, 15, 16 a IAS 1, 21, 24, 32); používat jen standardy přijaté EU.
+  IFRS 7, 9, 10, 13, 15, 16, 18 a IAS 1, 21, 24, 32); používat jen standardy přijaté EU.
+  IFRS 18 nahrazuje IAS 1 pro období začínající od 1. 1. 2027.
 - Fondy: směrnice 2011/61/EU (AIFMD) a 2024/927 (AIFMD II); nařízení v přenesené pravomoci
   (EU) č. 231/2013; směrnice 2009/65/ES (UCITS); nařízení (EU) č. 1286/2014 (PRIIPs).
 - Trhy a obchody: směrnice 2014/65/EU (MiFID II); nařízení (EU) č. 600/2014 (MiFIR), 648/2012 (EMIR),

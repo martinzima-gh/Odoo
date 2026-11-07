@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 206. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 222. -->
 
 # Investra – architektura Odoo a IS
 
@@ -16,7 +16,7 @@ Návrh stojí na třech prvcích:
 - **Významové role účtů.** Pravidla FX, alokace i výkazů se odkazují na roli, ne na číslo účtu, takže fungují nad různými osnovami.
 - **Jediný účtovací modul.** Žádný fondový modul nezapisuje do účetnictví přímo. Každý zápis vzniká z události podle pravidla a jde dohledat zpět.
 
-Nasazení začne ostrým účetnictvím Investra Services s.r.o., potom investiční společností a až nakonec fondy. Dokument je návrh k připomínkám. Nic z toho zatím není naprogramováno kromě prázdné kostry addonu. Oceňování je popsané jen rámcově, protože chybí dokumentace.
+Nasazení začne ostrým účetnictvím Investra Services s.r.o., potom investiční společností a až nakonec fondy. Dokument je návrh k připomínkám. Nic z toho zatím není naprogramováno kromě prázdné kostry addonu.
 
 ## Přijatá rozhodnutí a předpoklady
 
@@ -26,7 +26,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | --- | --- | --- |
 | Rozsah | Účetnictví a.s., s.r.o., SICAV, fondů a podfondů v Odoo | Rozhodnuto |
 | Účetní rámec | CAS pro podnikatele, CAS pro finanční instituce nebo plné IFRS, pro každou jednotku zvlášť | Rozhodnuto |
-| Souběh CAS a IFRS | Není třeba, každá jednotka účtuje jen v jednom rámci | Rozhodnuto |
+| Souběh CAS a IFRS | Každá jednotka má jeden rámec: vyhláška 500/2002 Sb., vyhláška 501/2002 Sb. s IFRS pro finanční nástroje (§ 4a, znění ověřit), nebo plné IFRS. U rámce 501 nejde o souběh. V knize se rámec eviduje těmito třemi hodnotami; vyhláška 500 se týká i společností ve skupině a SPV | Rozhodnuto |
 | Funkční měna | CZK nebo jiná, například EUR; kurzy ČNB i ECB; předpisy se upraví později | Rozhodnuto |
 | FX přecenění | Uživatelsky definované skupiny účtů | Rozhodnuto |
 | Třídy a alokace | Široce parametrizovatelné, kvůli různým zakladatelům | Rozhodnuto |
@@ -57,7 +57,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Reálná hodnota | Poslední známá cena, Odoo eviduje cenu a podklad, FX a přecenění na reálnou hodnotu odděleně | Rozhodnuto |
 | Pořizovací cena při částečném prodeji | Průměr u počítatelných nástrojů, jinak určí uživatel | Rozhodnuto |
 | Odoo Mates | Ve vývoji se nepoužívají, zůstávají v testovací `odoo_cz` | Rozhodnuto |
-| Kniha = společnost | Každá účetní kniha je hlavní společnost, ne pobočka | Rozhodnuto, ověřit v etapě 2 |
+| Kniha = společnost | Každá účetní kniha je hlavní společnost, ne pobočka | Rozhodnuto, ověřit v etapě zkušebních knih |
 | Třída na účetním řádku | Vlastní pole, prázdné = společná položka | Návrh, ověřit prototypem |
 | Číselník fondů a tříd | Vlastníkem je Odoo, IS dostává kopii | Rozhodnuto, lze změnit |
 | Plán verzí | Vývoj na Community, Enterprise zůstává otevřené | Předpoklad |
@@ -65,9 +65,6 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Postup ocenění | Jeden záznam ocenění s kroky; návrhy dokladů (zaúčtování viz řádek Zaúčtování ocenění); typovaná pravidla poplatků | Návrh, k rozhodnutí |
 | Mapování výkazů | Buňka výkazu je typované pravidlo s platností a vazbou na metodiku; deriváty po smlouvách brutto; stav sjednáno, nevypořádáno; ruční zásah jen se zdůvodněním | Rozhodnuto |
 | Zaúčtování ocenění | Varianta B: schvaluje se kompletní finální ocenění se sumářem z nezaúčtovaných návrhů; zaúčtuje se jedním krokem k datu ocenění před odesláním depozitáři; vrácení před zaúčtováním je oprava návrhů a nová verze, vrácení depozitářem storno všech dokladů a nová verze; uzamčení až po stanovisku depozitáře | Rozhodnuto, ověřit prototypem |
-|  |  |  |
-|  |  |  |
-|  |  |  |
 
 ## Hranice systémů a vlastnictví dat
 
@@ -134,7 +131,7 @@ V Odoo vznikne sada vlastních addonů nad standardním účetním jádrem, bez 
 | `investra_reporting` | Později | Neměnné snímky dat k datu | `investra_nav` |
 | `investra_cnb` | Později | Výkazy ČNB | `investra_reporting` |
 | `investra_limits` | Později | Investiční limity ze statutů, celková expozice závazkovou metodou, test základního investičního fondu | `investra_instruments` |
-| `investra_annual_report` | Později | Výroční a pololetní zprávy fondů: export dat a číselných výstupů, finalizace zatím ve Wordu | `investra_reporting` |
+| `investra_annual_report` | Později | Výroční a pololetní zprávy fondů: export dat a číselných výstupů, finalizace zatím ve Wordu; u plného IFRS od 2027 struktura podle IFRS 18 | `investra_reporting` |
 
 Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Odoo 20 se přístupová práva a záznamová pravidla sloučila do nového modelu ir.access (soubor security/ir.access.csv s operacemi crud a doménou), kostra je na to upravená. Práce na ní bude pokračovat až po `investra_entity` a `investra_posting`.
 
@@ -150,7 +147,7 @@ Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Od
 
 **Portfoliová transakce:** nese datum sjednání i vypořádání, okamžik zaúčtování určí účetní politika.
 
-**Poplatky fondu:** výpočet úplat má vlastní parametry, například průměr fondového kapitálu za obchodní dny i při měsíčním NAV. Typy úplat ze statutů: fixní měsíční částka s pásmy podle objemu aktiv, procento z fondového kapitálu před výkonnostní odměnou poměrené délkou oceňovacího období, výkonnostní odměna s hurdle a DPH jako náklad. Výkonnostní odměna má dvě podoby: poplatek obhospodařovateli (závazek fondu) nebo alokace části zhodnocení na jinou třídu akcií (přesun mezi třídami). Model musí umět obě, s parametry sazba, hurdle, srovnávací období, high-water mark ano/ne a časové vážení toků. Pořadí je dáno: nejdřív úplaty, potom výkonnostní odměna. Vstupní a výstupní poplatky řeší IS.
+**Poplatky fondu:** výpočet úplat má vlastní parametry, například průměr fondového kapitálu za obchodní dny i při měsíčním NAV. Typy úplat ze statutů: fixní měsíční částka s pásmy podle objemu aktiv, procento z fondového kapitálu před výkonnostní odměnou poměrené délkou oceňovacího období, výkonnostní odměna s hurdle a DPH jako náklad. Výkonnostní odměna má dvě podoby: poplatek obhospodařovateli (závazek fondu) nebo alokace části zhodnocení na jinou třídu akcií (přesun mezi třídami). Model musí umět obě, s parametry sazba, hurdle, srovnávací období, high-water mark ano/ne a časové vážení toků. Výchozí pořadí je nejdřív úplaty, potom výkonnostní odměna; je to parametr fondu podle rozhodnutí o pořadí výpočtů. Vstupní a výstupní poplatky řeší IS.
 
 **FX skupiny:** skupina = účty, protiúčty a metoda (storno, nebo jen rozdíl). Cenné papíry v cizí měně by měly být mimo FX skupiny a kurz řešit v ocenění, jinak hrozí dvojí započtení.
 
@@ -294,6 +291,8 @@ Ocenění je v `investra_nav` jeden záznam pro fond, datum a verzi. Účetní j
 - Po odeslání ke schválení se návrhy zamknou a uloží se snímek; každá změna znamená novou verzi.
 - Před zaúčtováním se zkontroluje, že stav odpovídá schválenému sumáři; jinak se ocenění vrací k přepočtu.
 - Ocenění a období se uzamknou až po stanovisku depozitáře, aby šlo storno zaúčtovat k datu ocenění.
+- Zamknuté návrhy chrání serverový zámek. Standardní \_post kontroluje jen účetní skupinu, proto modul musí bránit zaúčtování, změně i návratu do návrhu mimo schválený postup.
+- Automatické účtování přijatých faktur je v šabloně společnosti vypnuté.
 
 **Pravidla poplatků (doporučení, k rozhodnutí):** u fondu se vede sada typovaných pravidel s platností od data a odkazem na článek statutu. Pravidlo má typ, základ, sazbu nebo pásma, minimum a maximum, DPH, roční základ (365 nebo 366 dní), role účtů a třídu. Typy: pevná částka s pásmy, procento ze základu, výkonnostní odměna, daň, dohad a ruční položka s důvodem. Nový typ je malé rozšíření v kódu s testem. Volné vzorce ani tabulky mimo systém nedoporučujeme kvůli auditu.
 
@@ -496,7 +495,7 @@ Výroční a pololetní zprávy fondů budou samostatný modul `investra_annual_
 
 **Co zpráva skládá:**
 
-- **Účetní závěrku:** podle rámce jednotky. U CAS rozvahu a výsledovku ve formátu pro finanční instituce (vyhláška 501/2002), se sloupci investiční a neinvestiční část a celek, a přehled změn čistých aktiv držitelů. U jednotek na plném IFRS výkazy podle IAS 1 (finanční pozice, výsledek a ostatní úplný výsledek, změny vlastního kapitálu nebo čistých aktiv, peněžní toky) a přílohu s povinnými IFRS zveřejněními (IFRS 7, IFRS 13).
+- **Účetní závěrku:** podle rámce jednotky. U CAS rozvahu a výsledovku ve formátu pro finanční instituce (vyhláška 501/2002), se sloupci investiční a neinvestiční část a celek, a přehled změn čistých aktiv držitelů. U jednotek na plném IFRS výkazy podle IAS 1, který pro období začínající od 1. 1. 2027 nahrazuje IFRS 18, přijatý EU v únoru 2026 (finanční pozice, výsledek a ostatní úplný výsledek, změny vlastního kapitálu nebo čistých aktiv, peněžní toky) a přílohu s povinnými IFRS zveřejněními (IFRS 7, IFRS 13). Modul musí umět i strukturu výkazů podle IFRS 18.
 - **Přílohu závěrky:** účetní metody, členění portfolia, podrozvahu, úplaty, daň.
 - **Profil fondu a vývoj FK a hodnoty akcie** po třídách.
 - **Textové části:** činnost fondu, zpráva o vztazích, zpráva auditora (vkládá se).
@@ -630,10 +629,11 @@ Každý výpočet NAV a FX musí jít zopakovat ze stejných vstupů. Provoz dvo
 - **Neměnnost:** provedené transakce, závěrky a zaúčtovaná ocenění se nepřepisují. Oprava je storno a nový záznam.
 - **Schvalování:** parametrizovatelné pro ocenění, ceny a ruční úpravy kurzu. Lze nastavit kontrolu čtyř očí, kdy schvaluje jiná osoba než zadavatel, nebo schvalování nepoužívat. Pro fondy Investry je kontrola druhou osobou povinná podle vnitřních předpisů. Stanovisko depozitáře je samostatný krok po zaúčtování, schválení obhospodařovatele a administrátora se řídí parametrem fondu.
 - **Osobní údaje:** zůstávají v IS. Do Odoo jdou jen identifikátory a agregace.
-- **Oddělení zakladatelů:** přístup k knihám se omezí podle zakladatele, jeho podoba závisí na rozhodnutí o databázích.
+- **Oddělení zakladatelů:** vychází z rozhodnutí o jedné databázi; přístup se omezí právy podle společnosti a zakladatele.
 - **Kritická logika:** NAV a alokace patří do verzovaného kódu s testy, ne do Studia ani ručních vzorců.
 - **DORA:** Enterprise ani Odoo.sh samy neznačí soulad. Odpovědnost za ICT rizika, smlouvy, incidenty, kontinuitu a exit zůstává na Investře.
-- **Produkce:** potřebuje HTTPS, zálohy, monitoring, správu aktualizací a plán obnovy. Současné lokální prostředí je jen prototyp.
+- **Produkce:** oddělené produkční, testovací a vývojové prostředí; šifrování dat v klidu i při přenosu; role a oddělení povinností; MFA pro privilegované účty; přístup z řízených zařízení a přes VPN s vícefaktorovým ověřením; denní šifrované zálohy mimo primární lokalitu; pravidelné testy obnovy; monitoring; správa aktualizací. Současné lokální prostředí je jen prototyp.
+- **Uchování a archivace:** matice uchování podle druhu záznamu. Obecně 5 let, účetní závěrka a výroční zpráva 10 let, daňové doklady podle daňových předpisů (zákon o účetnictví § 31, znění ověřit), lhůty ZISIF ověřit. Export archivu musí být čitelný bez Odoo.
 - **Aktualizace Odoo:** vlastní addony je potřeba při každé nové verzi migrovat a otestovat, což je trvalý náklad.
 
 **DORA (vnitřní dokumenty Investry):** Odoo bude nový ICT systém, takže se na něj vztahují jejich požadavky na schválení projektu, evidenci aktiv a dodavatelů, bezpečný vývoj, řízení přístupů, zálohy, obnovu a testovací data. Konkrétní hodnoty (lhůty, frekvence) zůstávají v dokumentech DORA a převezmou se při návrhu produkčního provozu.
@@ -665,16 +665,19 @@ Fondy přecházejí ke dni uzávěrky nebo ocenění, ne migrací celé historie
 
 ## Plán prací
 
-První na řadě jsou role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popisují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Termíny doplníme, až bude jasný harmonogram úprav IS.
+Začínáme ověřovacím prototypem NAV, potom přijdou na řadu role účtů a specifikace rozhraní, protože na nich stojí vše ostatní a vyvíjejí se podle nich oba systémy. Etapy popisují vývoj fondových modulů a mohou běžet souběžně s fázemi 1 a 2. Termíny doplníme, až bude jasný harmonogram úprav IS.
 
-1. **Specifikace:** rozhodnutí z otevřených bodů, seznam rolí účtů, účetní politika pro FX.
-2. **Dvě zkušební knihy:** CZK a EUR, vlastní osnova, kurzy ČNB a ECB. Ověří návrh „kniha = společnost“.
-3. **Specifikace rozhraní s IS:** podle aktuálního zadání, aby mohl začít vývoj IS.
-4. **Účtování a FX:** `investra_posting` a FX skupiny, vyzkoušené na simulovaných událostech.
-5. **Fondy a portfolio:** fond, třídy, instrumenty, ceny, pozice. Prototyp pole třídy na účetním řádku a vnitřního zúčtování.
-6. **Napojení na IS:** závěrky, kurzy, párování plateb, denní kontroly.
-7. **Alokace a ocenění:** až po dodání dokumentace.
-8. **Výkazy:** snímky dat a první výkaz ČNB.
+1. **Prototyp NAV (ověřovací etapa):** jeden fond, dvě třídy, CZK a EUR, celý cyklus včetně zámku návrhů, zaúčtování a storna od depozitáře.
+2. **Specifikace:** rozhodnutí z otevřených bodů, seznam rolí účtů, účetní politika pro FX.
+3. **Dvě zkušební knihy:** CZK a EUR, vlastní osnova, kurzy ČNB a ECB. Ověří návrh „kniha = společnost“.
+4. **Specifikace rozhraní s IS:** podle aktuálního zadání, aby mohl začít vývoj IS.
+5. **Účtování a FX:** `investra_posting` a FX skupiny, vyzkoušené na simulovaných událostech.
+6. **Fondy a portfolio:** fond, třídy, instrumenty, ceny, pozice. Prototyp pole třídy na účetním řádku a vnitřního zúčtování.
+7. **Napojení na IS:** závěrky, kurzy, párování plateb, denní kontroly.
+8. **Alokace a ocenění:** plná verze po ověření prototypu.
+9. **Výkazy:** snímky dat a první výkaz ČNB.
+
+**Etapa Investra Services (fáze 1) navíc zahrnuje:** šablonu společnosti, neměnnost, oddělení rolí a čtyři oči i pro nastavení, zálohy a test obnovy.
 
 Rozhodnutí Community, nebo Enterprise musí padnout před ostrým startem Investra Services.
 
@@ -753,7 +756,7 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 
 | Bod | Proč na tom záleží | Doporučení |
 | --- | --- | --- |
-| Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout nejpozději po zkušebních knihách (etapa 2), před ostrým startem Investra Services. Kritéria: finanční výkazy, bankovní párování, oběh dokladů, cena licencí a hostingu, kompatibilita vlastních modulů. |
+| Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout nejpozději po etapě zkušebních knih, před ostrým startem Investra Services. Kritéria: finanční výkazy, bankovní párování, oběh dokladů, cena licencí a hostingu, kompatibilita vlastních modulů. |
 | Podrobnosti dividend | Účet pro výplatu, dopad na kurz k rozhodnému dni | Upřesnit |
 | Zdroje cen | Jaká aktiva fondy drží, frekvence posudků | Upřesnit |
 | Možnosti IS | Zda umí závěrku, identifikátory, příjem číselníku a kurzu, dividendy a API | Získat dokumentaci |
@@ -763,7 +766,14 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 | Podrozvaha v Odoo | Podpora ve standardním Odoo není ověřená, deriváty a opce jsou u fondů významné | Ověřit v prototypu |
 | Okamžik zaúčtování obchodu | Datum sjednání, nebo vypořádání | Určit v účetní politice |
 | Evidence aktiv uvnitř SPV | Zda Odoo má vést i aktiva dceřiných společností (např. jednotlivé automobily) pro ocenění, limity a výkazy, nebo jen účast a úvěr | Upřesnit |
-| Přesná pole výkazů ČNB | Struktura a kontroly výkazů jsou převzaté z veřejné metodiky SDAT FOFI20261201; položky a číselníky jsou v docs/cnb, chybí převodníky a ukazatele u položek bez kontroly | Doplnit před prvním exportem |
+| Pole výkazů ČNB | Katalog výkazů, položek, kontrol a číselníků je v docs/cnb/ (metodika FOFI20261201) | Doplnit ukazatele u položek bez kontroly a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
+| Hosting | Určuje provoz, zálohy, obnovu a dodavatelskou smlouvu | Rozhodnout před ostrým startem; posoudit proti závazkům v žádosti o povolení a DORA |
+| Soulad s žádostí o povolení | Technický popis v žádosti se musí shodovat se skutečným provozem účetnictví a IT | Porovnat žádost s architekturou a s právníkem nebo compliance určit, zda a jak změnu oznámit ČNB |
+| Termín startu a převzetí fondů | Vývoj fondových modulů musí stihnout první fondy, jinak je potřeba přechodné řešení | Určit termíny, připravit záložní postup |
+| Dopad DORA | Rozsah pro investiční společnost, role Investra Services a dodavatelů, včetně AI | Určit rozsah a doplnit evidenci dodavatelů |
+| Hesla a MFA | Délka hesla závisí na vícefaktorovém ověření; vynutit MFA | Řešit při návrhu produkce; požadavek ověřit v aktuálním NIST SP 800-63B |
+| Lhůty uchování podle ZISIF | Zvláštní lhůty pro obhospodařovatele a administrátora nejsou ověřené | Ověřit v aktuálním znění a doplnit do matice uchování |
+| Automatické testy (CI) | Testy modulů se zatím spouštějí ručně | Po prvním funkčním modulu nastavit automatickou instalaci modulu a testy |
 | Transakční výkazy a oznámení | Katalog pokrývá jen rámec Fondy; hlášení obchodů mají krátkou lhůtu a vlastní data | Ověřit povinnost Investry, pak rozhodnout o rozsahu a doplnit katalog |
 | TISIFI10 u nových smluv | Zda je bez vypořádání přeceněním celá změna RH, nebo se vychází z první známé RH; mění výsledek v měsíci sjednání | Počítat celou změnu; potvrdit s ČNB před implementací |
 | Výkazy speciálních fondů | Speciální fondy mohou podávat jiné výkazy než FKI, například ROFOS11 a DOFOS70 | Ověřit v plánu výskytů SDAT a doplnit tabulku výkazů |
@@ -774,7 +784,7 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 - [ ] Dokumentace a API IS.
 - [ ] Kdo a kdy zajistí úpravy IS.
 - [ ] Oceňovací dokumentace, včetně „Výpočtu bonusů pro fondy s delší periodou“.
-- [ ] Pole výkazů ČNB: struktura a kontroly jsou převzaté z metodiky SDAT FOFI20261201. Zbývá doplnit ukazatele u položek bez kontroly, převodníky z Knihovny a namapovat na ně role účtů; ověřit termíny RISIFI37 a ROFOS13 v záložce Vykazovací povinnost.
+- [ ] Zbývající ukazatele u položek a převodníky ČNB z Knihovny SDAT (ostatní je v docs/cnb/).
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
 - [ ] Účetní politika přecenění: účty, kurz, frekvence, protiúčty, metoda, P&L a OCI.
 - [ ] Naběhlý úrok a klasifikace podle IFRS 9.
@@ -787,6 +797,6 @@ Největší otevřené otázky jsou možnosti IS, volba edice Odoo a pole výkaz
 | Vstup nových investorů za starší kurz | Možné zvýhodnění nebo poškození stávajících investorů | Nastavení podle statutu, přehled ručních úprav |
 | Fondové moduly vyvíjené svépomocí | Trvalá práce na migracích a testech při nových verzích Odoo | Testy, omezit zásahy do core na minimum |
 | Odoo jako NAV systém | Může se ukázat méně vhodné než specializovaný systém | Ověřit prototypem před produkcí |
-| Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě 2 |
+| Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě zkušebních knih |
 | Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, úprava předpisů a evidence pro DORA | Postup po fázích, start na Investra Services |
 | Chybějící údaje při převzetí fondu | Bez pořizovacího kurzu nebo údajů po pozicích nejde oddělit FX a FV | Účetní postup pro stanovení hodnot ke dni přechodu |
