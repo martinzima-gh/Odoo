@@ -112,6 +112,24 @@ class TestRate(TransactionCase):
         self.assertEqual(len(rate), 1)
         self.assertAlmostEqual(rate.rate, 1 / 24.5, places=8)
 
+    def eur_in_czk(self, day):
+        company = self.env["res.company"].create({"name": f"Kurz {day!r}", "currency_id": self.env.ref("base.CZK").id})
+        return round(self.env.ref("base.EUR")._convert(1, self.env.ref("base.CZK"), company, day, round=False), 3)
+
+    def publish_eur(self, day, value):
+        self.Rate._store("cnb", day, {"EUR": (Decimal(1), Decimal(value))}, f"{day}{value}")._publish()
+
+    def test_rate_applies_on_its_own_day(self):
+        self.publish_eur(date(2034, 3, 2), "24.100")
+        self.publish_eur(date(2034, 3, 3), "24.300")
+        self.assertEqual(self.eur_in_czk(date(2034, 3, 2)), 24.1)
+        self.assertEqual(self.eur_in_czk(date(2034, 3, 3)), 24.3)
+
+    def test_weekend_uses_friday_and_string_date_works(self):
+        self.publish_eur(date(2034, 3, 3), "24.300")
+        self.assertEqual(self.eur_in_czk(date(2034, 3, 5)), 24.3)
+        self.assertEqual(self.eur_in_czk("2034-03-05"), 24.3)
+
     def test_fetch_uses_requested_date(self):
         response = MagicMock(text=CNB)
         with patch("odoo.addons.investra_rates.models.rate.requests.get", return_value=response) as get:

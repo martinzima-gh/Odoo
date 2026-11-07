@@ -90,6 +90,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Změna klasifikace | Klasifikace je po prvním obchodu neměnná; výjimkou je reklasifikace dluhových nástrojů při změně obchodního modelu jako samostatný schválený krok | Rozhodnuto |
 | Termíny ČNB | Termíny a výkazy zveřejňuje ČNB v SDAT a budou se stahovat odtud; zatím jen obecné příklady | Rozhodnuto |
 | Měna zveřejnění kurzu | Třída má měnu zveřejnění kurzu, probíhají v ní úpisy a odkupy; NAV fondu a kapitál třídy zůstávají ve funkční měně | Rozhodnuto |
+| Den kurzu na dokladech | Doklad bere kurz ČNB ke dni účetního případu, u české společnosti k DUZP; ve dnech bez kurzu poslední vyhlášený | Rozhodnuto |
 
 ## Hranice systémů a vlastnictví dat
 

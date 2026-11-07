@@ -1,1 +1,1 @@
-from . import rate
+from . import currency, rate
