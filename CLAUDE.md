@@ -54,10 +54,12 @@ Aktuální jména zjistit přes `ListAgents`; jména se po restartu mění a dom
 
 ## Bezpečnostní pravidla (závazná)
 
-Bez souhlasu lze: číst soubory, Docker konfiguraci a logy, stav gitu, read-only diagnostika, SQL `SELECT`, testy.
+Bez souhlasu lze: číst soubory, Docker konfiguraci a logy, stav gitu, read-only diagnostika, SQL `SELECT`, testy,
+commit a push do vlastní větve po dokončení a ověření změny (ve zprávě říct, co šlo ven).
 
 Předem se zeptat na: změny Docker Compose, instalaci/upgrade/odinstalaci modulů, restart nebo stop služeb,
-změny schématu, migraci nebo obnovu DB, cokoli s účetním či historickým dopadem, commit, push.
+změny schématu, migraci nebo obnovu DB, cokoli s účetním či historickým dopadem, commit nebo push do `main`,
+mazání a přepis historie gitu.
 
 Nikdy bez výslovného souhlasu: `DELETE`, `UPDATE`, `INSERT`, `TRUNCATE`, `DROP` nad databází;
 nikdy nemazat Docker volumes. Účetní data měnit jen přes Odoo ORM/UI.
