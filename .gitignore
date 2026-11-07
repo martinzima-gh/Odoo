@@ -9,6 +9,7 @@
 # Zálohy a exporty databáze
 *.dump
 *.sql
+!docs/sql/*.sql
 *.sql.gz
 *.zip
 *.tar.gz
