@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class InvestraFund(models.Model):
@@ -22,8 +22,11 @@ class InvestraClassMovement(models.Model):
     """Úpis nebo odkup ze závěrky IS. Do napojení IS se pořizuje ručně a ve testech."""
 
     _name = "investra.class.movement"
+    _inherit = ["investra.record.guard"]
     _description = "Pohyb kapitálu třídy"
     _order = "date, id"
+    _book_fields = ("class_id",)
+    _system_fields = frozenset({"event_id"})
 
     class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict", index=True)
     fund_id = fields.Many2one(related="class_id.fund_id", store=True, index=True)
@@ -39,12 +42,24 @@ class InvestraClassMovement(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.su and any("event_id" in vals for vals in vals_list):
+            raise UserError(self.env._("Vazbu na účetní událost nastavuje jen zaúčtování."))
         for vals in vals_list:
             if vals.get("amount_class"):
                 fund_class = self.env["investra.fund.class"].browse(vals["class_id"])
                 rate = vals.get("fx_rate") or float(fund_class.fund_id._fx_at(fund_class.currency_id, fields.Date.to_date(vals["date"])))
                 vals.update({"fx_rate": rate, "amount": fund_class.fund_id.currency_id.round(vals["amount_class"] * rate)})
         return super().create(vals_list)
+
+    def write(self, vals):
+        if not self.env.su and ("event_id" in vals or self.filtered("event_id")):
+            raise UserError(self.env._("Zaúčtovaný pohyb nejde změnit."))
+        return super().write(vals)
+
+    def unlink(self):
+        if self.filtered("event_id"):
+            raise UserError(self.env._("Zaúčtovaný pohyb nejde smazat."))
+        return super().unlink()
 
     @api.constrains("amount", "units")
     def _check_positive(self):

@@ -35,6 +35,12 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Převodová tabulka ČNB | Převod rolí na řádky výkazů je pracovní návrh (`docs/cnb/prevodova-tabulka.md`) | Potvrdit až při testu výkazů ČNB (rozhodnutí 2026-11-07) |
 | Zrušená část třetí vyhlášky 244/2013 Sb. | Možný dopad na Pravidla oceňování u pohledávek po splatnosti a v insolvenci | Zatím neprověřovat (rozhodnutí 2026-11-07); vrátit se při aktualizaci předpisů |
 | Pole výkazů ČNB | Katalog výkazů, položek, kontrol a číselníků je v `docs/cnb/` (metodika FOFI20261201) | Doplnit ukazatele u položek bez kontroly a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
+| Sdílené nástroje bez pravidla společnosti | Příprava jednoho fondu může změnit peněžní toky nástroje drženého jiným fondem | Rozhodnout, zda nástroje sdílet, nebo omezit podle knihy |
+| Návrhy obchodů v pozicích | Nezaúčtovaný návrh obchodu zvyšuje pozici fondu | Rozhodnout, zda se mají počítat jen zaúčtované obchody |
+| Oddělení uživatelů podle fondů | Určuje váhu izolace knih | Rozhodnout, kdo má přístup do kterých knih |
+| Zámek splátky po zaúčtování | Částku splátky a `event_id` jde po zaúčtování změnit; dvojí zaúčtování zastaví klíč události | Zamknout stejně jako pohyb |
+| Správa knihy a poplatků | Modely pravidel úplat, tříd a kalendáře mohou mít stejný přesun mezi knihami pro skupinu správce účetnictví | Prověřit a rozšířit ochranu záznamu |
+| Excel balíčku pro depozitáře | Text začínající `=` se zapíše jako vzorec | Vypnout `strings_to_formulas` |
 
 ## Chybějící podklady
 

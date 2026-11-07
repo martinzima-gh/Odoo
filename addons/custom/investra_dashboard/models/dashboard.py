@@ -9,8 +9,10 @@ class InvestraRegulatoryDeadline(models.Model):
     """Termín podání; zdrojem bude SDAT. Dashboard ho jen vyhodnocuje a nic nepodává."""
 
     _name = "investra.regulatory.deadline"
+    _inherit = ["investra.record.guard"]
     _description = "Termín podání ČNB"
     _order = "due_date, id"
+    _book_fields = ("fund_id",)
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)

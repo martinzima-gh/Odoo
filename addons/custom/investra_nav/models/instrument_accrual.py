@@ -61,8 +61,10 @@ class InvestraInstrumentRepayment(models.Model):
     """Skutečná splátka nástroje v naběhlé hodnotě; rozdíl proti naběhlé hodnotě doúčtuje ocenění."""
 
     _name = "investra.instrument.repayment"
+    _inherit = ["investra.record.guard"]
     _description = "Splátka nástroje"
     _order = "date desc, id desc"
+    _book_fields = ("fund_id",)
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)

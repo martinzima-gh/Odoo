@@ -13,7 +13,7 @@ access_benchmark_prep,investra.benchmark prep,investra.benchmark,investra_entity
 access_benchmark_value_read,investra.benchmark.value read,investra.benchmark.value,account.group_account_readonly,r,
 access_benchmark_value_prep,investra.benchmark.value prep,investra.benchmark.value,investra_entity.group_valuation_preparer,cru,
 access_class_movement_read,investra.class.movement read,investra.class.movement,account.group_account_readonly,r,
-access_class_movement_prep,investra.class.movement prep,investra.class.movement,investra_entity.group_valuation_preparer,cru,
+access_class_movement_prep,investra.class.movement prep,investra.class.movement,investra_entity.group_valuation_preparer,crud,
 investra_class_movement_rule,investra.class.movement company,investra.class.movement,,crud,"[('company_id', 'in', company_ids)]"
 access_approval_step_read,investra.fund.approval.step read,investra.fund.approval.step,account.group_account_readonly,r,
 access_approval_step_mgr,investra.fund.approval.step mgr,investra.fund.approval.step,account.group_account_manager,crud,

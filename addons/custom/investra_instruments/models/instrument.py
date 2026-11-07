@@ -14,6 +14,9 @@ DAY_COUNT = [
 LOCKED_AFTER_TRADE = {"type_id", "role_id", "ifrs9_category", "valuation_method"}
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id"}
 BOOKED_TRADE_FIELDS = {"fund_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate"}
+SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
+# Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
+PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "source"}
 
 
 class InvestraInstrumentType(models.Model):
@@ -163,8 +166,11 @@ class InvestraInstrumentPrice(models.Model):
     """Cena k datu. Do ocenění vstupuje jen schválená; schválenou nelze měnit."""
 
     _name = "investra.instrument.price"
+    _inherit = ["investra.record.guard"]
     _description = "Cena nástroje"
     _order = "date desc"
+    _book_fields = ("fund_id",)
+    _system_fields = SYSTEM_PRICE_FIELDS
 
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", index=True)
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
@@ -180,15 +186,17 @@ class InvestraInstrumentPrice(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.su and any({"state", "approved_by"} & set(vals) for vals in vals_list):
+        if not self.env.su and any(SYSTEM_PRICE_FIELDS & set(vals) for vals in vals_list):
             raise UserError(self.env._("Cenu schvaluje jen schvalovací krok."))
         return super().create(vals_list)
 
     def write(self, vals):
-        if not self.env.su and {"state", "approved_by", "entered_by"} & set(vals):
+        if not self.env.su and SYSTEM_PRICE_FIELDS & set(vals):
             raise UserError(self.env._("Cenu schvaluje jen schvalovací krok."))
         if self.filtered(lambda p: p.state == "approved") and set(vals) - {"state", "approved_by"}:
             raise UserError(self.env._("Schválenou cenu nejde měnit."))
+        if not self.env.su and PRICE_INPUT_FIELDS & set(vals):
+            vals = {**vals, "entered_by": self.env.user.id}
         return super().write(vals)
 
     def unlink(self):
@@ -201,8 +209,10 @@ class InvestraInstrumentPrice(models.Model):
             raise UserError(self.env._("Ceny schvaluje jen uživatel se skupinou schvalování ocenění."))
         if self.sudo().company_id - self.env.companies:
             raise AccessError(self.env._("Cena patří jiné společnosti."))
+        if self.filtered(lambda p: p.state != "draft"):
+            raise UserError(self.env._("Schválit jde jen cenu v návrhu."))
         for price in self:
-            if price.entered_by == self.env.user:
+            if self.env.user in price.entered_by | price.create_uid:
                 raise UserError(self.env._("Zadavatel nemůže schválit vlastní cenu."))
         self.sudo().write({"state": "approved", "approved_by": self.env.user.id})
 
@@ -211,8 +221,11 @@ class InvestraTrade(models.Model):
     """Portfoliová transakce; účetní doklad vzniká přes událost a nese nástroj na řádku."""
 
     _name = "investra.trade"
+    _inherit = ["investra.record.guard"]
     _description = "Obchod s nástrojem"
     _order = "trade_date, id"
+    _book_fields = ("fund_id",)
+    _system_fields = SYSTEM_TRADE_FIELDS
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)

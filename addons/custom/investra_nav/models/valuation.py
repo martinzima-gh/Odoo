@@ -48,8 +48,11 @@ class InvestraValuation(models.Model):
     """Jedno ocenění fondu k datu ve verzi. Stavy vedou přes schválení k zaúčtování a zveřejnění."""
 
     _name = "investra.valuation"
+    _inherit = ["investra.record.guard"]
     _description = "Ocenění"
     _order = "fund_id, date desc, version desc"
+    _book_fields = ("fund_id",)
+    _system_fields = SYSTEM_FIELDS
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
@@ -889,7 +892,9 @@ class InvestraValuationExternal(models.Model):
     """Částka spočtená mimo Odoo: příloha s výpočtem a důvod jsou povinné, schvaluje se s oceněním."""
 
     _name = "investra.valuation.external"
+    _inherit = ["investra.record.guard"]
     _description = "Částka spočtená mimo Odoo"
+    _book_fields = ("valuation_id",)
 
     valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True)
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)

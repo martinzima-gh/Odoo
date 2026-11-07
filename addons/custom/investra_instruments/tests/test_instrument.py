@@ -58,6 +58,50 @@ class TestInstrument(InstrumentCase):
             price.with_user(self.preparer).write({"state": "approved"})
         with self.assertRaises(UserError):
             price.with_user(self.preparer).write({"entered_by": self.approver.id})
+
+    def test_context_cannot_approve_price(self):
+        price = self.env["investra.instrument.price"].with_user(self.preparer).with_context(
+            default_state="approved", default_approved_by=self.approver.id, default_entered_by=self.approver.id,
+        ).create({"instrument_id": self.instrument.id, "fund_id": self.fund.id, "date": "2026-11-30", "price": 10, "source": "test"})
+        self.assertEqual(price.state, "draft")
+        self.assertFalse(price.approved_by)
+        self.assertEqual(price.entered_by, self.preparer)
+
+    def test_create_cannot_set_entered_by(self):
+        with self.assertRaises(UserError):
+            self.env["investra.instrument.price"].with_user(self.preparer).create({
+                "instrument_id": self.instrument.id, "fund_id": self.fund.id, "date": "2026-11-30", "price": 10, "source": "test",
+                "entered_by": self.approver.id,
+            })
+
+    def test_editor_of_draft_cannot_approve(self):
+        self.approver.group_ids |= self.env.ref("investra_entity.group_valuation_preparer")
+        price = self.price()
+        price.with_user(self.approver).write({"price": 150})
+        self.assertEqual(price.entered_by, self.approver)
+        with self.assertRaises(UserError):
+            price.with_user(self.approver).action_approve()
+
+    def test_creator_cannot_approve_when_entered_by_differs(self):
+        self.approver.group_ids |= self.env.ref("investra_entity.group_valuation_preparer")
+        price = self.price(self.approver)
+        price.sudo().entered_by = self.preparer
+        with self.assertRaises(UserError):
+            price.with_user(self.approver).action_approve()
+
+    def test_approved_price_cannot_be_approved_again(self):
+        price = self.price()
+        price.with_user(self.approver).action_approve()
+        second = self.approver.copy({"login": "inst_appr2"})
+        with self.assertRaises(UserError):
+            price.with_user(second).action_approve()
+        self.assertEqual(price.approved_by, self.approver)
+
+    def test_context_cannot_set_trade_state(self):
+        trade = self.env["investra.trade"].with_user(self.preparer).with_context(default_state="settled").create({
+            "fund_id": self.fund.id, "instrument_id": self.instrument.id, "trade_date": "2026-11-30", "quantity": 1, "price": 1,
+        })
+        self.assertEqual(trade.state, "draft")
         with self.assertRaises(UserError):
             self.env["investra.instrument.price"].with_user(self.preparer).create({
                 "instrument_id": self.instrument.id, "fund_id": self.fund.id, "date": "2026-12-31",

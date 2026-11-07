@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from odoo import fields
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
 from odoo.addons.investra_nav.tests.common import NavCase
@@ -85,6 +85,13 @@ class TestDashboard(NavCase):
         deadline = self.deadline(3)
         with self.assertRaises(AccessError):
             deadline.with_user(self.approver).write({"state": "submitted"})
+
+    def test_deadline_stays_in_book(self):
+        deadline = self.deadline(5)
+        other = self.make_fund(classes=[{"code": "A"}])
+        with self.assertRaises(UserError):
+            deadline.with_user(self.preparer).write({"fund_id": other.id})
+        self.assertEqual(deadline.fund_id, self.fund)
 
     def test_views_load(self):
         result = self.env["investra.fund"].get_views([
