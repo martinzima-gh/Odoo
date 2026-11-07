@@ -64,7 +64,7 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-07 | Třídy fondů | Fondy jsou vícetřídové, model i prototyp s tím počítají od začátku | | R |
 | 2026-11-07 | Příprava před fondy | Napojení IS a mapa DORA jsou součástí přípravy před převzetím fondů | | R |
 | 2026-11-07 | Cílový termín | Start a převzetí fondů reálně ke konci Q1 2027 | Upřesnit podle harmonogramu | Př |
-| 2026-11-07 | Rozdělení vývoje | Jan Polan hlavně česká lokalizace; fondové moduly Martin Zíma s Claude | Nezávislou kontrolu fondového kódu určit | R |
+| 2026-11-07 | Rozdělení vývoje | Záměr: Jan Polan hlavně česká lokalizace; fondové moduly Martin Zíma s Claude | Rozsah práce Jana Polana zatím není rozhodnutý; nezávislou kontrolu fondového kódu určit | N |
 | 2026-11-07 | IFRS 9 | Systém je univerzální a podporuje všechny modely podle IFRS 9; klasifikace a model jsou na nástroji s platností, převzatý fond si zachová nastavení | Rozsah implementace podle prvních fondů | R |
 | 2026-11-07 | Kontinuita | Náhradní aplikace nebude; kontinuitu zajistí zálohy, obnova a bezpečnost Odoo | Požadavky DORA zůstávají | R |
 | 2026-11-07 | Provozní manuál | Před převzetím fondů vznikne manuál pro účetní včetně zastupování | | R |

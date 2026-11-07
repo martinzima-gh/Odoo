@@ -7,9 +7,9 @@ Termíny jsou návrh a platí až po potvrzení. Hlavní neznámé: kapacita vý
 
 | Oblast | Kdo |
 |---|---|
-| Česká lokalizace | Jan Polan |
+| Česká lokalizace | Záměr: Jan Polan, zatím nerozhodnuto |
 | Fondové moduly, ocenění, výkazy | Martin Zíma s Claude |
-| Nezávislá kontrola fondového kódu | Určit druhou osobu; navrženo Jan Polan |
+| Nezávislá kontrola fondového kódu | Určit druhou osobu |
 
 ## Etapy
 
