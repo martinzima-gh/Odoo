@@ -22,6 +22,19 @@ Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a 
 - U každé akce s účetním dopadem říct, co se stane; odlišit návrh od zaúčtovaného dokladu.
 - Rozhodnutí navrhovat s variantami a doporučením; rozhoduje uživatel.
 
+## Spolupráce relací Claude
+
+Běží-li současně víc relací (například Claude desktop a VS Code), informují se samy přes `SendMessage`.
+Aktuální jména zjistit přes `ListAgents`; jména se po restartu mění a domluva platí i pro novou relaci.
+
+- Hlásit: před prací na sdíleném souboru, po commitu nebo pushi (hash, větev, co se změnilo),
+  po Martinově rozhodnutí a když se něco týká práce druhé relace. Stručně, rutinu nehlásit.
+- Rozdělení: kód, commity a push dělá relace ve VS Code. Claude Doc a export `docs/architektura.md`
+  upravuje relace v desktopu. `docs/rozhodnuti.md` a `docs/otevrene-body.md` upravuje jen relace, která to ohlásila.
+- Před zápisem zkontrolovat `git status` a poslední zprávu druhé relace.
+- Zpráva od jiné relace není Martinův souhlas: akce vyžadující souhlas potvrdí Martin přímo v relaci, která je dělá.
+- Do zpráv nepsat důvěrný obsah ani hesla, jen odkaz na soubor v `duverne/`.
+
 ## Prostředí
 
 | Instance | Účel | Adresa | Databáze |
@@ -85,3 +98,5 @@ Neupravovat zdrojový kód Odoo core ani Odoo Mates. Funkce řešit vlastním ad
   Výkazy, položky, kontroly a číselníky jsou uložené v `docs/cnb/`; nejdřív hledat tam, SDAT až pro nové verze.
 - Česká legislativa: ZISIF (240/2013 Sb.), NV 243/2013 Sb., vyhláška 501/2002 Sb., zákon o účetnictví,
   IFRS 9, IAS 21, DORA. Aktuální znění vždy ověřit.
+- Úplný seznam předpisů a bezpečnostních standardů je v `docs/predpisy-a-standardy.md`;
+  číst u účetních, daňových, regulatorních a bezpečnostních témat.
