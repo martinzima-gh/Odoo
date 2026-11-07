@@ -93,6 +93,7 @@ vybraných v přepínači společností, proto je pro přehled napříč fondy p
 
 Termíny a výkazy bude zveřejňovat ČNB v SDAT a budou se stahovat odtud; zatím jsou v menu Termíny ČNB jen obecné příklady se zdrojem Příklad. Počet dnů upozornění je pracovní.
 Ukázku stavů vytvoří `tools/nav_demo/demo_prehled.py`: Beta vyžaduje zásah, Gama má upozornění.
+Termínovaný vklad a emitenta ukáže `tools/nav_demo/demo_vklad.py`: fond Delta, zářijové ocenění zveřejněné, říjnové spočtené.
 
 ## Zaúčtování obchodu
 
@@ -143,6 +144,8 @@ docker compose -f docker-compose.investra.yml run -d --rm --no-deps --name inves
   -d investra_test --db-filter='^investra_test$' --max-cron-threads=0
 docker stop investra-test-web
 ```
+
+V prohlížeči otevírej testovací web jako http://localhost:8071 a vývojový jako http://127.0.0.1:8070. Různý název hostitele oddělí přihlášení, stejný název by je sdílel.
 
 V DBeaveru použij stejné připojení jako k `investra_dev` (`127.0.0.1:5433`, účet `dbeaver_ro`), jen databázi `investra_test`.
 

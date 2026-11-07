@@ -32,6 +32,8 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Napojení na SDAT | Návrh v `docs/navrh-sdat.md`; termíny poskytuje `ctiVykazovaciPovinnost`. Otevřené: varianta podpisu, soulad pečeti s § 10 vyhlášky 267/2020 Sb., přístupy do testu | Začít variantou se souborem a čtením přes služby |
 | Evidence aktiv uvnitř SPV | Zda vést i aktiva dceřiných společností, nebo jen účast a úvěr | Upřesnit |
 | Automatické testy (CI) | Testy modulů se zatím spouštějí ručně | Po prvním funkčním modulu nastavit GitHub Actions s instalací modulu a testy |
+| Převodová tabulka ČNB | Převod rolí na řádky výkazů je pracovní návrh (`docs/cnb/prevodova-tabulka.md`) | Potvrdit až při testu výkazů ČNB (rozhodnutí 2026-11-07) |
+| Zrušená část třetí vyhlášky 244/2013 Sb. | Možný dopad na Pravidla oceňování u pohledávek po splatnosti a v insolvenci | Zatím neprověřovat (rozhodnutí 2026-11-07); vrátit se při aktualizaci předpisů |
 | Pole výkazů ČNB | Katalog výkazů, položek, kontrol a číselníků je v `docs/cnb/` (metodika FOFI20261201) | Doplnit ukazatele u položek bez kontroly a převodníky z Knihovny SDAT; ověřit termíny RISIFI37 a ROFOS13 |
 
 ## Chybějící podklady
