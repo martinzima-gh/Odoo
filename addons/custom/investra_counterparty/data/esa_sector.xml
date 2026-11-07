@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Číselník Z_ESA2010, metodika FOFI20261201 -->
+<odoo noupdate="1">
+    <record id="esa_1100000" model="investra.esa.sector"><field name="code">1100000</field><field name="name">Nefinanční podniky</field></record>
+    <record id="esa_1210000" model="investra.esa.sector"><field name="code">1210000</field><field name="name">Centrální banka</field></record>
+    <record id="esa_1220000" model="investra.esa.sector"><field name="code">1220000</field><field name="name">Instituce přijímající vklady</field></record>
+    <record id="esa_1230000" model="investra.esa.sector"><field name="code">1230000</field><field name="name">Fondy peněžního trhu</field></record>
+    <record id="esa_1240000" model="investra.esa.sector"><field name="code">1240000</field><field name="name">Fondy kolektivního investování (kromě FPT)</field></record>
+    <record id="esa_1250000" model="investra.esa.sector"><field name="code">1250000</field><field name="name">Ostatní finanční zprostředkovatelé (kromě IC a PF)</field></record>
+    <record id="esa_1260000" model="investra.esa.sector"><field name="code">1260000</field><field name="name">Pomocné finanční instituce</field></record>
+    <record id="esa_1270000" model="investra.esa.sector"><field name="code">1270000</field><field name="name">Kaptivní finanční instituce a půjčovatelé peněz</field></record>
+    <record id="esa_1280000" model="investra.esa.sector"><field name="code">1280000</field><field name="name">Pojišťovací společnosti (IC)</field></record>
+    <record id="esa_1290000" model="investra.esa.sector"><field name="code">1290000</field><field name="name">Penzijní fondy (PF)</field></record>
+    <record id="esa_1311000" model="investra.esa.sector"><field name="code">1311000</field><field name="name">Ústřední vládní instituce</field></record>
+    <record id="esa_1312000" model="investra.esa.sector"><field name="code">1312000</field><field name="name">Národní vládní instituce</field></record>
+    <record id="esa_1313000" model="investra.esa.sector"><field name="code">1313000</field><field name="name">Místní vládní instituce</field></record>
+    <record id="esa_1314000" model="investra.esa.sector"><field name="code">1314000</field><field name="name">Fondy sociálního zabezpečení</field></record>
+    <record id="esa_1400000" model="investra.esa.sector"><field name="code">1400000</field><field name="name">Domácnosti</field></record>
+    <record id="esa_1500000" model="investra.esa.sector"><field name="code">1500000</field><field name="name">Neziskové instituce sloužící domácnostem</field></record>
+    <record id="esa_2001000" model="investra.esa.sector"><field name="code">2001000</field><field name="name">Nefinanční podniky</field></record>
+    <record id="esa_2002100" model="investra.esa.sector"><field name="code">2002100</field><field name="name">Centrální banka</field></record>
+    <record id="esa_2002200" model="investra.esa.sector"><field name="code">2002200</field><field name="name">Instituce přijímající vklady</field></record>
+    <record id="esa_2002300" model="investra.esa.sector"><field name="code">2002300</field><field name="name">Fondy peněžního trhu</field></record>
+    <record id="esa_2002400" model="investra.esa.sector"><field name="code">2002400</field><field name="name">Investiční fondy jiné než fondy peněžního trhu</field></record>
+    <record id="esa_2002500" model="investra.esa.sector"><field name="code">2002500</field><field name="name">Ostatní finanční zprostředkovatelé (kromě IC a PF)</field></record>
+    <record id="esa_2002600" model="investra.esa.sector"><field name="code">2002600</field><field name="name">Pomocné finanční instituce</field></record>
+    <record id="esa_2002700" model="investra.esa.sector"><field name="code">2002700</field><field name="name">Kaptivní finanční instituce a půjčovatelé peněz</field></record>
+    <record id="esa_2002800" model="investra.esa.sector"><field name="code">2002800</field><field name="name">Pojišťovací společnosti (IC)</field></record>
+    <record id="esa_2002900" model="investra.esa.sector"><field name="code">2002900</field><field name="name">Penzijní fondy (PF)</field></record>
+    <record id="esa_2003110" model="investra.esa.sector"><field name="code">2003110</field><field name="name">Ústřední vládní instituce</field></record>
+    <record id="esa_2003120" model="investra.esa.sector"><field name="code">2003120</field><field name="name">Národní vládní instituce</field></record>
+    <record id="esa_2003130" model="investra.esa.sector"><field name="code">2003130</field><field name="name">Místní vládní instituce</field></record>
+    <record id="esa_2003140" model="investra.esa.sector"><field name="code">2003140</field><field name="name">Fondy sociálního zabezpečení</field></record>
+    <record id="esa_2004000" model="investra.esa.sector"><field name="code">2004000</field><field name="name">Domácnosti</field></record>
+    <record id="esa_2005000" model="investra.esa.sector"><field name="code">2005000</field><field name="name">Neziskové instituce sloužící domácnostem</field></record>
+    <record id="esa_2009030" model="investra.esa.sector"><field name="code">2009030</field><field name="name">Mezinárodní instituce</field></record>
+</odoo>

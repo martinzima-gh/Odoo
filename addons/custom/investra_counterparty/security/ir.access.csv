@@ -1,0 +1,5 @@
+id,name,model_id,group_id/id,operation,domain
+access_esa_read,investra.esa.sector read,investra.esa.sector,account.group_account_readonly,r,
+access_esa_preparer,investra.esa.sector preparer,investra.esa.sector,investra_entity.group_valuation_preparer,r,
+access_profile_read,investra.counterparty.profile read,investra.counterparty.profile,account.group_account_readonly,r,
+access_profile_preparer,investra.counterparty.profile preparer,investra.counterparty.profile,investra_entity.group_valuation_preparer,cru,

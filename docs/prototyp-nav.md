@@ -15,6 +15,8 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 25 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
 | `investra_dashboard` | Přehled fondů, výjimky, termíny ČNB | 11 |
+| `investra_counterparty` | Registr protistran a emitentů s platností, sektor ESA 2010, LEI | 8 |
+| `investra_cnb` | Převodová tabulka rolí na řádky výkazů ČNB, kontrola úplnosti | 10 |
 | `investra_fx_revaluation` | Profily přecenění, doplňkové přecenění, návrh dokladu, kontrola kurzu | 29 |
 | `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu, měna kurzu, přístup podle společnosti | 102 |
 
@@ -105,6 +107,11 @@ Parametr fondu podle IFRS 9 odst. 3.1.2; výchozí je Trade date accounting. Po 
 
 Bez data vypořádání, nebo se stejným datem, jde obchod rovnou proti bance. Obchod po termínu bez vypořádání je upozornění v kontrolách ocenění.
 Kurzový rozdíl z vypořádání se účtuje až při ocenění, ne v den platby. Změna RH před vypořádáním je u cizí měny jedna částka, bez rozdělení na cenu a kurz.
+
+## Registr protistran a převod na výkazy
+
+Protistrana má zemi, sektor ESA 2010 a LEI s platností od data, změny jsou v historii. Nástroj má emitenta. Převodová tabulka v Nastavení převádí role účtů na řádky listů ROFO10_11, ROFO10_21, VYFO20_11, RIS30_01 a RIS30_03, s platností a podle kategorie IFRS 9.
+Řádky jsou pracovní návrh, potvrdí je metodik. Sloupce podle zemí, členění splatností a seznam úvěrů zatím nejsou; výkaz se nesestavuje ani neodesílá, tabulka dává hodnoty řádků a kontrolu nepokrytých rolí.
 
 ## Přecenění cizích měn
 

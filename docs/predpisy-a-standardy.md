@@ -7,7 +7,7 @@ Aktuální znění, účinnost a přechodná ustanovení vždy ověřit ve Sbír
 
 - Účetnictví: zákon č. 563/1991 Sb. o účetnictví; vyhláška č. 500/2002 Sb. (podnikatelé);
   vyhláška č. 501/2002 Sb. (finanční instituce); České účetní standardy; zákon č. 93/2009 Sb. o auditorech.
-- Fondy: zákon č. 240/2013 Sb. (ZISIF) včetně novely k AIFMD II; nařízení vlády č. 243/2013 Sb.;
+- Fondy: zákon č. 240/2013 Sb. (ZISIF) včetně novely k AIFMD II (zákon č. 130/2026 Sb., účinnost od 1. 9. 2026); nařízení vlády č. 243/2013 Sb.;
   vyhláška č. 244/2013 Sb.; vyhláška č. 267/2020 Sb. (výkazy pro ČNB); vyhláška č. 58/2006 Sb.
   (evidence investičních nástrojů); metodika ČNB v SDAT.
 - Kapitálový trh: zákon č. 256/2004 Sb. (ZPKT).

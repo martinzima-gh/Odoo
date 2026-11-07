@@ -20,8 +20,8 @@ Modely schvaluje představenstvo a navrhuje oddělení oceňování (Pravidla oc
 | Basel, pokyny k reálné hodnotě (2009) | Citlivost parametrů a přiměřenost předpokladů modelu; pro banky, jen jako dobrá praxe | Z výňatků |
 | IOSCO, zásady 2013 a doporučení FR/03/2026 | Nezávislé ověření a odpovědnost za ocenění; novější text je třeba přečíst | Zásady 2013 z výňatků, FR/03/2026 nedostupné |
 | ZISIF, § 196 | Reálná hodnota podle IFRS | Z výňatků |
-| Vyhláška 244/2013 Sb., § 34 | Jen zvláštní případy; o modelech derivátů nic v úplném znění z roku 2016 | Přečteno, pozdější změny ověřit |
-| NV 243/2013 Sb., § 13 | Podmínky pro OTC deriváty | Nečteno; ověřit včetně 103/2026 Sb. |
+| Vyhláška 244/2013 Sb. | § 34 o zvláštních případech je v aktuálním znění od 1. 9. 2026 zrušený; o modelech derivátů vyhláška nemluví | Přečteno |
+| NV 243/2013 Sb., § 13 | Standardní fond: OTC derivát se oceňuje spolehlivě a ověřitelně každý pracovní den, přípustná protistrana pod dohledem, možnost ukončení za nerovnovážných podmínek vyloučena | Přečteno, znění od 25. 6. 2026 |
 | Pravidla oceňování | Část Opce, tabulka metod, Přílohy 1, 2 a 5 | Přečteno |
 
 Druh fondu rozhoduje, co platí: AIFMR pro AIF, směrnice 2007/16/ES pro UCITS. Zda a jak se EMIR vztahuje na konkrétní fond, ověřit právně.

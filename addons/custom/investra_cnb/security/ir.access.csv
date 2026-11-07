@@ -1,0 +1,4 @@
+id,name,model_id,group_id/id,operation,domain
+access_cnb_map_read,investra.cnb.map read,investra.cnb.map,account.group_account_readonly,r,
+access_cnb_map_preparer,investra.cnb.map preparer,investra.cnb.map,investra_entity.group_valuation_preparer,r,
+access_cnb_map_manager,investra.cnb.map manager,investra.cnb.map,account.group_account_manager,crud,

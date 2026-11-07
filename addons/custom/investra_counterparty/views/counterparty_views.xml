@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_profile_list" model="ir.ui.view">
+        <field name="name">investra.counterparty.profile.list</field><field name="model">investra.counterparty.profile</field>
+        <field name="arch" type="xml">
+            <list><field name="partner_id"/><field name="valid_from"/><field name="country_id"/><field name="sector_id"/><field name="lei"/></list>
+        </field>
+    </record>
+    <record id="view_profile_form" model="ir.ui.view">
+        <field name="name">investra.counterparty.profile.form</field><field name="model">investra.counterparty.profile</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet><group><field name="partner_id"/><field name="valid_from"/><field name="country_id"/><field name="sector_id"/><field name="lei"/></group></sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_profile" model="ir.actions.act_window">
+        <field name="name">Protistrany</field><field name="res_model">investra.counterparty.profile</field><field name="view_mode">list,form</field>
+    </record>
+    <record id="view_instrument_form_issuer" model="ir.ui.view">
+        <field name="name">investra.instrument.form.issuer</field><field name="model">investra.instrument</field>
+        <field name="inherit_id" ref="investra_instruments.view_instrument_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='isin']" position="before"><field name="issuer_id"/></xpath>
+        </field>
+    </record>
+    <menuitem id="menu_profile" name="Protistrany" parent="investra_instruments.menu_instruments" action="action_profile" sequence="30"/>
+</odoo>

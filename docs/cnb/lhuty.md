@@ -1,6 +1,6 @@
 # Lhůty výkazů ČNB za fond
 
-Stav 2026-11-07. Přečteno: vyhláška 267/2020 Sb. v úplném znění ČNB od 1. 1. 2025 a vyhláška 314/2013 Sb. na zakonyprolidi.cz.
+Stav 2026-11-07. Přečteno: vyhlášky 267/2020 Sb. a 314/2013 Sb. ve znění od 1. 7. 2025 na zakonyprolidi.cz.
 Jen podklad pro kontrolu. Zdrojem termínů a výkazů v systému bude SDAT, odkud se budou stahovat; tato tabulka se do Odoo nenahrává.
 
 | Výkaz | Formulář | Období | Lhůta | Pro koho | Zdroj |
@@ -37,6 +37,6 @@ Jen podklad pro kontrolu. Zdrojem termínů a výkazů v systému bude SDAT, odk
 
 ## K ověření
 
-- Zda vyhláška 267/2020 Sb. nebyla po 1. 1. 2025 změněna. Katalog FOFI20261201 se od jejího textu liší: `OFZ (ČNB) 11-12` má jiný název a `OFZ (ČNB) 32-04` v katalogu není, proto ho nepoužívám.
+- Katalog FOFI20261201 uvádí pro `OFZ (ČNB) 11-12` jiný název než vyhláška; výkaz `OFZ (ČNB) 32-04` v aktuálním znění vyhlášky ani v katalogu není.
 - Znění a účinnost vyhlášky 314/2013 Sb. v e-Sbírce.
 - Kdy se povinnost pro nově vzniklý fond poprvé použije.
