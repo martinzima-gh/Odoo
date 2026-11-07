@@ -1,5 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 234. -->
-
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 250. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -159,7 +158,7 @@ V Odoo vznikne sada vlastních addonů nad standardním účetním jádrem, bez 
 | `investra_limits` | Později | Investiční limity ze statutů, celková expozice závazkovou metodou, test základního investičního fondu | `investra_instruments` |
 | `investra_annual_report` | Později | Výroční a pololetní zprávy fondů: export dat a číselných výstupů, finalizace zatím ve Wordu; u plného IFRS od 2027 struktura podle IFRS 18 | `investra_reporting` |
 
-Hotová je jen kostra `investra_fx_revaluation` s jedním modelem a testem. V Odoo 20 se přístupová práva a záznamová pravidla sloučila do nového modelu ir.access (soubor security/ir.access.csv s operacemi crud a doménou), kostra je na to upravená. Práce na ní bude pokračovat až po `investra_entity` a `investra_posting`.
+Stav modulů a testů je v `docs/prototyp-nav.md`. V Odoo 20 se přístupová práva a záznamová pravidla sloučila do modelu ir.access (soubor security/ir.access.csv s operacemi crud a doménou).
 
 **Třídy:** každá má vlastní měnu zveřejnění kurzu (nezávislou na funkční měně fondu, NAV a kapitál třídy zůstávají ve funkční měně), parametry hurdle a performance a příjemce performance allocation. Performance allocation může přesouvat hodnotu mezi třídami, aniž by měnila celkové NAV podfondu. Třída může být růstová, nebo může vyplácet dividendy.
 
