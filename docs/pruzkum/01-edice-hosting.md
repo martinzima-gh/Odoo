@@ -8,11 +8,11 @@ Stav 2026-11-07. Podklad pro schůzku s Janem Polanem a Martinem Olivou, brána 
 
 | Hledisko | Community | Enterprise (Custom) |
 |---|---|---|
-| Licence | LGPL-3, zdarma | Předplatné za uživatele, modul a kód jen po dobu smlouvy |
+| Licence | LGPL-3, zdarma | Předplatné za uživatele, licence po dobu smlouvy |
 | Cena | 0 Kč, ale vlastní vývoj | Web Odoo 2026-11-07: 22,90 až 27,90 € za uživatele a měsíc při ročním placení, 33,90 € měsíčně; závazně až nabídka |
 | Výkazy | V naší instalaci rozvaha, výsledovka, hlavní kniha a saldokonto nejsou | Součást Accounting, ověřit na české osnově |
 | Banka | Import a párování v menu nejsou | Součást, české formáty ověřit |
-| DPH | Bez zobrazení přiznání a exportu EPO | Ověřit, Odoo českou dokumentaci k 19 neměla dostupnou |
+| DPH | Bez zobrazení přiznání a exportu EPO | Neověřeno, českou dokumentaci Odoo se načíst nepodařilo |
 | Multi-company | Ano | Ano, v plánu Custom; licence je za uživatele, ne za společnost |
 | Podpora a upgrady | Vlastní | Odoo opravuje chyby a nabízí upgrade; kryté jsou 3 poslední hlavní verze |
 | Vlastní moduly | Ano | Ano, ale jejich upgrade je naše odpovědnost |

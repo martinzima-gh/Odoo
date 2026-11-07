@@ -2,7 +2,7 @@
 
 Stav 2026-11-07. Výpočet z `docs/cnb/mapovani-FOFI20261201.csv`, stav prototypu je odhad na úrovni listů. Výčet výkazů pro FKI vychází z vyhlášek v `docs/cnb/lhuty.md`.
 
-**Závěr:** FKI s podlimitním správcem se týká 12 výkazů, 45 listů a 760 položek. Hotové jsou 4 položky, 338 má část dat a 418 chybí. Největší díl nevyžaduje nové výpočty, ale registry a atributy protistran a nástrojů.
+**Závěr:** FKI s podlimitním správcem se týká 12 výkazů, 45 listů a 760 položek. Základ má 6 položek, 342 má část dat a 412 chybí. Největší díl nevyžaduje nové výpočty, ale registry a atributy protistran a nástrojů.
 
 | Výkaz | Základ | Část dat | Chybí |
 |---|---|---|---|
