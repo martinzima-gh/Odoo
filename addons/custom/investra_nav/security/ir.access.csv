@@ -1,0 +1,36 @@
+id,name,model_id,group_id/id,operation,domain
+access_fee_rule_read,investra.fee.rule read,investra.fee.rule,account.group_account_readonly,r,
+access_fee_rule_mgr,investra.fee.rule mgr,investra.fee.rule,account.group_account_manager,crud,
+investra_fee_rule_rule,investra.fee.rule company,investra.fee.rule,,crud,"[('company_id', 'in', company_ids)]"
+access_fee_version_read,investra.fee.version read,investra.fee.version,account.group_account_readonly,r,
+access_fee_version_mgr,investra.fee.version mgr,investra.fee.version,account.group_account_manager,crud,
+investra_fee_version_rule,investra.fee.version company,investra.fee.version,,crud,"[('company_id', 'in', company_ids)]"
+access_fee_tier_read,investra.fee.tier read,investra.fee.tier,account.group_account_readonly,r,
+access_fee_tier_mgr,investra.fee.tier mgr,investra.fee.tier,account.group_account_manager,crud,
+investra_fee_tier_rule,investra.fee.tier company,investra.fee.tier,,crud,"[('company_id', 'in', company_ids)]"
+access_benchmark_read,investra.benchmark read,investra.benchmark,account.group_account_readonly,r,
+access_benchmark_prep,investra.benchmark prep,investra.benchmark,investra_entity.group_valuation_preparer,cru,
+access_benchmark_value_read,investra.benchmark.value read,investra.benchmark.value,account.group_account_readonly,r,
+access_benchmark_value_prep,investra.benchmark.value prep,investra.benchmark.value,investra_entity.group_valuation_preparer,cru,
+access_class_movement_read,investra.class.movement read,investra.class.movement,account.group_account_readonly,r,
+access_class_movement_prep,investra.class.movement prep,investra.class.movement,investra_entity.group_valuation_preparer,cru,
+investra_class_movement_rule,investra.class.movement company,investra.class.movement,,crud,"[('company_id', 'in', company_ids)]"
+access_approval_step_read,investra.fund.approval.step read,investra.fund.approval.step,account.group_account_readonly,r,
+access_approval_step_mgr,investra.fund.approval.step mgr,investra.fund.approval.step,account.group_account_manager,crud,
+investra_approval_step_rule,investra.fund.approval.step company,investra.fund.approval.step,,crud,"[('company_id', 'in', company_ids)]"
+access_valuation_read,investra.valuation read,investra.valuation,account.group_account_readonly,r,
+access_valuation_prep,investra.valuation prep,investra.valuation,investra_entity.group_valuation_preparer,cru,
+investra_valuation_rule,investra.valuation company,investra.valuation,,crud,"[('company_id', 'in', company_ids)]"
+access_val_class_read,investra.valuation.class read,investra.valuation.class,account.group_account_readonly,r,
+investra_val_class_rule,investra.valuation.class company,investra.valuation.class,,crud,"[('company_id', 'in', company_ids)]"
+access_val_fee_read,investra.valuation.fee read,investra.valuation.fee,account.group_account_readonly,r,
+investra_val_fee_rule,investra.valuation.fee company,investra.valuation.fee,,crud,"[('company_id', 'in', company_ids)]"
+access_val_external_read,investra.valuation.external read,investra.valuation.external,account.group_account_readonly,r,
+access_val_external_prep,investra.valuation.external prep,investra.valuation.external,investra_entity.group_valuation_preparer,crud,
+investra_val_external_rule,investra.valuation.external company,investra.valuation.external,,crud,"[('company_id', 'in', company_ids)]"
+access_val_portfolio_read,investra.valuation.portfolio read,investra.valuation.portfolio,account.group_account_readonly,r,
+investra_val_portfolio_rule,investra.valuation.portfolio company,investra.valuation.portfolio,,crud,"[('company_id', 'in', company_ids)]"
+access_val_check_read,investra.valuation.check read,investra.valuation.check,account.group_account_readonly,r,
+investra_val_check_rule,investra.valuation.check company,investra.valuation.check,,crud,"[('company_id', 'in', company_ids)]"
+access_val_approval_read,investra.valuation.approval read,investra.valuation.approval,account.group_account_readonly,r,
+investra_val_approval_rule,investra.valuation.approval company,investra.valuation.approval,,crud,"[('company_id', 'in', company_ids)]"

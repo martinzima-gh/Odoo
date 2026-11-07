@@ -1,0 +1,9 @@
+id,name,model_id,group_id/id,operation,domain
+access_instrument_read,investra.instrument read,investra.instrument,account.group_account_readonly,r,
+access_instrument_preparer,investra.instrument preparer,investra.instrument,investra_entity.group_valuation_preparer,cru,
+access_price_read,investra.instrument.price read,investra.instrument.price,account.group_account_readonly,r,
+access_price_preparer,investra.instrument.price preparer,investra.instrument.price,investra_entity.group_valuation_preparer,crud,
+investra_price_company_rule,Ceny podle společnosti,investra.instrument.price,,crud,"[('company_id', 'in', company_ids)]"
+access_trade_read,investra.trade read,investra.trade,account.group_account_readonly,r,
+access_trade_preparer,investra.trade preparer,investra.trade,investra_entity.group_valuation_preparer,cru,
+investra_trade_company_rule,Obchody podle společnosti,investra.trade,,crud,"[('company_id', 'in', company_ids)]"

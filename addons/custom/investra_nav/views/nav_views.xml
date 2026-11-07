@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_valuation_list" model="ir.ui.view">
+        <field name="name">investra.valuation.list</field>
+        <field name="model">investra.valuation</field>
+        <field name="arch" type="xml">
+            <list><field name="fund_id"/><field name="date"/><field name="version"/><field name="state"/><field name="fund_capital"/></list>
+        </field>
+    </record>
+    <record id="view_valuation_form" model="ir.ui.view">
+        <field name="name">investra.valuation.form</field>
+        <field name="model">investra.valuation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_compute" type="object" string="Spočítat" invisible="state not in ('draft', 'computed')" class="btn-primary"/>
+                    <button name="action_submit" type="object" string="Odeslat ke schválení" invisible="state != 'computed'"/>
+                    <button name="action_approve" type="object" string="Schválit" invisible="state != 'submitted'"/>
+                    <button name="action_post" type="object" string="Zaúčtovat" invisible="state != 'approved'"/>
+                    <button name="action_send_depositary" type="object" string="Odeslat depozitáři" invisible="state != 'posted'"/>
+                    <button name="action_depositary_confirm" type="object" string="Potvrzeno depozitářem" invisible="state != 'sent'"/>
+                    <button name="action_publish" type="object" string="Zveřejnit a uzamknout" invisible="state != 'confirmed'"/>
+                    <button name="action_build_package" type="object" string="Balíček pro depozitáře" invisible="state not in ('posted', 'sent', 'confirmed', 'published')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,computed,submitted,approved,posted,sent,confirmed,published"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group><field name="fund_id" readonly="state != 'draft'"/><field name="date" readonly="state != 'draft'"/><field name="version"/></group>
+                        <group><field name="fund_capital"/><field name="neutral_capital"/><field name="currency_id" invisible="1"/><field name="package_id"/></group>
+                    </group>
+                    <notebook>
+                        <page string="Třídy"><field name="class_line_ids"><list>
+                            <field name="class_id"/><field name="pre_capital"/><field name="ratio"/><field name="delta"/>
+                            <field name="capital"/><field name="units"/><field name="price"/>
+                        </list></field></page>
+                        <page string="Portfolio"><field name="portfolio_line_ids"><list>
+                            <field name="kind"/><field name="name"/><field name="isin"/><field name="currency_id"/><field name="quantity"/>
+                            <field name="price"/><field name="cost"/><field name="fair_value_currency"/><field name="fx_rate"/><field name="fair_value"/>
+                        </list></field></page>
+                        <page string="Úplaty"><field name="fee_line_ids"><list><field name="rule_id"/><field name="class_id"/><field name="amount"/></list></field></page>
+                        <page string="Výpočty mimo Odoo"><field name="external_fee_ids"><list editable="bottom">
+                            <field name="rule_id"/><field name="class_id"/><field name="amount"/><field name="reason"/><field name="attachment_id"/>
+                        </list></field></page>
+                        <page string="Kontroly"><field name="check_ids"><list><field name="name"/><field name="status"/><field name="detail"/></list></field></page>
+                        <page string="Schválení"><field name="approval_ids"><list><field name="name"/><field name="user_id"/><field name="approved_at"/></list></field></page>
+                        <page string="Doklady"><field name="event_ids"><list><field name="name"/><field name="state"/><field name="move_id"/></list></field></page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_valuation" model="ir.actions.act_window">
+        <field name="name">Ocenění</field><field name="res_model">investra.valuation</field><field name="view_mode">list,form</field>
+    </record>
+    <record id="view_fee_rule_form" model="ir.ui.view">
+        <field name="name">investra.fee.rule.form</field>
+        <field name="model">investra.fee.rule</field>
+        <field name="arch" type="xml">
+            <form><sheet>
+                <group>
+                    <group><field name="fund_id"/><field name="name"/><field name="kind"/><field name="sequence"/><field name="statute_ref"/></group>
+                    <group><field name="basis"/><field name="base_source"/><field name="base_mode"/><field name="expense_role"/><field name="crystallisation"/></group>
+                </group>
+                <group>
+                    <field name="class_ids" widget="many2many_tags"/>
+                    <field name="recipient_share"/><field name="recipient_class_ids" widget="many2many_tags"/><field name="cover_class_id"/>
+                </group>
+                <field name="version_ids"><list editable="bottom">
+                    <field name="valid_from"/><field name="decision_ref"/><field name="rate"/><field name="threshold"/><field name="fixed_monthly"/>
+                    <field name="min_annual"/><field name="max_annual"/><field name="hurdle_kind"/><field name="hurdle_rate"/>
+                </list></field>
+            </sheet></form>
+        </field>
+    </record>
+    <record id="action_fee_rule" model="ir.actions.act_window">
+        <field name="name">Pravidla úplat</field><field name="res_model">investra.fee.rule</field><field name="view_mode">list,form</field>
+    </record>
+    <record id="action_movement" model="ir.actions.act_window">
+        <field name="name">Úpisy a odkupy</field><field name="res_model">investra.class.movement</field><field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_valuation" name="Ocenění" parent="investra_entity.menu_root" action="action_valuation" sequence="5"/>
+    <menuitem id="menu_movement" name="Úpisy a odkupy" parent="investra_entity.menu_root" action="action_movement" sequence="15"/>
+    <menuitem id="menu_fee_rule" name="Pravidla úplat" parent="investra_entity.menu_setup" action="action_fee_rule"/>
+</odoo>

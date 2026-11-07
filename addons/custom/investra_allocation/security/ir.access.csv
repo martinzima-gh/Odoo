@@ -1,0 +1,7 @@
+id,name,model_id,group_id/id,operation,domain
+access_scheme_read,investra.allocation.scheme read,investra.allocation.scheme,account.group_account_readonly,r,
+access_scheme_manager,investra.allocation.scheme manager,investra.allocation.scheme,account.group_account_manager,crud,
+investra_scheme_company_rule,Schémata podle společnosti,investra.allocation.scheme,,crud,"[('company_id', 'in', company_ids)]"
+access_alloc_line_read,investra.allocation.line read,investra.allocation.line,account.group_account_readonly,r,
+access_alloc_line_manager,investra.allocation.line manager,investra.allocation.line,account.group_account_manager,crud,
+investra_alloc_line_company_rule,Nároky podle společnosti,investra.allocation.line,,crud,"[('company_id', 'in', company_ids)]"

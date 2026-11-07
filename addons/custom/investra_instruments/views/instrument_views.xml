@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_instrument" model="ir.actions.act_window">
+        <field name="name">Nástroje</field><field name="res_model">investra.instrument</field><field name="view_mode">list,form</field>
+    </record>
+    <record id="action_price" model="ir.actions.act_window">
+        <field name="name">Ceny</field><field name="res_model">investra.instrument.price</field><field name="view_mode">list,form</field>
+    </record>
+    <record id="action_trade" model="ir.actions.act_window">
+        <field name="name">Obchody</field><field name="res_model">investra.trade</field><field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_instruments" name="Portfolio" parent="investra_entity.menu_root" sequence="20"/>
+    <menuitem id="menu_instrument" name="Nástroje" parent="menu_instruments" action="action_instrument"/>
+    <menuitem id="menu_price" name="Ceny" parent="menu_instruments" action="action_price"/>
+    <menuitem id="menu_trade" name="Obchody" parent="menu_instruments" action="action_trade"/>
+</odoo>

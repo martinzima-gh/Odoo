@@ -1,0 +1,58 @@
+{
+  "title": "Příklad z architektury: fee třídy A a společný výnos",
+  "currency": "CZK",
+  "launch": "2026-12-31",
+  "classes": [
+    {
+      "code": "A",
+      "opening_capital": 100,
+      "opening_units": 100,
+      "price_digits": 4
+    },
+    {
+      "code": "B",
+      "opening_capital": 100,
+      "opening_units": 100,
+      "price_digits": 4
+    }
+  ],
+  "valuations": [
+    {
+      "date": "2027-01-31",
+      "common_result": 19,
+      "specific": {
+        "A": -10
+      }
+    }
+  ],
+  "expected": [
+    {
+      "date": "2027-01-31",
+      "fk": "209.00",
+      "nfk": "219.00",
+      "mgmt_fee": "0",
+      "tax_move": "0",
+      "perf_moves": {},
+      "apt": {
+        "A": "0.5000000000",
+        "B": "0.5000000000"
+      },
+      "delta": {
+        "A": "-10.00",
+        "B": "0.00"
+      },
+      "fkt": {
+        "A": "99.50",
+        "B": "109.50"
+      },
+      "units": {
+        "A": "100",
+        "B": "100"
+      },
+      "price": {
+        "A": "0.9950",
+        "B": "1.0950"
+      }
+    }
+  ]
+}

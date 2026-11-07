@@ -1,0 +1,102 @@
+{
+  "title": "Dvě období, úpis, odkup, specifická položka se nepřenáší",
+  "currency": "CZK",
+  "launch": "2026-12-31",
+  "classes": [
+    {
+      "code": "A",
+      "opening_capital": 1000000,
+      "opening_units": 10000,
+      "price_digits": 4
+    },
+    {
+      "code": "B",
+      "opening_capital": 500000,
+      "opening_units": 5000,
+      "price_digits": 4
+    }
+  ],
+  "valuations": [
+    {
+      "date": "2027-01-31",
+      "common_result": 30000,
+      "specific": {
+        "B": -1500
+      }
+    },
+    {
+      "date": "2027-02-28",
+      "common_result": -12000,
+      "subscriptions": {
+        "A": {
+          "amount": 200000,
+          "units": 1960
+        }
+      },
+      "redemptions": {
+        "B": {
+          "amount": 50000,
+          "units": 490
+        }
+      }
+    }
+  ],
+  "expected": [
+    {
+      "date": "2027-01-31",
+      "fk": "1528500.00",
+      "nfk": "1530000.00",
+      "mgmt_fee": "0",
+      "tax_move": "0",
+      "perf_moves": {},
+      "apt": {
+        "A": "0.6666666667",
+        "B": "0.3333333333"
+      },
+      "delta": {
+        "A": "0.00",
+        "B": "-1500.00"
+      },
+      "fkt": {
+        "A": "1020000.00",
+        "B": "508500.00"
+      },
+      "units": {
+        "A": "10000",
+        "B": "5000"
+      },
+      "price": {
+        "A": "102.0000",
+        "B": "101.7000"
+      }
+    },
+    {
+      "date": "2027-02-28",
+      "fk": "1666500.00",
+      "nfk": "1666500.00",
+      "mgmt_fee": "0",
+      "tax_move": "0",
+      "perf_moves": {},
+      "apt": {
+        "A": "0.7268394400",
+        "B": "0.2731605600"
+      },
+      "delta": {
+        "A": "0.00",
+        "B": "0.00"
+      },
+      "fkt": {
+        "A": "1211277.93",
+        "B": "455222.07"
+      },
+      "units": {
+        "A": "11960",
+        "B": "4510"
+      },
+      "price": {
+        "A": "101.2774",
+        "B": "100.9361"
+      }
+    }
+  ]
+}
