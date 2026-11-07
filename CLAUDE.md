@@ -27,8 +27,8 @@ Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a 
 Běží-li současně víc relací (například Claude desktop a VS Code), informují se samy přes `SendMessage`.
 Aktuální jména zjistit přes `ListAgents`; jména se po restartu mění a domluva platí i pro novou relaci.
 
-- Hlásit: před prací na sdíleném souboru, po commitu nebo pushi (hash, větev, co se změnilo),
-  po Martinově rozhodnutí a když se něco týká práce druhé relace. Stručně, rutinu nehlásit.
+- Hlásit jen to, co se přímo týká práce druhé relace: před prací na společném souboru a Martinovo rozhodnutí,
+  které mění její úkol. Rutinní commity, push a potvrzení nehlásit, jsou vidět v gitu. Každá zpráva spotřebuje limit.
 - Rozdělení: kód, commity a push dělá relace ve VS Code. Claude Doc a export `docs/architektura.md`
   upravuje relace v desktopu. `docs/rozhodnuti.md` a `docs/otevrene-body.md` upravuje jen relace, která to ohlásila.
 - Před zápisem zkontrolovat `git status` a poslední zprávu druhé relace.
