@@ -121,14 +121,24 @@ class InvestraFeeVersion(models.Model):
 
     _uniq = models.Constraint("unique(rule_id, valid_from)", "Verze s tímto datem už existuje.")
 
+    def _check_unused(self):
+        """Verze použitá v ocenění mimo návrh zůstává beze změny; změna sazby je nová verze."""
+        Fee = self.env["investra.valuation.fee"].sudo()
+        for version in self:
+            fees = Fee.search([
+                ("rule_id", "=", version.rule_id.id),
+                ("valuation_id.state", "not in", ("draft", "computed", "returned")),
+            ])
+            if fees and version.valid_from <= max(fees.valuation_id.mapped("date")):
+                raise UserError(self.env._("Použitou verzi sazby nejde měnit, založte novou s platností od data."))
+
     def write(self, vals):
-        used = self.env["investra.valuation.fee"].sudo().search_count(
-            [("rule_id", "in", self.rule_id.ids), ("valuation_id.state", "not in", ("draft", "returned"))], limit=1
-        )
-        if used and any(v.valid_from <= max(self.env["investra.valuation.fee"].sudo().search(
-                [("rule_id", "=", v.rule_id.id)]).valuation_id.mapped("date")) for v in self):
-            raise UserError(self.env._("Použitou verzi sazby nejde měnit, založte novou s platností od data."))
+        self._check_unused()
         return super().write(vals)
+
+    def unlink(self):
+        self._check_unused()
+        return super().unlink()
 
     def _engine_values(self):
         self.ensure_one()

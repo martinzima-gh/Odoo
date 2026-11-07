@@ -50,13 +50,25 @@ class TestInstrument(TransactionCase):
         with self.assertRaises(UserError):
             price.with_user(self.approver).action_approve()
 
+    def test_state_cannot_be_written_directly(self):
+        price = self.price()
+        with self.assertRaises(UserError):
+            price.with_user(self.preparer).write({"state": "approved"})
+        with self.assertRaises(UserError):
+            price.with_user(self.preparer).write({"entered_by": self.approver.id})
+        with self.assertRaises(UserError):
+            self.env["investra.instrument.price"].with_user(self.preparer).create({
+                "instrument_id": self.instrument.id, "fund_id": self.fund.id, "date": "2026-12-31",
+                "price": 1, "source": "x", "state": "approved",
+            })
+
     def test_approved_price_is_immutable(self):
         price = self.price()
         price.with_user(self.approver).action_approve()
         with self.assertRaises(UserError):
-            price.write({"price": 11})
+            price.with_user(self.preparer).write({"price": 11})
         with self.assertRaises(UserError):
-            price.unlink()
+            price.with_user(self.preparer).unlink()
 
     def test_trade_posts_event_with_instrument_and_currency(self):
         trade = self.env["investra.trade"].create({

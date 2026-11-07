@@ -42,7 +42,15 @@ class InvestraInstrumentPrice(models.Model):
 
     _uniq = models.Constraint("unique(fund_id, instrument_id, date)", "Cena nástroje k datu už existuje.")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su and any({"state", "approved_by"} & set(vals) for vals in vals_list):
+            raise UserError(self.env._("Cenu schvaluje jen schvalovací krok."))
+        return super().create(vals_list)
+
     def write(self, vals):
+        if not self.env.su and {"state", "approved_by", "entered_by"} & set(vals):
+            raise UserError(self.env._("Cenu schvaluje jen schvalovací krok."))
         if self.filtered(lambda p: p.state == "approved") and set(vals) - {"state", "approved_by"}:
             raise UserError(self.env._("Schválenou cenu nejde měnit."))
         return super().write(vals)

@@ -12,6 +12,12 @@ BALANCE_SHEET = ("asset", "liability")
 PREPARER = "investra_entity.group_valuation_preparer"
 APPROVER = "investra_entity.group_valuation_approver"
 STOPPING = ("stop",)
+# Pole, která smí nastavit jen postup ocenění; přes API je uživatel nezapíše.
+SYSTEM_FIELDS = {
+    "state", "previous_id", "preparer_id", "fund_capital", "neutral_capital", "class_line_ids", "fee_line_ids",
+    "portfolio_line_ids", "check_ids", "approval_ids", "event_ids", "snapshot", "snapshot_hash", "return_reason",
+    "published_at", "package_id",
+}
 
 
 def d(value):
@@ -726,7 +732,15 @@ class InvestraValuation(models.Model):
             record.write({"state": "published", "published_at": fields.Datetime.now()})
         return True
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su and any(SYSTEM_FIELDS & set(vals) for vals in vals_list):
+            raise UserError(self.env._("Stav a výsledky ocenění nastavuje jen postup ocenění."))
+        return super().create(vals_list)
+
     def write(self, vals):
+        if not self.env.su and SYSTEM_FIELDS & set(vals):
+            raise UserError(self.env._("Stav a výsledky ocenění nastavuje jen postup ocenění."))
         guarded = {"fund_id", "date", "version"}
         if guarded & set(vals) and self.filtered(lambda v: v.state != "draft"):
             raise UserError(self.env._("Datum ani fond ocenění po výpočtu nejde změnit."))

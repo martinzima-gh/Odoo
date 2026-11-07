@@ -1,4 +1,3 @@
-import base64
 import io
 import zipfile
 from datetime import date
@@ -181,13 +180,32 @@ class TestWorkflow(NavCase):
     def test_package_has_four_sheets_with_portfolio_columns(self):
         valuation = self.run_to_posted(self.valuation(self.fund, self.day))
         attachment = valuation.action_build_package()
-        data = zipfile.ZipFile(io.BytesIO(base64.b64decode(attachment.datas)))
+        data = zipfile.ZipFile(io.BytesIO(attachment.raw))
         workbook = data.read("xl/workbook.xml").decode()
         for name in ("Portfolio", "NAV", "Předvaha", "Úplaty"):
             self.assertIn(name, workbook)
         strings = data.read("xl/sharedStrings.xml").decode()
         for label in ("Reálná hodnota v měně fondu", "Pořizovací hodnota v měně", "Zdroj kurzu", "Bankovní účty CZK"):
             self.assertIn(label, strings)
+
+    def test_state_cannot_be_written_directly(self):
+        valuation = self.valuation(self.fund, self.day)
+        valuation.action_compute()
+        for field, value in (("state", "approved"), ("snapshot_hash", "x"), ("fund_capital", 1), ("preparer_id", self.approver.id)):
+            with self.assertRaises(UserError):
+                valuation.write({field: value})
+
+    def test_cannot_create_valuation_in_advanced_state(self):
+        with self.assertRaises(UserError):
+            self.env["investra.valuation"].with_user(self.preparer).create(
+                {"fund_id": self.fund.id, "date": self.day, "state": "approved"}
+            )
+
+    def test_cannot_jump_version_by_hand_after_compute(self):
+        valuation = self.valuation(self.fund, self.day)
+        valuation.action_compute()
+        with self.assertRaises(UserError):
+            valuation.write({"version": 9})
 
     def test_package_only_after_posting(self):
         valuation = self.valuation(self.fund, self.day)

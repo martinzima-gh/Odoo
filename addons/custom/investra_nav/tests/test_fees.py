@@ -39,6 +39,9 @@ class TestFees(NavCase):
         self.run_to_posted(self.valuation(fund, date(2027, 1, 31)))
         with self.assertRaises(UserError):
             rule.version_ids.rate = 0.01
+        with self.assertRaises(UserError):
+            rule.version_ids.unlink()
+        self.env["investra.fee.version"].create({"rule_id": rule.id, "valid_from": "2027-02-01", "rate": 0.01})
 
     def test_class_specific_fee_hits_only_that_class(self):
         fund = self.two_class_fund()
