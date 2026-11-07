@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fund_dashboard_kanban" model="ir.ui.view">
+        <field name="name">investra.fund.dashboard.kanban</field><field name="model">investra.fund</field><field name="priority">50</field>
+        <field name="arch" type="xml">
+            <kanban create="false" group_create="false">
+                <field name="dashboard_status"/><field name="dashboard_valuation_id"/><field name="dashboard_exception_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <span t-if="record.dashboard_status.raw_value == 'danger'" class="badge text-bg-danger">Vyžaduje zásah</span>
+                            <span t-if="record.dashboard_status.raw_value == 'warning'" class="badge text-bg-warning">Upozornění</span>
+                            <span t-if="record.dashboard_status.raw_value == 'ok'" class="badge text-bg-success">V pořádku</span>
+                            <span t-if="record.dashboard_status.raw_value == 'none'" class="badge text-bg-secondary">Bez ocenění</span>
+                        </div>
+                        <div class="mt-2">FK: <field name="dashboard_capital"/></div>
+                        <div>Ocenění: <field name="dashboard_date"/> · <field name="dashboard_state"/></div>
+                        <div>Zveřejněno: <field name="dashboard_published"/></div>
+                        <div class="mt-2 text-muted" style="white-space: pre-line"><field name="dashboard_prices"/></div>
+                        <div class="mt-2">Další ocenění: <field name="dashboard_next_valuation"/></div>
+                        <div>Další termín ČNB: <field name="dashboard_next_deadline"/></div>
+                        <div t-if="record.dashboard_exception_count.raw_value" class="mt-2 text-danger" style="white-space: pre-line">
+                            <field name="dashboard_exceptions"/>
+                        </div>
+                        <div t-if="record.dashboard_valuation_id.raw_value" class="mt-2">
+                            <a type="object" name="action_open_valuation">Otevřít ocenění</a>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="view_fund_dashboard_list" model="ir.ui.view">
+        <field name="name">investra.fund.dashboard.list</field><field name="model">investra.fund</field><field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list create="false">
+                <field name="name"/><field name="dashboard_status"/><field name="dashboard_date"/><field name="dashboard_state"/>
+                <field name="currency_id" column_invisible="1"/><field name="dashboard_capital"/><field name="dashboard_published"/>
+                <field name="dashboard_next_valuation"/><field name="dashboard_next_deadline"/><field name="dashboard_exception_count"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_fund_dashboard" model="ir.actions.act_window">
+        <field name="name">Přehled fondů</field><field name="res_model">investra.fund</field><field name="view_mode">kanban,list</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_fund_dashboard_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_fund_dashboard_list')})]"/>
+    </record>
+    <record id="view_deadline_list" model="ir.ui.view">
+        <field name="name">investra.regulatory.deadline.list</field><field name="model">investra.regulatory.deadline</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="fund_id"/><field name="report"/><field name="period_end"/><field name="due_date"/><field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_deadline" model="ir.actions.act_window">
+        <field name="name">Termíny ČNB</field><field name="res_model">investra.regulatory.deadline</field><field name="view_mode">list</field>
+    </record>
+    <menuitem id="menu_fund_dashboard" name="Přehled fondů" parent="investra_entity.menu_root" action="action_fund_dashboard" sequence="1"/>
+    <menuitem id="menu_deadline" name="Termíny ČNB" parent="investra_entity.menu_root" action="action_deadline" sequence="90"/>
+</odoo>

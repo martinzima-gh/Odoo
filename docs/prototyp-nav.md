@@ -14,6 +14,7 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_posting` | Události, ochrana dokladů, třída na řádku, hash, storno | 22 |
 | `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 22 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
+| `investra_dashboard` | Přehled fondů, výjimky, termíny ČNB | 10 |
 | `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu | 93 |
 
 Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
@@ -74,6 +75,20 @@ zaúčtování obchodu se zastaví. Zbývá:
 
 Odoo nedovolí podrozvahové a rozvahové účty v jednom dokladu (`_check_off_balance`). Podrozvaha proto potřebuje vlastní doklad.
 Stejný postup bude platit pro další závazky a přísliby.
+
+## Přehled fondů
+
+Modul `investra_dashboard`, menu Investra → Přehled fondů, jako karty, nebo seznam. Fond ukazuje poslední ocenění, FK, kurzy tříd, poslední
+zveřejnění, další plánované ocenění, další termín ČNB a výjimky. Přehled nic neúčtuje ani neschvaluje a nic neukládá. Ukáže fondy společností
+vybraných v přepínači společností, proto je pro přehled napříč fondy potřeba vybrat všechny.
+
+| Stav | Kdy |
+|---|---|
+| Vyžaduje zásah | Ocenění po termínu, vrácené ocenění, kontrola se stopem, termín ČNB po lhůtě |
+| Upozornění | Kontrola s upozorněním, termín ČNB do 7 dnů, obchod po termínu vypořádání, cena čekající na schválení |
+| Bez ocenění | Fond zatím nemá ocenění |
+
+Termíny ČNB zadává člověk v menu Termíny ČNB; automatické generování podle metodiky zatím není. Počet dnů upozornění je pracovní.
 
 ## Zaúčtování obchodu
 

@@ -1,0 +1,4 @@
+id,name,model_id,group_id/id,operation,domain
+access_deadline_read,investra.regulatory.deadline read,investra.regulatory.deadline,account.group_account_readonly,r,
+access_deadline_preparer,investra.regulatory.deadline preparer,investra.regulatory.deadline,investra_entity.group_valuation_preparer,cru,
+investra_deadline_company_rule,Termíny podle společnosti,investra.regulatory.deadline,,crud,"[('company_id', 'in', company_ids)]"
