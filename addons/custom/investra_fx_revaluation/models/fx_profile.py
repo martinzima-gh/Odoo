@@ -44,21 +44,41 @@ class InvestraFxRun(models.Model):
     difference = fields.Monetary(compute="_compute_difference", currency_field="currency_id", string="Rozdíl celkem")
     currency_id = fields.Many2one(related="company_id.currency_id")
 
-    _profile_date_uniq = models.Constraint("unique(profile_id, date)", "Přecenění profilu k datu už existuje.")
+    later_run_warning = fields.Char(compute="_compute_later_run_warning", string="Upozornění")
+
+    def _compute_later_run_warning(self):
+        for run in self:
+            later = run._posted_later_runs()
+            run.later_run_warning = self.env._(
+                "Existuje zaúčtované přecenění k %s; po doplnění ho spusťte znovu i k tomuto datu.", later[0].date
+            ) if later else False
+
+    def _posted_later_runs(self):
+        self.ensure_one()
+        return self.search([
+            ("profile_id", "=", self.profile_id.id), ("date", ">", self.date), ("move_id.state", "=", "posted"),
+        ], order="date")
 
     def _compute_difference(self):
         for run in self:
             run.difference = sum(run.line_ids.mapped("difference"))
 
     def _ensure_open(self):
+        """Zaúčtované přecenění se nemění; doplnění je nový běh. Dva návrhy profilu by rozdíl zdvojily."""
         self.ensure_one()
         if self.move_id.state == "posted":
-            raise UserError(self.env._("Přecenění je zaúčtované, nejde ho přepočítat."))
-        later = self.search_count([
-            ("profile_id", "=", self.profile_id.id), ("date", ">", self.date), ("move_id.state", "=", "posted"),
+            raise UserError(self.env._("Přecenění je zaúčtované; pro doplnění založte nové přecenění ke stejnému datu."))
+        other = self.search_count([
+            ("profile_id", "=", self.profile_id.id), ("id", "!=", self.id), ("move_id.state", "=", "draft"),
         ], limit=1)
-        if later:
-            raise UserError(self.env._("Existuje zaúčtované přecenění s pozdějším datem."))
+        if other:
+            raise UserError(self.env._("Profil má nezaúčtovaný návrh jiného přecenění, nejdřív ho dokončete nebo smažte."))
+
+    def _ensure_period_open(self):
+        """Odoo by datum v uzamčeném období tiše posunulo, rozdíl musí zůstat k datu přecenění."""
+        self.ensure_one()
+        if self.company_id._get_violated_lock_dates(self.date, False, self.profile_id.journal_id):
+            raise UserError(self.env._("Období k %s je uzamčené, přecenění do něj nejde doplnit.", self.date))
 
     def _published_rate(self, currency):
         """Funkční měna za jednotku měny; chybějící, budoucí nebo starý kurz výpočet zastaví."""
@@ -103,6 +123,7 @@ class InvestraFxRun(models.Model):
         """Vytvoří návrh dokladu. Zaúčtuje ho účetní po kontrole."""
         for run in self:
             run._ensure_open()
+            run._ensure_period_open()
             if not run.line_ids:
                 raise UserError(self.env._("Není co přecenit."))
             run.move_id.unlink()

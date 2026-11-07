@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 250. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 251. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -90,6 +90,9 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Termíny ČNB | Termíny a výkazy zveřejňuje ČNB v SDAT a budou se stahovat odtud; zatím jen obecné příklady | Rozhodnuto |
 | Měna zveřejnění kurzu | Třída má měnu zveřejnění kurzu, probíhají v ní úpisy a odkupy; NAV fondu a kapitál třídy zůstávají ve funkční měně | Rozhodnuto |
 | Den kurzu na dokladech | Doklad bere kurz ČNB ke dni účetního případu, u české společnosti k DUZP; ve dnech bez kurzu poslední vyhlášený | Rozhodnuto |
+| Přecenění cizích měn | Services měsíčně a na žádost účetního, fondy při ocenění; doplúčtání do zůstatku na oddělené účty, výstup je návrh dokladu; doklad do přeceněného období řeší doplňkové přecenění | Rozhodnuto |
+| Zdroj kurzu | Kurz se řídí měnou účetnictví: CZK ČNB, EUR ECB; pevný kurz se nepoužívá | Rozhodnuto |
+| Směna měny | Přepočet kurzem ČNB, rozdíl proti skutečnému kurzu jako realizovaný zisk nebo ztráta v den směny | Rozhodnuto |
 
 ## Hranice systémů a vlastnictví dat
 

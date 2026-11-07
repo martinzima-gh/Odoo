@@ -38,6 +38,7 @@
                     <button name="action_create_move" type="object" string="Vytvořit návrh dokladu" invisible="not line_ids or move_state == 'posted'"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not later_run_warning"><field name="later_run_warning" readonly="1"/></div>
                     <group>
                         <field name="profile_id" readonly="move_state == 'posted'"/><field name="date" readonly="move_state == 'posted'"/>
                         <field name="company_id" groups="base.group_multi_company"/><field name="currency_id" invisible="1"/>

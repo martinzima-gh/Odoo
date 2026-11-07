@@ -106,13 +106,55 @@ class TestFxRun(AccountTestInvoicingCommon):
         with self.assertRaises(UserError):
             run.action_compute()
 
-    def test_earlier_date_after_posted_run_stops(self):
+    def post_run(self, day="2040-01-31"):
+        run = self.create_run(day)
+        run.action_create_move()
+        run.move_id.action_post()
+        return run
+
+    def test_backdated_document_adds_only_its_difference(self):
         self.entry(self.receivable, 1000, 25000)
-        later = self.create_run("2040-02-29")
-        later.action_create_move()
-        later.move_id.action_post()
+        first = self.post_run()
+        self.entry(self.receivable, 500, 12500, day="2040-01-20")
+        extra = self.create_run()
+        self.assertEqual(extra.difference, 500)
+        extra.action_create_move()
+        self.assertEqual(extra.move_id.date, date(2040, 1, 31))
+        self.assertEqual(extra.move_id.state, "draft")
+        self.assertEqual(first.move_id.state, "posted")
+
+    def test_repeat_without_change_has_no_difference(self):
+        self.entry(self.receivable, 1000, 25000)
+        self.post_run()
+        extra = self.create_run()
+        self.assertFalse(extra.line_ids)
         with self.assertRaises(UserError):
-            self.create_run("2040-01-31")
+            extra.action_create_move()
+
+    def test_two_open_proposals_are_refused(self):
+        self.entry(self.receivable, 1000, 25000)
+        self.create_run().action_create_move()
+        with self.assertRaises(UserError):
+            self.create_run()
+
+    def test_earlier_run_after_posted_later_run_warns(self):
+        self.entry(self.receivable, 1000, 25000)
+        self.post_run("2040-02-29")
+        earlier = self.create_run("2040-01-31")
+        self.assertTrue(earlier.later_run_warning)
+        self.assertEqual(earlier.difference, 1000)
+
+    def test_no_warning_without_later_run(self):
+        self.entry(self.receivable, 1000, 25000)
+        self.assertFalse(self.create_run().later_run_warning)
+
+    def test_locked_period_stops_proposal(self):
+        self.entry(self.receivable, 1000, 25000)
+        run = self.create_run()
+        self.company.sudo().write({"hard_lock_date": "2040-01-31"})
+        with self.assertRaises(UserError):
+            run.action_create_move()
+        self.assertFalse(run.move_id)
 
     def test_draft_documents_and_other_accounts_are_ignored(self):
         self.entry(self.receivable, 1000, 25000, post=False)

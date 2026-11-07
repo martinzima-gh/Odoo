@@ -15,7 +15,7 @@ Technická zjištění jsou v `analyza-odoo20-nav.md`, varianty úplat v `poplat
 | `investra_instruments` | Typy nástrojů, nástroje, ceny se schválením, obchody, pozice | 25 |
 | `investra_allocation` | Verzovaná schémata, poměr a pořadí nároků | 3 |
 | `investra_dashboard` | Přehled fondů, výjimky, termíny ČNB | 11 |
-| `investra_fx_revaluation` | Profily přecenění, návrh dokladu, kontrola kurzu | 23 |
+| `investra_fx_revaluation` | Profily přecenění, doplňkové přecenění, návrh dokladu, kontrola kurzu | 28 |
 | `investra_nav` | Úplaty, ocenění, schvalování, depozitář, zveřejnění, balíček, naběhlá hodnota, zaúčtování obchodu, měna kurzu, přístup podle společnosti | 102 |
 
 Výpočetní jádro a referenční výpočet mají dalších 55 testů mimo Odoo (`tools/nav_reference`).
@@ -108,7 +108,7 @@ Kurzový rozdíl z vypořádání se účtuje až při ocenění, ne v den platb
 
 ## Přecenění cizích měn
 
-Profil určí přeceňované účty, oddělené účty zisku a ztráty, deník, zdroj kurzu a nejvyšší stáří kurzu. Přecenění doúčtuje rozdíl do potřebného zůstatku po účtu, měně a partnerovi a vytvoří návrh dokladu; zaúčtuje ho účetní. Kurz se čte z `investra.rate`, ručně zadané kurzy v Odoo se nepoužijí. Návrh politiky je v `docs/navrh-politika-preceneni.md`.
+Profil určí přeceňované účty, oddělené účty zisku a ztráty, deník, zdroj kurzu a nejvyšší stáří kurzu. Přecenění doúčtuje rozdíl do potřebného zůstatku po účtu, měně a partnerovi a vytvoří návrh dokladu; zaúčtuje ho účetní. Doklad zavalutovaný zpětně se řeší novým přeceněním ke stejnému datu; souběžný nezaúčtovaný návrh profilu a uzamčené období výpočet zastaví, pozdější zaúčtované přecenění vyvolá upozornění. Kurz se čte z `investra.rate`, ručně zadané kurzy v Odoo se nepoužijí. Návrh politiky je v `docs/navrh-politika-preceneni.md`.
 
 Měření výkonu: test s tagem `nav_benchmark` se spouští jen výslovně. Ocenění s 200 nástroji trvalo 0,76 s, s 30 třídami 1,10 s, optimalizace zatím není potřeba.
 
