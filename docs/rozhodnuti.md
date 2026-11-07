@@ -72,3 +72,5 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-07 | Harmonogram a akceptace | Termíny a akceptace podle `docs/harmonogram.md` | Bez rezervy, znovu posoudit po bráně 22. 1. | R |
 | 2026-11-07 | Začátek prací | Začíná se účetnictvím Investra Services s.r.o., prototyp NAV navazuje souběžně | Community, nebo Enterprise se domluví s Janem Polanem a Martinem Olivou | R |
 | 2026-11-07 | Mzdy | Vede je externí dodavatel, do Odoo se importuje jen účetní zápis | Formát domluvit | R |
+| 2026-11-07 | Osnova Investra Services | Vychází ze standardní české osnovy pro podnikatele; úpravy podle `docs/osnova-investra-services.md` | Návrh, čeká na potvrzení | N |
+| 2026-11-07 | Osnova fondů | Cíl je jedna šablona pro všechny fondy; převzatý fond se ke dni přechodu převede převodovou tabulkou | Jiná než osnova Services | R |
