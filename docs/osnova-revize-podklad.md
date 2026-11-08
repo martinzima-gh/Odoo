@@ -36,7 +36,7 @@ Typ dnes neovlivňuje výpočet, rozhodne až ve výkazech. Výkazy podle vyhlá
 
 ## Bod 8: daně a fiskální pozice (rozhodnuto 2026-11-08)
 
-Režim: dnes neplátce, žádost o registraci jako identifikovaná osoba podaná, čeká se na doručení (potvrdil Martin Zíma); později plátce. Pojem a podmínky identifikované osoby (§ 6g ZDPH) pro tento bod nečteny.
+Režim: dnes neplátce, žádost o registraci jako identifikovaná osoba podaná, čeká se na doručení (potvrdil Martin Zíma); později plátce. Pojem identifikované osoby viz doplnění níže (§ 6h ZDPH).
 Změna v `investra_dev` (0 dokladů, přes ORM): archivováno všech 32 daní a 4 fiskální pozice.
 Důvod: 46 účtů (například 518xxx, 501xxx, 511xxx, 022xxx) má výchozí daň 21 % nebo 12 %. Test na dočasné kopii databáze: před archivací řádek na 518100 sám přidal daň 21 % a 210 Kč šlo jako odpočet na 343121; po archivaci daň nevznikla. Kopie byla po testu smazána.
 Výchozí daně na účtech zůstávají a při návratu daní se uplatní.
@@ -71,7 +71,17 @@ Registrace jako identifikovaná osoba dorazila (podle Martina Zímy); den účin
 Standardní daň l10n_cz pro přijetí služby z EU rozpisuje daň na vstup 343121 (odpočet) a výstup 343221. Identifikovaná osoba odpočet nemá, proto vznikl modul `investra_vat_identified` (varianta B):
 daň 21 % a 12 % zaúčtuje závazek na 343221 (343212) a zároveň zvýší náklad na řádku dokladu; dluh dodavateli se nemění. Daně se zakládají pro každou společnost voláním `_setup_identified_vat_taxes()`, takže modul poslouží každé knize, která je jen identifikovanou osobou, i po přechodu Services na plátce.
 Otestováno na kopii `investra_dev` (6 testů: 21 %, 12 %, dobropis, bez vstupní strany, zaúčtování, opakované založení), kopie smazána. Nainstalováno v `investra_dev` 2026-11-08 se souhlasem Martina Zímy a daně 21 % a 12 % vznikly v Investra Services (0 dokladů); ostatní daně zůstávají archivované.
-K potvrzení metodikem nebo daňovým poradcem: zaúčtování (daň do nákladu a závazek), které řádky přiznání platí, štítky přiznání u daně (převzat jen základ). Pojem a podmínky § 6g ZDPH nečteny.
+K potvrzení metodikem nebo daňovým poradcem: zaúčtování (daň do nákladu a závazek), které řádky přiznání platí, štítky přiznání u daně (převzat jen základ). Právní základ je ověřený níže.
+
+### Bod 8, ověření právního základu (2026-11-08)
+
+Čteno doslova na zakonyprolidi.cz, zákon č. 235/2004 Sb. o DPH ve znění od 1. 1. 2026 (verze 69); porovnání s e-Sbírkou nebylo.
+- § 6h: osoba povinná k dani se sídlem v tuzemsku, která není plátcem, je identifikovanou osobou ode dne přijetí zdanitelného plnění s místem plnění v tuzemsku od osoby neusazené v tuzemsku (služba, dodání zboží s montáží, dodání zboží soustavami). Platí pro dodavatele z EU i ze třetích zemí. § 6g se týká pořízení zboží z EU, ne služeb.
+- § 9 odst. 1: místem plnění služby osobě povinné k dani je sídlo příjemce, tedy tuzemsko.
+- § 108 odst. 3 písm. a) bod 1: u služby podle § 9 až 10d od osoby neusazené v tuzemsku přiznává daň příjemce, plátce nebo identifikovaná osoba.
+- § 72 odst. 1: k odpočtu je oprávněn plátce; identifikovaná osoba není uvedena. Návrh bez odpočtu s tím souhlasí (výklad, potvrdí poradce).
+Důsledek: stejné zaúčtování platí pro Microsoft (EU) i Cloudflare (USA). Daň z modulu se jmenuje „z EU“, což u dodavatele z USA zavádí.
+Řádky přiznání: z druhotných zdrojů (Pohoda, pokyny Finanční správy ke kontrolnímu hlášení) služby od osoby registrované v jiném členském státě jdou na řádky 5 a 6, od osoby ze třetí země na řádky 12 a 13; v pokynech k přiznání neověřeno. Povinnost podat kontrolní hlášení identifikovanou osobou neověřena.
 
 ## Bod 7: názvy a účet 593 (rozhodnuto 2026-11-08)
 
