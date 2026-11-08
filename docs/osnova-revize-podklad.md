@@ -48,7 +48,7 @@ Fáze: neplátce (žádné daně, DPH z faktury je součástí nákladu) → ide
 Registrace jako identifikovaná osoba dorazila (podle Martina Zímy); den účinnosti a DIČ doplnit.
 Standardní daň l10n_cz pro přijetí služby z EU rozpisuje daň na vstup 343121 (odpočet) a výstup 343221. Identifikovaná osoba odpočet nemá, proto vznikl modul `investra_vat_identified` (varianta B):
 daň 21 % a 12 % zaúčtuje závazek na 343221 (343212) a zároveň zvýší náklad na řádku dokladu; dluh dodavateli se nemění. Daně se zakládají pro každou společnost voláním `_setup_identified_vat_taxes()`, takže modul poslouží každé knize, která je jen identifikovanou osobou, i po přechodu Services na plátce.
-Otestováno na kopii `investra_dev` (6 testů: 21 %, 12 %, dobropis, bez vstupní strany, zaúčtování, opakované založení), kopie smazána. Do `investra_dev` zatím nenainstalováno.
+Otestováno na kopii `investra_dev` (6 testů: 21 %, 12 %, dobropis, bez vstupní strany, zaúčtování, opakované založení), kopie smazána. Nainstalováno v `investra_dev` 2026-11-08 se souhlasem Martina Zímy a daně 21 % a 12 % vznikly v Investra Services (0 dokladů); ostatní daně zůstávají archivované.
 K potvrzení metodikem nebo daňovým poradcem: zaúčtování (daň do nákladu a závazek), které řádky přiznání platí, štítky přiznání u daně (převzat jen základ). Pojem a podmínky § 6g ZDPH nečteny.
 
 ## Bod 7: názvy a účet 593 (rozhodnuto 2026-11-08)

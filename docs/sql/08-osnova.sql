@@ -55,6 +55,15 @@ FROM account_tax
 GROUP BY 1, 2
 ORDER BY 1, 2;
 
+-- Aktivní daně po instalaci modulu investra_vat_identified (21 % a 12 % IO přijatá služba z EU) a jejich rozpis.
+SELECT t.name->>'cs_CZ' AS dan, r.document_type AS doklad, r.repartition_type AS druh, r.factor_percent AS procent,
+       a.code_store->>'1' AS ucet
+FROM account_tax t
+JOIN account_tax_repartition_line r ON r.tax_id = t.id
+LEFT JOIN account_account a ON a.id = r.account_id
+WHERE t.active
+ORDER BY t.id, r.document_type, r.id;
+
 -- Účty s výchozí daní (46 účtů), uplatní se po opětovném zapnutí daní.
 SELECT a.code_store->>'1' AS ucet, t.name->>'cs_CZ' AS vychozi_dan, t.active
 FROM account_account_tax_default_rel r
