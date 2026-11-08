@@ -34,6 +34,12 @@ Typ dnes neovlivňuje výpočet, rozhodne až ve výkazech. Výkazy podle vyhlá
 | 10 | Datum otevření účetnictví | V Odoo je 5. 11. 2026, tedy den instalace. Účetní období je kalendářní rok | Doplnit skutečné datum zahájení účetnictví |
 | 11 | Účty ke skrytí a doplnění | Seznam je v návrhu osnovy; analytiky mezd závisí na dodavateli | Potvrdit skrytí, analytiky až po dohodě s dodavatelem mezd |
 
+## Bod 2: párování (rozhodnuto 2026-11-08)
+
+Párování zapnuto v `investra_dev` u 324000, 325000, 335000, 342000, 378000, 379000, 388000 a 389000 (bez dokladů, změna přes ORM).
+331000 a 336000 zůstávají vypnuté: mzdy vede externí dodavatel a zápisy přijdou v sumě. Zapnout jde později i s doklady; vypnout nejspíš ne, pokud jsou na účtu spárované řádky (neověřeno).
+Časové rozlišení 381 až 385 se nepáruje. Community nemá automatický rozpis odložených nákladů a výnosů ani automatické párování dokladů proti sobě; pravidla párování míří na bankovní řádky.
+
 ## Bod 1: uzávěrka
 
 Odoo výsledek období nezapisuje dokladem, počítá ho z výnosů a nákladů a ukazuje na účtu typu nerozdělený zisk, zde 431000.

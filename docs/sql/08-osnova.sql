@@ -32,3 +32,9 @@ SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
 FROM account_account
 WHERE active IS FALSE
 ORDER BY 1;
+
+-- Účty s párováním mimo pohledávky a závazky; od 2026-11-08 doplněno 324, 325, 335, 342, 378, 379, 388, 389.
+SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
+FROM account_account
+WHERE active AND reconcile AND account_type NOT IN ('asset_receivable', 'liability_payable')
+ORDER BY 1;
