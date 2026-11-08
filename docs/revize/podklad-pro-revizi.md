@@ -272,7 +272,11 @@ Harmonogram nemá rezervu a rozsah roste. Akceptační kritéria jsou v `docs/ha
 
 ---
 
-## 10. Odkazy do repozitáře (pokud je AI dostane)
+## 10. Odkazy do repozitáře
+
+Revidující AI repozitář ani kód nedostane. Odkazy slouží k tomu, aby se v otázkách mohla odvolat na konkrétní dokument;
+detail pak dodá vlastník projektu.
+
 | Soubor | Obsah |
 |---|---|
 | `docs/architektura.md` | Úplná architektura (export sdíleného dokumentu) |

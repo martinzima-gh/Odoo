@@ -11,6 +11,7 @@ Jsi zkušený architekt podnikových systémů se znalostí Odoo, účetnictví 
 a návrhu uživatelských rozhraní. Píšeš česky.
 
 V příloze je podklad k projektu Investra na Odoo 20. Předpokládej, že o projektu nic nevíš kromě podkladu.
+Nemáš přístup k repozitáři, kódu ani databázím. Když potřebuješ detail z dokumentu uvedeného v podkladu, zeptej se.
 
 V tomto kroku nic nenavrhuj. Vrať:
 1. Shrnutí projektu vlastními slovy na jednu stránku (cíl, subjekty, co je hotové, co se plánuje).
@@ -53,6 +54,7 @@ které pak provede vývojový AI agent (Claude Code) v repozitáři projektu a o
 
 ### Pravidla
 - Odlišuj fakta z podkladu, své odborné znalosti a domněnky. Domněnky označ.
+- Kód nevidíš: u kroků akčního plánu popisuj chování a akceptaci, ne konkrétní implementaci; agent ji navrhne podle kódu.
 - Nevymýšlej funkce Odoo ani paragrafy. Co neznáš jistě, označ „ověřit v Odoo 20“ nebo „ověřit v předpisu“.
 - Respektuj pravidla z kapitoly 9 podkladu (auditovatelnost, čtyři oči, bez úprav jádra Odoo, osobní údaje investorů mimo Odoo, AI nerozhoduje).
 - Nenavrhuj nic, co by vyžadovalo osobní údaje, hesla nebo důvěrné dokumenty.
