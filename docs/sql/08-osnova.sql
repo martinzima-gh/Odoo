@@ -46,3 +46,5 @@ WHERE code_store->>'1' IN ('231000', '232000', '241000', '249000', '451000', '45
 ORDER BY 1;
 
 -- Po bodu 6 (2026-11-08): FA má výchozí účet 602000, PŘIJATÁ FAKTURA 518000 (výpis výše).
+
+-- Po bodu 7 (2026-11-08): opravené názvy 347, 358, 563 a archivovaný 593 (viz výpis archivovaných účtů výše).

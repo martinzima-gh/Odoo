@@ -34,6 +34,11 @@ Typ dnes neovlivňuje výpočet, rozhodne až ve výkazech. Výkazy podle vyhlá
 | 10 | Datum otevření účetnictví | V Odoo je 5. 11. 2026, tedy den instalace. Účetní období je kalendářní rok | Doplnit skutečné datum zahájení účetnictví |
 | 11 | Účty ke skrytí a doplnění | Seznam je v návrhu osnovy; analytiky mezd závisí na dodavateli | Potvrdit skrytí, analytiky až po dohodě s dodavatelem mezd |
 
+## Bod 7: názvy a účet 593 (rozhodnuto 2026-11-08)
+
+V `investra_dev` opraveny názvy (účty bez dokladů, změna přes ORM): 347000 Ostatní dotace, 358000 Pohledávky za společníky sdruženými ve společnosti, 563000 Kurzové ztráty. Účet 593000 (daň z příjmů z mimořádné činnosti, splatná) je archivovaný.
+Účty 547000 a 647000 se nechávají: vyhláška 500 mimořádné provozní a finanční položky pořád uvádí (§ 25, § 27, § 33, § 34; přečteno na zakonyprolidi.cz, znění 1. 1. 2024). Příloha 4 přitom uvádí jen skupiny, názvy účtů si stanoví účetní jednotka.
+
 ## Bod 6: výchozí účty deníků (rozhodnuto 2026-11-08)
 
 Prodejní deník FA má výchozí účet 602000 Tržby z prodeje služeb (dřív 604000), nákupní deník PŘIJATÁ FAKTURA účet 518000 Ostatní služby (dřív 504000). Změna přes ORM, 0 dokladů.
