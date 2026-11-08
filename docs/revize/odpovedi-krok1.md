@@ -1,7 +1,24 @@
 # Odpovědi na krok 1 revize
 
-Koncept 8. 11. 2026. Odpovědi z dokumentace projektu připravil vývojový agent, místa označená **DOPLNIT** vyplní
-vlastník projektu. Před odesláním revidující AI projít a doplnit; nic z toho není schválený závazek.
+8. 11. 2026. Odpovědi připravil vývojový agent z dokumentace projektu a z dosavadní práce s vlastníkem projektu,
+vlastník je potvrdil. Kde odpověď neznáme, je to výslovně uvedeno spolu s naším doporučením; v takovém případě
+**navrhni varianty**.
+
+## Hlavní princip: univerzální řešení
+
+Nestavíme systém pro jeden konkrétní fond. Investra bude spravovat fondy různých zakladatelů a převezme je
+od různých administrátorů, proto musí být fondové moduly **univerzální a připravené na co nejvíc variant**.
+První fond je jen první případ použití. Co se liší mezi fondy, má být parametr (nastavení fondu, třídy, nástroje,
+pravidla), ne kód psaný pro konkrétní fond. Zejména:
+- všechny běžné typy nástrojů a způsoby ocenění (tržní cena, posudek, model, naběhlá hodnota, zadaná hodnota pozice),
+- libovolné měny nástrojů, tříd i funkční měna fondu (CZK, EUR a další),
+- fond, SICAV s podfondy i bez nich, víc tříd s různými úplatami, performance fee, hurdle a high-water mark,
+- oba účetní rámce fondů (vyhláška 501 s IFRS pro nástroje, nebo plné IFRS),
+- libovolná frekvence ocenění včetně mimořádného,
+- různé depozitáře, banky a formáty dat.
+
+Při hodnocení priorit proto rozlišuj **univerzální jádro** (musí být hotové pro jakýkoli první fond) a **rozšíření**
+(přidají se podle potřeby dalších fondů, ale architektura s nimi musí počítat od začátku).
 
 ---
 
@@ -9,74 +26,78 @@ vlastník projektu. Před odesláním revidující AI projít a doplnit; nic z t
 
 | # | Předpoklad | Odpověď |
 |---|---|---|
-| 1 | Investiční společnost povolení do Q1 2027 nedostane, první fond formálně spravuje jiný subjekt, Services dělá outsourcing | V dokumentaci rozhodnuto není; otevřený bod „soulad s žádostí o povolení“. **DOPLNIT** |
-| 2 | Funkční měna prvního fondu je CZK | Architektura podporuje i EUR (funkční měna může být jiná než CZK, kurzy ECB). Pro první fond **DOPLNIT** |
-| 3 | Jednoduchý portfolio mix, deriváty a repo nejsou pro start nutné | Deriváty nejsou v povinném rozsahu pro první fond (rozhodnutí 7. 11. 2026). Fondy často drží aktiva přes SPV (účast, úvěr SPV, příplatek mimo základní kapitál). Skutečné složení **DOPLNIT** |
-| 4 | Účetnictví investiční společnosti není v rozsahu prvního ostrého provozu | Pořadí nasazení je rozhodnuté: Services, investiční společnost, potom fondy. Harmonogram ale investiční společnost samostatně neplánuje. Termín **DOPLNIT** |
-| 5 | Výkazy ČNB přes SDAT ve strojovém formátu, odesílá člověk | Ano: termíny a výkazy se stahují ze SDAT; návrh začíná variantou se souborem; AI ani systém nic neodesílají bez člověka. Způsob podpisu je otevřený |
-| 6 | Předchozí administrátor předá předvahu, pozice, třídy a historii pro performance fee | Plánovaný vstupní formát to obsahuje (viz C.4). Co skutečně dodá, **DOPLNIT** |
-| 7 | Depozitář NAV kontroluje, jeho stanovisko je podmínkou zveřejnění | Ano, zveřejnění kurzu a uzamčení období až po stanovisku depozitáře. Zda počítá vlastní NAV, **DOPLNIT** |
-| 8 | Jednotky uživatelů, žádná produkce | Ano: dvě účetní fondů, druhá osoba na schvalování; produkce zatím není |
-| 9 | Services od 19. 3. 2026 v Odoo, obsah `investra_dev` do produkce | Účetnictví od 19. 3. 2026 v Odoo ano. Způsob převodu do produkce rozhodnutý není, **DOPLNIT** |
-| 10 | Omezený rozpočet, rozhodnutí o edici bez schváleného rozpočtu | **DOPLNIT** |
-| 11 | Ceny ručně nebo z Excelu, placený zdroj zatím není | Oprava: ceny pocházejí z Bloombergu, do Odoo se importují z Excelu; přímé napojení případně později (rozhodnutí 4. 11. 2026) |
+| 1 | Investiční společnost povolení do Q1 2027 nedostane, první fond formálně spravuje jiný subjekt, Services dělá outsourcing | Nevíme, stav žádosti není jistý. Systém musí umět obojí: Services jako poskytovatel účetnictví a NAV pro jiného obhospodařovatele i vlastní investiční společnost jako obhospodařovatel a administrátor. Navrhni varianty a dopady na role a odpovědnosti v systému |
+| 2 | Funkční měna prvního fondu je CZK | Nevíme. Funkční měna je parametr fondu; podporovat CZK i EUR (případně další) od začátku |
+| 3 | Jednoduchý portfolio mix, deriváty a repo nejsou pro start nutné | Nevíme, jaký mix bude mít první fond. Systém má umět všechny běžné typy nástrojů. Prioritu stanov tak, aby jádro zvládlo typické FKI: účasti a úvěry v SPV, dluhopisy, akcie a fondy, termínované vklady, ostatní podíly s upisovacím závazkem. Deriváty a repo jako navazující rozšíření s připravenou architekturou |
+| 4 | Účetnictví investiční společnosti není v rozsahu prvního ostrého provozu | Pořadí je rozhodnuté: Services, investiční společnost, potom fondy. Termín investiční společnosti závisí na povolení ČNB, proto není v harmonogramu pevně. Doporučení: investiční společnost jako další kniha ve stejném systému (vyhláška 501), bez zvláštního vývoje navíc kromě výkazů kapitálu obhospodařovatele |
+| 5 | Výkazy ČNB přes SDAT ve strojovém formátu, odesílá člověk | Ano. Termíny a výkazy se stahují ze SDAT, výstup je soubor, odesílá a podepisuje člověk |
+| 6 | Předchozí administrátor předá předvahu, pozice, třídy a historii pro performance fee | Nevíme, liší se podle administrátora. Proto společný vstupní formát s převodníkem pro každý zdroj (C.4). Navrhni, jak řešit chybějící údaje (např. pořizovací kurz, high-water mark) |
+| 7 | Depozitář NAV kontroluje, jeho stanovisko je podmínkou zveřejnění | Ano. Zda depozitář počítá vlastní NAV, se liší podle depozitáře; systém má umět předat podklady i přijmout jeho výsledek k porovnání |
+| 8 | Jednotky uživatelů, žádná produkce | Ano |
+| 9 | Services od 19. 3. 2026 v Odoo, obsah `investra_dev` do produkce | Účetnictví Services od 19. 3. 2026 v Odoo ano. Převod do produkce nerozhodnutý, viz otázka 13 |
+| 10 | Omezený rozpočet, rozhodnutí o edici bez schváleného rozpočtu | Ano, rozpočet schválený není. Preferujeme řešení, které funguje v Community i Enterprise (vlastní moduly nad standardním účetnictvím); koupi doporuč tam, kde ušetří víc vývoje, než stojí |
+| 11 | Ceny ručně nebo z Excelu, placený zdroj zatím není | Oprava: ceny pocházejí z Bloombergu, do Odoo se importují z Excelu; přímé napojení případně později. Import má být univerzální (různé zdroje a formáty, ruční zadání s podkladem) |
 
 ---
 
 ## B. Odpovědi na otázky
 
-**1. Aktiva prvního fondu.** V dokumentaci nejsou. Známé obecně: fondy často drží účasti a úvěry v SPV;
-deriváty nejsou pro první fond povinné; typy nástrojů v prototypu viz C.5.
-**DOPLNIT:** typy a počet nástrojů, způsob ocenění (tržní cena, posudek, model, naběhlá hodnota), měny, zda jsou kupóny a dividendy.
+**1. Aktiva prvního fondu.** Nevíme a nechceme řešení na míru jednomu fondu: systém musí být univerzální pro všechny
+běžné typy nástrojů, měny a zdroje cen. Typy v prototypu jsou v C.5. Fondy často drží aktiva přes SPV (účast, úvěr SPV,
+příplatek mimo základní kapitál). Kupóny i dividendy počítej jako běžnou součást. **Navrhni varianty** pořadí, v jakém
+typy nástrojů a jejich události (kupón, dividenda, splátka, poplatek obchodu) dokončit.
 
-**2. Kdo bude fond právně spravovat a v jaké roli bude Services.** Investiční společnost je v přípravě (žádost o povolení ČNB).
-**DOPLNIT:** stav žádosti, kdo bude obhospodařovatel a administrátor k přechodu, role Services.
+**2. Kdo bude fond spravovat a role Services.** Nevíme; žádost investiční společnosti o povolení je v přípravě.
+Systém musí podporovat obě uspořádání (viz předpoklad 1): Services jako outsourcing účetnictví a NAV pro cizího
+obhospodařovatele i vlastní investiční společnost. **Navrhni varianty** rolí, oprávnění a schvalování pro oba případy.
 
-**3. Výkazy ČNB prvního fondu.** Rozhodnuto: první měsíční výkazy jsou pro první fond nutné. Zkušební provoz počítá
-s měsíčními výkazy RISIFI30, RISIFI33, TISIFI10, VISIFI10 a RISIFI37. Platí metodika FOFI20261201, nové metodiky ČNB jsou v plánu od 2027.
-**DOPLNIT:** první referenční období a zda je možná přechodná cesta mimo Odoo.
+**3. Výkazy ČNB.** První měsíční výkazy jsou pro první fond nutné; zkušební provoz počítá s RISIFI30, RISIFI33,
+TISIFI10, VISIFI10, RISIFI37 (metodika FOFI20261201, změny metodik od 2027). První referenční období nevíme, závisí na dni
+převzetí. Přechodná cesta mimo Odoo není rozhodnutá; preferujeme výkazy z Odoo. **Navrhni varianty** včetně záložní
+(dočasný export do šablony a ruční kontrola) a co z výkazů musí být hotové k prvnímu fondu.
 
-**4. Převzetí.** Fond přechází ke dni uzávěrky nebo ocenění, ne migrací celé historie; postup viz C.4.
-**DOPLNIT:** den převzetí, podoba dat od předchozího administrátora, zda je počáteční stav auditovaný.
+**4. Převzetí.** Den ani podobu dat nevíme; liší se podle předchozího administrátora. Počítáme s převzetím ke dni uzávěrky
+nebo ocenění a paralelním během (C.4). **Navrhni** univerzální vstupní formát, kontroly a postup pro chybějící údaje.
 
-**5. Edice a rozpočet.** Průzkum doporučuje Enterprise (plán Custom) na vlastním hostingu v EU; web Odoo uvádí 22,90 až 27,90 €
-za uživatele a měsíc při ročním placení, závazně až nabídka. Licence je za uživatele, ne za společnost.
-Záměr je externí partner pro českou lokalizaci; rozsah rozhodnutý není.
-**DOPLNIT:** rozpočtový strop, Odoo.sh ano či ne, partner.
+**5. Edice a rozpočet.** Rozpočet schválený není. Doporučení průzkumu je Enterprise (plán Custom) na vlastním hostingu v EU.
+Odoo.sh nepreferujeme: lokalita dat tam podle podmínek Odoo není smluvně zaručená, což může kolidovat s DORA (ověřit).
+Externí partner pro českou lokalizaci je záměr, nerozhodnutý. **Navrhni varianty** (Community s vlastním vývojem a moduly OCA,
+Enterprise, kombinace) s odhadem, co který kus stojí v práci a co v licencích.
 
-**6. IS.** Rozhraní je navržené jako 9 typů zpráv (viz C.3); hlavní je finalizovaná závěrka klientských transakcí, v jednom
-oceňovacím období jich může být víc. Rozhodnuto: IS vytváří platební příkazy na výplaty a spouští převody, Odoo páruje výpisy;
-kurz úpisu v průběhu období je poslední známý, řídí IS. Dokumentace a API IS zatím chybí.
-**DOPLNIT:** zda je IS vybraný, forma předávání (soubor nebo API), četnost, kdo určuje cut-off.
+**6. IS.** Investra bude mít samostatnou aplikaci IS pro investory; dokumentace a API zatím nemáme. Rozhraní je navržené
+jako 9 verzovaných zpráv (C.3). Cut-off určuje IS podle statutu fondu; vstup transakcí do závěrky je parametr fondu.
+**Navrhni** rozhraní nezávislé na konkrétním IS: nejdřív soubor (import a kontrola), později API, se stejnými zprávami.
 
-**7. Banka.** Rozhodnuto: výpisy se načítají automaticky, párování je návrh, který účetní vždy schválí; třída má účet pro úpisy
-a pro odkupy, fond investiční účet, zvlášť pro každou měnu; platební příkazy jako soubor s autorizací dvěma osobami a kontrolou depozitářem.
-**DOPLNIT:** banky, formáty výpisů, počet pohybů měsíčně.
+**7. Banka.** Services použila Fio banku pro složení základního kapitálu; provozní banka Services ani banky fondů a depozitáře nejsou rozhodnuté, každý fond může mít jinou. Objem u Services jsou jednotky až desítky pohybů měsíčně; u fondů nevíme.
+**Navrhni** univerzální import výpisů (formáty GPC/ABO, CAMT.053, MT940, případně API bank) a párování se schválením účetní.
 
-**8. Ceny a nástroje.** Zdroj Bloomberg, import z Excelu. Ceny mají historii, zdroj, autora a schválení druhou osobou.
-**DOPLNIT:** počet nástrojů při startu a za rok.
+**8. Počet nástrojů.** Nevíme; u FKI očekáváme jednotky až nižší desítky nástrojů na fond, při desítkách fondů stovky celkem.
+Obrazovky a import cen navrhni tak, aby zvládly stovky nástrojů a hromadné schválení s výjimkami.
 
-**9. Lidé.** Dvě účetní fondů se zastupují; u fondů Investry je druhá osoba povinná pro ceny a ocenění, schválení vedením fondu
-je volitelné a pořadí schvalovatelů je parametr fondu. U Services: banka se páruje jen se schválením účetní; čtyři oči u faktur Services nejsou rozhodnuté.
-**DOPLNIT:** kdo zadává a kdo schvaluje (role), zastupování schvalovatele, čtyři oči u Services.
+**9. Lidé.** Účetnictví Services dnes vede vlastník projektu sám (metodik). Pro fondy: dvě účetní, které se zastupují; druhá osoba
+povinná u cen a ocenění; vedení fondu, administrátor nebo obhospodařovatel jako volitelní další schvalovatelé podle parametru fondu.
+Zastupování schvalovatele a čtyři oči u Services nejsou rozhodnuté. **Navrhni** přiměřené řešení pro malý tým (kdo smí co,
+zastupování, co dělat, když je k dispozici jen jedna osoba) a zda čtyři oči u Services zavést jen pro platby.
 
-**10. Účetní rámec prvního fondu.** Možné rámce: vyhláška 501 s IFRS pro finanční nástroje, nebo plné IFRS (u plného IFRS se od 2027 použije IFRS 18).
-Výroční zprávy: export dat z Odoo, dokončení ve Wordu.
-**DOPLNIT:** rámec prvního fondu a kde vznikne účetní závěrka.
+**10. Účetní rámec.** Systém musí podporovat oba rámce fondů: vyhlášku 501 s IFRS pro finanční nástroje i plné IFRS
+(od 2027 IFRS 18). Rámec prvního fondu nevíme. Výroční zpráva: export dat z Odoo, dokončení ve Wordu. Kde vznikne účetní
+závěrka (rozvaha, výsledovka, příloha), rozhodnuté není; souvisí s edicí. **Navrhni varianty.**
 
-**11. Hosting a DORA.** Hosting rozhodnutý není; doporučení vlastní hosting v EU. Plán obsahuje produkci, zálohy, test obnovy
-a mapu DORA; evidence dodavatelů je otevřený bod. MFA a hesla se řeší při návrhu produkce.
-**DOPLNIT:** kdo bude provozovat, RTO a RPO, požadavek na lokalitu dat.
+**11. Hosting a DORA.** Provozovatel ani RTO a RPO stanovené nejsou. Požadavek: data v EU, zálohy včetně příloh, test obnovy,
+MFA, evidence ICT dodavatelů podle DORA. **Navrhni varianty** provozu (vlastní IT, správce na smlouvu, cloud v EU) a rozumné
+cílové RTO a RPO pro malou investiční společnost, s tím, že konkrétní hodnoty potvrdí vnitřní předpisy.
 
-**12. Depozitář.** Dnes dostává Excel s listy Portfolio, NAV, Předvaha a Úplaty; stanovisko se eviduje v Odoo a vrácení
-depozitářem stornuje doklady ocenění a vytvoří novou verzi. Vzorce v Excelu se mají vypnout (otevřený bod).
-**DOPLNIT:** formát a lhůty depozitáře, zda počítá vlastní NAV.
+**12. Depozitář.** Formát a lhůty nevíme, liší se podle depozitáře. Dnes Excel s listy Portfolio, NAV, Předvaha, Úplaty.
+**Navrhni** univerzální balíček (strojově čitelný a pro člověka), evidenci stanoviska a porovnání s případným výpočtem depozitáře.
 
-**13. Services naostro.** Nerozhodnuto. `investra_dev` je označená TEST a má 9 skutečných dokladů a 6 konceptů.
-**DOPLNIT:** převést, nebo založit čistou databázi; jak opravit vadné doklady.
+**13. Services naostro.** Nerozhodnuto. Doporučení vývojového agenta: založit čistou produkční databázi se stejným nastavením
+(osnova, daně, deníky) a doklady od 19. 3. 2026 přenést nebo znovu zadat s opravami; `investra_dev` zůstane vývojová.
+**Navrhni varianty** a jejich dopad na auditovatelnost a termín 18. 12.
 
-**14. Kapacita a termíny.** Konec Q1 2027 je v deníku vedený jako předpoklad, ne pevné rozhodnutí; brána 22. 1. 2027 má posoudit pokračování.
-**DOPLNIT:** hodiny týdně na vývoj, kdy budou účetní k dispozici na testy, zda je termín smluvní nebo regulatorní.
+**14. Kapacita a termíny.** Vývoj dělá vlastník projektu s AI agentem při běžné práci; přesný počet hodin týdně nevíme, počítej
+s částečným úvazkem. Kdy budou účetní k dispozici na testy, nevíme; nejpozději ve zkušebním provozu. Konec Q1 2027 je cíl, ne smluvní
+ani regulatorní termín; brána 22. 1. 2027 má rozhodnout o pokračování. **Navrhni**, co zjednodušit nebo přesunout, aby se cíl stihl
+bez ztráty univerzálnosti jádra.
 
 **15. Podklady.** Výtahy jsou v části C.
 
