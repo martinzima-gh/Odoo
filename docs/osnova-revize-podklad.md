@@ -88,6 +88,16 @@ Důsledek: stejné zaúčtování platí pro Microsoft (EU) i Cloudflare (USA). 
 Standardní l10n_cz má daně 21 % EX S a 12 % EX S pro službu od osoby mimo EU (štítky řádků 12 a 13), ale jsou archivované. Modul `investra_vat_identified` proto zakládá vlastní verze bez odpočtu, stejně jako pro EU. V `investra_dev` přibyly daně „21 % IO přijatá služba ze třetí země“ a „12 % IO přijatá služba ze třetí země“ (základní štítek VAT 12 Base a VAT 13 Base); celkem jsou aktivní čtyři daně, ostatní zůstávají archivované.
 Testy 8 z 8 na dočasné kopii `investra_dev`, kopie smazána. Daně jsem přidal bez restartu webu; spuštěný web zná starý kód modulu, dokud se nerestartuje, a na doklady to nemá vliv. Štítek daně (VAT x Tax) se nepřebírá, ověří poradce.
 
+### Bod 8, česká lokalizace, štítky a fiskální pozice (2026-11-08)
+
+Kontrola `l10n_cz` v Odoo 20: pole DUZP na dokladu, účetní datum i kurz se odvozují od DUZP; fiskální pozice přemapují daně podle partnera; definice přiznání DPH má řádky 1 až 66 (zobrazení jen s Enterprise `account_reports`). Identifikovanou osobu nemodeluje: řádky 43 a 44 (odpočet) počítá vzorec z řádků 3 až 13, standardní daně EU S a EX S účtují odpočet, pro dodavatele s vyúčtovanou českou DPH zvláštní režim není.
+Změny v `investra_dev` přes modul `investra_vat_identified`:
+- štítky daně (VAT 5, 6, 12, 13 Tax) na řádku rozpisu +100 % stejně jako ve standardu, štítky základu beze změny; řádek závazku bez štítku;
+- fiskální pozice „Identifikovaná osoba – EU s DIČ“ (skupina DPH EU, DIČ povinné, sekvence 2) a „Identifikovaná osoba – ostatní zahraničí“ (bez země, sekvence 4); daně z EU patří k první, ze třetí země ke druhé;
+- znovu zapnuta standardní pozice „Domácí partneři“ (CZ, sekvence 1), jinak by pozice bez země platila i pro české partnery. Odchylka od archivace v bodě 8.
+Pozice daň jen přemapuje nebo odebere a omezí nabídku daní; prázdný řádek nevyplní, protože výchozí daně účtů jsou archivované. Dodavatel z EU bez DIČ dostane pozici „ostatní zahraničí“ (řádky 12 a 13).
+Testy 13 z 13 na dočasné kopii `investra_dev`, kopie smazána; doklady (11 konceptů) beze změny.
+
 ## Bod 7: názvy a účet 593 (rozhodnuto 2026-11-08)
 
 V `investra_dev` opraveny názvy (účty bez dokladů, změna přes ORM): 347000 Ostatní dotace, 358000 Pohledávky za společníky sdruženými ve společnosti, 563000 Kurzové ztráty. Účet 593000 (daň z příjmů z mimořádné činnosti, splatná) je archivovaný.

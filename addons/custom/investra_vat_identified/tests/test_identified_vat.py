@@ -84,3 +84,53 @@ class TestIdentifiedVat(TransactionCase):
             non_eu = self.tax(rate, "non_eu").invoice_repartition_line_ids.filtered(lambda r: r.repartition_type == "base").tag_ids
             self.assertTrue(eu and non_eu)
             self.assertFalse(eu & non_eu)
+
+    def source(self, spec):
+        return self.env.ref(f"account.{self.company.id}_{spec['source']}")
+
+    def test_tags_copied_from_standard_tax(self):
+        for spec in SPECS:
+            tax = self.tax(spec["rate"], spec["origin"])
+            for doc in ("invoice", "refund"):
+                ours = tax.repartition_line_ids.filtered(lambda r, d=doc: r.document_type == d)
+                theirs = self.source(spec).repartition_line_ids.filtered(lambda r, d=doc: r.document_type == d)
+                pick = lambda lines, kind: lines.filtered(
+                    lambda r: r.repartition_type == kind and (kind == "base" or r.factor_percent > 0)).tag_ids
+                self.assertEqual(pick(ours, "base"), pick(theirs, "base"))
+                self.assertEqual(pick(ours, "tax"), pick(theirs, "tax"))
+                self.assertTrue(pick(ours, "tax"))
+                self.assertFalse(ours.filtered(lambda r: r.factor_percent < 0).tag_ids)
+
+    def test_tax_tag_on_cost_line(self):
+        move = self.invoice("in_invoice", 21)
+        tagged = move.line_ids.filtered(lambda l: "VAT 5 Tax" in l.tax_tag_ids.mapped("name"))
+        self.assertEqual(tagged.account_id.code, "518100")
+        self.assertAlmostEqual(sum(tagged.mapped("balance")), 210.0)
+
+    def partner(self, country, vat=False):
+        return self.env["res.partner"].create({"name": f"Partner {country}", "country_id": self.env.ref(f"base.{country}").id, "vat": vat})
+
+    def test_fiscal_positions(self):
+        Fpos = self.env["account.fiscal.position"].with_company(self.company)
+        domestic = self.env.ref(f"account.{self.company.id}_fiscal_position_domestic_cz")
+        io_eu = Fpos.search([("name", "=", "Identifikovaná osoba – EU s DIČ"), ("company_id", "=", self.company.id)])
+        io_other = Fpos.search([("name", "=", "Identifikovaná osoba – ostatní zahraničí"), ("company_id", "=", self.company.id)])
+        self.assertEqual(Fpos._get_fiscal_position(self.partner("cz")), domestic)
+        self.assertEqual(Fpos._get_fiscal_position(self.partner("be", "BE0477472701")), io_eu)
+        self.assertEqual(Fpos._get_fiscal_position(self.partner("be")), io_other)
+        self.assertEqual(Fpos._get_fiscal_position(self.partner("us")), io_other)
+
+    def test_fiscal_position_removes_wrong_tax(self):
+        domestic = self.env.ref(f"account.{self.company.id}_fiscal_position_domestic_cz")
+        eu_tax, other_tax = self.tax(21, "eu"), self.tax(21, "non_eu")
+        io_eu = eu_tax.fiscal_position_ids
+        io_other = other_tax.fiscal_position_ids
+        self.assertFalse(domestic.map_tax(eu_tax | other_tax))
+        self.assertEqual(io_eu.map_tax(eu_tax | other_tax), eu_tax)
+        self.assertEqual(io_other.map_tax(eu_tax | other_tax), other_tax)
+
+    def test_setup_is_repeatable(self):
+        again = self.company._setup_identified_vat_taxes()
+        self.assertEqual(again, self.taxes)
+        fpos = self.env["account.fiscal.position"].search([("company_id", "=", self.company.id), ("name", "like", "Identifikovaná osoba")])
+        self.assertEqual(len(fpos), 2)

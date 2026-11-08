@@ -87,3 +87,8 @@ SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
 FROM account_account
 WHERE code_store->>'1' IN ('518810', '518950')
 ORDER BY 1;
+
+-- Fiskální pozice a vazba daní identifikované osoby (2026-11-08).
+SELECT f.sequence, f.name->>'en_US' AS pozice, f.auto_apply, f.vat_required, f.active
+FROM account_fiscal_position f
+ORDER BY f.sequence;
