@@ -34,6 +34,12 @@ Typ dnes neovlivňuje výpočet, rozhodne až ve výkazech. Výkazy podle vyhlá
 | 10 | Datum otevření účetnictví | V Odoo je 5. 11. 2026, tedy den instalace. Účetní období je kalendářní rok | Doplnit skutečné datum zahájení účetnictví |
 | 11 | Účty ke skrytí a doplnění | Seznam je v návrhu osnovy; analytiky mezd závisí na dodavateli | Potvrdit skrytí, analytiky až po dohodě s dodavatelem mezd |
 
+## Bod 3: typy účtů (rozhodnuto 2026-11-08)
+
+Změněno v `investra_dev` u devíti účtů bez dokladů, žádný nebyl výchozím účtem deníku ani účtem v daních:
+krátkodobý závazek: 231000, 232000, 241000, 249000, 453000; dlouhodobý závazek: 451000, 452000, 459000, 461000.
+Rezervy 451, 452 a 459 jsou dlouhodobé, rezerva na daň z příjmů krátkodobá. Typ je orientační, ve výkazu rozhoduje zbytková doba splatnosti.
+
 ## Bod 2: párování (rozhodnuto 2026-11-08)
 
 Párování zapnuto v `investra_dev` u 324000, 325000, 335000, 342000, 378000, 379000, 388000 a 389000 (bez dokladů, změna přes ORM).

@@ -38,3 +38,9 @@ SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
 FROM account_account
 WHERE active AND reconcile AND account_type NOT IN ('asset_receivable', 'liability_payable')
 ORDER BY 1;
+
+-- Typy účtů po opravě (bod 3, 2026-11-08): úvěry, dluhopisy, výpomoci a rezervy.
+SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
+FROM account_account
+WHERE code_store->>'1' IN ('231000', '232000', '241000', '249000', '451000', '452000', '453000', '459000', '461000')
+ORDER BY 1;
