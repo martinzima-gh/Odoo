@@ -79,3 +79,11 @@ ORDER BY id;
 -- Datum otevření účetnictví a zámky období (bod 10, 2026-11-08): 2026-03-19, zámky prázdné.
 SELECT account_opening_date, fiscalyear_lock_date, hard_lock_date, fiscalyear_last_day, fiscalyear_last_month
 FROM res_company;
+
+-- Po bodu 11 (2026-11-08): počty aktivních a archivovaných účtů a nové účty 518810, 518950.
+SELECT active, count(*) AS pocet FROM account_account GROUP BY 1 ORDER BY 1;
+
+SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
+FROM account_account
+WHERE code_store->>'1' IN ('518810', '518950')
+ORDER BY 1;

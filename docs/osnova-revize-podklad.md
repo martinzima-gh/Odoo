@@ -43,6 +43,17 @@ Výchozí daně na účtech zůstávají a při návratu daní se uplatní.
 
 Fáze: neplátce (žádné daně, DPH z faktury je součástí nákladu) → identifikovaná osoba (zapnout jen daně pro přijetí služby z EU a přenesenou daň; odpočet se neuplatňuje, úpravu účtů a daní potvrdí metodik nebo daňový poradce) → plátce (zapnout daně a nastavit 343xxx; EPO a kontrolní hlášení Community nemá).
 
+## Bod 11: skrytí a doplnění účtů (rozhodnuto 2026-11-08)
+
+V `investra_dev` (0 dokladů, přes ORM) archivováno 36 účtů: zásoby a výroba 111, 112, 119, 121 až 124, 131, 132, 139, 151 až 153; opravné položky 191 až 199; změny stavu zásob a aktivace materiálu 581 až 586; zemědělství 025, 026, 085, 086; POS 311001; nemovitosti 021, 031, 081.
+Nemovitosti se skryly, protože je Services nevlastní ani nepronajímá (Martin Zíma), ač rejstřík uvádí jako předmět činnosti pronájem nemovitostí. 587 a 588 (aktivace dlouhodobého majetku) zůstávají, Services může vyvíjet vlastní software.
+Nové účty bez výchozí daně: 518810 Software - licence a předplatné, 518950 Audit a ověření (kódy potvrdil Martin Zíma). Účty 336 a 342 pro mzdy se doplní po dohodě s dodavatelem mezd. Účty a daně k DPH identifikované osoby jsou v bodě 8.
+Aktivních účtů 289, neaktivních 41 (36 z tohoto bodu a 5 z dřívějších).
+
+## Revize osnovy je hotová (2026-11-08)
+
+Body 1 až 11 jsou uzavřeny. Zbývá doplnit DIČ a kontakty společnosti, účty pro mzdy po dohodě s dodavatelem mezd a potvrzení zaúčtování DPH identifikované osoby metodikem nebo daňovým poradcem.
+
 ## Bod 10: datum otevření účetnictví (rozhodnuto 2026-11-08)
 
 Datum otevření účetnictví v `investra_dev` je 19. 3. 2026, tedy den vzniku Investra Services s.r.o. podle výpisu z obchodního rejstříku (datum vzniku a zápisu). Dříve 5. 11. 2026, den instalace. Změna přes ORM, 0 dokladů; zámky období zůstávají prázdné.

@@ -2,7 +2,7 @@
 
 Stav 2026-11-07. Účetní rámec: vyhláška č. 500/2002 Sb., podnikatel, CZK. Výchozí bod je standardní česká osnova Odoo 20
 (328 účtů, 6místné kódy, `investra_dev`). Směrná účtová osnova je v příloze č. 4 vyhlášky; účtový rozvrh určuje účetní jednotka.
-Nic z toho zatím není v Odoo provedené; změny se udělají v testovací společnosti přes Odoo, až se návrh potvrdí.
+Stav 2026-11-08: návrh je revidovaný a provedený v `investra_dev`; rozhodnutí po bodech jsou v `docs/osnova-revize-podklad.md`. Níže je původní návrh z 2026-11-07.
 
 ## Co ponechat
 
