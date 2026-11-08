@@ -26,3 +26,9 @@ SELECT j.code AS denik, j.type AS druh, a.code_store->>'1' AS vychozi_ucet
 FROM account_journal j
 LEFT JOIN account_account a ON a.id = j.default_account_id
 ORDER BY j.id;
+
+-- Archivované účty (active = false); od 2026-11-08 uzávěrkové 701000, 702000, 710000.
+SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
+FROM account_account
+WHERE active IS FALSE
+ORDER BY 1;

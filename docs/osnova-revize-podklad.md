@@ -44,7 +44,14 @@ Pravidlo je ověřené ve zdrojovém kódu (`_check_off_balance`). Průběh roč
 | A: účty 70x a 710 nepoužívat | Závěrka se opře o sestavy, rozdělení zisku účetní zaúčtuje ručně | Ověřit, že to stačí pro uzavření účetních knih podle zákona o účetnictví |
 | B: změnit účty na rozvahový typ | Uzavírací zápisy půjdou zaúčtovat | Odoo výsledek počítá i tak, hrozí dvojí zobrazení; nutný test |
 
-Doporučení: A, ověřit na zkušební účetní uzávěrce a s auditorem. Text § 17 zákona o účetnictví jsem pro tento bod nečetl.
+**Rozhodnuto 2026-11-08: varianta A.** Účty 701000, 702000 a 710000 jsou v `investra_dev` archivované (bez dokladů, změna přes ORM).
+
+- § 17 zákona o účetnictví (znění od 1. 1. 2026) stanoví dny otevření a uzavření knih, ne techniku; odst. 7 zakazuje zápisy do uzavřených knih po schválení závěrky.
+- § 4 odst. 8 a příloha 4 vyhlášky 500 předepisují skupiny 70 a 71, ne účty 701, 702, 710. § 4 odst. 10 dovoluje programové vybavení.
+- ČÚS 002 popisuje postup přes 701, 702, 710; odchylka podle § 36 odst. 1 je možná, pokud zůstane věrný a poctivý obraz. Úplné aktuální znění ČÚS 002 nebylo přečteno (stránka MF nedostupná), jen změna MF-123342/2013/28.
+- Varianta B neprošla: Odoo nemá uzávěrkové období, uzavírací zápisy k 31. 12. by vynulovaly rozvahu k tomu dni a převod 710 na 431 by výsledek započetl dvakrát.
+
+Před první uzávěrkou: popsat postup ve vnitřní směrnici a ověřit s auditorem, archivovat předvahu, rozdělení výsledku z 431 účtovat ručně, po schválení nastavit nevratný zámek období a v SQL předvaze přičíst k 431 výsledek minulých let.
 
 ## Co se tím neřeší
 
