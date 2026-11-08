@@ -94,3 +94,4 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-08 | Typy účtů Services | 231, 232, 241, 249, 453 krátkodobý závazek; 451, 452, 459, 461 dlouhodobý závazek | Opravuje typ aktivum a vlastní kapitál ze standardní osnovy; ve výkazu rozhoduje zbytková doba splatnosti. Podklad `docs/osnova-revize-podklad.md` | R |
 | 2026-11-08 | Smíšené účty Services | Účty 373, 395 a 481 se nechávají beze změny; případné další účty se doplní, až budou potřeba | Nový účet jde založit i s doklady; změna typu účtu s doklady působí zpětně. Podklad `docs/osnova-revize-podklad.md` | R |
 | 2026-11-08 | Účet 473200 | Skrytý (archivovaný); krátkodobé dluhopisy jsou na 241000 a Services dluhopisy nevydává | Jde kdykoli zapnout. Podklad `docs/osnova-revize-podklad.md` | R |
+| 2026-11-08 | Výchozí účty deníků Services | Prodejní deník 602000, nákupní 518000 | Dřív 604000 a 504000 (zboží). Jen předvyplňuje řádek dokladu. Podklad `docs/osnova-revize-podklad.md` | R |

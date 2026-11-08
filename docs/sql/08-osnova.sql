@@ -44,3 +44,5 @@ SELECT code_store->>'1' AS ucet, name->>'cs_CZ' AS nazev, account_type AS typ
 FROM account_account
 WHERE code_store->>'1' IN ('231000', '232000', '241000', '249000', '451000', '452000', '453000', '459000', '461000')
 ORDER BY 1;
+
+-- Po bodu 6 (2026-11-08): FA má výchozí účet 602000, PŘIJATÁ FAKTURA 518000 (výpis výše).
