@@ -34,6 +34,13 @@ Typ dnes neovlivňuje výpočet, rozhodne až ve výkazech. Výkazy podle vyhlá
 | 10 | Datum otevření účetnictví | V Odoo je 5. 11. 2026, tedy den instalace. Účetní období je kalendářní rok | Doplnit skutečné datum zahájení účetnictví |
 | 11 | Účty ke skrytí a doplnění | Seznam je v návrhu osnovy; analytiky mezd závisí na dodavateli | Potvrdit skrytí, analytiky až po dohodě s dodavatelem mezd |
 
+## Bod 4: smíšené účty 373, 395, 481 (rozhodnuto 2026-11-08)
+
+Nechává se, jak je: 373000 a 395000 aktivum, 481000 dlouhodobý závazek. V Odoo se nic nemění.
+Účty se doplní, až budou potřeba (například samostatný účet pro opačné znaménko). Nový účet jde založit kdykoli, i když jsou doklady.
+Změna typu existujícího účtu s doklady v Odoo 20 není blokovaná (kromě pohledávek a závazků v prodejních a nákupních deníkách), projeví se ale zpětně ve všech sestavách; proto typ po prvním dokladu neměnit bez posouzení.
+Nepřečteno: zařazení zůstatků 373, 395 a 481 do položek rozvahy podle vyhlášky 500 a ČÚS 003.
+
 ## Bod 3: typy účtů (rozhodnuto 2026-11-08)
 
 Změněno v `investra_dev` u devíti účtů bez dokladů, žádný nebyl výchozím účtem deníku ani účtem v daních:
