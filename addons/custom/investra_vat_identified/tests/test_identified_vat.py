@@ -1,6 +1,6 @@
 from odoo.tests import TransactionCase, tagged
 
-from odoo.addons.investra_vat_identified.models.company import RATES
+from odoo.addons.investra_vat_identified.models.company import SPECS
 
 
 @tagged("post_install", "-at_install")
@@ -20,10 +20,11 @@ class TestIdentifiedVat(TransactionCase):
     def account(self, code):
         return self.env["account.account"].with_company(self.company).search([("code", "=", code)], limit=1)
 
-    def tax(self, rate):
-        return self.taxes.filtered(lambda t: t.amount == rate)
+    def tax(self, rate, origin="eu"):
+        label = "z EU" if origin == "eu" else "ze třetí země"
+        return self.taxes.filtered(lambda t: t.amount == rate and t.name.endswith(label))
 
-    def invoice(self, move_type, rate, price=1000.0, expense="518100"):
+    def invoice(self, move_type, rate, price=1000.0, expense="518100", origin="eu"):
         journal = self.env["account.journal"].search(
             [("company_id", "=", self.company.id), ("type", "=", "purchase")], limit=1
         )
@@ -32,7 +33,7 @@ class TestIdentifiedVat(TransactionCase):
             "move_type": move_type, "partner_id": partner.id, "journal_id": journal.id, "invoice_date": "2026-11-10",
             "invoice_line_ids": [(0, 0, {
                 "name": "Služba", "account_id": self.account(expense).id, "quantity": 1, "price_unit": price,
-                "tax_ids": [(6, 0, self.tax(rate).ids)],
+                "tax_ids": [(6, 0, self.tax(rate, origin).ids)],
             })],
         })
         return move
@@ -45,7 +46,7 @@ class TestIdentifiedVat(TransactionCase):
         return set(totals.items())
 
     def test_two_taxes_created_once(self):
-        self.assertEqual(len(self.taxes), len(RATES))
+        self.assertEqual(len(self.taxes), len(SPECS))
         self.assertEqual(self.company._setup_identified_vat_taxes(), self.taxes)
         self.assertTrue(all(t.active for t in self.taxes))
 
@@ -71,3 +72,15 @@ class TestIdentifiedVat(TransactionCase):
         move.action_post()
         self.assertEqual(move.state, "posted")
         self.assertEqual(round(sum(move.line_ids.mapped("balance")), 2), 0.0)
+
+    def test_non_eu_service_posts_like_eu(self):
+        for rate, vat_account, vat in ((21, "343221", 210.0), (12, "343212", 120.0)):
+            move = self.invoice("in_invoice", rate, origin="non_eu")
+            self.assertEqual(self.balances(move), {("518100", 1000.0 + vat), (vat_account, -vat), ("321000", -1000.0)})
+
+    def test_origins_use_different_base_tags(self):
+        for rate in (21, 12):
+            eu = self.tax(rate, "eu").invoice_repartition_line_ids.filtered(lambda r: r.repartition_type == "base").tag_ids
+            non_eu = self.tax(rate, "non_eu").invoice_repartition_line_ids.filtered(lambda r: r.repartition_type == "base").tag_ids
+            self.assertTrue(eu and non_eu)
+            self.assertFalse(eu & non_eu)

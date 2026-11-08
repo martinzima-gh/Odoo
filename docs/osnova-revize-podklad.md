@@ -83,6 +83,11 @@ K potvrzení metodikem nebo daňovým poradcem: zaúčtování (daň do nákladu
 Důsledek: stejné zaúčtování platí pro Microsoft (EU) i Cloudflare (USA). Daň z modulu se jmenuje „z EU“, což u dodavatele z USA zavádí.
 Řádky přiznání: z druhotných zdrojů (Pohoda, pokyny Finanční správy ke kontrolnímu hlášení) služby od osoby registrované v jiném členském státě jdou na řádky 5 a 6, od osoby ze třetí země na řádky 12 a 13; v pokynech k přiznání neověřeno. Povinnost podat kontrolní hlášení identifikovanou osobou neověřena.
 
+### Bod 8, daně ze třetích zemí (2026-11-08)
+
+Standardní l10n_cz má daně 21 % EX S a 12 % EX S pro službu od osoby mimo EU (štítky řádků 12 a 13), ale jsou archivované. Modul `investra_vat_identified` proto zakládá vlastní verze bez odpočtu, stejně jako pro EU. V `investra_dev` přibyly daně „21 % IO přijatá služba ze třetí země“ a „12 % IO přijatá služba ze třetí země“ (základní štítek VAT 12 Base a VAT 13 Base); celkem jsou aktivní čtyři daně, ostatní zůstávají archivované.
+Testy 8 z 8 na dočasné kopii `investra_dev`, kopie smazána. Daně jsem přidal bez restartu webu; spuštěný web zná starý kód modulu, dokud se nerestartuje, a na doklady to nemá vliv. Štítek daně (VAT x Tax) se nepřebírá, ověří poradce.
+
 ## Bod 7: názvy a účet 593 (rozhodnuto 2026-11-08)
 
 V `investra_dev` opraveny názvy (účty bez dokladů, změna přes ORM): 347000 Ostatní dotace, 358000 Pohledávky za společníky sdruženými ve společnosti, 563000 Kurzové ztráty. Účet 593000 (daň z příjmů z mimořádné činnosti, splatná) je archivovaný.

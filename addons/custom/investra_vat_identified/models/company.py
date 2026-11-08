@@ -1,25 +1,28 @@
 from odoo import api, models
 from odoo.exceptions import UserError
 
-# Sazba, standardní daň l10n_cz pro přijetí služby z EU (zdroj štítků a skupiny), účet daně k úhradě.
-RATES = {
-    21: {"source": "l10n_cz_21_receipt_service_person_eu", "payable": "343221"},
-    12: {"source": "l10n_cz_12_receipt_service_person_eu", "payable": "343212"},
-}
+# Daně pro identifikovanou osobu: sazba, původ dodavatele, standardní daň l10n_cz (zdroj štítků a skupiny), účet daně k úhradě.
+# EU: řádky přiznání 5 a 6, třetí země: řádky 12 a 13 (štítky převzaty ze standardních daní).
+SPECS = [
+    {"rate": 21, "origin": "eu", "label": "z EU", "source": "l10n_cz_21_receipt_service_person_eu", "payable": "343221"},
+    {"rate": 12, "origin": "eu", "label": "z EU", "source": "l10n_cz_12_receipt_service_person_eu", "payable": "343212"},
+    {"rate": 21, "origin": "non_eu", "label": "ze třetí země", "source": "l10n_cz_21_receipt_service_person_non_eu", "payable": "343221"},
+    {"rate": 12, "origin": "non_eu", "label": "ze třetí země", "source": "l10n_cz_12_receipt_service_person_non_eu", "payable": "343212"},
+]
 
 
 class ResCompany(models.Model):
     _inherit = "res.company"
 
     @api.model
-    def _identified_vat_name(self, rate):
-        return f"{rate} % IO přijatá služba z EU"
+    def _identified_vat_name(self, spec):
+        return f"{spec['rate']} % IO přijatá služba {spec['label']}"
 
     def _setup_identified_vat_taxes(self):
         """Založí daně pro identifikovanou osobu, pokud ještě nejsou; vrací je.
 
         Standardní daň l10n_cz pro přijetí služby z EU rozpisuje daň na vstup (nárok na odpočet) a výstup.
-        Identifikovaná osoba odpočet nemá: daň se zaúčtuje do závazku na daň k úhradě a zároveň zvýší náklad,
+        Identifikovaná osoba (§ 6h ZDPH) odpočet nemá: daň se zaúčtuje do závazku na daň k úhradě a zároveň zvýší náklad,
         který nese řádek dokladu. Částka dluhu dodavateli se nemění. Štítky přiznání se zatím přebírají jen u základu.
         Je to účetní návrh, který potvrdí metodik nebo daňový poradce.
         """
@@ -27,8 +30,9 @@ class ResCompany(models.Model):
         Tax = self.env["account.tax"].with_context(active_test=False).with_company(self)
         Account = self.env["account.account"].with_company(self)
         created = Tax
-        for rate, spec in RATES.items():
-            name = self._identified_vat_name(rate)
+        for spec in SPECS:
+            rate = spec["rate"]
+            name = self._identified_vat_name(spec)
             existing = Tax.search([("company_id", "=", self.id), ("name", "=", name)])
             if existing:
                 created |= existing
