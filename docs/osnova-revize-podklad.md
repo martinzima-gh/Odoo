@@ -34,6 +34,10 @@ Typ dnes neovlivňuje výpočet, rozhodne až ve výkazech. Výkazy podle vyhlá
 | 10 | Datum otevření účetnictví | V Odoo je 5. 11. 2026, tedy den instalace. Účetní období je kalendářní rok | Doplnit skutečné datum zahájení účetnictví |
 | 11 | Účty ke skrytí a doplnění | Seznam je v návrhu osnovy; analytiky mezd závisí na dodavateli | Potvrdit skrytí, analytiky až po dohodě s dodavatelem mezd |
 
+## Bod 5: účet 473200 (rozhodnuto 2026-11-08)
+
+Účet 473200 Vydané krátkodobé dluhopisy je v `investra_dev` archivovaný (bez dokladů, změna přes ORM). Krátkodobé dluhopisy pokrývá 241000 a Services dluhopisy nevydává; archivovaný účet jde kdykoli znovu zapnout.
+
 ## Bod 4: smíšené účty 373, 395, 481 (rozhodnuto 2026-11-08)
 
 Nechává se, jak je: 373000 a 395000 aktivum, 481000 dlouhodobý závazek. V Odoo se nic nemění.
