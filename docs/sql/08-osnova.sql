@@ -48,3 +48,16 @@ ORDER BY 1;
 -- Po bodu 6 (2026-11-08): FA má výchozí účet 602000, PŘIJATÁ FAKTURA 518000 (výpis výše).
 
 -- Po bodu 7 (2026-11-08): opravené názvy 347, 358, 563 a archivovaný 593 (viz výpis archivovaných účtů výše).
+
+-- Po bodu 8 (2026-11-08): všech 32 daní a 4 fiskální pozice je archivováno.
+SELECT type_tax_use AS pouziti, active, count(*) AS pocet
+FROM account_tax
+GROUP BY 1, 2
+ORDER BY 1, 2;
+
+-- Účty s výchozí daní (46 účtů), uplatní se po opětovném zapnutí daní.
+SELECT a.code_store->>'1' AS ucet, t.name->>'cs_CZ' AS vychozi_dan, t.active
+FROM account_account_tax_default_rel r
+JOIN account_account a ON a.id = r.account_id
+JOIN account_tax t ON t.id = r.tax_id
+ORDER BY 1;

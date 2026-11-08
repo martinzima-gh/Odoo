@@ -34,6 +34,15 @@ Typ dnes neovlivňuje výpočet, rozhodne až ve výkazech. Výkazy podle vyhlá
 | 10 | Datum otevření účetnictví | V Odoo je 5. 11. 2026, tedy den instalace. Účetní období je kalendářní rok | Doplnit skutečné datum zahájení účetnictví |
 | 11 | Účty ke skrytí a doplnění | Seznam je v návrhu osnovy; analytiky mezd závisí na dodavateli | Potvrdit skrytí, analytiky až po dohodě s dodavatelem mezd |
 
+## Bod 8: daně a fiskální pozice (rozhodnuto 2026-11-08)
+
+Režim: dnes neplátce, žádost o registraci jako identifikovaná osoba podaná, čeká se na doručení (potvrdil Martin Zíma); později plátce. Pojem a podmínky identifikované osoby (§ 6g ZDPH) pro tento bod nečteny.
+Změna v `investra_dev` (0 dokladů, přes ORM): archivováno všech 32 daní a 4 fiskální pozice.
+Důvod: 46 účtů (například 518xxx, 501xxx, 511xxx, 022xxx) má výchozí daň 21 % nebo 12 %. Test na dočasné kopii databáze: před archivací řádek na 518100 sám přidal daň 21 % a 210 Kč šlo jako odpočet na 343121; po archivaci daň nevznikla. Kopie byla po testu smazána.
+Výchozí daně na účtech zůstávají a při návratu daní se uplatní.
+
+Fáze: neplátce (žádné daně, DPH z faktury je součástí nákladu) → identifikovaná osoba (zapnout jen daně pro přijetí služby z EU a přenesenou daň; odpočet se neuplatňuje, úpravu účtů a daní potvrdí metodik nebo daňový poradce) → plátce (zapnout daně a nastavit 343xxx; EPO a kontrolní hlášení Community nemá).
+
 ## Bod 7: názvy a účet 593 (rozhodnuto 2026-11-08)
 
 V `investra_dev` opraveny názvy (účty bez dokladů, změna přes ORM): 347000 Ostatní dotace, 358000 Pohledávky za společníky sdruženými ve společnosti, 563000 Kurzové ztráty. Účet 593000 (daň z příjmů z mimořádné činnosti, splatná) je archivovaný.
