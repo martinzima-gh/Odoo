@@ -70,3 +70,8 @@ FROM account_account_tax_default_rel r
 JOIN account_account a ON a.id = r.account_id
 JOIN account_tax t ON t.id = r.tax_id
 ORDER BY 1;
+
+-- Deníky po bodu 9 (2026-11-08): STJ a CABA archivované, nákupní deník FP.
+SELECT code AS kod, name->>'cs_CZ' AS nazev, type AS druh, active
+FROM account_journal
+ORDER BY id;

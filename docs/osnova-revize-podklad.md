@@ -43,6 +43,11 @@ Výchozí daně na účtech zůstávají a při návratu daní se uplatní.
 
 Fáze: neplátce (žádné daně, DPH z faktury je součástí nákladu) → identifikovaná osoba (zapnout jen daně pro přijetí služby z EU a přenesenou daň; odpočet se neuplatňuje, úpravu účtů a daní potvrdí metodik nebo daňový poradce) → plátce (zapnout daně a nastavit 343xxx; EPO a kontrolní hlášení Community nemá).
 
+## Bod 9: deníky (rozhodnuto 2026-11-08)
+
+V `investra_dev` (0 dokladů, přes ORM): archivovány deníky STJ (Ocenění zásob) a CABA (Daně na hotovostním základě); nákupní deník přejmenován z „PŘIJATÁ FAKTURA“ na „FP“. CABA je v nastavení společnosti vedený jako deník daní na hotovostním základě, který Services nepoužívá.
+Číslování ověřeno na zkušebním dokladu, který se vrátil zpět: první doklad nákupního deníku dostane číslo FP/2026/11/0001, číslo se opakuje po měsících. Kód FP navrhl asistent; než přijdou doklady, jde změnit.
+
 ### Bod 8, doplnění: identifikovaná osoba (2026-11-08)
 
 Registrace jako identifikovaná osoba dorazila (podle Martina Zímy); den účinnosti a DIČ doplnit.
