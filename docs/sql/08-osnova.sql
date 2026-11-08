@@ -75,3 +75,7 @@ ORDER BY 1;
 SELECT code AS kod, name->>'cs_CZ' AS nazev, type AS druh, active
 FROM account_journal
 ORDER BY id;
+
+-- Datum otevření účetnictví a zámky období (bod 10, 2026-11-08): 2026-03-19, zámky prázdné.
+SELECT account_opening_date, fiscalyear_lock_date, hard_lock_date, fiscalyear_last_day, fiscalyear_last_month
+FROM res_company;

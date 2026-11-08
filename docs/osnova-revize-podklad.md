@@ -43,6 +43,12 @@ Výchozí daně na účtech zůstávají a při návratu daní se uplatní.
 
 Fáze: neplátce (žádné daně, DPH z faktury je součástí nákladu) → identifikovaná osoba (zapnout jen daně pro přijetí služby z EU a přenesenou daň; odpočet se neuplatňuje, úpravu účtů a daní potvrdí metodik nebo daňový poradce) → plátce (zapnout daně a nastavit 343xxx; EPO a kontrolní hlášení Community nemá).
 
+## Bod 10: datum otevření účetnictví (rozhodnuto 2026-11-08)
+
+Datum otevření účetnictví v `investra_dev` je 19. 3. 2026, tedy den vzniku Investra Services s.r.o. podle výpisu z obchodního rejstříku (datum vzniku a zápisu). Dříve 5. 11. 2026, den instalace. Změna přes ORM, 0 dokladů; zámky období zůstávají prázdné.
+První účetní období tak začíná dnem vzniku a končí 31. 12. 2026 (§ 17 odst. 1 zákona o účetnictví, knihy se otevírají ke dni vzniku povinnosti vést účetnictví); Odoo má kalendářní rok.
+Doklady od vzniku do dneška se zaúčtují zpětně. Kurzy ČNB jsou načtené od 1. 1. 2026. Vlastní údaje společnosti (IČO, adresa) v Odoo zatím nedoplněny.
+
 ## Bod 9: deníky (rozhodnuto 2026-11-08)
 
 V `investra_dev` (0 dokladů, přes ORM): archivovány deníky STJ (Ocenění zásob) a CABA (Daně na hotovostním základě); nákupní deník přejmenován z „PŘIJATÁ FAKTURA“ na „FP“. CABA je v nastavení společnosti vedený jako deník daní na hotovostním základě, který Services nepoužívá.
