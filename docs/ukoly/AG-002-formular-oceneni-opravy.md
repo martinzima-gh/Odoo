@@ -38,12 +38,21 @@ a sekce Výsledek v tomto souboru.
 
 ## Výsledek
 
-Doplní Antigravity.
-
 - **Změněné soubory:**
+  - `addons/custom/investra_nav/views/nav_views.xml`:
+    - Ve skupině „Ocenění“ formuláře `view_valuation_form` odstraněna pole `fund_id` a `date`, zůstávají jen v nadpisu `<h1>`. Ve skupině zůstala pole `version`, `previous_id` a `preparer_id`.
+    - V záložce Třídy upravena viditelnost sloupců: `pre_capital` a `delta` jsou ve výchozím stavu zobrazeny (`optional="show"`), `ratio` je skryto (`optional="hide"`). Pořadí sloupců neměněno.
 - **Ověřeno (příkaz a výsledek):**
+  - Syntaktická validace XML:
+    - `python3 -c "import xml.etree.ElementTree as ET; ET.parse('addons/custom/investra_nav/views/nav_views.xml')"` (OK)
+  - Ověření jedinečnosti polí `fund_id` a `date` ve formuláři ocenění (každé pole přítomno právě 1×).
+  - Běh referenčních testů NAV:
+    - `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"` (55 testů OK)
+  - Kontrola diffu: `git diff feature/nav-prototyp...HEAD` mění výhradně `nav_views.xml`, `AG-001-formular-oceneni.md` a `AG-002-formular-oceneni-opravy.md` (zelená zóna).
 - **Neověřeno:**
+  - Vizuální podoba v běžícím Odoo a Odoo testy (dle pravidel provede Claude při převzetí).
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Žádné.
 
 ## Převzetí
 

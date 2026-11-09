@@ -44,12 +44,30 @@ a `view_valuation_list`. Plus sekce Výsledek v tomto souboru.
 
 ## Výsledek
 
-Doplní Antigravity.
-
 - **Změněné soubory:**
+  - `addons/custom/investra_nav/views/nav_views.xml`:
+    - `view_valuation_form`:
+      - Doplněn nadpis `<div class="oe_title"><h1>...</h1></div>` s fondem a datem ocenění (`readonly="state != 'draft'"`).
+      - Pole pod nadpisem rozdělena do dvou pojmenovaných skupin:
+        - `Ocenění`: `fund_id`, `date`, `version`, `previous_id`, `preparer_id` (s českým popiskem `string="Zadal"`).
+        - `Výsledek`: `fund_capital`, `neutral_capital`, `currency_id` (`invisible="1"`), `package_id`.
+      - V záložce Třídy nastaveno `optional="hide"` pro mezikroky alokace (`pre_capital`, `ratio`, `delta`), hlavní sloupce (`class_id`, `capital`, `units`, `price`) zůstávají přímo viditelné.
+      - V záložce Portfolio nastaveno ve výchozím stavu skrytí pro `cost` a `fair_value_currency` (`optional="hide"`) a doplňkové sloupce označeny jako volitelné (`optional="show"` pro `isin`, `currency_id`, `fx_rate`).
+    - `view_valuation_list`:
+      - Přidán volitelný skrytý sloupec `previous_id` (`optional="hide"`).
+      - Doplněn widget odznaku ke stavu: `<field name="state" widget="badge"/>`.
 - **Ověřeno (příkaz a výsledek):**
+  - Kontrola validity XML:
+    - `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" addons/custom/investra_nav/views/nav_views.xml` (OK)
+    - `python3 -c "import xml.etree.ElementTree as ET; ET.parse('addons/custom/investra_nav/views/nav_views.xml')"` (OK)
+  - Běh referenčních testů NAV:
+    - `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"` (55 testů OK)
+  - Kontrola diffu a zóny: změny omezeny výhradně na `nav_views.xml` a tento soubor zadání (zelená zóna).
 - **Neověřeno:**
+  - Vykreslení formuláře a responzivita přímo ve webovém klientu Odoo (vyžaduje Odoo server).
+  - Běh testů Odoo a upgrade modulu v databázi (dle pravidel provádí Claude při převzetí).
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Pole `fund_id` a `date` jsou podle zadání jak v nadpisu `<h1>`, tak ve skupině `Ocenění`. Pokud by v budoucnu stačilo mít je pouze v nadpisu, lze je ze skupiny odebrat.
 
 ## Převzetí
 
