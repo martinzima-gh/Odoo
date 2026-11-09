@@ -90,12 +90,12 @@ a sekce Výsledek v tomto souboru.
 
 ## Výsledek
 
-Doplní Antigravity.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** osm XML pohledů uvedených v Rozsahu souborů a tento soubor.
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"` — 55 testů, OK; `git diff --check` — bez chyb.
+- **Neověřeno:** vzhled a chování pohledů v běžícím Odoo; Docker ani databáze nebyly použity.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 
