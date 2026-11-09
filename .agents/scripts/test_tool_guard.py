@@ -101,6 +101,21 @@ class TestAllow(GuardCase):
         target = str(self.root / "addons/custom/investra_nav/views/nav_views.xml")
         self.assertEqual(self.decide("write_to_file", {"TargetFile": target}), tool_guard.ALLOW)
 
+    def test_vscode_extension_file_tools(self):
+        self.assertEqual(self.decide("read_file", {"AbsolutePath": str(self.root / "README.md")}), tool_guard.AUTO)
+        self.assertEqual(self.decide("read_file", {"AbsolutePath": str(self.root / ".env")}), tool_guard.DENY)
+        self.assertEqual(self.decide("read_file", {"AbsolutePath": str(self.outside / "x.txt")}), tool_guard.DENY)
+        target = str(self.root / "addons/custom/investra_nav/views/nav_views.xml")
+        for tool in ("write_file", "create_file", "edit_file"):
+            with self.subTest(tool=tool):
+                self.assertEqual(self.decide(tool, {"TargetFile": target}), tool_guard.ALLOW)
+                self.assertEqual(self.decide(tool, {"TargetFile": str(self.root / ".agents/hooks.json")}),
+                                 tool_guard.DENY)
+                self.assertEqual(self.decide(tool, {"TargetFile": str(self.root / "addons/custom/investra_nav/engine.py")}),
+                                 tool_guard.ASK)
+                self.assertEqual(self.decide(tool, {}), tool_guard.DENY)
+        self.assertEqual(self.decide("delete_file", {"TargetFile": target}), tool_guard.ASK)
+
 
 class TestAsk(GuardCase):
     def test_branch_and_sync_commands_need_confirmation(self):

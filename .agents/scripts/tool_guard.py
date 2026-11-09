@@ -53,8 +53,10 @@ SECRET_DIRS = {"duverne", "zalohy", "filestore", ".ssh", ".gemini", ".aws", ".gn
 
 # --- nástroje Antigravity (https://antigravity.google/docs/hooks, Supported tools) -------------------
 
-READ_TOOLS = {"view_file", "list_dir", "find_by_name", "grep_search"}
-WRITE_TOOLS = {"write_to_file", "replace_file_content", "multi_replace_file_content"}
+# read_file, write_file, create_file a edit_file používá rozšíření pro VS Code (zjištěno 2026-11-09).
+READ_TOOLS = {"view_file", "read_file", "list_dir", "find_by_name", "grep_search"}
+WRITE_TOOLS = {"write_to_file", "replace_file_content", "multi_replace_file_content", "write_file", "create_file",
+               "edit_file"}
 DELEGATE_TOOLS = {"ask_question", "manage_task", "list_permissions", "ask_permission", "send_message"}
 ASK_TOOLS = {"search_web", "read_url_content", "schedule", "invoke_subagent", "define_subagent",
              "manage_subagents", "generate_image"}

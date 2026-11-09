@@ -14,6 +14,11 @@ trigger: always_on
 
 ## Větev a commity
 
+**Dočasně platí (od 2026-11-09):** režim Auto běží v sandboxu, který nedovolí zápis do `.git`. Proto větev ani commit
+nevytváříš a `git add`, `git switch` ani `git commit` nespouštěj. Zůstaň na větvi, na které klon je, změny nech
+v pracovní kopii, doplň sekci Výsledek do souboru úkolu a napiš uživateli „Hotovo, změny jsou v pracovní kopii“.
+Větev `ag/*` a commit s autorem „Antigravity“ vytvoří Claude při převzetí. Body 1 a 2 níže platí, až se to změní.
+
 1. `git switch -c ag/AG-<číslo>-<název>` z větve uvedené v zadání.
 2. Malé commity s českou zprávou v rozkazovacím způsobu, např. „Uspořádat formulář ocenění do sekcí“.
    Autor commitů je nastavený na „Antigravity“; neměň ho.
