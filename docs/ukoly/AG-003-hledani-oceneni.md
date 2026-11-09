@@ -43,12 +43,25 @@ a seskupit podle fondu, stavu a měsíce data ocenění.
 
 ## Výsledek
 
-Doplní Antigravity.
-
 - **Změněné soubory:**
+  - `addons/custom/investra_nav/views/nav_views.xml`:
+    - Přidán záznam vyhledávacího pohledu `view_valuation_search` (model `investra.valuation`) za `view_valuation_list`.
+    - Doplněna vyhledávací pole `fund_id` a `date`.
+    - Doplněny filtry podle stavu (`state`) rozdělené do 2 skupin oddělených `<separator/>`:
+      - 1. skupina: „Rozpracovaná“ (`draft`, `computed`, `returned`), „Ke schválení“ (`submitted`).
+      - 2. skupina: „Schválená a zaúčtovaná“ (`approved`, `posted`), „U depozitáře“ (`sent`, `confirmed`), „Zveřejněná“ (`published`), „Stornovaná“ (`reversed`).
+      - Všech 10 stavů z modelu je pokryto právě jednou.
+    - Doplněn časový filtr data ocenění: `<filter name="filter_date" date="date" string="Datum ocenění"/>`.
+    - Doplněny filtry seskupení: „Fond“ (`fund_id`), „Stav“ (`state`), „Měsíc ocenění“ (`date:month`).
+    - V akci `action_valuation` doplněn odkaz `<field name="search_view_id" ref="view_valuation_search"/>` (bez výchozích filtrů).
 - **Ověřeno (příkaz a výsledek):**
+  - Kontrola syntaxe XML: `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" addons/custom/investra_nav/views/nav_views.xml` (OK).
+  - Kontrola referenčního výpočtu NAV: `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"` (55 testů OK).
+  - Kontrola rozsahu změn: `git diff` zasahuje výhradně `nav_views.xml` a tento soubor zadání (zelená zóna).
 - **Neověřeno:**
+  - Vizuální chování vyhledávání a filtrů v běžícím Odoo klientu a běh Odoo integračních testů (dle pravidel provádí Claude při převzetí).
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Žádné.
 
 ## Převzetí
 

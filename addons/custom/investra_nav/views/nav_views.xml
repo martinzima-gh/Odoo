@@ -14,6 +14,30 @@
             </list>
         </field>
     </record>
+    <record id="view_valuation_search" model="ir.ui.view">
+        <field name="name">investra.valuation.search</field>
+        <field name="model">investra.valuation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="fund_id"/>
+                <field name="date"/>
+                <filter name="filter_in_progress" string="Rozpracovaná" domain="[('state', 'in', ('draft', 'computed', 'returned'))]"/>
+                <filter name="filter_submitted" string="Ke schválení" domain="[('state', '=', 'submitted')]"/>
+                <separator/>
+                <filter name="filter_approved_posted" string="Schválená a zaúčtovaná" domain="[('state', 'in', ('approved', 'posted'))]"/>
+                <filter name="filter_depositary" string="U depozitáře" domain="[('state', 'in', ('sent', 'confirmed'))]"/>
+                <filter name="filter_published" string="Zveřejněná" domain="[('state', '=', 'published')]"/>
+                <filter name="filter_reversed" string="Stornovaná" domain="[('state', '=', 'reversed')]"/>
+                <separator/>
+                <filter name="filter_date" date="date" string="Datum ocenění"/>
+                <group expand="0" string="Seskupit podle">
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_date_month" string="Měsíc ocenění" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="view_valuation_form" model="ir.ui.view">
         <field name="name">investra.valuation.form</field>
         <field name="model">investra.valuation</field>
@@ -86,7 +110,10 @@
         </field>
     </record>
     <record id="action_valuation" model="ir.actions.act_window">
-        <field name="name">Ocenění</field><field name="res_model">investra.valuation</field><field name="view_mode">list,form</field>
+        <field name="name">Ocenění</field>
+        <field name="res_model">investra.valuation</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_valuation_search"/>
     </record>
     <record id="view_fee_rule_form" model="ir.ui.view">
         <field name="name">investra.fee.rule.form</field>
