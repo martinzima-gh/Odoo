@@ -4,7 +4,14 @@
         <field name="name">investra.valuation.list</field>
         <field name="model">investra.valuation</field>
         <field name="arch" type="xml">
-            <list><field name="fund_id"/><field name="date"/><field name="version"/><field name="state"/><field name="fund_capital"/></list>
+            <list>
+                <field name="fund_id"/>
+                <field name="date"/>
+                <field name="version"/>
+                <field name="previous_id" optional="hide"/>
+                <field name="state" widget="badge"/>
+                <field name="fund_capital"/>
+            </list>
         </field>
     </record>
     <record id="view_valuation_form" model="ir.ui.view">
@@ -24,18 +31,49 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,computed,submitted,approved,posted,sent,confirmed,published"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="fund_id" readonly="state != 'draft'"/>
+                            <span> – </span>
+                            <field name="date" readonly="state != 'draft'"/>
+                        </h1>
+                    </div>
                     <group>
-                        <group><field name="fund_id" readonly="state != 'draft'"/><field name="date" readonly="state != 'draft'"/><field name="version"/></group>
-                        <group><field name="fund_capital"/><field name="neutral_capital"/><field name="currency_id" invisible="1"/><field name="package_id"/></group>
+                        <group string="Ocenění">
+                            <field name="fund_id" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="version"/>
+                            <field name="previous_id"/>
+                            <field name="preparer_id" string="Zadal"/>
+                        </group>
+                        <group string="Výsledek">
+                            <field name="fund_capital"/>
+                            <field name="neutral_capital"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="package_id"/>
+                        </group>
                     </group>
                     <notebook>
                         <page string="Třídy"><field name="class_line_ids"><list>
-                            <field name="class_id"/><field name="pre_capital"/><field name="ratio"/><field name="delta"/>
-                            <field name="capital"/><field name="units"/><field name="price"/>
+                            <field name="class_id"/>
+                            <field name="pre_capital" optional="hide"/>
+                            <field name="ratio" optional="hide"/>
+                            <field name="delta" optional="hide"/>
+                            <field name="capital"/>
+                            <field name="units"/>
+                            <field name="price"/>
                         </list></field></page>
                         <page string="Portfolio"><field name="portfolio_line_ids"><list>
-                            <field name="kind"/><field name="name"/><field name="isin"/><field name="currency_id"/><field name="quantity"/>
-                            <field name="price"/><field name="cost"/><field name="fair_value_currency"/><field name="fx_rate"/><field name="fair_value"/>
+                            <field name="kind"/>
+                            <field name="name"/>
+                            <field name="isin" optional="show"/>
+                            <field name="currency_id" optional="show"/>
+                            <field name="quantity"/>
+                            <field name="price"/>
+                            <field name="cost" optional="hide"/>
+                            <field name="fair_value_currency" optional="hide"/>
+                            <field name="fx_rate" optional="show"/>
+                            <field name="fair_value"/>
                         </list></field></page>
                         <page string="Úplaty"><field name="fee_line_ids"><list><field name="rule_id"/><field name="class_id"/><field name="amount"/></list></field></page>
                         <page string="Výpočty mimo Odoo"><field name="external_fee_ids"><list editable="bottom">
