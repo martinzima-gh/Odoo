@@ -8,6 +8,8 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Bod | Proč na tom záleží | Doporučení |
 |---|---|---|
 | Community, nebo Enterprise | Chybí finanční výkazy, bankovní párování a oběh dokladů | Rozhodnout nejpozději po zkušebních knihách (etapa zkušebních knih), před ostrým startem Investra Services. Kritéria: finanční výkazy, bankovní párování, oběh dokladů, cena licencí a hostingu, kompatibilita vlastních modulů |
+| Údaje o investorech ve výpisech fondů (revize R17) | Výpisy fondů obsahují u úpisů a odkupů jména a účty investorů; pseudonymní ID z IS je stále osobní údaj. Import výpisu by porušil pravidlo, že Odoo nedrží data o investorech | Rozhodnout před vývojem banky fondu, do 4. 12. 2026. Návrh revize: podle parametru fondu sběrný účet se souhrnnou platbou, nebo import bez jména a účtu protistrany; vědomé připuštění údajů jen po posouzení pověřencem |
+| Nezávislý výpočet NAV (revize R12) | Referenční výpočet i kód má stejný autor; systematická chyba projde obojím | Určit osobu mimo autora kódu, scénáře dodat do 8. 1. 2027 |
 | Hosting | Určuje provoz, zálohy, obnovu a dodavatelskou smlouvu | Rozhodnout před ostrým startem; posoudit proti závazkům v žádosti o povolení a DORA |
 | Soulad s žádostí o povolení | Technický popis v žádosti se musí shodovat se skutečným provozem účetnictví a IT | Porovnat žádost s architekturou a s právníkem nebo compliance určit, zda a jak změnu oznámit ČNB |
 | Termín startu a převzetí fondů | Cíl je konec Q1 2027; vývoj fondových modulů musí stihnout první fondy, jinak je potřeba přechodné řešení | Sestavit harmonogram zpětně od cíle, připravit záložní postup |
