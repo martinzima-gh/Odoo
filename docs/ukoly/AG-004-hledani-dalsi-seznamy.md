@@ -82,4 +82,15 @@ Nic dalšího neměň.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-09
+- **Sloučení:** commit `79b9899` (autor Antigravity, commit udělal Claude v klonu) rychlým převinutím do
+  `feature/nav-prototyp`, spolu s AG-003 (`b6490cf`, `f41e174`).
+- **Revize:** diff mění jen dva soubory pohledů a zadání (zelená zóna). Pole a hodnoty stavů odpovídají modelům,
+  `fund_id` u pohybů je uložené související pole, takže jde seskupovat. Nálezy: žádné.
+- **Guard:** za dobu úkolu jen zamítnuté dva příkazy `grep` (uvozovky, přesměrování) a dotaz na spuštění testu
+  kontroly pohledů; nic mimo rozsah.
+- **Testy:** `check_views.py` – chyb: 0; `-u investra_instruments,investra_nav` s testy nad `investra_test` –
+  0 failed, 0 error(s) of 152 tests.
+- **Databáze `investra_test`:** všech pět vyhledávacích pohledů je uloženo a akce na ně odkazují (`search_view_id`);
+  žádný vyhledávací pohled už nemá `<group expand>`.
+- **Neověřeno:** vzhled filtrů v UI (prohlížečem jsem je neproklikal).

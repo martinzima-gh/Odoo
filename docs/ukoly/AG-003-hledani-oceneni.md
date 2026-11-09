@@ -65,4 +65,7 @@ a seskupit podle fondu, stavu a měsíce data ocenění.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-09
+- **Výsledek:** při prvním převzetí (commit `b6490cf`) neprošla aktualizace modulu: Odoo 20 nepovoluje u `<group>`
+  ve vyhledávacím pohledu atributy `expand` a `string`. Nic se nezačlenilo; oprava zadána jako AG-004.
+- **Sloučení:** spolu s AG-004 do `feature/nav-prototyp` (rychlé převinutí na `79b9899`), viz převzetí AG-004.
