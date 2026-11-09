@@ -40,8 +40,6 @@
                     </div>
                     <group>
                         <group string="Ocenění">
-                            <field name="fund_id" readonly="state != 'draft'"/>
-                            <field name="date" readonly="state != 'draft'"/>
                             <field name="version"/>
                             <field name="previous_id"/>
                             <field name="preparer_id" string="Zadal"/>
@@ -56,9 +54,9 @@
                     <notebook>
                         <page string="Třídy"><field name="class_line_ids"><list>
                             <field name="class_id"/>
-                            <field name="pre_capital" optional="hide"/>
+                            <field name="pre_capital" optional="show"/>
                             <field name="ratio" optional="hide"/>
-                            <field name="delta" optional="hide"/>
+                            <field name="delta" optional="show"/>
                             <field name="capital"/>
                             <field name="units"/>
                             <field name="price"/>
