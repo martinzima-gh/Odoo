@@ -29,10 +29,10 @@ Rozhodnutí 2026-11-09 (nahrazuje „jednu pracovní relaci“ z 2026-11-07):
 | Agent | Role | Kde pracuje |
 |---|---|---|
 | **Claude Code** (relace ve VS Code) | hlavní vývojář a architekt: architektura, účetní logika, NAV, FX, alokace, zásadní změny datového modelu, složité refaktoringy; jediný zapisuje do `~/odoo-dev`, dokumentů, Claude Doc a databází; přebírá a slučuje práci ostatních | `~/odoo-dev` |
-| **Google Antigravity** (jen oficiální rozšíření `Google.google-antigravity`) | druhý vývojář a revizor: vymezené úkoly z `docs/ukoly/` (views, formuláře, nabídky, oprávnění, testy, dokumentace, překlady, jednoduchá pole, importy a exporty, běžné opravy), prvotní diagnostika a code review; šetří kapacitu Clauda | jen klon `~/odoo-review`, větve `ag/*`, push vypnutý, preset oprávnění Request Review |
+| **Google Antigravity** (jen oficiální rozšíření `Google.google-antigravity`) | druhý vývojář a revizor: vymezené úkoly z `docs/ukoly/` (views, formuláře, nabídky, oprávnění, testy, dokumentace, překlady, jednoduchá pole, importy a exporty, běžné opravy), prvotní diagnostika a code review; šetří kapacitu Clauda | jen klon `~/odoo-review`, větve `ag/*`, push vypnutý, režim Auto se sandboxem a bezpečnostním hookem `.agents/hooks.json` |
 | **GitHub Copilot** | nezávislý kontrolor | jen čte a komentuje |
 
-- Pravidla Antigravity: `.agents/rules/` (role a hranice, zóny kódu, postup úkolu, revize). Pravidla Copilota: `.github/copilot-instructions.md`.
+- Pravidla Antigravity: `.agents/rules/` (role a hranice, zóny kódu, postup úkolu, revize). Bezpečnostní hook `.agents/hooks.json` volá guard `.agents/scripts/tool_guard.py` (testy `python3 -m unittest discover -s .agents/scripts -p "test_*.py"`); mění je jen Claude a každá změna musí projít testy guardu. Pravidla Copilota: `.github/copilot-instructions.md`.
 - **Zóny kódu** jsou v `.agents/rules/10-zony.md`: zelená samostatně, oranžová podle plánu od Clauda, červená (NAV, účtování,
   FX, alokace, kurzy, DPH, `record_guard`, migrace, očekávané hodnoty referenčních scénářů) jen s plánem schváleným Martinem;
   zakázané soubory (tento soubor, deník, otevřené body, architektura, `.agents/`, `.github/`, Compose, `.env*`) mění jen Claude.

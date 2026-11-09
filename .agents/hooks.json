@@ -1,0 +1,17 @@
+{
+  "investra-tool-guard": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 -I /Users/martin/odoo-review/.agents/scripts/tool_guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
