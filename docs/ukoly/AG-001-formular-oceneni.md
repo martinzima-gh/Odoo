@@ -71,4 +71,12 @@ a `view_valuation_list`. Plus sekce Výsledek v tomto souboru.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-09, Claude. Převzato společně s AG-002 sloučením větve `ag/AG-002-formular-oceneni-opravy` (obsahuje AG-001) do `feature/nav-prototyp`.
+- **Zóna a rozsah:** dodržené (jen `nav_views.xml` a soubor zadání).
+- **Nálezy z první kontroly (AG-001 samostatně nezačleněn):**
+  1. MEDIUM, ověřená chyba: pole Předchozí ocenění ukazovalo `investra.valuation,226`, protože model neměl zobrazovaný název. Příčina v zadání a modelu (červená zóna); opravil Claude v `9989aed` a hledání podle fondu v `387d6bb`.
+  2. LOW: fond a datum byly ve formuláři dvakrát (důsledek zadání) – opraveno v AG-002.
+  3. LOW: v Třídách byly skryté sloupce přemostění `pre_capital` a `delta` – opraveno v AG-002.
+- **Testy Odoo (`investra_test`):** `investra_nav` a závislý `investra_dashboard` po sloučení 133 testů, 0 selhání, 0 chyb; moduly aktualizované.
+- **Ověřeno v běžícím Odoo (8071, po restartu testovací instance):** formulář má nadpis s fondem a datem (každé pole jednou), skupiny „Ocenění“ (verze, předchozí ocenění, zadal) a „Výsledek“; Třídy ukazují `pre_capital` a `delta`, `ratio` je skrytý; seznam má stav jako odznak a volitelný sloupec předchozího ocenění; 8 ocenění se načte, záznam i nový formulář se otevřou; názvy ocenění a předchozích ocenění jsou ve tvaru „fond – datum – v1“, hledání podle části názvu fondu filtruje správně.
+- **Neověřeno:** vzhled na obrazovce (šířka tabulek bez posuvníku) – ověří uživatel v prohlížeči. Datum je v testovací databázi v americkém formátu, protože má jen angličtinu.

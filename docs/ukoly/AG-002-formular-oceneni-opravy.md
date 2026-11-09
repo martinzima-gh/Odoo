@@ -56,4 +56,9 @@ a sekce Výsledek v tomto souboru.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-09, Claude. Sloučeno do `feature/nav-prototyp` commitem „Převzít AG-001 a AG-002: přehlednější formulář a seznam ocenění“.
+- **Zóna a rozsah:** dodržené; změna přesně odpovídá zadání.
+- **Nálezy z revize:** v práci Antigravity žádné. Při ověření se ukázalo, že hledání ocenění podle názvu nefiltruje (chyba v Claudově opravě názvu); opravil Claude v `387d6bb` s testem před sloučením.
+- **Testy Odoo (`investra_test`):** `investra_nav` a závislý `investra_dashboard` po sloučení 133 testů, 0 selhání, 0 chyb; moduly aktualizované.
+- **Ověřeno v běžícím Odoo (8071, po restartu testovací instance):** formulář má nadpis s fondem a datem (každé pole jednou), skupiny „Ocenění“ (verze, předchozí ocenění, zadal) a „Výsledek“; Třídy ukazují `pre_capital` a `delta`, `ratio` je skrytý; seznam má stav jako odznak a volitelný sloupec předchozího ocenění; 8 ocenění se načte, záznam i nový formulář se otevřou; názvy ocenění a předchozích ocenění jsou ve tvaru „fond – datum – v1“, hledání podle části názvu fondu filtruje správně.
+- **Neověřeno:** vzhled na obrazovce (šířka tabulek bez posuvníku) – ověří uživatel v prohlížeči. Datum je v testovací databázi v americkém formátu, protože má jen angličtinu.
