@@ -35,6 +35,22 @@ class TestWorkflow(NavCase):
         self.assertEqual(second.display_name, f"{self.fund.display_name} – {day} – v2")
         self.assertNotIn("investra.valuation", first.display_name)
 
+    def test_name_search_finds_valuations_by_part_of_fund_name(self):
+        self.fund.entity_id.sudo().name = "Zlatý důl"
+        mine = self.valuation(self.fund, self.day) | self.valuation(self.fund, date(2027, 2, 28))
+        other = self.make_fund(classes=[{"code": "A"}])  # přepne kontext na knihu druhého fondu
+        other.entity_id.sudo().name = "Stříbrná řeka"
+        theirs = self.valuation(other, self.day)
+        both = [self.fund.company_id.id, other.company_id.id]
+        valuations = self.env["investra.valuation"].with_user(self.preparer).with_context(allowed_company_ids=both)
+        found = valuations.search([("id", "in", (mine | theirs).ids), ("display_name", "ilike", "atý dů")])
+        self.assertEqual(found, mine)
+        self.assertEqual(
+            {record_id for record_id, _ in valuations.name_search("atý dů", limit=100)} & set((mine | theirs).ids),
+            set(mine.ids),
+        )
+        self.assertEqual(mine[0].display_name, f"Zlatý důl – {format_date(self.env, self.day)} – v1")
+
     def test_repeat_compute_gives_same_result_and_no_duplicates(self):
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()

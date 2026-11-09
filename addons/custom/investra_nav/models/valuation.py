@@ -54,6 +54,8 @@ class InvestraValuation(models.Model):
     _order = "fund_id, date desc, version desc"
     _book_fields = ("fund_id",)
     _system_fields = SYSTEM_FIELDS
+    # Ocenění nemá vlastní název; hledání podle názvu (např. ve výběru) hledá podle fondu.
+    _rec_names_search = ["fund_id"]
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
