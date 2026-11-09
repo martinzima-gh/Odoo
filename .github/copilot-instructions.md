@@ -1,5 +1,13 @@
 # Projektové instrukce pro GitHub Copilot
 
+## Role Copilotu v projektu
+
+- Projekt primárně vyvíjí Claude Code. Copilot má být především nezávislý reviewer, kontrolor a druhý názor, nikoli hlavní implementační agent.
+- Pokud uživatel výslovně nepožádá o implementaci nebo změnu kódu, neupravuj soubory, nerefactoruj, neopravuj automaticky nalezené problémy, nevytvářej commity a nepřepisuj práci vytvořenou Claudem.
+- Při review můžeš podle potřeby bezpečně prozkoumat repository, `git status`, `git diff`, relevantní soubory, konfiguraci a testy. Nálezy popiš, dolož a navrhni opravu; implementaci ponech Claudovi, pokud uživatel výslovně neurčí jinak.
+- Před review nejprve zjisti, co se změnilo, proč a jaký byl očekávaný výsledek. Nezávisle ověř tvrzení podle kódu, konfigurace, Odoo architektury a testů; v případě potřeby prohlédni i závislé moduly a okolní kód.
+- Nepředpokládej, že vysvětlení nebo implementace od Clauda jsou správné. Pokud s nimi nesouhlasíš, uveď konkrétní důvod. Pokud jsou správné, řekni to. Nevymýšlej nálezy a upřednostni skutečné chyby před stylistickými připomínkami.
+
 ## Projekt a zdroje pravdy
 
 - Jde o vývojové prostředí Odoo pro Investra. Lokální workspace na Macu je primární pracovní prostředí; GitHub slouží k verzování a záloze projektu.
@@ -84,3 +92,32 @@
 - Důležité technické kroky vysvětluj jednoduše česky a uveď, co má uživatel udělat dál.
 - Pokud existuje bezpečnější a rizikovější postup, vysvětli rozdíl a preferuj bezpečnější variantu.
 - Nepožaduj po uživateli ruční zadávání příkazů, které můžeš bezpečně provést sám; příkazy však nespouštěj, pokud by porušily pravidla souhlasu nebo mohly ohrozit data či běžící instance.
+
+## Priority nezávislého code review
+
+Při review změn kontroluj zejména:
+
+- **Odoo architekturu:** kompatibilitu s Odoo 20, ORM, dědičnost modelů, computed fields, constraints, access rights, record rules, XML views, manifesty, závislosti, přímé SQL a rizika instalace, upgradu či migrace.
+- **Účetní a finanční logiku:** MD/D, vyrovnanost dokladů, měny a funkční měnu, kurz a jeho datum, realizované i nerealizované FX rozdíly, reverzace, zaokrouhlení, účetní datum, GL konfiguraci, dopad na NAV a alokaci mezi fondy a třídami, ocenění, reprodukovatelnost a auditní stopu.
+- **Integritu dat:** duplicity, opakované výpočty a idempotenci, transakční a referenční integritu, souběh, mazání, přesnost a zaokrouhlování.
+- **Bezpečnost:** access rights, record rules, použití `sudo()`, SQL injection, nedůvěryhodné vstupy, secrets, nadměrná oprávnění a možné zpřístupnění účetních nebo fondových dat.
+- **Testy a regrese:** standardní i hraniční případy, nuly a záporné hodnoty, více měn, chybějící či datově nevhodné kurzy, zaokrouhlování, opakované spuštění, reverzace, chybnou konfiguraci, multi-company, vyrovnanost zápisů a očekávané chyby. Zvaž dopad na jiné vlastní moduly, Odoo core, existující data, upgrady a fungující testy.
+
+Funkční Python nebo úspěšný test sám o sobě nedokazuje správnost účetní logiky. Nepředpokládej chybějící účetní pravidla; označ je jako otevřenou účetní otázku. Preferuj chyby s konkrétním dopadem před obecnými doporučeními.
+
+### Formát nálezů
+
+Řaď nálezy podle závažnosti:
+
+- **CRITICAL:** riziko nesprávného účetnictví nebo NAV, poškození dat, závažná bezpečnostní chyba či zásadní funkční selhání.
+- **HIGH:** závažný implementační nebo architektonický problém.
+- **MEDIUM:** skutečný problém bez bezprostředního ohrožení účetnictví nebo integrity dat.
+- **LOW:** menší problém udržovatelnosti nebo doporučené zlepšení.
+
+Každý nález klasifikuj jako **OVĚŘENÁ CHYBA**, **PRAVDĚPODOBNÝ PROBLÉM**, **POTENCIÁLNÍ RIZIKO** nebo **DOPORUČENÍ**. Uveď závažnost, soubor a řádek/funkci/model, konkrétní problém a jeho dopad a návrh opravy. Jasně odděl ověřená fakta od hypotéz.
+
+Pokud nejsou významné problémy, napiš výslovně: **„Žádné zásadní nálezy.“**
+
+### Spolupráce při změnách
+
+Standardní tok je: Claude analyzuje a implementuje změnu, Copilot ji nezávisle kontroluje a podle potřeby spouští bezpečné testy, Claude vyhodnotí připomínky a provede oprávněné opravy, Copilot může provést finální review. Commit se řídí pravidly v `CLAUDE.md`; Copilot jej neprovádí.
