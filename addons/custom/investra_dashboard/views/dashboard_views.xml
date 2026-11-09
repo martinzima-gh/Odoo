@@ -55,8 +55,28 @@
             </list>
         </field>
     </record>
+    <record id="view_deadline_search" model="ir.ui.view">
+        <field name="name">investra.regulatory.deadline.search</field><field name="model">investra.regulatory.deadline</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="fund_id"/>
+                <field name="report"/>
+                <filter name="filter_open" string="Otevřeno" domain="[('state', '=', 'open')]"/>
+                <filter name="filter_submitted" string="Podáno" domain="[('state', '=', 'submitted')]"/>
+                <separator/>
+                <filter name="filter_due_date" date="due_date" string="Termín"/>
+                <group>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_report" string="Výkaz" context="{'group_by': 'report'}"/>
+                    <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_due_date_month" string="Měsíc termínu" context="{'group_by': 'due_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="action_deadline" model="ir.actions.act_window">
         <field name="name">Termíny ČNB</field><field name="res_model">investra.regulatory.deadline</field><field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_deadline_search"/>
     </record>
     <menuitem id="menu_fund_dashboard" name="Přehled fondů" parent="investra_entity.menu_root" action="action_fund_dashboard" sequence="1"/>
     <menuitem id="menu_deadline" name="Termíny ČNB" parent="investra_entity.menu_root" action="action_deadline" sequence="90"/>

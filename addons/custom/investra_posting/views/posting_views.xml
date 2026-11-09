@@ -10,10 +10,36 @@
             </list>
         </field>
     </record>
+    <record id="view_event_search" model="ir.ui.view">
+        <field name="name">investra.accounting.event.search</field>
+        <field name="model">investra.accounting.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="event_type"/>
+                <field name="key"/>
+                <field name="date"/>
+                <filter name="filter_draft" string="Návrh" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_locked" string="Zamčený návrh" domain="[('state', '=', 'locked')]"/>
+                <filter name="filter_posted" string="Zaúčtováno" domain="[('state', '=', 'posted')]"/>
+                <filter name="filter_reversed" string="Stornováno" domain="[('state', '=', 'reversed')]"/>
+                <filter name="filter_discarded" string="Zrušený návrh" domain="[('state', '=', 'discarded')]"/>
+                <separator/>
+                <filter name="filter_date" date="date" string="Datum"/>
+                <group>
+                    <filter name="group_by_company" string="Kniha" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_by_event_type" string="Typ" context="{'group_by': 'event_type'}"/>
+                    <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_date_month" string="Měsíc" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="action_event" model="ir.actions.act_window">
         <field name="name">Účetní události</field>
         <field name="res_model">investra.accounting.event</field>
         <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_event_search"/>
     </record>
     <menuitem id="menu_event" name="Účetní události" parent="investra_entity.menu_root" action="action_event" sequence="30"/>
     <record id="view_move_line_investra" model="ir.ui.view">

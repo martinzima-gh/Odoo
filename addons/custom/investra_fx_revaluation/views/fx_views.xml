@@ -29,6 +29,21 @@
             <list><field name="date"/><field name="profile_id"/><field name="currency_id" column_invisible="1"/><field name="difference"/><field name="move_id"/><field name="move_state"/></list>
         </field>
     </record>
+    <record id="view_fx_run_search" model="ir.ui.view">
+        <field name="name">investra.fx.run.search</field><field name="model">investra.fx.run</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="profile_id"/>
+                <field name="date"/>
+                <filter name="filter_date" date="date" string="Datum přecenění"/>
+                <group>
+                    <filter name="group_by_profile" string="Profil" context="{'group_by': 'profile_id'}"/>
+                    <filter name="group_by_company" string="Společnost" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_by_date_month" string="Měsíc" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="view_fx_run_form" model="ir.ui.view">
         <field name="name">investra.fx.run.form</field><field name="model">investra.fx.run</field>
         <field name="arch" type="xml">
@@ -56,6 +71,7 @@
     </record>
     <record id="action_fx_run" model="ir.actions.act_window">
         <field name="name">Přecenění cizích měn</field><field name="res_model">investra.fx.run</field><field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_fx_run_search"/>
     </record>
     <menuitem id="menu_fx_profile" name="Profily přecenění" parent="account.account_account_menu" action="action_fx_profile" sequence="60"/>
     <menuitem id="menu_fx_run" name="Přecenění cizích měn" parent="account.menu_finance_entries" action="action_fx_run" sequence="60" groups="account.group_account_manager"/>
