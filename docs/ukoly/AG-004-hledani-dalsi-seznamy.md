@@ -60,12 +60,25 @@ Nic dalšího neměň.
 
 ## Výsledek
 
-Doplní Antigravity.
-
 - **Změněné soubory:**
+  - `addons/custom/investra_nav/views/nav_views.xml`:
+    - U `view_valuation_search` opraven element `<group>` odstraněním atributů `expand` a `string`.
+    - Přidán vyhledávací pohled `view_movement_search` (model `investra.class.movement`) před `action_movement`.
+    - V `action_movement` doplněn odkaz `<field name="search_view_id" ref="view_movement_search"/>`.
+  - `addons/custom/investra_instruments/views/instrument_views.xml`:
+    - Za `view_instrument_list` přidán vyhledávací pohled `view_instrument_search` (model `investra.instrument`) a v `action_instrument` doplněn odkaz na něj.
+    - Za `view_trade_list` přidán vyhledávací pohled `view_trade_search` (model `investra.trade`) a v `action_trade` doplněn odkaz na něj.
+    - Před `action_price` přidán vyhledávací pohled `view_price_search` (model `investra.instrument.price`) a v `action_price` doplněn odkaz na něj.
 - **Ověřeno (příkaz a výsledek):**
+  - `python3 tools/view_check/check_views.py` skončilo: `Zkontrolováno souborů: 11, chyb: 0`.
+  - `python3 tools/view_check/test_check_views.py`: 4 testy OK.
+  - `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"`: 55 testů OK.
+  - Všechna seskupení jsou v holých `<group>` bez atributů; všechny stavy modelů jsou pokryty v právě jednom filtru.
+  - `git diff` zasahuje výhradně dva soubory pohledů a tento soubor úkolu (zelená zóna).
 - **Neověřeno:**
+  - Vzhled a chování filtrů v Odoo UI a běh testů Odoo (vyžadují Docker/databázi, provede Claude při převzetí).
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Žádné.
 
 ## Převzetí
 

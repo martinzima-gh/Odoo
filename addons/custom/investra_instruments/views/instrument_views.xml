@@ -10,6 +10,24 @@
             </list>
         </field>
     </record>
+    <record id="view_instrument_search" model="ir.ui.view">
+        <field name="name">investra.instrument.search</field>
+        <field name="model">investra.instrument</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="isin"/>
+                <field name="type_id"/>
+                <field name="currency_id"/>
+                <field name="fund_id"/>
+                <group>
+                    <filter name="group_by_type" string="Typ" context="{'group_by': 'type_id'}"/>
+                    <filter name="group_by_currency" string="Měna" context="{'group_by': 'currency_id'}"/>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="view_instrument_form" model="ir.ui.view">
         <field name="name">investra.instrument.form</field><field name="model">investra.instrument</field>
         <field name="arch" type="xml">
@@ -59,6 +77,28 @@
             </list>
         </field>
     </record>
+    <record id="view_trade_search" model="ir.ui.view">
+        <field name="name">investra.trade.search</field>
+        <field name="model">investra.trade</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="fund_id"/>
+                <field name="instrument_id"/>
+                <field name="trade_date"/>
+                <filter name="filter_draft" string="Návrh" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_unsettled" string="Sjednáno, nevypořádáno" domain="[('state', '=', 'unsettled')]"/>
+                <filter name="filter_settled" string="Vypořádáno" domain="[('state', '=', 'settled')]"/>
+                <separator/>
+                <filter name="filter_trade_date" date="trade_date" string="Datum obchodu"/>
+                <group>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_instrument" string="Nástroj" context="{'group_by': 'instrument_id'}"/>
+                    <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_trade_date_month" string="Měsíc obchodu" context="{'group_by': 'trade_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="view_trade_form" model="ir.ui.view">
         <field name="name">investra.trade.form</field><field name="model">investra.trade</field>
         <field name="arch" type="xml">
@@ -102,12 +142,37 @@
     </record>
     <record id="action_instrument" model="ir.actions.act_window">
         <field name="name">Nástroje</field><field name="res_model">investra.instrument</field><field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_instrument_search"/>
+    </record>
+    <record id="view_price_search" model="ir.ui.view">
+        <field name="name">investra.instrument.price.search</field>
+        <field name="model">investra.instrument.price</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="instrument_id"/>
+                <field name="fund_id"/>
+                <field name="date"/>
+                <field name="source"/>
+                <filter name="filter_draft" string="Ke schválení" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_approved" string="Schválené" domain="[('state', '=', 'approved')]"/>
+                <separator/>
+                <filter name="filter_date" date="date" string="Datum ceny"/>
+                <group>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_instrument" string="Nástroj" context="{'group_by': 'instrument_id'}"/>
+                    <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_date_month" string="Měsíc" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
     </record>
     <record id="action_price" model="ir.actions.act_window">
         <field name="name">Ceny</field><field name="res_model">investra.instrument.price</field><field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_price_search"/>
     </record>
     <record id="action_trade" model="ir.actions.act_window">
         <field name="name">Obchody</field><field name="res_model">investra.trade</field><field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_trade_search"/>
     </record>
     <menuitem id="menu_instruments" name="Portfolio" parent="investra_entity.menu_root" sequence="20"/>
     <menuitem id="menu_instrument" name="Nástroje" parent="menu_instruments" action="action_instrument"/>

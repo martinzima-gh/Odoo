@@ -30,7 +30,7 @@
                 <filter name="filter_reversed" string="Stornovaná" domain="[('state', '=', 'reversed')]"/>
                 <separator/>
                 <filter name="filter_date" date="date" string="Datum ocenění"/>
-                <group expand="0" string="Seskupit podle">
+                <group>
                     <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
                     <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
                     <filter name="group_by_date_month" string="Měsíc ocenění" context="{'group_by': 'date:month'}"/>
@@ -138,8 +138,30 @@
     <record id="action_fee_rule" model="ir.actions.act_window">
         <field name="name">Pravidla úplat</field><field name="res_model">investra.fee.rule</field><field name="view_mode">list,form</field>
     </record>
+    <record id="view_movement_search" model="ir.ui.view">
+        <field name="name">investra.class.movement.search</field>
+        <field name="model">investra.class.movement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="class_id"/>
+                <field name="fund_id"/>
+                <field name="date"/>
+                <filter name="filter_subscription" string="Úpisy" domain="[('movement_type', '=', 'subscription')]"/>
+                <filter name="filter_redemption" string="Odkupy" domain="[('movement_type', '=', 'redemption')]"/>
+                <separator/>
+                <filter name="filter_date" date="date" string="Datum"/>
+                <group>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_class" string="Třída" context="{'group_by': 'class_id'}"/>
+                    <filter name="group_by_type" string="Typ" context="{'group_by': 'movement_type'}"/>
+                    <filter name="group_by_date_month" string="Měsíc" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="action_movement" model="ir.actions.act_window">
         <field name="name">Úpisy a odkupy</field><field name="res_model">investra.class.movement</field><field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_movement_search"/>
     </record>
     <record id="view_instrument_form_schedule" model="ir.ui.view">
         <field name="name">investra.instrument.form.schedule</field><field name="model">investra.instrument</field>
