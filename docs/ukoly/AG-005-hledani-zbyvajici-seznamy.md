@@ -99,4 +99,16 @@ a sekce Výsledek v tomto souboru.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-09
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) místo Antigravity, která byla na limitu
+  (rozhodnutí 2026-11-09 „Copilot jako náhradní vývojář“). Commit `e1a1102` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `550ca30` do `feature/nav-prototyp`.
+- **Revize:** diff mění jen osm souborů pohledů z Rozsahu a tento soubor (zelená zóna). Pole a hodnoty výběrů
+  odpovídají modelům. Jediná odchylka: filtr „Archivováno“ u pravidel úplat má navíc `context="{'active_test': False}"`;
+  je to obvyklý zápis v Odoo a chování nemění, ponecháno. Nálezy: žádné.
+- **Testy:** `check_views.py` – chyb: 0; `-u` devíti dotčených modulů s jejich testy nad `investra_test` –
+  0 failed, 0 error(s) of 259 tests. Řádka ERROR „Stažení kurzů selhalo“ v logu pochází z existujícího testu
+  `test_cron_publishes_downloaded_rates` (podvržený text ČNB nejde načíst jako ECB, chyba se podle návrhu jen zaloguje);
+  s úkolem nesouvisí.
+- **Databáze `investra_test`:** všech 14 vyhledávacích pohledů Investry je uloženo a akce na ně odkazují.
+- **Neověřeno:** vzhled filtrů v UI.
