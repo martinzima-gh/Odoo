@@ -4,6 +4,7 @@ from datetime import date as date_type, timedelta
 from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from odoo import api, fields, models
+from odoo.tools import format_date
 from odoo.exceptions import AccessError, UserError
 
 from .. import engine
@@ -93,6 +94,13 @@ class InvestraValuation(models.Model):
     published_at = fields.Datetime(readonly=True)
 
     _uniq = models.Constraint("unique(fund_id, date, version)", "Verze ocenění k datu už existuje.")
+
+    @api.depends("fund_id.display_name", "date", "version")
+    def _compute_display_name(self):
+        # Název ve tvaru „fond – datum – v1“; datum podle jazyka uživatele.
+        for valuation in self:
+            parts = [valuation.fund_id.display_name or "", format_date(self.env, valuation.date) if valuation.date else ""]
+            valuation.display_name = " – ".join(p for p in parts if p) + (f" – v{valuation.version}" if valuation.version else "")
 
     # --- práva ---------------------------------------------------------------------------------
 

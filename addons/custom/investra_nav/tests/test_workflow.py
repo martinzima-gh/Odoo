@@ -4,6 +4,7 @@ from datetime import date
 
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
+from odoo.tools import format_date
 
 from .common import NavCase
 
@@ -25,6 +26,14 @@ class TestWorkflow(NavCase):
 
     def moves(self, valuation):
         return valuation.sudo().event_ids.move_id
+
+    def test_display_name_shows_fund_date_and_version(self):
+        first = self.valuation(self.fund, self.day)
+        second = self.valuation(self.fund, self.day, version=2)
+        day = format_date(self.env, self.day)
+        self.assertEqual(first.display_name, f"{self.fund.display_name} – {day} – v1")
+        self.assertEqual(second.display_name, f"{self.fund.display_name} – {day} – v2")
+        self.assertNotIn("investra.valuation", first.display_name)
 
     def test_repeat_compute_gives_same_result_and_no_duplicates(self):
         valuation = self.valuation(self.fund, self.day)
