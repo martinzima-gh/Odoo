@@ -22,7 +22,8 @@ trigger: always_on
 ## Povolené příkazy (každý stejně schvaluje uživatel)
 
 - `git status`, `git diff`, `git log`, `git show`, `git switch -c ag/...`, `git add`, `git commit`
-- `python3 -m py_compile <soubor>`, `python3 -m pytest tools/nav_reference`
+- `python3 -m py_compile <soubor>`
+- referenční výpočet NAV: `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"` (pytest není nainstalovaný)
 - kontrola XML, např. `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" <soubor>`
 - `grep`, `ls`, `cat`, `find` uvnitř `~/odoo-review`
 
