@@ -31,7 +31,7 @@ DENY = "deny"
 
 # --- zóny (musí odpovídat .agents/rules/10-zony.md) ------------------------------------------------
 
-FORBIDDEN_PREFIXES = (".agents/", ".github/", ".git/", ".vscode/", "addons/third_party/")
+FORBIDDEN_PREFIXES = (".agents/", ".github/", ".git/", ".vscode/", "addons/third_party/", "tools/view_check/")
 FORBIDDEN_FILES = {
     "CLAUDE.md", "AGENTS.md", "GEMINI.md", ".gitignore", ".gitattributes",
     "docs/rozhodnuti.md", "docs/otevrene-body.md", "docs/architektura.md",
@@ -262,6 +262,12 @@ def decide_python(args, cwd, root):
     if rest == ["-m", "unittest", "discover", "-s", "tools/nav_reference", "-p", "test_*.py"] and \
             Path(os.path.realpath(cwd)) == root:
         return AUTO, "referenční testy NAV"
+    if args[:1] == ["tools/view_check/check_views.py"] and Path(os.path.realpath(cwd)) == root:
+        for a in args[1:]:
+            if a.startswith("-"):
+                raise Decision(ASK, "kontrola pohledů s přepínačem")
+            read_path(a, cwd, root)
+        return AUTO, "kontrola pohledů Odoo 20"
     if len(args) == 3 and args[0] == "-c" and args[1] == XML_CHECK_CODE:
         read_path(args[2], cwd, root)
         return AUTO, "kontrola XML"

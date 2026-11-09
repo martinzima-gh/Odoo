@@ -39,5 +39,6 @@ Zóna se určuje podle cest, které změna mění. Když úkol zasáhne více z�
 - `CLAUDE.md`, `docs/rozhodnuti.md`, `docs/otevrene-body.md`, `docs/architektura.md`
 - `.agents/`, `.github/`, `.gitignore`, `docker-compose*.yml`, `.env*`
 - `addons/third_party/`
+- `tools/view_check/` (kontrola pohledů a kopie schémat Odoo)
 
 Návrh změny zakázaného souboru napiš do výsledku úkolu; provede ji Claude.

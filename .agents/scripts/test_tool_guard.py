@@ -101,6 +101,13 @@ class TestAllow(GuardCase):
         target = str(self.root / "addons/custom/investra_nav/views/nav_views.xml")
         self.assertEqual(self.decide("write_to_file", {"TargetFile": target}), tool_guard.ALLOW)
 
+    def test_view_check_script(self):
+        self.assertCmd(tool_guard.AUTO, "python3 tools/view_check/check_views.py",
+                       "python3 tools/view_check/check_views.py addons/custom/investra_nav/views/nav_views.xml")
+        self.assertEqual(self.cmd("python3 tools/view_check/check_views.py ../odoo-dev/x.xml"), tool_guard.DENY)
+        self.assertEqual(self.decide("edit_file", {"TargetFile": str(self.root / "tools/view_check/check_views.py")}),
+                         tool_guard.DENY)
+
     def test_vscode_extension_file_tools(self):
         self.assertEqual(self.decide("read_file", {"AbsolutePath": str(self.root / "README.md")}), tool_guard.AUTO)
         self.assertEqual(self.decide("read_file", {"AbsolutePath": str(self.root / ".env")}), tool_guard.DENY)

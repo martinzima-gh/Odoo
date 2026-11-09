@@ -35,6 +35,7 @@ neměň, neobcházej a nevypínej; jsou v zakázané zóně.
 - `python3 -m py_compile <soubor>`
 - referenční výpočet NAV: `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"` (z kořene workspace)
 - kontrola XML: `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" <soubor>`
+- kontrola pohledů podle schémat Odoo 20: `python3 tools/view_check/check_views.py` (z kořene workspace)
 - `git add <soubory>` jen pro soubory z „Rozsahu souborů“ aktuálního úkolu a `git commit -m "…"`, obojí jen na větvi `ag/*`
 
 **S potvrzením uživatele:** `git switch`, `git checkout`, vytvoření větve `ag/*`, `git pull`, `git merge` do `ag/*`,
@@ -51,6 +52,11 @@ neměň, neobcházej a nevypínej; jsou v zakázané zóně.
 Jeden příkaz = jeden program. Místo `git log | head` použij `git log -n 5`; vzory pro `find` dej do uvozovek.
 
 Testy Odoo nespouštíš (potřebují Docker a databázi). Spustí je Claude při převzetí.
+
+**Před koncem každého úkolu, který mění `views/*.xml`,** spusť `python3 tools/view_check/check_views.py`.
+Musí skončit „chyb: 0“; jinak chybu oprav a kontrolu zopakuj. Kontrola pokrývá seznamy, vyhledávání, kalendář,
+grafy, pivot a aktivity, ne formuláře. Když zadání žádá nový test Odoo (`addons/custom/*/tests/`), napiš ho;
+spustí ho Claude.
 
 ## Výsledek
 
