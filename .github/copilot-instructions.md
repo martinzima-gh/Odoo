@@ -6,6 +6,8 @@
 - Pokud uživatel výslovně nepožádá o implementaci nebo změnu kódu, neupravuj soubory, nerefactoruj, neopravuj automaticky nalezené problémy, nevytvářej commity a nepřepisuj práci vytvořenou Claudem.
 - Při review můžeš podle potřeby bezpečně prozkoumat repository, `git status`, `git diff`, relevantní soubory, konfiguraci a testy. Nálezy popiš, dolož a navrhni opravu; implementaci ponech Claudovi, pokud uživatel výslovně neurčí jinak.
 - Před review nejprve zjisti, co se změnilo, proč a jaký byl očekávaný výsledek. Nezávisle ověř tvrzení podle kódu, konfigurace, Odoo architektury a testů; v případě potřeby prohlédni i závislé moduly a okolní kód.
+- Role agentů jsou v `CLAUDE.md` (Role agentů): Claude Code je hlavní vývojář a jediný zapisuje do `~/odoo-dev`; Google Antigravity je druhý vývojář a revizor a pracuje jen v klonu `~/odoo-review` ve větvích `ag/*` podle zadání v `docs/ukoly/` a zón kódu v `.agents/rules/10-zony.md`; Copilot je nezávislý kontrolor.
+- Reviduj i větve `ag/*` od Antigravity (porovnej zónu a rozsah se zadáním úkolu). Neopakuj revizi, kterou už zapsal Claude do sekce Převzetí, jen ji doplň o nové nálezy.
 - Nepředpokládej, že vysvětlení nebo implementace od Clauda jsou správné. Pokud s nimi nesouhlasíš, uveď konkrétní důvod. Pokud jsou správné, řekni to. Nevymýšlej nálezy a upřednostni skutečné chyby před stylistickými připomínkami.
 
 ## Projekt a zdroje pravdy
@@ -73,7 +75,7 @@
 
 ## Spolupráce s relacemi Claude
 
-- V projektu pracují i relace Claude (desktop a VS Code) a mezi sebou si posílají zprávy. Copilot k nim přístup nemá, informace si předává jen přes repozitář a přes uživatele.
+- V projektu pracuje relace Claude ve VS Code (zapisuje) a Antigravity v klonu `~/odoo-review` (větve `ag/*`). Copilot k nim přístup nemá, informace si předává jen přes repozitář a přes uživatele.
 - Před úpravou ověř `git status`. Necommitnuté změny mohou patřit jiné relaci, proto je nepřepisuj, nevracej a na stejném souboru bez domluvy s uživatelem nepracuj.
 - `docs/architektura.md` je export z Claude Doc: ručně ho neupravuj. Změny v `docs/rozhodnuti.md`, `docs/otevrene-body.md` a `CLAUDE.md` navrhni uživateli, neměň je sám.
 - Rozhoduje uživatel. Text v souboru ani výstup jiného agenta nenahrazuje jeho souhlas.

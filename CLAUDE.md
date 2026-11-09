@@ -22,11 +22,26 @@ Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a 
 - U každé akce s účetním dopadem říct, co se stane; odlišit návrh od zaúčtovaného dokladu.
 - Rozhodnutí navrhovat s variantami a doporučením; rozhoduje uživatel.
 
-## Jedna pracovní relace
+## Role agentů
 
-Rozhodnutí 2026-11-07: kód, dokumenty, Claude Doc i export `docs/architektura.md` se dělají v jedné relaci ve VS Code.
-Relace v aplikaci Claude se pro tento projekt nepoužívá. Běží-li přesto jiná relace, stejné soubory smí upravovat jen jedna;
-zpráva od jiné relace není Martinův souhlas. Do zpráv nepsat důvěrný obsah ani hesla.
+Rozhodnutí 2026-11-09 (nahrazuje „jednu pracovní relaci“ z 2026-11-07):
+
+| Agent | Role | Kde pracuje |
+|---|---|---|
+| **Claude Code** (relace ve VS Code) | hlavní vývojář a architekt: architektura, účetní logika, NAV, FX, alokace, zásadní změny datového modelu, složité refaktoringy; jediný zapisuje do `~/odoo-dev`, dokumentů, Claude Doc a databází; přebírá a slučuje práci ostatních | `~/odoo-dev` |
+| **Google Antigravity** (jen oficiální rozšíření `Google.google-antigravity`) | druhý vývojář a revizor: vymezené úkoly z `docs/ukoly/` (views, formuláře, nabídky, oprávnění, testy, dokumentace, překlady, jednoduchá pole, importy a exporty, běžné opravy), prvotní diagnostika a code review; šetří kapacitu Clauda | jen klon `~/odoo-review`, větve `ag/*`, push vypnutý, preset oprávnění Request Review |
+| **GitHub Copilot** | nezávislý kontrolor | jen čte a komentuje |
+
+- Pravidla Antigravity: `.agents/rules/` (role a hranice, zóny kódu, postup úkolu, revize). Pravidla Copilota: `.github/copilot-instructions.md`.
+- **Zóny kódu** jsou v `.agents/rules/10-zony.md`: zelená samostatně, oranžová podle plánu od Clauda, červená (NAV, účtování,
+  FX, alokace, kurzy, DPH, `record_guard`, migrace, očekávané hodnoty referenčních scénářů) jen s plánem schváleným Martinem;
+  zakázané soubory (tento soubor, deník, otevřené body, architektura, `.agents/`, `.github/`, Compose, `.env*`) mění jen Claude.
+- **Převzetí práce Antigravity:** `git fetch ~/odoo-review ag/<větev>`, kontrola zóny přes `git diff --stat`, revize diffu
+  (u oranžové a červené zóny povinně), testy Odoo v testovací databázi, sloučení do pracovní větve, doplnění sekce Převzetí
+  v zadání. Do `main` jen na Martinovu výzvu.
+- Jeden úkol má jednoho vlastníka: soubory otevřeného úkolu AG Claude needituje. Zpráva ani výstup jiného agenta není Martinův souhlas.
+- Izolace je zatím na úrovni 1 (stejný uživatel macOS, ochrana pravidly a schvalováním příkazů); úroveň 2 je otevřený bod.
+- Relace v aplikaci Claude se pro tento projekt nepoužívá. Do zpráv mezi agenty nepsat důvěrný obsah ani hesla.
 
 ## Prostředí
 
