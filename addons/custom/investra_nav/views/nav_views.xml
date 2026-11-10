@@ -98,7 +98,9 @@
                             <field name="fair_value"/>
                         </list></field></page>
                         <page string="Úplaty"><field name="fee_line_ids"><list><field name="rule_id"/><field name="class_id"/><field name="amount"/></list></field></page>
-                        <page string="Výpočty mimo Odoo"><field name="external_fee_ids"><list editable="bottom">
+                        <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
+                            <div class="alert alert-warning" role="alert">Výjimka: úplata spočtená mimo Odoo. Každý řádek potřebuje důvod a přílohu s výpočtem. Částka vstoupí do ocenění jako úplata a zaúčtuje se s oceněním po schválení.</div>
+                            <field name="external_fee_ids"><list editable="bottom">
                             <field name="rule_id"/><field name="class_id"/><field name="amount"/><field name="reason"/><field name="attachment_id"/>
                         </list></field></page>
                         <page string="Kontroly"><field name="check_ids"><list><field name="name"/><field name="status"/><field name="detail"/></list></field></page>
@@ -146,7 +148,7 @@
                 <filter name="filter_periodic" string="Časově rozlišená úplata" domain="[('kind', '=', 'periodic')]"/>
                 <filter name="filter_performance" string="Výkonnostní odměna" domain="[('kind', '=', 'performance')]"/>
                 <filter name="filter_tax" string="Očekávaná daň" domain="[('kind', '=', 'tax')]"/>
-                <filter name="filter_external" string="Výpočet mimo Odoo" domain="[('kind', '=', 'external')]"/>
+                <filter name="filter_external" string="Ručně doložená úplata" domain="[('kind', '=', 'external')]"/>
                 <separator/>
                 <filter name="filter_archived" string="Archivováno" domain="[('active', '=', False)]" context="{'active_test': False}"/>
                 <group>

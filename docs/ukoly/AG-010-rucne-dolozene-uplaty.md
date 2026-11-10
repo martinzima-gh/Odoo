@@ -82,12 +82,12 @@ Bez chyb; mění se jen `nav_views.xml` a tento soubor.
 
 ## Výsledek
 
-Doplní Antigravity.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_nav/views/nav_views.xml` (záložka ve `view_valuation_form` a filtr ve `view_fee_rule_search`) a tento soubor (jen sekce Výsledek).
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; příkaz pro parsování XML — `XML OK`; `grep -c "Výpočty mimo Odoo\|Výpočet mimo Odoo" addons/custom/investra_nav/views/nav_views.xml` — `0` (grep vrací návratový kód 1, protože žádné řádky neodpovídají); `git diff --check` — bez výstupu. Diff v XML potvrzuje jen předepsanou změnu úvodního řádku záložky a textu filtru; její uzavírací tag zůstal beze změny.
+- **Neověřeno:** zobrazení a viditelnost záložky v běžícím Odoo; Odoo testy. Docker ani databáze nebyly spuštěny.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 
