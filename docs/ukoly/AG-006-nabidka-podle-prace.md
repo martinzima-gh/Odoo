@@ -266,4 +266,16 @@ Portfolio, Úpisy a odkupy, Výkazy, Nastavení, a poslední řádek je `Bez rod
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `6320010` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `6320010` do `feature/nav-prototyp` (fast-forward).
+- **Revize:** diff mění jen deset souborů pohledů z Rozsahu (pouze řádky `<menuitem>`) a sekci Výsledek (zelená zóna).
+  Všech deset bloků „Bude“ je v souborech beze změny znaků. Strom nabídky ze zdrojových XML odpovídá Cílové struktuře,
+  bez položek bez rodiče. Nálezy: žádné.
+- **Testy:** `check_views.py` – chyb: 0; `-u` deseti dotčených modulů s jejich testy nad `investra_test` –
+  0 failed, 0 error(s) of 243 tests (testy běžely ve všech deseti modulech). Řádka ERROR „Stažení kurzů selhalo“
+  pochází z existujícího testu `test_rate` a s úkolem nesouvisí.
+- **Databáze `investra_test`:** 28 nabídek Investry má rodiče a pořadí podle Cílové struktury, žádná stará nabídka
+  nezůstala; přecenění cizích měn zůstává pod Účetnictvím. Dotaz je v `docs/sql/09-nabidka.sql`.
+- **Neověřeno:** vzhled nabídky v prohlížeči (testovací web na portu 8071).
