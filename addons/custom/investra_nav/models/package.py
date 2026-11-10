@@ -118,6 +118,40 @@ class InvestraValuation(models.Model):
                 sheet.write(index, column, value)
             index += 1
 
+        sheet = book.add_worksheet("Přemostění tříd")
+        header(sheet, "Přemostění tříd")
+        bridge_columns = (
+            ("Třída", lambda l: l.class_id.code, None),
+            ("Měna", lambda l: l.class_id.currency_id.name, None),
+            ("Kusy", lambda l: l.units, None),
+            ("FK (t−1)", lambda l: l.opening_capital, amount),
+            ("Úpisy ks", lambda l: l.subscription_units, None),
+            ("Úpisy", lambda l: l.subscription_amount, amount),
+            ("Odkupy ks", lambda l: l.redemption_units, None),
+            ("Odkupy", lambda l: l.redemption_amount, amount),
+            ("Dividendy", lambda l: l.dividend_amount, amount),
+            ("Upravený FK", lambda l: l.pre_capital, amount),
+            ("Alokační poměr", lambda l: l.ratio, None),
+            ("Změna společná", lambda l: l.shared_result, amount),
+            ("Z toho zaokrouhlení", lambda l: l.rounding_amount, amount),
+            ("Změna specifická", lambda l: l.delta, amount),
+            ("Úplaty třídy", lambda l: l.fee_amount, amount),
+            ("Výkonnostní odměna", lambda l: l.performance_amount, amount),
+            ("Přesun podle pořadí nároků", lambda l: l.allocation_amount, amount),
+            ("Ostatní specifické", lambda l: l.other_amount, amount),
+            ("FK", lambda l: l.capital, amount),
+            ("FK v měně třídy", lambda l: l.capital_class, amount),
+            ("Kurz (t−1)", lambda l: l.opening_price or "", None),
+            ("Kurz", lambda l: l.price, None),
+            ("Změna kurzu %", lambda l: l.price_change_pct, None),
+            ("Kurz přepočtu", lambda l: l.fx_rate, None),
+        )
+        for column, (label, _value, _format) in enumerate(bridge_columns):
+            sheet.write(2, column, label, bold)
+        for row_index, line in enumerate(record.class_line_ids, start=3):
+            for column, (_label, value, cell_format) in enumerate(bridge_columns):
+                sheet.write(row_index, column, value(line), cell_format)
+
         sheet = book.add_worksheet("Předvaha")
         header(sheet, "Předvaha")
         for column, label in enumerate(("Účet", "Název", "MD", "D", "Zůstatek")):

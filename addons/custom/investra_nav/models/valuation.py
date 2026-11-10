@@ -212,11 +212,22 @@ class InvestraValuation(models.Model):
             prior = previous.get(fund_class)
             capital = d(prior.capital if prior else 0)
             units = d(prior.units if prior else 0)
+            subscriptions = movements.filtered(lambda m: m.movement_type == "subscription")
+            redemptions = movements - subscriptions
             result[fund_class] = {
                 "pre_capital": capital + sum((d(m.signed_amount) for m in movements), Decimal(0)),
                 "units": units + sum((d(m.signed_units) for m in movements), Decimal(0)),
                 "movements": movements,
                 "previous": prior,
+                # Přemostění: počáteční stav a pohyby; odkupy kladně, odčítají se.
+                "opening_capital": capital,
+                "opening_units": units,
+                "subscriptions": subscriptions,
+                "redemptions": redemptions,
+                "subscription_amount": sum((d(m.amount) for m in subscriptions), Decimal(0)),
+                "subscription_units": sum((d(m.units) for m in subscriptions), Decimal(0)),
+                "redemption_amount": sum((d(m.amount) for m in redemptions), Decimal(0)),
+                "redemption_units": sum((d(m.units) for m in redemptions), Decimal(0)),
             }
         total = sum(row["pre_capital"] for row in result.values())
         if not total:
@@ -654,6 +665,8 @@ class InvestraValuation(models.Model):
         if rounding:
             largest = max(transfers, key=lambda c: abs(transfers[c]))
             transfers[largest] += rounding
+        for fund_class, amount in transfers.items():
+            context[fund_class]["allocation"] = amount
         event_lines = [
             {"role": "internal_clearing", "amount": amount, "class_id": c.id, "movement_type": "class_transfer"}
             for c, amount in transfers.items()
@@ -671,14 +684,19 @@ class InvestraValuation(models.Model):
         if remainder:
             rounded[max(sorted(rounded, key=lambda c: c.code), key=lambda c: rounded[c])] += remainder
         rows = []
+        bridges = {}
         for fund_class, row in context.items():
             value = rounded[fund_class]
             value_class = value
-            if fund_class.currency_id != self.fund_id.currency_id:
-                value_class = value / self._fx(fund_class.currency_id)
+            foreign = fund_class.currency_id != self.fund_id.currency_id
+            fx_rate = self._fx(fund_class.currency_id) if foreign else Decimal(1)
+            if foreign:
+                value_class = value / fx_rate
             digits = Decimal(1).scaleb(-fund_class.price_digits)
             method = PRICE_ROUNDING[fund_class.price_rounding]
             price = (value_class / row["units"]).quantize(digits, rounding=method) if row["units"] else Decimal(0)
+            bridge = self._class_bridge(fund_class, row, value, value_class, deltas[fund_class], neutral, fx_rate, price)
+            bridges[fund_class] = bridge
             perf = row.get("perf") or {}
             previous = row["previous"]
             reference = d(previous.perf_reference) if previous else Decimal(0)
@@ -703,10 +721,96 @@ class InvestraValuation(models.Model):
                 "perf_hwm": float(hwm),
                 "perf_accrued": float(accrued),
                 "perf_base_date": base_date,
+                **{key: (v if isinstance(v, (str, bool)) else float(v)) for key, v in bridge.items()},
             })
         self.env["investra.valuation.class"].sudo().create(rows)
         self.write({"fund_capital": float(fund_capital), "neutral_capital": float(neutral)})
         self._run_checks(fund_capital, rounded)
+        self._run_bridge_checks(context, bridges, rounded)
+
+    def _class_bridge(self, fund_class, row, value, value_class, delta, neutral, fx_rate, price):
+        """Přemostění třídy od minulého ocenění ke konečnému kapitálu a kurzu.
+
+        FK (t−1) + úpisy − odkupy − dividendy = upravený FK (základ poměru);
+        upravený FK + společná změna + specifická změna = FK. Společná změna obsahuje zaokrouhlení,
+        specifická změna se dál dělí na úplaty, výkonnostní odměnu, přesun podle pořadí nároků a ostatní.
+        Výsledek ocenění se tím nemění, jen se ukládá rozpad, který výpočet zná.
+        """
+        previous = row["previous"]
+        same_currency = fund_class.currency_id == self.fund_id.currency_id
+        fees = self.fee_line_ids.filtered(lambda line: line.class_id == fund_class)
+        performance = -sum((d(l.amount) for l in fees if l.rule_id.kind == "performance"), Decimal(0))
+        fee = -sum((d(l.amount) for l in fees if l.rule_id.kind != "performance"), Decimal(0))
+        allocation = d(row.get("allocation"))
+        shared = value - row["pre_capital"] - delta
+        shared_raw = engine.money(row["ratio"] * neutral) - row["pre_capital"]
+
+        def in_class_currency(movement):
+            if same_currency:
+                return d(movement.amount)
+            if movement.amount_class:
+                return d(movement.amount_class)
+            return d(movement.amount) / (d(movement.fx_rate) or fx_rate)
+
+        if not previous:
+            opening_class = Decimal(0)
+        elif same_currency:
+            opening_class = d(previous.capital)
+        elif previous.capital_class:
+            opening_class = d(previous.capital_class)
+        else:
+            # Starší ocenění kapitál v měně třídy neukládalo; náhradou kusy × kurz.
+            opening_class = d(previous.units) * d(previous.price)
+        opening_price = d(previous.price) if previous else Decimal(0)
+        return {
+            "opening_capital": row["opening_capital"],
+            "opening_units": row["opening_units"],
+            "opening_price": previous.price if previous else False,
+            "subscription_amount": row["subscription_amount"],
+            "subscription_units": row["subscription_units"],
+            "redemption_amount": row["redemption_amount"],
+            "redemption_units": row["redemption_units"],
+            "dividend_amount": Decimal(0),
+            "shared_result": shared,
+            "rounding_amount": shared - shared_raw,
+            "fee_amount": fee,
+            "performance_amount": performance,
+            "allocation_amount": allocation,
+            "other_amount": delta - fee - performance - allocation,
+            "fx_rate": fx_rate,
+            "opening_capital_class": engine.money(opening_class),
+            "subscription_amount_class": engine.money(sum((in_class_currency(m) for m in row["subscriptions"]), Decimal(0))),
+            "redemption_amount_class": engine.money(sum((in_class_currency(m) for m in row["redemptions"]), Decimal(0))),
+            "capital_class": engine.money(value_class),
+            "price_change_pct": (price / opening_price - 1) * 100 if opening_price else Decimal(0),
+        }
+
+    def _run_bridge_checks(self, context, bridges, rounded):
+        """Kontroly přemostění tříd; rozdíl nad 0,01 zastaví ocenění."""
+        tolerance = Decimal("0.01")
+        movements, units, result, specific = [], [], [], []
+        for fund_class, row in context.items():
+            b = bridges[fund_class]
+            code = fund_class.code
+            pre = b["opening_capital"] + b["subscription_amount"] - b["redemption_amount"] - b["dividend_amount"]
+            if abs(pre - row["pre_capital"]) > tolerance:
+                movements.append(f"{code}: {pre} ≠ {row['pre_capital']}")
+            count = b["opening_units"] + b["subscription_units"] - b["redemption_units"]
+            if abs(count - row["units"]) > Decimal("0.000001"):
+                units.append(f"{code}: {count} ≠ {row['units']}")
+            specific_total = b["fee_amount"] + b["performance_amount"] + b["allocation_amount"] + b["other_amount"]
+            end = row["pre_capital"] + b["shared_result"] + specific_total
+            if abs(end - rounded[fund_class]) > tolerance:
+                result.append(f"{code}: {end} ≠ {rounded[fund_class]}")
+        opening = sum((b["opening_capital"] for b in bridges.values()), Decimal(0))
+        previous_fk = d(self.previous_id.fund_capital) if self.previous_id else Decimal(0)
+        self._check("bridge_movements", "Přemostění: FK (t−1) + úpisy − odkupy = upravený FK", not movements,
+                    "; ".join(movements))
+        self._check("bridge_units", "Přemostění: kusy (t−1) + úpisy − odkupy = kusy", not units, "; ".join(units))
+        self._check("bridge_result", "Přemostění: upravený FK + společná a specifická změna = FK", not result,
+                    "; ".join(result))
+        self._check("bridge_opening", "Přemostění: součet FK (t−1) tříd = FK minulého ocenění",
+                    abs(opening - previous_fk) <= tolerance, f"{opening} / {previous_fk}")
 
     def _check(self, code, name, ok, detail="", severity="stop"):
         self.env["investra.valuation.check"].sudo().create({
@@ -884,6 +988,39 @@ class InvestraValuationClass(models.Model):
     perf_hwm = fields.Float(digits=(20, 8))
     perf_accrued = fields.Float(digits=(20, 2))
     perf_base_date = fields.Date()
+
+    # Přemostění od minulého ocenění (plní výpočet, rozhodnutí 2026-11-10 „Přemostění kapitálu tříd“).
+    # Částky ve funkční měně fondu, odkupy a dividendy kladně (odčítají se). Ocenění před zavedením mají 0.
+    currency_name = fields.Char(related="class_id.currency_id.name", string="Měna")
+    opening_capital = fields.Float(digits=(20, 2), string="FK (t−1)", help="Kapitál třídy z minulého ocenění.")
+    opening_units = fields.Float(digits=(20, 6), string="Kusy (t−1)")
+    opening_price = fields.Char(string="Kurz (t−1)")
+    subscription_amount = fields.Float(digits=(20, 2), string="Úpisy")
+    subscription_units = fields.Float(digits=(20, 6), string="Úpisy ks")
+    redemption_amount = fields.Float(digits=(20, 2), string="Odkupy", help="Kladně; od kapitálu se odčítá.")
+    redemption_units = fields.Float(digits=(20, 6), string="Odkupy ks")
+    dividend_amount = fields.Float(digits=(20, 2), string="Dividendy",
+                                   help="Výplata dividendy z třídy; do zavedení pohybu „výplata dividendy“ je 0.")
+    shared_result = fields.Float(digits=(20, 2), string="Změna společná",
+                                 help="Podíl třídy na změně společné části fondu podle alokačního poměru, včetně zaokrouhlení.")
+    rounding_amount = fields.Float(digits=(20, 2), string="Z toho zaokrouhlení")
+    fee_amount = fields.Float(digits=(20, 2), string="Úplaty třídy", help="Úplaty účtované na třídu, bez výkonnostní odměny.")
+    performance_amount = fields.Float(digits=(20, 2), string="Výkonnostní odměna")
+    allocation_amount = fields.Float(digits=(20, 2), string="Přesun podle pořadí nároků")
+    other_amount = fields.Float(digits=(20, 2), string="Ostatní specifické",
+                                help="Ostatní položky třídy, např. měnové zajištění nebo podíl na úplatě jiné třídy.")
+    fx_rate = fields.Float(digits=(16, 8), string="Kurz přepočtu", help="Funkční měna fondu za 1 jednotku měny třídy.")
+    opening_capital_class = fields.Float(digits=(20, 2), string="FK (t−1) v měně třídy")
+    subscription_amount_class = fields.Float(digits=(20, 2), string="Úpisy v měně třídy")
+    redemption_amount_class = fields.Float(digits=(20, 2), string="Odkupy v měně třídy")
+    capital_class = fields.Float(digits=(20, 2), string="FK v měně třídy")
+    price_change_pct = fields.Float(digits=(16, 4), string="Změna kurzu %")
+    foreign_currency = fields.Boolean(compute="_compute_foreign_currency", string="Třída v cizí měně")
+
+    @api.depends("class_id.currency_id", "valuation_id.fund_id.currency_id")
+    def _compute_foreign_currency(self):
+        for line in self:
+            line.foreign_currency = line.class_id.currency_id != line.valuation_id.fund_id.currency_id
 
 
 class InvestraValuationFee(models.Model):

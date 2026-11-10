@@ -84,3 +84,26 @@ zaokrouhlení). Očekávané hodnoty existujících scénářů v `tests/scenari
 ## Zóna a provedení
 
 Model a výpočet: červená zóna, provede Claude po schválení uživatelem. Obrazovka: zelené zadání AG po sloučení.
+
+## Provedení 2026-11-10
+
+Schváleno uživatelem 10. 11. 2026 (deník: „Přemostění kapitálu tříd“). Provedl Claude v `feature/nav-prototyp`.
+Odchylky od plánu, každá kvůli přehlednosti podle příkladu tabulky tříd, který uživatel dodal:
+
+- **Odkupy a dividendy kladně**, od kapitálu se odčítají (jak jsou uživatelé zvyklí). Řádek platí:
+  FK (t−1) + úpisy − odkupy − dividendy + změna společná + změna specifická = FK.
+- **Zaokrouhlení je součástí změny společné**, aby hlavní tabulka seděla; v detailu je vidět jako „Z toho zaokrouhlení“.
+- **Změna specifická** je existující pole `delta`; v detailu se dělí na úplaty třídy, výkonnostní odměnu,
+  **přesun podle pořadí nároků** (nový sloupec, jinak by alokace u fondů s pořadím nároků zapadla do ostatních)
+  a ostatní specifické.
+- **Obrazovku udělal Claude** spolu s modelem (ne samostatné zadání AG): záložka Třídy v pořadí
+  kusy → FK (t−1) → úpisy → odkupy → alokační poměr → změna společná → změna specifická → FK → FK v měně třídy
+  → kurz → změna kurzu %, s řádkem Celkem; méně používané sloupce volitelné. Detail třídy po kliknutí má bloky
+  Počáteční stav, Pohyby, Rozdělení výsledku, Konečný stav a u třídy v cizí měně V měně třídy.
+- **Kurz (t−1) a FK v měně třídy u starších ocenění:** předchozí ocenění bez uloženého kapitálu v měně třídy
+  použije náhradou kusy × kurz.
+- Kontrola „upravený FK + změna společná a specifická = FK“ je při současném výpočtu splněná vždy (změna společná
+  se dopočítává); hlídá uložené hodnoty při budoucích změnách výpočtu.
+
+Testy: `investra_nav/tests/test_bridge.py` (6 testů s ručně spočteným rozpadem, včetně přesunu podle pořadí nároků a třídy v EUR), scénáře s1–s5 projdou bez zastavení
+včetně nových kontrol. Existující očekávané hodnoty se nezměnily.

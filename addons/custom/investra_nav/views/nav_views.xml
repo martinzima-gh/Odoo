@@ -38,6 +38,58 @@
             </search>
         </field>
     </record>
+    <record id="view_valuation_class_form" model="ir.ui.view">
+        <field name="name">investra.valuation.class.form</field>
+        <field name="model">investra.valuation.class</field>
+        <field name="arch" type="xml">
+            <form string="Přemostění třídy">
+                <sheet>
+                    <div class="oe_title"><h2><field name="class_id" readonly="1"/></h2></div>
+                    <div class="text-muted mb-3">FK (t−1) + úpisy − odkupy − dividendy + změna společná + změna specifická = FK.</div>
+                    <group>
+                        <group string="Počáteční stav">
+                            <field name="opening_capital"/>
+                            <field name="opening_units"/>
+                            <field name="opening_price"/>
+                        </group>
+                        <group string="Pohyby">
+                            <field name="subscription_amount"/>
+                            <field name="subscription_units"/>
+                            <field name="redemption_amount"/>
+                            <field name="redemption_units"/>
+                            <field name="dividend_amount"/>
+                            <field name="pre_capital" string="Upravený FK"/>
+                        </group>
+                        <group string="Rozdělení výsledku">
+                            <field name="ratio" string="Alokační poměr" widget="percentage" options="{'digits': [16, 6]}"/>
+                            <field name="shared_result"/>
+                            <field name="rounding_amount"/>
+                            <field name="delta" string="Změna specifická"/>
+                            <field name="fee_amount"/>
+                            <field name="performance_amount"/>
+                            <field name="allocation_amount"/>
+                            <field name="other_amount"/>
+                        </group>
+                        <group string="Konečný stav">
+                            <field name="capital" string="FK"/>
+                            <field name="units" string="Kusy"/>
+                            <field name="price" string="Kurz"/>
+                            <field name="price_change_pct" decoration-success="price_change_pct &gt; 0" decoration-danger="price_change_pct &lt; 0"/>
+                        </group>
+                        <group string="V měně třídy" invisible="not foreign_currency">
+                            <field name="currency_name"/>
+                            <field name="fx_rate"/>
+                            <field name="opening_capital_class"/>
+                            <field name="subscription_amount_class"/>
+                            <field name="redemption_amount_class"/>
+                            <field name="capital_class"/>
+                        </group>
+                        <field name="foreign_currency" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
     <record id="view_valuation_form" model="ir.ui.view">
         <field name="name">investra.valuation.form</field>
         <field name="model">investra.valuation</field>
@@ -77,13 +129,25 @@
                     </group>
                     <notebook>
                         <page string="Třídy"><field name="class_line_ids"><list>
-                            <field name="class_id"/>
-                            <field name="pre_capital" optional="show"/>
-                            <field name="ratio" optional="hide"/>
-                            <field name="delta" optional="show"/>
-                            <field name="capital"/>
-                            <field name="units"/>
-                            <field name="price"/>
+                            <field name="class_id" string="Třída"/>
+                            <field name="currency_name" optional="show"/>
+                            <field name="units" string="Kusy"/>
+                            <field name="opening_capital" sum="Celkem"/>
+                            <field name="subscription_units" optional="hide"/>
+                            <field name="subscription_amount" sum="Celkem"/>
+                            <field name="redemption_units" optional="hide"/>
+                            <field name="redemption_amount" sum="Celkem"/>
+                            <field name="dividend_amount" optional="hide" sum="Celkem"/>
+                            <field name="pre_capital" string="Upravený FK" optional="hide" sum="Celkem"/>
+                            <field name="ratio" string="Alokační poměr" widget="percentage" options="{'digits': [16, 6]}" sum="Celkem"/>
+                            <field name="shared_result" sum="Celkem"/>
+                            <field name="delta" string="Změna specifická" sum="Celkem"/>
+                            <field name="capital" string="FK" sum="Celkem"/>
+                            <field name="capital_class" optional="show"/>
+                            <field name="price" string="Kurz"/>
+                            <field name="price_change_pct" optional="show" decoration-success="price_change_pct &gt; 0" decoration-danger="price_change_pct &lt; 0"/>
+                            <field name="opening_price" optional="hide"/>
+                            <field name="fx_rate" optional="hide"/>
                         </list></field></page>
                         <page string="Portfolio"><field name="portfolio_line_ids"><list>
                             <field name="kind"/>
