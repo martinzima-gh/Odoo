@@ -73,12 +73,12 @@ Bez chyb; mění se jen `fx_views.xml` a tento soubor.
 
 ## Výsledek
 
-Doplní Antigravity.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_fx_revaluation/views/fx_views.xml` (jen záznam `view_fx_profile_form`) a tento soubor (jen sekce Výsledek).
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; příkaz pro parsování XML — `XML OK`; `grep -c "no_create" addons/custom/investra_fx_revaluation/views/fx_views.xml` — 2 řádky obsahující `no_create`; `grep -o "no_create" addons/custom/investra_fx_revaluation/views/fx_views.xml` — 3 výskyty; `git diff --check` — bez výstupu; `git diff --stat HEAD` — změny pouze v XML pohledu a tomto souboru zadání.
+- **Neověřeno:** chování formuláře v běžícím Odoo (štítky, kliknutí a nabídka „Vytvořit“); Odoo testy. Docker ani databáze nebyly spuštěny.
+- **Otevřené otázky:** Zadání očekává 3 u `grep -c`, avšak tento přepínač počítá řádky s výskytem a vrací 2; v souboru jsou tři výskyty na dvou řádcích, potvrzené `grep -o`. Jiné otevřené otázky nejsou.
 
 ## Převzetí
 

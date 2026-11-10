@@ -13,9 +13,9 @@
                 <sheet>
                     <group>
                         <field name="name"/><field name="company_id" groups="base.group_multi_company"/><field name="journal_id"/>
-                        <field name="gain_account_id"/><field name="loss_account_id"/><field name="rate_source"/><field name="max_rate_age_days"/><field name="active"/>
+                        <field name="gain_account_id" options="{'no_create': True}"/><field name="loss_account_id" options="{'no_create': True}"/><field name="rate_source"/><field name="max_rate_age_days"/><field name="active"/>
                     </group>
-                    <notebook><page string="Přeceňované účty"><field name="account_ids"/></page></notebook>
+                    <notebook><page string="Přeceňované účty"><field name="account_ids" widget="many2many_tags" options="{'no_create': True}"/></page></notebook>
                 </sheet>
             </form>
         </field>
