@@ -215,10 +215,18 @@
     <record id="action_price" model="ir.actions.act_window">
         <field name="name">Ceny</field><field name="res_model">investra.instrument.price</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_price_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádná cena</p>
+            <p>Cena nástroje k datu pro fond. Do ocenění vstupuje jen schválená cena; schválit ji musí jiný uživatel, než který ji zadal.</p>
+        </field>
     </record>
     <record id="action_trade" model="ir.actions.act_window">
         <field name="name">Obchody</field><field name="res_model">investra.trade</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_trade_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádný obchod</p>
+            <p>Nákupy a prodeje nástrojů fondu. Pozice ve fondu se počítají z obchodů, ručně se nezadávají.</p>
+        </field>
     </record>
     <menuitem id="menu_instruments" name="Portfolio" parent="investra_entity.menu_root" sequence="20"/>
     <menuitem id="menu_instrument" name="Nástroje" parent="investra_entity.menu_setup_instruments" action="action_instrument" sequence="10"/>

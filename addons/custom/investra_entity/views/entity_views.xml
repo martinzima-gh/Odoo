@@ -105,7 +105,6 @@
         <field name="search_view_id" ref="view_account_role_search"/>
     </record>
     <menuitem id="menu_root" name="Investra" web_icon="account,static/description/icon.png" groups="account.group_account_readonly"/>
-    <menuitem id="menu_valuation_section" name="Ocenění" parent="menu_root" sequence="10"/>
     <menuitem id="menu_reports" name="Výkazy" parent="menu_root" sequence="40"/>
     <menuitem id="menu_setup" name="Nastavení" parent="menu_root" sequence="90"/>
     <menuitem id="menu_setup_funds" name="Fondy" parent="menu_setup" sequence="10"/>

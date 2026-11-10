@@ -187,12 +187,12 @@ Bez chyb; mění se jen čtyři soubory z Rozsahu a tento soubor.
 
 ## Výsledek
 
-Doplní Antigravity nebo Copilot.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_instruments/views/instrument_views.xml`, `addons/custom/investra_nav/views/nav_views.xml`, `addons/custom/investra_posting/views/posting_views.xml`, `addons/custom/investra_entity/views/entity_views.xml` a tento soubor (jen sekce Výsledek).
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; XML parser — všechny čtyři soubory `XML OK`; `grep -c 'o_view_nocontent_smiling_face' ...` — 2, 3 a 1; `grep -rn "menu_valuation_section" addons/custom` po změně — bez výstupu (návratový kód 1, očekávaný při nulových shodách). Strom nabídky obsahuje `Ocenění (10) investra_nav.menu_valuation` přímo pod Investra, Kurzy měn jsou mimo tuto nabídku a poslední řádek je `Bez rodiče: žádné`. `git diff --check` — bez chyb; finální `git diff --stat HEAD` ověřil čtyři XML soubory a toto zadání.
+- **Neověřeno:** vzhled nápověd a nabídky v běžícím Odoo; aktualizace modulů a Odoo testy. Docker ani databáze nebyly spuštěny.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 

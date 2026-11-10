@@ -226,6 +226,10 @@
         <field name="res_model">investra.valuation</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_valuation_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádné ocenění</p>
+            <p>Ocenění fondu k datu. Připravovatel založí ocenění, stiskne Spočítat a po kontrolách ho odešle ke schválení; zaúčtovat lze jen ocenění schválené druhou osobou.</p>
+        </field>
     </record>
     <record id="view_fee_rule_form" model="ir.ui.view">
         <field name="name">investra.fee.rule.form</field>
@@ -317,6 +321,10 @@
     <record id="action_movement" model="ir.actions.act_window">
         <field name="name">Úpisy a odkupy</field><field name="res_model">investra.class.movement</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_movement_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádný úpis ani odkup</p>
+            <p>Pohyby kapitálu a kusů tříd fondu. Dokud nepřicházejí z IS, zadávají se ručně; zaúčtují se jako účetní událost a vstupují do dalšího ocenění.</p>
+        </field>
     </record>
     <record id="view_instrument_form_schedule" model="ir.ui.view">
         <field name="name">investra.instrument.form.schedule</field><field name="model">investra.instrument</field>
@@ -366,9 +374,13 @@
     <record id="action_repayment" model="ir.actions.act_window">
         <field name="name">Splátky nástrojů</field><field name="res_model">investra.instrument.repayment</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_repayment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádná splátka</p>
+            <p>Skutečné splátky nástrojů oceňovaných naběhlou hodnotou, například úvěru nebo termínovaného vkladu. Splátka vytvoří účetní událost; rozdíl proti očekávané splátce doúčtuje ocenění.</p>
+        </field>
     </record>
     <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="30"/>
-    <menuitem id="menu_valuation" name="Ocenění" parent="investra_entity.menu_valuation_section" action="action_valuation" sequence="10"/>
+    <menuitem id="menu_valuation" name="Ocenění" parent="investra_entity.menu_root" action="action_valuation" sequence="10"/>
     <menuitem id="menu_movement" name="Úpisy a odkupy" parent="investra_entity.menu_root" action="action_movement" sequence="30"/>
     <menuitem id="menu_fee_rule" name="Pravidla úplat" parent="investra_entity.menu_setup_funds" action="action_fee_rule" sequence="30"/>
 </odoo>
