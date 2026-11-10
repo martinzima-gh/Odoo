@@ -145,6 +145,10 @@
                     <div class="alert alert-warning" role="alert" invisible="state not in ('returned', 'reversed')">
                         <strong>Ocenění je vrácené, platí jeho další verze.</strong> Důvod: <field name="return_reason" readonly="1"/>
                     </div>
+                    <field name="package_ok" invisible="1"/>
+                    <div class="alert alert-danger" role="alert" invisible="package_ok">
+                        <strong>Balíček pro depozitáře neodpovídá souboru, který systém sestavil.</strong> Sestavte balíček znovu a zjistěte, kdo přílohu změnil.
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="fund_id" readonly="state != 'draft'"/>
@@ -162,7 +166,9 @@
                             <field name="fund_capital"/>
                             <field name="neutral_capital"/>
                             <field name="currency_id" invisible="1"/>
-                            <field name="package_id"/>
+                            <field name="package_name" invisible="1"/>
+                            <field name="package_file" filename="package_name" readonly="1" invisible="not package_id"/>
+                            <field name="package_id" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -203,7 +209,9 @@
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
                             <div class="alert alert-warning" role="alert">Výjimka: úplata spočtená mimo Odoo. Každý řádek potřebuje důvod a přílohu s výpočtem. Částka vstoupí do ocenění jako úplata a zaúčtuje se s oceněním po schválení.</div>
                             <field name="external_fee_ids"><list editable="bottom">
-                            <field name="rule_id"/><field name="class_id"/><field name="amount"/><field name="reason"/><field name="attachment_id"/>
+                            <field name="rule_id"/><field name="class_id"/><field name="amount"/><field name="reason"/>
+                            <field name="document_name" column_invisible="1"/>
+                            <field name="document" filename="document_name"/>
                         </list></field></page>
                         <page string="Kontroly"><field name="check_ids"><list><field name="name"/><field name="status"/><field name="detail"/></list></field></page>
                         <page string="Schválení"><field name="approval_ids"><list><field name="name"/><field name="user_id"/><field name="approved_at"/></list></field></page>

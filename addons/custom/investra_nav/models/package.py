@@ -2,7 +2,7 @@ import io
 
 import xlsxwriter
 
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 PORTFOLIO_COLUMNS = [
@@ -18,6 +18,17 @@ class InvestraValuation(models.Model):
     _inherit = "investra.valuation"
 
     package_id = fields.Many2one("ir.attachment", readonly=True, string="Balíček pro depozitáře")
+    # Otisk souboru při sestavení: ocenění pozná, kdyby příloha neodpovídala tomu, co systém vytvořil.
+    package_checksum = fields.Char(readonly=True, string="Otisk balíčku")
+    package_file = fields.Binary(related="package_id.raw", string="Balíček pro depozitáře")
+    package_name = fields.Char(related="package_id.name", string="Soubor balíčku")
+    package_ok = fields.Boolean(compute="_compute_package_ok", string="Balíček odpovídá otisku")
+
+    @api.depends("package_id", "package_checksum")
+    def _compute_package_ok(self):
+        for record in self:
+            stored = record.package_checksum
+            record.package_ok = not stored or record.package_id.sudo().checksum == stored
 
     def _package_rows_portfolio(self):
         kinds = dict(self.env["investra.valuation.portfolio"]._fields["kind"].selection)
@@ -179,5 +190,5 @@ class InvestraValuation(models.Model):
             "res_model": "investra.valuation",
             "res_id": record.id,
         })
-        record.package_id = attachment
+        record.write({"package_id": attachment.id, "package_checksum": attachment.checksum})
         return attachment

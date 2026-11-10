@@ -18,7 +18,7 @@ PRICE_ROUNDING = {"down": ROUND_DOWN, "half_up": ROUND_HALF_UP, "up": ROUND_UP}
 SYSTEM_FIELDS = {
     "state", "previous_id", "preparer_id", "fund_capital", "neutral_capital", "class_line_ids", "fee_line_ids",
     "portfolio_line_ids", "check_ids", "approval_ids", "event_ids", "snapshot", "snapshot_hash", "return_reason",
-    "published_at", "package_id",
+    "published_at", "package_id", "package_checksum",
 }
 
 
@@ -1072,6 +1072,50 @@ class InvestraValuationExternal(models.Model):
     amount = fields.Float(digits=(20, 2), required=True)
     reason = fields.Char(string="Důvod a postup")
     attachment_id = fields.Many2one("ir.attachment", string="Výpočet", ondelete="restrict")
+    # Nahrání souboru přímo v řádku; ukládá se jako příloha ocenění do attachment_id.
+    document = fields.Binary(string="Soubor s výpočtem", compute="_compute_document", inverse="_inverse_document")
+    document_name = fields.Char(string="Název souboru", compute="_compute_document", inverse="_inverse_document")
+
+    @api.depends("attachment_id")
+    def _compute_document(self):
+        # Odoo 20 drží obsah přílohy v poli raw; hodnota binárního pole je objekt s obsahem a názvem.
+        for row in self:
+            attachment = row.attachment_id.sudo()
+            row.document = attachment.raw
+            row.document_name = attachment.name
+
+    def _inverse_document(self):
+        for row in self:
+            if not row.document:
+                continue
+            content = row.document.content
+            if row.attachment_id and row.attachment_id.sudo().raw.content == content:
+                continue
+            attachment = self.env["ir.attachment"].create({
+                "name": row.document_name or "vypocet",
+                "raw": content,
+                "res_model": "investra.valuation",
+                "res_id": row.valuation_id.id,
+            })
+            row.attachment_id = attachment
+
+    def _check_open(self):
+        if not self.env.su and self.valuation_id.filtered(lambda v: v.state not in ("draft", "computed")):
+            raise UserError(self.env._("Ručně doložené úplaty po odeslání ke schválení nejde měnit."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._check_open()
+        return records
+
+    def write(self, vals):
+        self._check_open()
+        return super().write(vals)
+
+    def unlink(self):
+        self._check_open()
+        return super().unlink()
 
 
 class InvestraValuationPortfolio(models.Model):
