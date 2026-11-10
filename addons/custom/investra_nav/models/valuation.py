@@ -39,10 +39,10 @@ class InvestraFundApprovalStep(models.Model):
     _description = "Krok schválení"
     _order = "fund_id, sequence"
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="cascade")
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="cascade", string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    sequence = fields.Integer(default=10)
-    name = fields.Char(required=True)
+    sequence = fields.Integer(default=10, string="Pořadí")
+    name = fields.Char(required=True, string="Název kroku")
 
 
 class InvestraValuation(models.Model):
@@ -57,11 +57,11 @@ class InvestraValuation(models.Model):
     # Ocenění nemá vlastní název; hledání podle názvu (např. ve výběru) hledá podle fondu.
     _rec_names_search = ["fund_id"]
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     currency_id = fields.Many2one(related="fund_id.currency_id")
-    date = fields.Date(required=True)
-    version = fields.Integer(default=1, required=True, readonly=True)
+    date = fields.Date(required=True, string="Datum ocenění")
+    version = fields.Integer(default=1, required=True, readonly=True, string="Verze")
     state = fields.Selection(
         [
             ("draft", "Návrh"),
@@ -78,22 +78,23 @@ class InvestraValuation(models.Model):
         default="draft",
         required=True,
         readonly=True,
+        string="Stav",
     )
     previous_id = fields.Many2one("investra.valuation", readonly=True, string="Předchozí ocenění")
-    preparer_id = fields.Many2one("res.users", readonly=True)
+    preparer_id = fields.Many2one("res.users", readonly=True, string="Zadal")
     fund_capital = fields.Monetary(readonly=True, string="FK")
     neutral_capital = fields.Monetary(readonly=True, string="NFK")
-    class_line_ids = fields.One2many("investra.valuation.class", "valuation_id", readonly=True)
-    fee_line_ids = fields.One2many("investra.valuation.fee", "valuation_id", readonly=True)
-    portfolio_line_ids = fields.One2many("investra.valuation.portfolio", "valuation_id", readonly=True)
-    check_ids = fields.One2many("investra.valuation.check", "valuation_id", readonly=True)
-    approval_ids = fields.One2many("investra.valuation.approval", "valuation_id", readonly=True)
-    external_fee_ids = fields.One2many("investra.valuation.external", "valuation_id")
+    class_line_ids = fields.One2many("investra.valuation.class", "valuation_id", readonly=True, string="Třídy")
+    fee_line_ids = fields.One2many("investra.valuation.fee", "valuation_id", readonly=True, string="Úplaty")
+    portfolio_line_ids = fields.One2many("investra.valuation.portfolio", "valuation_id", readonly=True, string="Portfolio")
+    check_ids = fields.One2many("investra.valuation.check", "valuation_id", readonly=True, string="Kontroly")
+    approval_ids = fields.One2many("investra.valuation.approval", "valuation_id", readonly=True, string="Schválení")
+    external_fee_ids = fields.One2many("investra.valuation.external", "valuation_id", string="Ručně doložené úplaty")
     event_ids = fields.Many2many("investra.accounting.event", readonly=True, string="Doklady")
     snapshot = fields.Text(readonly=True, string="Snímek")
-    snapshot_hash = fields.Char(readonly=True)
-    return_reason = fields.Text(readonly=True)
-    published_at = fields.Datetime(readonly=True)
+    snapshot_hash = fields.Char(readonly=True, string="Otisk snímku")
+    return_reason = fields.Text(readonly=True, string="Důvod vrácení")
+    published_at = fields.Datetime(readonly=True, string="Zveřejněno")
 
     _uniq = models.Constraint("unique(fund_id, date, version)", "Verze ocenění k datu už existuje.")
 
@@ -1013,19 +1014,19 @@ class InvestraValuationClass(models.Model):
     _name = "investra.valuation.class"
     _description = "Výsledek třídy"
 
-    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True)
+    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
-    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict")
+    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict", string="Třída")
     pre_capital = fields.Float(digits=(20, 2), string="Předběžný kapitál")
     ratio = fields.Float(digits=(16, 12), string="Alokační poměr")
     delta = fields.Float(digits=(20, 2), string="Specifická změna")
     capital = fields.Float(digits=(20, 2), string="Kapitál třídy")
     units = fields.Float(digits=(20, 6), string="Kusy")
     price = fields.Char(string="Kurz")
-    perf_reference = fields.Float(digits=(20, 8))
-    perf_hwm = fields.Float(digits=(20, 8))
-    perf_accrued = fields.Float(digits=(20, 2))
-    perf_base_date = fields.Date()
+    perf_reference = fields.Float(digits=(20, 8), string="Srovnávací hodnota odměny")
+    perf_hwm = fields.Float(digits=(20, 8), string="High-water mark")
+    perf_accrued = fields.Float(digits=(20, 2), string="Naběhlá odměna")
+    perf_base_date = fields.Date(string="Začátek období odměny")
 
     # Přemostění od minulého ocenění (plní výpočet, rozhodnutí 2026-11-10 „Přemostění kapitálu tříd“).
     # Částky ve funkční měně fondu, odkupy a dividendy kladně (odčítají se). Ocenění před zavedením mají 0.
@@ -1065,12 +1066,12 @@ class InvestraValuationFee(models.Model):
     _name = "investra.valuation.fee"
     _description = "Rozpis úplaty"
 
-    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True)
+    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
-    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="restrict")
-    class_id = fields.Many2one("investra.fund.class", ondelete="restrict")
-    amount = fields.Float(digits=(20, 2))
-    detail = fields.Text()
+    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="restrict", string="Pravidlo")
+    class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída")
+    amount = fields.Float(digits=(20, 2), string="Částka")
+    detail = fields.Text(string="Výpočet")
 
 
 class InvestraValuationExternal(models.Model):
@@ -1081,11 +1082,11 @@ class InvestraValuationExternal(models.Model):
     _description = "Částka spočtená mimo Odoo"
     _book_fields = ("valuation_id",)
 
-    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True)
+    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
-    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="restrict", domain=[("kind", "=", "external")])
-    class_id = fields.Many2one("investra.fund.class", ondelete="restrict")
-    amount = fields.Float(digits=(20, 2), required=True)
+    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="restrict", domain=[("kind", "=", "external")], string="Pravidlo")
+    class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída")
+    amount = fields.Float(digits=(20, 2), required=True, string="Částka")
     reason = fields.Char(string="Důvod a postup")
     attachment_id = fields.Many2one("ir.attachment", string="Výpočet", ondelete="restrict")
     # Nahrání souboru přímo v řádku; ukládá se jako příloha ocenění do attachment_id.
@@ -1141,17 +1142,18 @@ class InvestraValuationPortfolio(models.Model):
     _description = "Řádek portfolia"
     _order = "kind, name"
 
-    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True)
+    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
     kind = fields.Selection(
         [("bank", "Bankovní účet"), ("deposit", "Termínovaný vklad"), ("equity", "Akcie"), ("bond", "Dluhopis"),
          ("fund", "Fond"), ("participation", "Účast"), ("loan", "Úvěr"), ("derivative", "Derivát"), ("repo", "Repo"), ("other_holding", "Ostatní podíl")],
         required=True,
+        string="Druh",
     )
-    instrument_id = fields.Many2one("investra.instrument", ondelete="restrict")
-    name = fields.Char(required=True)
+    instrument_id = fields.Many2one("investra.instrument", ondelete="restrict", string="Nástroj")
+    name = fields.Char(required=True, string="Název")
     isin = fields.Char(string="ISIN")
-    currency_id = fields.Many2one("res.currency", required=True)
+    currency_id = fields.Many2one("res.currency", required=True, string="Měna")
     quantity = fields.Float(digits=(20, 6), string="Kusy")
     price = fields.Float(digits=(20, 8), string="Cena")
     price_source = fields.Char(string="Zdroj ceny")
@@ -1167,12 +1169,12 @@ class InvestraValuationCheck(models.Model):
     _name = "investra.valuation.check"
     _description = "Kontrola ocenění"
 
-    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True)
+    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
-    code = fields.Char(required=True)
-    name = fields.Char(required=True)
-    status = fields.Selection([("ok", "V pořádku"), ("warning", "Upozornění"), ("stop", "Stop")], required=True)
-    detail = fields.Char()
+    code = fields.Char(required=True, string="Kód")
+    name = fields.Char(required=True, string="Kontrola")
+    status = fields.Selection([("ok", "V pořádku"), ("warning", "Upozornění"), ("stop", "Stop")], required=True, string="Výsledek")
+    detail = fields.Char(string="Podrobnosti")
 
 
 class InvestraValuationApproval(models.Model):
@@ -1180,12 +1182,12 @@ class InvestraValuationApproval(models.Model):
     _description = "Schválení ocenění"
     _order = "valuation_id, sequence"
 
-    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True)
+    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
-    sequence = fields.Integer(required=True)
-    name = fields.Char(required=True)
-    user_id = fields.Many2one("res.users", readonly=True)
-    approved_at = fields.Datetime(readonly=True)
+    sequence = fields.Integer(required=True, string="Pořadí")
+    name = fields.Char(required=True, string="Krok")
+    user_id = fields.Many2one("res.users", readonly=True, string="Schválil")
+    approved_at = fields.Datetime(readonly=True, string="Schváleno dne")
 
 
 class InvestraRate(models.Model):

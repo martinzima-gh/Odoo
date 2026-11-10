@@ -28,17 +28,17 @@ class InvestraClassMovement(models.Model):
     _book_fields = ("class_id",)
     _system_fields = frozenset({"event_id"})
 
-    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict", index=True)
+    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict", index=True, string="Třída")
     fund_id = fields.Many2one(related="class_id.fund_id", store=True, index=True)
     company_id = fields.Many2one(related="class_id.company_id", store=True, index=True)
-    date = fields.Date(required=True)
-    movement_type = fields.Selection([("subscription", "Úpis"), ("redemption", "Odkup")], required=True)
+    date = fields.Date(required=True, string="Datum")
+    movement_type = fields.Selection([("subscription", "Úpis"), ("redemption", "Odkup")], required=True, string="Typ")
     currency_id = fields.Many2one(related="class_id.currency_id", string="Měna kurzu")
     amount_class = fields.Float(digits=(20, 2), string="Částka v měně kurzu", help="U třídy v jiné než funkční měně je to částka úpisu nebo odkupu.")
     fx_rate = fields.Float(digits=(16, 6), string="Kurz", help="Funkční měna za jednotku měny kurzu; bez zadání platí vyhlášený kurz k datu.")
     amount = fields.Float(digits=(20, 2), string="Částka ve funkční měně")
-    units = fields.Float(digits=(20, 6), required=True)
-    event_id = fields.Many2one("investra.accounting.event", readonly=True)
+    units = fields.Float(digits=(20, 6), required=True, string="Kusy")
+    event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
 
     @api.model_create_multi
     def create(self, vals_list):

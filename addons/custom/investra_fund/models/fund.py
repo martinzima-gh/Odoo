@@ -12,7 +12,7 @@ class InvestraFund(models.Model):
     _check_company_auto = True
 
     name = fields.Char(related="entity_id.name", store=True)
-    entity_id = fields.Many2one("investra.entity", required=True, ondelete="restrict")
+    entity_id = fields.Many2one("investra.entity", required=True, ondelete="restrict", string="Účetní kniha")
     company_id = fields.Many2one(related="entity_id.company_id", store=True, index=True)
     currency_id = fields.Many2one(related="entity_id.currency_id")
     class_ids = fields.One2many("investra.fund.class", "fund_id", string="Třídy")
@@ -20,6 +20,7 @@ class InvestraFund(models.Model):
         [("daily", "Denně"), ("weekly", "Týdně"), ("monthly", "Měsíčně"), ("quarterly", "Čtvrtletně"), ("yearly", "Ročně")],
         required=True,
         default="monthly",
+        string="Frekvence ocenění",
     )
     second_person_required = fields.Boolean(default=True, string="Kontrola druhou osobou")
     price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
@@ -60,19 +61,19 @@ class InvestraFundClass(models.Model):
     _description = "Třída fondu"
     _order = "fund_id, sequence, code"
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    code = fields.Char(required=True)
-    name = fields.Char(required=True)
-    sequence = fields.Integer(default=10)
-    active = fields.Boolean(default=True)
+    code = fields.Char(required=True, string="Kód")
+    name = fields.Char(required=True, string="Název")
+    sequence = fields.Integer(default=10, string="Pořadí")
+    active = fields.Boolean(default=True, string="Aktivní")
     currency_id = fields.Many2one(
         "res.currency", required=True, string="Měna zveřejnění kurzu", help="V této měně se zveřejňuje kurz a probíhají úpisy a odkupy. NAV fondu a kapitál třídy zůstávají ve funkční měně."
     )
     isin = fields.Char(string="ISIN")
     price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Bez zadání platí hodnota fondu.")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kurzu", help="Bez zadání platí hodnota fondu.")
-    distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True)
+    distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True, string="Rozdělování výnosu")
 
     _fund_code_uniq = models.Constraint("unique(fund_id, code)", "Kód třídy musí být ve fondu jedinečný.")
 
@@ -101,9 +102,9 @@ class InvestraValuationCalendar(models.Model):
     _description = "Plánované ocenění"
     _order = "date"
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="cascade", index=True)
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="cascade", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    date = fields.Date(required=True)
+    date = fields.Date(required=True, string="Datum ocenění")
     published_on = fields.Date(string="Plánované zveřejnění")
 
     _fund_date_uniq = models.Constraint("unique(fund_id, date)", "Datum ocenění je v kalendáři už uvedené.")

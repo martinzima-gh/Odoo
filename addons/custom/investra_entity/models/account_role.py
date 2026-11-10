@@ -9,8 +9,8 @@ class InvestraAccountRole(models.Model):
     _description = "Role účtu"
     _order = "code"
 
-    code = fields.Char(required=True)
-    name = fields.Char(required=True)
+    code = fields.Char(required=True, string="Kód")
+    name = fields.Char(required=True, string="Název")
     category = fields.Selection(
         [
             ("asset", "Aktivum"),
@@ -20,8 +20,9 @@ class InvestraAccountRole(models.Model):
             ("expense", "Náklad"),
         ],
         required=True,
+        string="Druh",
     )
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string="Aktivní")
 
     _code_uniq = models.Constraint("unique(code)", "Kód role musí být jedinečný.")
 
@@ -41,9 +42,9 @@ class InvestraRoleAccount(models.Model):
     _description = "Účet role v knize"
     _check_company_auto = True
 
-    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company)
-    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict")
-    account_id = fields.Many2one("account.account", required=True, ondelete="restrict", check_company=True)
+    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, string="Kniha")
+    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Role")
+    account_id = fields.Many2one("account.account", required=True, ondelete="restrict", check_company=True, string="Účet")
 
     _company_role_uniq = models.Constraint(
         "unique(company_id, role_id)", "Role může mít v knize jen jeden účet."

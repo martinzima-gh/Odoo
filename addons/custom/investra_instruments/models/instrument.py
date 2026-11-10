@@ -26,9 +26,9 @@ class InvestraInstrumentType(models.Model):
     _description = "Typ nástroje"
     _order = "group, name"
 
-    code = fields.Char(required=True)
-    name = fields.Char(required=True)
-    active = fields.Boolean(default=True)
+    code = fields.Char(required=True, string="Kód")
+    name = fields.Char(required=True, string="Název")
+    active = fields.Boolean(default=True, string="Aktivní")
     group = fields.Selection(
         [("listed", "Kótované"), ("debt", "Dluhové"), ("money_market", "Peněžní trh"), ("loan", "Úvěry a účasti"), ("derivative", "Deriváty"),
          ("other_holding", "Ostatní podíly")],
@@ -55,9 +55,9 @@ class InvestraInstrument(models.Model):
     _description = "Nástroj"
     _order = "name"
 
-    name = fields.Char(required=True)
+    name = fields.Char(required=True, string="Název")
     isin = fields.Char(string="ISIN")
-    currency_id = fields.Many2one("res.currency", required=True)
+    currency_id = fields.Many2one("res.currency", required=True, string="Měna")
     type_id = fields.Many2one("investra.instrument.type", required=True, ondelete="restrict", string="Typ", tracking=True)
     type_group = fields.Selection(related="type_id.group", string="Skupina")
     ifrs9_category = fields.Selection(IFRS9_CATEGORY, required=True, string="Kategorie IFRS 9", tracking=True)
@@ -156,7 +156,7 @@ class InvestraInstrumentCashflow(models.Model):
     _description = "Smluvní peněžní tok nástroje"
     _order = "date, id"
 
-    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="cascade", index=True)
+    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="cascade", index=True, string="Nástroj")
     date = fields.Date(required=True, string="Datum")
     amount = fields.Float(required=True, digits=(20, 8), string="Částka na jednotku")
     flow_type = fields.Selection([("interest", "Úrok"), ("principal", "Jistina")], required=True, default="principal", string="Druh")
@@ -172,15 +172,15 @@ class InvestraInstrumentPrice(models.Model):
     _book_fields = ("fund_id",)
     _system_fields = SYSTEM_PRICE_FIELDS
 
-    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", index=True)
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
+    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", index=True, string="Nástroj")
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    date = fields.Date(required=True)
-    price = fields.Float(required=True, digits=(20, 8))
+    date = fields.Date(required=True, string="Datum")
+    price = fields.Float(required=True, digits=(20, 8), string="Cena")
     source = fields.Char(required=True, string="Zdroj")
-    state = fields.Selection([("draft", "Návrh"), ("approved", "Schváleno")], default="draft", required=True, readonly=True)
-    entered_by = fields.Many2one("res.users", default=lambda self: self.env.user, readonly=True)
-    approved_by = fields.Many2one("res.users", readonly=True)
+    state = fields.Selection([("draft", "Návrh"), ("approved", "Schváleno")], default="draft", required=True, readonly=True, string="Stav")
+    entered_by = fields.Many2one("res.users", default=lambda self: self.env.user, readonly=True, string="Zadal")
+    approved_by = fields.Many2one("res.users", readonly=True, string="Schválil")
 
     _uniq = models.Constraint("unique(fund_id, instrument_id, date)", "Cena nástroje k datu už existuje.")
 
@@ -227,21 +227,21 @@ class InvestraTrade(models.Model):
     _book_fields = ("fund_id",)
     _system_fields = SYSTEM_TRADE_FIELDS
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict")
-    trade_date = fields.Date(required=True)
-    settlement_date = fields.Date()
-    quantity = fields.Float(required=True, digits=(20, 6), help="Kladně nákup, záporně prodej.")
-    price = fields.Float(required=True, digits=(20, 8))
-    fx_rate = fields.Float(default=1, digits=(16, 6), required=True, help="Funkční měna za jednotku měny nástroje.")
-    settlement_fx_rate = fields.Float(digits=(16, 6), help="Kurz platby; bez zadání platí kurz obchodu.")
+    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", string="Nástroj")
+    trade_date = fields.Date(required=True, string="Datum sjednání")
+    settlement_date = fields.Date(string="Datum vypořádání")
+    quantity = fields.Float(required=True, digits=(20, 6), help="Kladně nákup, záporně prodej.", string="Množství")
+    price = fields.Float(required=True, digits=(20, 8), string="Cena")
+    fx_rate = fields.Float(default=1, digits=(16, 6), required=True, help="Funkční měna za jednotku měny nástroje.", string="Kurz")
+    settlement_fx_rate = fields.Float(digits=(16, 6), help="Kurz platby; bez zadání platí kurz obchodu.", string="Kurz vypořádání")
     state = fields.Selection(
         [("draft", "Návrh"), ("unsettled", "Sjednáno, nevypořádáno"), ("settled", "Vypořádáno")],
         required=True, default="draft", readonly=True, string="Stav",
     )
-    event_id = fields.Many2one("investra.accounting.event", readonly=True)
-    settlement_event_id = fields.Many2one("investra.accounting.event", readonly=True)
+    event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
+    settlement_event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Událost vypořádání")
 
     @api.constrains("quantity")
     def _check_quantity(self):

@@ -22,7 +22,7 @@ class InvestraValuationReturnWizard(models.TransientModel):
     _name = "investra.valuation.return.wizard"
     _description = "Vrácení ocenění"
 
-    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade")
+    valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", string="Ocenění")
     mode = fields.Selection(MODES, required=True, string="Krok")
     effect = fields.Text(compute="_compute_effect", string="Co se stane")
     reason = fields.Text(string="Důvod", required=True)

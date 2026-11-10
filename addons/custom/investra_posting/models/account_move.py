@@ -24,7 +24,8 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     investra_event_id = fields.Many2one(
-        "investra.accounting.event", readonly=True, copy=False, index="btree_not_null", ondelete="restrict"
+        "investra.accounting.event", readonly=True, copy=False, index="btree_not_null", ondelete="restrict",
+        string="Účetní událost Investra",
     )
     investra_locked = fields.Boolean(readonly=True, copy=False, string="Zamčený návrh")
 

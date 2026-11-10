@@ -14,8 +14,8 @@ class InvestraEsaSector(models.Model):
     _description = "Sektor ESA 2010"
     _order = "code"
 
-    code = fields.Char(required=True)
-    name = fields.Char(required=True)
+    code = fields.Char(required=True, string="Kód")
+    name = fields.Char(required=True, string="Název")
 
     _code_uniq = models.Constraint("unique(code)", "Kód sektoru musí být jedinečný.")
 

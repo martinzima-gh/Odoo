@@ -15,7 +15,7 @@ class InvestraEntity(models.Model):
     _order = "name"
 
     name = fields.Char(related="company_id.name", store=True)
-    company_id = fields.Many2one("res.company", required=True, ondelete="restrict")
+    company_id = fields.Many2one("res.company", required=True, ondelete="restrict", string="Společnost")
     currency_id = fields.Many2one(related="company_id.currency_id", string="Funkční měna")
     entity_type = fields.Selection(
         [
@@ -26,6 +26,7 @@ class InvestraEntity(models.Model):
             ("subfund", "Podfond"),
         ],
         required=True,
+        string="Druh jednotky",
     )
     framework = fields.Selection(
         [
@@ -36,7 +37,7 @@ class InvestraEntity(models.Model):
         required=True,
         string="Účetní rámec",
     )
-    rate_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb")
+    rate_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb", string="Zdroj kurzů")
     parent_id = fields.Many2one("investra.entity", string="Nadřazená kniha", ondelete="restrict")
     founder_id = fields.Many2one("res.partner", string="Zakladatel")
 

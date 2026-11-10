@@ -11,9 +11,9 @@ class InvestraFxProfile(models.Model):
     _description = "Profil přecenění cizích měn"
     _check_company_auto = True
 
-    name = fields.Char(required=True)
-    active = fields.Boolean(default=True)
-    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company)
+    name = fields.Char(required=True, string="Název")
+    active = fields.Boolean(default=True, string="Aktivní")
+    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, string="Společnost")
     account_ids = fields.Many2many("account.account", string="Přeceňované účty", check_company=True)
     gain_account_id = fields.Many2one("account.account", string="Účet zisku z přecenění", check_company=True, ondelete="restrict")
     loss_account_id = fields.Many2one("account.account", string="Účet ztráty z přecenění", check_company=True, ondelete="restrict")
@@ -45,7 +45,7 @@ class InvestraFxRun(models.Model):
     _check_company_auto = True
 
     profile_id = fields.Many2one("investra.fx.profile", required=True, ondelete="restrict", string="Profil", check_company=True)
-    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, string="Společnost")
     date = fields.Date(required=True, string="Datum přecenění")
     line_ids = fields.One2many("investra.fx.run.line", "run_id", string="Rozpis", readonly=True)
     move_id = fields.Many2one("account.move", readonly=True, string="Návrh dokladu", check_company=True, ondelete="set null")
@@ -157,7 +157,7 @@ class InvestraFxRunLine(models.Model):
     _name = "investra.fx.run.line"
     _description = "Rozpis přecenění"
 
-    run_id = fields.Many2one("investra.fx.run", required=True, ondelete="cascade", index=True)
+    run_id = fields.Many2one("investra.fx.run", required=True, ondelete="cascade", index=True, string="Přecenění")
     company_currency_id = fields.Many2one(related="run_id.currency_id")
     account_id = fields.Many2one("account.account", required=True, ondelete="restrict", string="Účet")
     partner_id = fields.Many2one("res.partner", ondelete="restrict", string="Partner")

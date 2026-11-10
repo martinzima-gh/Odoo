@@ -72,7 +72,7 @@ class InvestraInstrumentRepayment(models.Model):
     date = fields.Date(required=True, string="Datum")
     amount = fields.Float(required=True, digits=(20, 2), string="Částka v měně nástroje")
     fx_rate = fields.Float(required=True, default=1, digits=(16, 6), string="Kurz")
-    event_id = fields.Many2one("investra.accounting.event", readonly=True)
+    event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
 
     @api.constrains("amount", "instrument_id")
     def _check_repayment(self):

@@ -13,10 +13,10 @@ class InvestraAllocationScheme(models.Model):
     _description = "Alokační schéma"
     _order = "fund_id, valid_from desc"
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    valid_from = fields.Date(required=True)
-    method = fields.Selection([("proportional", "Alokační poměr"), ("waterfall", "Pořadí nároků")], required=True, default="proportional")
+    valid_from = fields.Date(required=True, string="Platí od")
+    method = fields.Selection([("proportional", "Alokační poměr"), ("waterfall", "Pořadí nároků")], required=True, default="proportional", string="Metoda rozdělení")
     statute_ref = fields.Char(string="Článek statutu")
     line_ids = fields.One2many("investra.allocation.line", "scheme_id", string="Třídy")
     residual_pro_rata = fields.Float(digits=(6, 4), string="Část zbytku podle kapitálů")
@@ -33,9 +33,9 @@ class InvestraAllocationLine(models.Model):
     _description = "Nárok třídy"
     _order = "rank, id"
 
-    scheme_id = fields.Many2one("investra.allocation.scheme", required=True, ondelete="cascade")
+    scheme_id = fields.Many2one("investra.allocation.scheme", required=True, ondelete="cascade", string="Schéma")
     company_id = fields.Many2one(related="scheme_id.company_id", store=True, index=True)
-    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict")
+    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict", string="Třída")
     rank = fields.Integer(default=1, string="Pořadí nároku", help="Třídy se stejným pořadím se dělí poměrem cílů.")
     target_rate = fields.Float(digits=(8, 6), string="Cílový výnos p. a.")
     residual_share = fields.Float(digits=(6, 4), string="Podíl na zbytku")

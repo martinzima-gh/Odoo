@@ -63,13 +63,13 @@ class InvestraRate(models.Model):
     _description = "Kurz"
     _order = "date desc, source, currency_id, id desc"
 
-    source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, readonly=True)
-    date = fields.Date(required=True, readonly=True, index=True)
-    currency_id = fields.Many2one("res.currency", required=True, readonly=True, ondelete="restrict")
-    quantity = fields.Float(required=True, default=1, readonly=True, digits=(12, 0))
-    rate = fields.Float(required=True, readonly=True, digits=(16, 6), help="Základní měna zdroje za množství.")
-    fetched_at = fields.Datetime(required=True, default=fields.Datetime.now, readonly=True)
-    document_hash = fields.Char(readonly=True, help="SHA-256 staženého souboru.")
+    source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, readonly=True, string="Zdroj")
+    date = fields.Date(required=True, readonly=True, index=True, string="Datum")
+    currency_id = fields.Many2one("res.currency", required=True, readonly=True, ondelete="restrict", string="Měna")
+    quantity = fields.Float(required=True, default=1, readonly=True, digits=(12, 0), string="Množství")
+    rate = fields.Float(required=True, readonly=True, digits=(16, 6), help="Základní měna zdroje za množství.", string="Kurz")
+    fetched_at = fields.Datetime(required=True, default=fields.Datetime.now, readonly=True, string="Staženo")
+    document_hash = fields.Char(readonly=True, help="SHA-256 staženého souboru.", string="Otisk souboru")
     origin = fields.Selection(
         [("published", "Vyhlášený"), ("override", "Ruční přepis"), ("manual", "Ruční kurz")],
         required=True, default="published", readonly=True, string="Druh",

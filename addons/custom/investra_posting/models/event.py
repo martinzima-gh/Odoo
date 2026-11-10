@@ -28,14 +28,14 @@ class InvestraAccountingEvent(models.Model):
     _description = "Účetní událost"
     _order = "date desc, id desc"
 
-    name = fields.Char(required=True, readonly=True)
-    company_id = fields.Many2one("res.company", required=True, readonly=True, index=True)
-    date = fields.Date(required=True, readonly=True)
-    event_type = fields.Char(required=True, readonly=True)
-    key = fields.Char(required=True, readonly=True, help="Klíč proti dvojímu zaúčtování.")
-    fingerprint = fields.Char(required=True, readonly=True)
-    move_id = fields.Many2one("account.move", readonly=True, ondelete="restrict")
-    reversal_move_id = fields.Many2one("account.move", readonly=True, ondelete="restrict")
+    name = fields.Char(required=True, readonly=True, string="Název")
+    company_id = fields.Many2one("res.company", required=True, readonly=True, index=True, string="Společnost")
+    date = fields.Date(required=True, readonly=True, string="Datum")
+    event_type = fields.Char(required=True, readonly=True, string="Druh události")
+    key = fields.Char(required=True, readonly=True, help="Klíč proti dvojímu zaúčtování.", string="Klíč")
+    fingerprint = fields.Char(required=True, readonly=True, string="Otisk")
+    move_id = fields.Many2one("account.move", readonly=True, ondelete="restrict", string="Doklad")
+    reversal_move_id = fields.Many2one("account.move", readonly=True, ondelete="restrict", string="Storno doklad")
     state = fields.Selection(
         [
             ("draft", "Návrh"),
@@ -47,6 +47,7 @@ class InvestraAccountingEvent(models.Model):
         default="draft",
         required=True,
         readonly=True,
+        string="Stav",
     )
 
     _company_key_uniq = models.Constraint("unique(company_id, key)", "Událost s tímto klíčem už existuje.")

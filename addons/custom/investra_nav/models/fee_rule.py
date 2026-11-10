@@ -17,11 +17,11 @@ class InvestraFeeRule(models.Model):
     _description = "Pravidlo úplaty"
     _order = "fund_id, sequence, id"
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True)
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    name = fields.Char(required=True)
-    sequence = fields.Integer(default=10, help="Pořadí výpočtu podle statutu.")
-    active = fields.Boolean(default=True)
+    name = fields.Char(required=True, string="Název")
+    sequence = fields.Integer(default=10, help="Pořadí výpočtu podle statutu.", string="Pořadí")
+    active = fields.Boolean(default=True, string="Aktivní")
     statute_ref = fields.Char(string="Článek statutu")
     kind = fields.Selection(
         [
@@ -32,6 +32,7 @@ class InvestraFeeRule(models.Model):
         ],
         required=True,
         default="periodic",
+        string="Druh",
     )
     basis = fields.Selection(
         [
@@ -56,10 +57,11 @@ class InvestraFeeRule(models.Model):
         ],
         required=True,
         default="fk",
+        string="Základ",
     )
-    base_mode = fields.Selection([("before", "Před úplatou"), ("after", "Po úplatě")], required=True, default="before")
+    base_mode = fields.Selection([("before", "Před úplatou"), ("after", "Po úplatě")], required=True, default="before", string="Základ před/po úplatě")
     class_ids = fields.Many2many("investra.fund.class", string="Platí třídy", help="Prázdné znamená společný náklad.")
-    expense_role = fields.Selection(EXPENSE_ROLES, default="expense_other", required=True)
+    expense_role = fields.Selection(EXPENSE_ROLES, default="expense_other", required=True, string="Nákladová role")
     recipient_share = fields.Float(digits=(6, 4), default=0, string="Podíl příjemcům z tříd")
     recipient_class_ids = fields.Many2many(
         "investra.fund.class", "investra_fee_rule_recipient_rel", "rule_id", "class_id", string="Přijímající třídy",
@@ -73,6 +75,7 @@ class InvestraFeeRule(models.Model):
         [("none", "Nekrystalizuje"), ("month", "Měsíčně"), ("quarter", "Čtvrtletně"), ("year", "Ročně")],
         required=True,
         default="year",
+        string="Krystalizace",
     )
     version_ids = fields.One2many("investra.fee.version", "rule_id", string="Verze")
 
@@ -104,14 +107,14 @@ class InvestraFeeVersion(models.Model):
     _description = "Verze úplaty"
     _order = "rule_id, valid_from"
 
-    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="cascade", index=True)
+    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="cascade", index=True, string="Pravidlo")
     company_id = fields.Many2one(related="rule_id.company_id", store=True, index=True)
-    valid_from = fields.Date(required=True)
+    valid_from = fields.Date(required=True, string="Platí od")
     decision_ref = fields.Char(string="Rozhodnutí nebo změna statutu")
     rate = fields.Float(digits=(10, 8), string="Sazba p. a.")
     threshold = fields.Float(digits=(20, 2), string="Práh základu")
     fixed_monthly = fields.Float(digits=(20, 2), string="Pevná částka měsíčně")
-    fixed_mode = fields.Selection([("pro_rata", "Poměrně"), ("started_month", "Za každý započatý měsíc")], default="pro_rata", required=True)
+    fixed_mode = fields.Selection([("pro_rata", "Poměrně"), ("started_month", "Za každý započatý měsíc")], default="pro_rata", required=True, string="Výpočet za období")
     step_size = fields.Float(digits=(20, 2), string="Velikost pásma")
     step_amount = fields.Float(digits=(20, 2), string="Příplatek za pásmo")
     included_classes = fields.Integer(string="Tříd v ceně")
@@ -119,16 +122,16 @@ class InvestraFeeVersion(models.Model):
     min_annual = fields.Float(digits=(20, 2), string="Minimum ročně")
     max_annual = fields.Float(digits=(20, 2), string="Maximum ročně")
     tier_ids = fields.One2many("investra.fee.tier", "version_id", string="Klouzavá pásma")
-    perf_measure = fields.Selection([("capital", "Kapitál třídy"), ("unit", "Hodnota na kus")], default="capital", required=True)
+    perf_measure = fields.Selection([("capital", "Kapitál třídy"), ("unit", "Hodnota na kus")], default="capital", required=True, string="Měřítko výkonnosti")
     perf_use_hwm = fields.Boolean(default=True, string="High-water mark")
     initial_reference = fields.Float(digits=(20, 8), string="Počáteční srovnávací hodnota")
-    hurdle_kind = fields.Selection([("none", "Bez překážky"), ("fixed", "Pevná sazba"), ("index", "Index nebo benchmark")], default="none", required=True)
-    hurdle_rate = fields.Float(digits=(10, 8))
+    hurdle_kind = fields.Selection([("none", "Bez překážky"), ("fixed", "Pevná sazba"), ("index", "Index nebo benchmark")], default="none", required=True, string="Překážka (hurdle)")
+    hurdle_rate = fields.Float(digits=(10, 8), string="Sazba překážky")
     hurdle_margin = fields.Float(digits=(10, 8), string="Marže nad index")
-    hurdle_type = fields.Selection([("hard", "Tvrdá"), ("soft", "Měkká s doháněním")], default="hard", required=True)
-    catch_up = fields.Float(digits=(6, 4), default=1)
+    hurdle_type = fields.Selection([("hard", "Tvrdá"), ("soft", "Měkká s doháněním")], default="hard", required=True, string="Typ překážky")
+    catch_up = fields.Float(digits=(6, 4), default=1, string="Dohánění (catch-up)")
     hurdle_floor_zero = fields.Boolean(string="Záporný etalon počítat jako nulu")
-    benchmark_id = fields.Many2one("investra.benchmark", ondelete="restrict")
+    benchmark_id = fields.Many2one("investra.benchmark", ondelete="restrict", string="Benchmark")
     require_positive_return = fields.Boolean(string="Jen při kladném výnosu")
     probability = fields.Float(digits=(6, 4), default=1, string="Váha pravděpodobnosti dohadu")
     cap_rate = fields.Float(digits=(10, 8), string="Strop z hodnoty")
@@ -177,18 +180,18 @@ class InvestraFeeTier(models.Model):
     _description = "Klouzavé pásmo"
     _order = "amount_from"
 
-    version_id = fields.Many2one("investra.fee.version", required=True, ondelete="cascade")
+    version_id = fields.Many2one("investra.fee.version", required=True, ondelete="cascade", string="Verze pravidla")
     company_id = fields.Many2one(related="version_id.company_id", store=True, index=True)
-    amount_from = fields.Float(digits=(20, 2), required=True)
-    rate = fields.Float(digits=(10, 8), required=True)
+    amount_from = fields.Float(digits=(20, 2), required=True, string="Od částky")
+    rate = fields.Float(digits=(10, 8), required=True, string="Sazba")
 
 
 class InvestraBenchmark(models.Model):
     _name = "investra.benchmark"
     _description = "Benchmark"
 
-    name = fields.Char(required=True)
-    value_ids = fields.One2many("investra.benchmark.value", "benchmark_id")
+    name = fields.Char(required=True, string="Název")
+    value_ids = fields.One2many("investra.benchmark.value", "benchmark_id", string="Hodnoty")
 
     def _value_at(self, day):
         self.ensure_one()
@@ -203,7 +206,7 @@ class InvestraBenchmarkValue(models.Model):
     _description = "Hodnota benchmarku"
     _order = "date desc"
 
-    benchmark_id = fields.Many2one("investra.benchmark", required=True, ondelete="cascade")
-    date = fields.Date(required=True)
-    value = fields.Float(digits=(20, 8), required=True)
-    source = fields.Char()
+    benchmark_id = fields.Many2one("investra.benchmark", required=True, ondelete="cascade", string="Benchmark")
+    date = fields.Date(required=True, string="Datum")
+    value = fields.Float(digits=(20, 8), required=True, string="Hodnota")
+    source = fields.Char(string="Zdroj")

@@ -232,12 +232,34 @@ argument na existujícím řádku), kromě víceřádkových definic.
 
 ## Výsledek
 
-Doplní Antigravity nebo Copilot.
+Doplnil Copilot.
 
 - **Změněné soubory:**
+  - `addons/custom/investra_allocation/models/allocation.py`
+  - `addons/custom/investra_counterparty/models/counterparty.py`
+  - `addons/custom/investra_entity/models/account_role.py`
+  - `addons/custom/investra_entity/models/entity.py`
+  - `addons/custom/investra_fund/models/fund.py`
+  - `addons/custom/investra_fx_revaluation/models/fx_profile.py`
+  - `addons/custom/investra_instruments/models/instrument.py`
+  - `addons/custom/investra_nav/models/fee_rule.py`
+  - `addons/custom/investra_nav/models/instrument_accrual.py`
+  - `addons/custom/investra_nav/models/movement.py`
+  - `addons/custom/investra_nav/models/return_wizard.py`
+  - `addons/custom/investra_nav/models/valuation.py`
+  - `addons/custom/investra_posting/models/account_move.py`
+  - `addons/custom/investra_posting/models/event.py`
+  - `addons/custom/investra_rates/models/rate.py`
+  - tento soubor, pouze tato sekce
 - **Ověřeno (příkaz a výsledek):**
+  - `python3 -m compileall -q addons/custom && echo OK` — `OK`.
+  - Kontrola tabulky polí podle skriptu výše — `polí v tabulce: 153 nesouhlasí: 0`.
+  - `git diff --check && git diff --stat HEAD` — bez chyb; diff obsahuje pouze 15 uvedených souborů `models/*.py` a tento soubor.
+  - Porovnání AST proti `HEAD` — doplněno přesně 153 tabulkových `string=`; ostatní argumenty a netabulková pole beze změny.
 - **Neověřeno:**
+  - Testy Odoo ani chování v běžící instanci; ty provede Claude při převzetí.
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Žádné.
 
 ## Převzetí
 
