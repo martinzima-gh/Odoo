@@ -118,4 +118,16 @@ Bez chyb; mění se jen `instrument_views.xml` a tento soubor.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `1db8a4b` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `1db8a4b` do `feature/nav-prototyp` (fast-forward).
+- **Revize:** diff jen přidává 46 řádků bloku ze zadání těsně před `view_price_search`, nic neodebírá (zelená zóna).
+  Pole, stavy `draft`/`approved` a metoda `action_approve` existují na modelu `InvestraInstrumentPrice`. Nálezy: žádné.
+- **Testy:** `check_views.py` – chyb: 0; `-u investra_instruments` s jeho testy nad `investra_test` – 0 failed,
+  0 error(s) of 31 tests. Pravidla schválení kryjí existující testy modelu (mj. `test_entered_by_cannot_approve_own`,
+  `test_preparer_cannot_approve`, `test_approver_approves_foreign_price`); tlačítka v seznamu i formuláři volají
+  stejnou metodu `action_approve`.
+- **Databáze `investra_test`:** uloženy pohledy `view_price_list` (list) a `view_price_form` (form); v datech je
+  1 cena v návrhu a 10 schválených.
+- **Neověřeno:** vzhled seznamu a formuláře a schválení klikem v prohlížeči.
