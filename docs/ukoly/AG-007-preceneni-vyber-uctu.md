@@ -56,9 +56,9 @@ python3 -c "import xml.etree.ElementTree as ET; ET.parse('addons/custom/investra
 Vypíše `XML OK`.
 
 ```bash
-grep -c "no_create" addons/custom/investra_fx_revaluation/views/fx_views.xml
+grep -o "no_create" addons/custom/investra_fx_revaluation/views/fx_views.xml | wc -l
 ```
-Vypíše `3`.
+Vypíše `3`. (Původně `grep -c`, který počítá řádky a vrací 2; opraveno při převzetí podle nálezu Copilota.)
 
 ```bash
 git diff --check && git diff --stat HEAD
@@ -82,4 +82,16 @@ Bez chyb; mění se jen `fx_views.xml` a tento soubor.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `2367eae` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `2367eae` do `feature/nav-prototyp` (fast-forward).
+- **Revize:** diff mění jen dva řádky záznamu `view_fx_profile_form` a sekci Výsledek (zelená zóna); blok „Bude“ je
+  v souboru beze změny znaků. Nález v zadání, ne v práci: kontrola `grep -c` počítala řádky (2), výskyty jsou 3;
+  Copilot to správně ohlásil, kontrola je opravena na `grep -o … | wc -l`.
+- **Testy:** `check_views.py` – chyb: 0; `-u investra_fx_revaluation` s jeho testy nad `investra_test` –
+  0 failed, 0 error(s) of 29 tests.
+- **Databáze `investra_test`:** uložený formulář obsahuje `many2many_tags` a třikrát `no_create`. Poznámka 1 (kód účtu):
+  jediný profil v testovací databázi má všechny účty (2 přeceňované, zisk, ztráta) s kódem ve společnosti profilu,
+  chybějící kód se v datech nevyskytuje.
+- **Neověřeno:** vzhled a chování formuláře v prohlížeči (štítky s kódem, kliknutí na štítek, chybějící „Vytvořit“).
