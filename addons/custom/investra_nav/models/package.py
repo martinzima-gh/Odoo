@@ -17,7 +17,7 @@ PORTFOLIO_COLUMNS = [
 class InvestraValuation(models.Model):
     _inherit = "investra.valuation"
 
-    package_id = fields.Many2one("ir.attachment", readonly=True, string="Balíček pro depozitáře")
+    package_id = fields.Many2one("ir.attachment", readonly=True, string="Příloha balíčku")
     # Otisk souboru při sestavení: ocenění pozná, kdyby příloha neodpovídala tomu, co systém vytvořil.
     package_checksum = fields.Char(readonly=True, string="Otisk balíčku")
     package_file = fields.Binary(related="package_id.raw", string="Balíček pro depozitáře")

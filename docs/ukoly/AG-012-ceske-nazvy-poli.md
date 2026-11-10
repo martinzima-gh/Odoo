@@ -26,7 +26,7 @@ struktura ne.
 - Když pole v souboru nenajdeš nebo už `string=` má, nic nedomýšlej a napiš to do výsledku.
 - Neměň hodnoty výběrů, `help`, `default`, `required`, metody ani testy.
 
-**Schválený plán:** tabulka níže; schválil uživatel ____ (doplní Claude po schválení).
+**Schválený plán:** tabulka níže; schválil uživatel 2026-11-10.
 
 | Modul | Model | Pole | Název |
 |---|---|---|---|

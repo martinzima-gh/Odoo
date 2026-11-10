@@ -17,7 +17,7 @@ class InvestraRateOverrideWizard(models.TransientModel):
     quantity = fields.Float(required=True, default=1, digits=(12, 0), string="Množství")
     rate = fields.Float(required=True, digits=(16, 6), string="Kurz", help="Základní měna zdroje za množství (ČNB: CZK; ECB: jednotky měny za 1 EUR).")
     reason = fields.Text(required=True, string="Důvod")
-    current_id = fields.Many2one("investra.rate", compute="_compute_current", string="Platný kurz")
+    current_id = fields.Many2one("investra.rate", compute="_compute_current", string="Platný záznam kurzu")
     current_rate = fields.Float(related="current_id.rate", string="Platný kurz", digits=(16, 6))
     current_origin = fields.Selection(related="current_id.origin", string="Druh platného kurzu")
 
