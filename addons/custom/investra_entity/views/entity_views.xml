@@ -37,6 +37,12 @@
         <field name="search_view_id" ref="view_entity_search"/>
     </record>
     <menuitem id="menu_root" name="Investra" web_icon="account,static/description/icon.png" groups="account.group_account_readonly"/>
+    <menuitem id="menu_valuation_section" name="Ocenění" parent="menu_root" sequence="10"/>
+    <menuitem id="menu_reports" name="Výkazy" parent="menu_root" sequence="40"/>
     <menuitem id="menu_setup" name="Nastavení" parent="menu_root" sequence="90"/>
-    <menuitem id="menu_entity" name="Účetní knihy" parent="menu_setup" action="action_entity"/>
+    <menuitem id="menu_setup_funds" name="Fondy" parent="menu_setup" sequence="10"/>
+    <menuitem id="menu_setup_instruments" name="Nástroje" parent="menu_setup" sequence="20"/>
+    <menuitem id="menu_setup_cnb" name="ČNB" parent="menu_setup" sequence="30"/>
+    <menuitem id="menu_setup_audit" name="Auditní stopa" parent="menu_setup" sequence="40"/>
+    <menuitem id="menu_entity" name="Účetní knihy" parent="menu_setup_funds" action="action_entity" sequence="20"/>
 </odoo>

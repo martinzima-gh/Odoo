@@ -234,8 +234,8 @@
         <field name="name">Splátky nástrojů</field><field name="res_model">investra.instrument.repayment</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_repayment_search"/>
     </record>
-    <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="40"/>
-    <menuitem id="menu_valuation" name="Ocenění" parent="investra_entity.menu_root" action="action_valuation" sequence="5"/>
-    <menuitem id="menu_movement" name="Úpisy a odkupy" parent="investra_entity.menu_root" action="action_movement" sequence="15"/>
-    <menuitem id="menu_fee_rule" name="Pravidla úplat" parent="investra_entity.menu_setup" action="action_fee_rule"/>
+    <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="30"/>
+    <menuitem id="menu_valuation" name="Ocenění" parent="investra_entity.menu_valuation_section" action="action_valuation" sequence="10"/>
+    <menuitem id="menu_movement" name="Úpisy a odkupy" parent="investra_entity.menu_root" action="action_movement" sequence="30"/>
+    <menuitem id="menu_fee_rule" name="Pravidla úplat" parent="investra_entity.menu_setup_funds" action="action_fee_rule" sequence="30"/>
 </odoo>

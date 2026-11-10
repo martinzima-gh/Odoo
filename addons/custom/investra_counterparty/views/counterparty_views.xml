@@ -41,5 +41,5 @@
             <xpath expr="//field[@name='isin']" position="before"><field name="issuer_id"/></xpath>
         </field>
     </record>
-    <menuitem id="menu_profile" name="Protistrany" parent="investra_instruments.menu_instruments" action="action_profile" sequence="30"/>
+    <menuitem id="menu_profile" name="Protistrany" parent="investra_entity.menu_setup_instruments" action="action_profile" sequence="30"/>
 </odoo>

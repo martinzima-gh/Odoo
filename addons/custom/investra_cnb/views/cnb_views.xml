@@ -12,5 +12,5 @@
     <record id="action_cnb_map" model="ir.actions.act_window">
         <field name="name">Převodová tabulka ČNB</field><field name="res_model">investra.cnb.map</field><field name="view_mode">list</field>
     </record>
-    <menuitem id="menu_cnb_map" name="Převodová tabulka ČNB" parent="investra_entity.menu_setup" action="action_cnb_map"/>
+    <menuitem id="menu_cnb_map" name="Převodová tabulka ČNB" parent="investra_entity.menu_setup_cnb" action="action_cnb_map" sequence="10"/>
 </odoo>

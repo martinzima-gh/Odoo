@@ -175,8 +175,8 @@
         <field name="search_view_id" ref="view_trade_search"/>
     </record>
     <menuitem id="menu_instruments" name="Portfolio" parent="investra_entity.menu_root" sequence="20"/>
-    <menuitem id="menu_instrument" name="Nástroje" parent="menu_instruments" action="action_instrument"/>
-    <menuitem id="menu_instrument_type" name="Typy nástrojů" parent="menu_instruments" action="action_instrument_type"/>
-    <menuitem id="menu_price" name="Ceny" parent="menu_instruments" action="action_price"/>
-    <menuitem id="menu_trade" name="Obchody" parent="menu_instruments" action="action_trade"/>
+    <menuitem id="menu_instrument" name="Nástroje" parent="investra_entity.menu_setup_instruments" action="action_instrument" sequence="10"/>
+    <menuitem id="menu_instrument_type" name="Typy nástrojů" parent="investra_entity.menu_setup_instruments" action="action_instrument_type" sequence="20"/>
+    <menuitem id="menu_price" name="Ceny" parent="menu_instruments" action="action_price" sequence="20"/>
+    <menuitem id="menu_trade" name="Obchody" parent="menu_instruments" action="action_trade" sequence="10"/>
 </odoo>

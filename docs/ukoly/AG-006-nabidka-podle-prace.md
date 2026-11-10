@@ -257,12 +257,12 @@ Portfolio, Úpisy a odkupy, Výkazy, Nastavení, a poslední řádek je `Bez rod
 
 ## Výsledek
 
-Doplní Antigravity.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** deset XML souborů z Rozsahu souborů a tento soubor (pouze sekce Výsledek).
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; `git diff --check` — bez výstupu; `git diff --stat HEAD` — deset XML souborů z Rozsahu a tento soubor. Strom nabídky ze zadaného skriptu odpovídá Cílové struktuře, včetně `Bez rodiče: žádné`. Kontrola diffu potvrdila, že v XML jsou změněné jen řádky `<menuitem>`.
+- **Neověřeno:** nabídka v běžícím Odoo; testy Odoo a upgrade modulů (při převzetí provede Claude). Docker ani databáze nebyly spuštěny.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 

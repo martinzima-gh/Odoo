@@ -41,7 +41,7 @@
         <field name="view_mode">list</field>
         <field name="search_view_id" ref="view_event_search"/>
     </record>
-    <menuitem id="menu_event" name="Účetní události" parent="investra_entity.menu_root" action="action_event" sequence="30"/>
+    <menuitem id="menu_event" name="Účetní události" parent="investra_entity.menu_setup_audit" action="action_event" sequence="10"/>
     <record id="view_move_line_investra" model="ir.ui.view">
         <field name="name">account.move.investra</field>
         <field name="model">account.move</field>
