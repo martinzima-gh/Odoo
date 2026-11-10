@@ -109,12 +109,12 @@ Bez chyb; mění se jen `instrument_views.xml` a tento soubor.
 
 ## Výsledek
 
-Doplní Antigravity.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_instruments/views/instrument_views.xml` (nové záznamy `view_price_list` a `view_price_form`) a tento soubor (jen sekce Výsledek).
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; příkaz pro parsování XML — `XML OK`; příkaz `grep -c 'id="view_price_list"\|id="view_price_form"' ...` — `2`; `git diff --check` — bez výstupu; `git diff --stat HEAD` — změny pouze v `instrument_views.xml` a tomto souboru zadání. Všechna použitá pole byla ověřena v modelu `InvestraInstrumentPrice`.
+- **Neověřeno:** zobrazení seznamu a formuláře v běžícím Odoo; schválení ceny uživatelem a kontrola pravidla čtyř očí; Odoo testy. Docker ani databáze nebyly spuštěny.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 
