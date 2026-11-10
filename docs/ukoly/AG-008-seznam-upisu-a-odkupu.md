@@ -71,7 +71,13 @@ Dále formulář, modely, Python, testy, nabídky.
 ```bash
 python3 tools/view_check/check_views.py
 ```
-Skončí „chyb: 0“ a počet zkontrolovaných pohledů v `nav_views.xml` je o jeden vyšší než před změnou.
+Skončí „chyb: 0“.
+
+```bash
+python3 -c "import sys; sys.path.insert(0, 'tools/view_check'); from check_views import view_archs; print([r for r, _ in view_archs('addons/custom/investra_nav/views/nav_views.xml') if r == 'view_movement_list'])"
+```
+Vypíše `['view_movement_list']`, tedy nový seznam je mezi pohledy, které skript ověřuje podle schématu.
+(Původně „počet pohledů o jeden vyšší“; skript ale vypisuje jen počet souborů, opraveno 2026-11-10.)
 
 ```bash
 grep -c 'id="view_movement_list"' addons/custom/investra_nav/views/nav_views.xml
