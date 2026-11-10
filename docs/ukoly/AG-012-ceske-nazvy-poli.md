@@ -263,4 +263,13 @@ Doplnil Copilot.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `9125816` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `9125816` do `feature/nav-prototyp` (fast-forward).
+- **Revize:** 15 souborů `models/*.py`; porovnání stromu kódu (AST) před a po úpravě bez argumentu `string` je shodné,
+  tedy se změnily jen popisky. Kontrola tabulky: 153 polí, nesouhlasí 0. Nálezy: žádné.
+- **Testy:** `-u` všech modulů Investry s jejich testy nad `investra_test` – 0 failed, 0 error(s) of 311 tests;
+  žádné upozornění na stejné popisky polí.
+- **Databáze `investra_test`:** popisky uložené česky (např. Verze, Zadal, Datum sjednání).
+- **Neověřeno:** vzhled v prohlížeči; `investra_dev` zatím neaktualizován.
