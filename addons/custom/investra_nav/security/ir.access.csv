@@ -37,3 +37,4 @@ investra_val_approval_rule,investra.valuation.approval company,investra.valuatio
 access_repayment_read,investra.instrument.repayment read,investra.instrument.repayment,account.group_account_readonly,r,
 access_repayment_preparer,investra.instrument.repayment preparer,investra.instrument.repayment,investra_entity.group_valuation_preparer,cru,
 investra_repayment_rule,Splátky podle společnosti,investra.instrument.repayment,,crud,"[('company_id', 'in', company_ids)]"
+access_val_return_wizard,investra.valuation.return.wizard approver,investra.valuation.return.wizard,investra_entity.group_valuation_approver,crud,

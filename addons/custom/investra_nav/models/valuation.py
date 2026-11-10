@@ -935,9 +935,31 @@ class InvestraValuation(models.Model):
         """Vrácení depozitářem: storno všech dokladů ocenění a nová verze."""
         self._require(APPROVER)
         self._require_state("sent")
+        return self._reverse_with_new_version(reason)
+
+    def action_reverse(self, reason):
+        """Storno zaúčtovaného nebo depozitářem potvrzeného ocenění a nová verze (rozhodnutí 2026-11-10).
+
+        Zveřejněné ocenění se nestornuje: období je nevratně uzamčené.
+        """
+        self._require(APPROVER)
+        self._require_state("posted", "confirmed")
+        return self._reverse_with_new_version(reason)
+
+    def _reverse_with_new_version(self, reason):
+        """Stornuje zaúčtované doklady ocenění k jejich datu a založí novou verzi v návrhu."""
+        self.ensure_one()
         if not reason:
             raise UserError(self.env._("Uveďte důvod vrácení."))
         record = self.sudo()
+        later = record.search([
+            ("fund_id", "=", record.fund_id.id), ("date", ">", record.date),
+            ("state", "in", ("submitted", "approved", "posted", "sent", "confirmed", "published")),
+        ], limit=1)
+        if later:
+            raise UserError(self.env._(
+                "Na ocenění navazuje pozdější ocenění %s. Nejdřív vraťte to pozdější.", later.display_name
+            ))
         record.event_ids.filtered(lambda e: e.state == "posted").sorted("id", reverse=True)._reverse_events()
         record.write({"state": "reversed", "return_reason": reason})
         return record._new_version()

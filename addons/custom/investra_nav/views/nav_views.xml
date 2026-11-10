@@ -38,6 +38,32 @@
             </search>
         </field>
     </record>
+    <record id="view_valuation_return_wizard_form" model="ir.ui.view">
+        <field name="name">investra.valuation.return.wizard.form</field>
+        <field name="model">investra.valuation.return.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Vrácení ocenění">
+                <group>
+                    <field name="valuation_id" readonly="1"/>
+                    <field name="mode" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert"><field name="effect" readonly="1"/></div>
+                <group>
+                    <field name="reason" placeholder="Proč se ocenění vrací (uloží se k ocenění)"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Potvrdit" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_valuation_return_wizard" model="ir.actions.act_window">
+        <field name="name">Vrácení ocenění</field>
+        <field name="res_model">investra.valuation.return.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
     <record id="view_valuation_class_form" model="ir.ui.view">
         <field name="name">investra.valuation.class.form</field>
         <field name="model">investra.valuation.class</field>
@@ -104,9 +130,21 @@
                     <button name="action_depositary_confirm" type="object" string="Potvrzeno depozitářem" invisible="state != 'sent'"/>
                     <button name="action_publish" type="object" string="Zveřejnit a uzamknout" invisible="state != 'confirmed'"/>
                     <button name="action_build_package" type="object" string="Balíček pro depozitáře" invisible="state not in ('posted', 'sent', 'confirmed', 'published')"/>
+                    <button name="%(action_valuation_return_wizard)d" type="action" string="Vrátit k přepracování"
+                            context="{'default_valuation_id': id, 'default_mode': 'return'}"
+                            groups="investra_entity.group_valuation_approver" invisible="state not in ('submitted', 'approved')"/>
+                    <button name="%(action_valuation_return_wizard)d" type="action" string="Vrátit depozitářem"
+                            context="{'default_valuation_id': id, 'default_mode': 'depositary'}"
+                            groups="investra_entity.group_valuation_approver" invisible="state != 'sent'"/>
+                    <button name="%(action_valuation_return_wizard)d" type="action" string="Stornovat a přepracovat"
+                            context="{'default_valuation_id': id, 'default_mode': 'reverse'}"
+                            groups="investra_entity.group_valuation_approver" invisible="state not in ('posted', 'confirmed')"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,computed,submitted,approved,posted,sent,confirmed,published"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="state not in ('returned', 'reversed')">
+                        <strong>Ocenění je vrácené, platí jeho další verze.</strong> Důvod: <field name="return_reason" readonly="1"/>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="fund_id" readonly="state != 'draft'"/>

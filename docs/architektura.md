@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 280. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 281. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -130,6 +130,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Přemostění kapitálu tříd | Rozpad od kapitálu minulého ocenění ke konečnému kurzu se ukládá na řádku třídy při výpočtu, s kontrolami přemostění. Sloupec dividend vznikne hned (do zavedení pohybu výplaty dividendy 0); u tříd v jiné než funkční měně se zobrazí i kapitál a pohyby v měně zveřejnění. | 2026-11-10, schválil uživatel (plán přemostění, varianta A). Výsledek NAV, kusy ani kurz se nemění. Rozpad ostatních položek třídy zůstává otevřený. |
 | Kurzy měn v nabídce | Nabídka Kurzy měn se přesune z Ocenění do Nastavení → Účtování. | 2026-11-10, schválil uživatel: kurzy používá ocenění i účetnictví. Upřesňuje „Struktura nabídky Investra“. |
 | Stahování kurzů ve vývojové instanci | Plánovaná úloha stahování kurzů je ve vývojové databázi zapnutá, chybějící kurzy ČNB z 9. 11. doplněny. V datech modulu zůstává vypnutá a zapíná se při nasazení. | 2026-11-10, schválil uživatel. Kurzy Odoo a evidence kurzů ČNB se po doplnění shodují. |
+| Vrácení a storno ocenění | Schvalovatel může s povinným důvodem vrátit ocenění před zaúčtováním (návrhy zaniknou bez storna), vrátit ho za depozitáře a nově stornovat zaúčtované nebo depozitářem potvrzené ocenění (storno dokladů k datu ocenění). Vždy vznikne nová verze v návrhu, stará zůstane s důvodem. Storno se odmítne, když na ocenění navazuje pozdější ocenění. Zveřejněné ocenění se nevrací. | 2026-11-10, schválil uživatel. Oprava po zveřejnění se řeší dalším oceněním nebo podle statutu, ne návratem v systému (období je nevratně uzamčené). |
 
 ## Hranice systémů a vlastnictví dat
 
