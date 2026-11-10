@@ -160,4 +160,16 @@ a poslední řádek zůstane `Bez rodiče: žádné`.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `71fc48a` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `172c9af` do `feature/nav-prototyp` (merge, mezitím přibyl commit s rozhodnutími; soubory se nepřekrývají).
+- **Revize:** diff jen přidává 71 řádků ze zadání na obě určená místa, nic neodebírá (zelená zóna). Nálezy: žádné.
+- **Testy:** `check_views.py` – chyb: 0, všechny čtyři nové pohledy mezi ověřenými; `-u investra_entity` s jeho testy
+  nad `investra_test` – 0 failed, 0 error(s) of 8 tests.
+- **Kritéria přijetí** (ORM v `investra_test`, všechny zápisy vráceny, tabulka beze změny – 160 mapování):
+  účetní manažer smí číst i zapisovat; účet jiné knihy model odmítne (nesoulad společností); druhý řádek se stejnou
+  knihou a rolí odmítne databáze (`UniqueViolation`). Uživatel jen ke čtení v testovací databázi není; skupina
+  `account.group_account_readonly` má v `ir.access.csv` jen právo `r`.
+- **Navazující změna:** nabídka Kurzy měn přesunuta pod Nastavení → Účtování (rozhodnutí „Kurzy měn v nabídce“).
+- **Neověřeno:** vzhled seznamů a úprava řádku v prohlížeči.

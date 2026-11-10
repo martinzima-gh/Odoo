@@ -35,5 +35,5 @@
         <field name="view_mode">list</field>
         <field name="search_view_id" ref="view_rate_search"/>
     </record>
-    <menuitem id="menu_rate" name="Kurzy měn" parent="investra_entity.menu_valuation_section" action="action_rate" sequence="20"/>
+    <menuitem id="menu_rate" name="Kurzy měn" parent="investra_entity.menu_setup_accounting" action="action_rate" sequence="30"/>
 </odoo>
