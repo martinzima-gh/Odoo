@@ -151,12 +151,12 @@ a poslední řádek zůstane `Bez rodiče: žádné`.
 
 ## Výsledek
 
-Doplní Antigravity.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_entity/views/entity_views.xml` (čtyři pohledy, dvě akce a tři položky nabídky) a tento soubor (jen sekce Výsledek).
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; příkaz pro `view_archs` — `['view_account_role_list', 'view_account_role_search', 'view_role_account_list', 'view_role_account_search']`; grep nových ID — `9`; `git diff --check` — bez chyb. Strom nabídek obsahuje pod Nastavením „Účtování (35)“ s položkami Účty rolí a Role účtů a končí `Bez rodiče: žádné`. Všechna použitá pole byla ověřena v `investra_entity/models/account_role.py`.
+- **Neověřeno:** přístupová práva a editace v UI, filtrování účtů podle knihy, odmítnutí duplicitního mapování; Odoo testy. Docker ani databáze nebyly spuštěny.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 
