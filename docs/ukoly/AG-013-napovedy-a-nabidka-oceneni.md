@@ -196,4 +196,14 @@ Bez chyb; mění se jen čtyři soubory z Rozsahu a tento soubor.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `aab3484` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `aab3484` do `feature/nav-prototyp` (fast-forward).
+- **Revize:** diff mění jen bloky ze zadání (zelená zóna); všech šest nápověd a nová nabídka jsou v souborech beze změny
+  znaků, `menu_valuation_section` zmizel. Nálezy: žádné.
+- **Testy:** `check_views.py` – chyb: 0; `-u investra_entity,investra_instruments,investra_nav,investra_posting`
+  s jejich testy nad `investra_test` – 0 failed, 0 error(s) of 202 tests.
+- **Databáze `investra_test`:** záznam `menu_valuation_section` odstraněn, Ocenění je přímo pod Investra (pořadí 10),
+  všech šest akcí má nápovědu.
+- **Neověřeno:** vzhled nápověd v prohlížeči.
