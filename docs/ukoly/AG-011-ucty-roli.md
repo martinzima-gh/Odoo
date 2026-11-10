@@ -9,8 +9,8 @@ a jinak ho nejde zobrazit ani doplnit (dotaz uživatele z 10. 11. 2026). Úkol d
 | Položka | Hodnota |
 |---|---|
 | Zóna | zelená (jen XML pohledů; přístupová práva už existují v `investra_entity/security/ir.access.csv`) |
-| Výchozí větev | `revize/claude-app` po sloučení AG-006 |
-| Větev úkolu | `ag/AG-011-ucty-roli` (vytvoří Claude při převzetí) |
+| Výchozí větev | `feature/nav-prototyp` (AG-006 je sloučený) |
+| Větev úkolu | `ag/AG-011-ucty-roli` (připraví Claude z výchozí větve) |
 | Zadal, dne | Claude na pokyn uživatele, 2026-11-10 |
 | Navazuje na | AG-006 (nabídka `menu_setup_audit` musí existovat; začni až po jeho sloučení) |
 
@@ -121,7 +121,14 @@ modely, Python, testy, data rolí.
 ```bash
 python3 tools/view_check/check_views.py
 ```
-Skončí „chyb: 0“ a v `entity_views.xml` jsou o čtyři zkontrolované pohledy víc.
+Skončí „chyb: 0“.
+
+```bash
+python3 -c "import sys; sys.path.insert(0, 'tools/view_check'); from check_views import view_archs; print(sorted(r for r, _ in view_archs('addons/custom/investra_entity/views/entity_views.xml') if 'role' in r))"
+```
+Vypíše `['view_account_role_list', 'view_account_role_search', 'view_role_account_list', 'view_role_account_search']`,
+tedy všechny čtyři nové pohledy skript ověřuje podle schématu.
+(Původně „o čtyři zkontrolované pohledy víc“; skript ale vypisuje jen počet souborů, opraveno 2026-11-10.)
 
 ```bash
 grep -c 'id="view_role_account_list"\|id="view_role_account_search"\|id="view_account_role_list"\|id="view_account_role_search"\|id="action_role_account"\|id="action_account_role"\|id="menu_setup_accounting"\|id="menu_role_account"\|id="menu_account_role"' addons/custom/investra_entity/views/entity_views.xml
@@ -129,7 +136,7 @@ grep -c 'id="view_role_account_list"\|id="view_role_account_search"\|id="view_ac
 Vypíše `9`.
 
 ```bash
-git diff --check && git diff --stat revize/claude-app
+git diff --check && git diff --stat HEAD
 ```
 Bez chyb; mění se jen `entity_views.xml` a tento soubor.
 
