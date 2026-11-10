@@ -3,9 +3,11 @@
 Plán ke schválení, červená zóna (`investra_rates`). Stav 10. 11. 2026, připravil Claude na pokyn uživatele.
 Nic z toho není naprogramované.
 
-**Doporučení:** varianta C. Kurz, který vyhlásila ČNB nebo ECB, půjde v účetnictví změnit jen stažením
-z vyhlášeného zdroje. Ruční kurz zůstane možný jen pro měnu a den, pro které vyhlášený kurz neexistuje,
-a zadá ho jen účetní manažer. Rozdíl mezi oběma evidencemi se při stahování nahlásí a nepřeskočí se.
+**Doporučení:** Kurzy Odoo (`res.currency.rate`) se zapisují jen z evidence kurzů Investra (`investra.rate`).
+Každý jiný kurz, ruční přepis vyhlášeného kurzu nebo kurz měny, kterou zdroj nevyhlašuje, vznikne jako záznam
+v evidenci. Zapíše ho jen uživatel se skupinou **Investra: schvalování ocenění**, vždy s důvodem. Účetnictví i ocenění
+tak používají stejný kurz a každá výjimka je dohledatelná. Kdo smí kurz přepsat, rozhodl uživatel 10. 11. 2026
+(varianta 2: skupina schvalování ocenění, bez čtyř očí).
 
 ## Jak to funguje dnes
 
@@ -29,41 +31,47 @@ a zadá ho jen účetní manažer. Rozdíl mezi oběma evidencemi se při stahov
 
 | Varianta | Co dělá | Pro | Proti |
 |---|---|---|---|
-| A. Úplný zámek | `res.currency.rate` zapisuje jen stahování kurzů; ruční zápis odmítne každému | nejjednodušší, nejpřísnější | nejde zadat kurz měny, kterou ČNB denně nevyhlašuje (ČNB vede měsíční kurzy ostatních měn); blokuje i jiné moduly a import |
-| B. Jen kontrola | nic nezakazuje; denní kontrola a kontrola v ocenění vypíšou rozdíly | žádné omezení práce | chyba se zjistí až po zaúčtování; oprava znamená storno a nové doklady |
-| **C. Zámek vyhlášených kurzů + ruční výjimka** | kurz, ke kterému existuje záznam v `investra.rate`, mění jen stahování; ostatní kurzy smí zadat účetní manažer; stahování hlásí rozdíly | chrání to, co počítá ocenění, a nechává cestu pro výjimky | víc pravidel a testů než A |
+| A. Úplný zámek | `res.currency.rate` zapisuje jen stahování; ruční kurz nejde zadat vůbec | nejjednodušší | nejde zadat kurz měny, kterou zdroj nevyhlašuje, ani opravit chybu zdroje |
+| B. Jen kontrola | nic nezakazuje; kontrola vypíše rozdíly | žádné omezení práce | chyba se zjistí až po zaúčtování; oprava storno a nové doklady |
+| **C. Vše přes evidenci** (doporučeno) | `res.currency.rate` zapisuje jen evidence; ruční kurz a přepis jsou záznamy evidence s důvodem | jeden zdroj pro účetnictví i ocenění, auditní stopa | nová pole v `investra.rate` a víc testů |
 
 ## Návrh řešení (varianta C)
 
-Vše v modulu `investra_rates`, bez zásahu do jádra Odoo (dědičnost modelu `res.currency.rate`).
+Vše v modulu `investra_rates`, bez zásahu do jádra Odoo.
 
-1. **Zámek.** Nová třída v `models/currency.py` dědí `res.currency.rate` a přepisuje `create`, `write` a `unlink`:
-   - Zápis ze stahování nese příznak v kontextu a projde.
-   - Ruční zápis ke dni a měně, pro které existuje `investra.rate` odpovídajícího zdroje, se odmítne hláškou
-     „Kurz vyhlášený ČNB/ECB nejde ručně měnit; oprava jen opravou zdroje.“ Odpovídající zdroj je ČNB pro společné
-     kurzy a pro knihy se zdrojem ČNB, ECB pro knihy se zdrojem ECB.
-   - Kurz společnosti v knize se zdrojem ČNB pro měnu, kterou ČNB vyhlašuje, se odmítne (riziko 3).
-   - Ostatní ruční kurzy smí zadat jen `account.group_account_manager`. Kdo a kdy, ukazují standardní údaje
-     o vytvoření a změně záznamu.
-2. **Žádné tiché přeskočení.** `_publish_value` při existujícím kurzu s jinou hodnotou (rozdíl nad 1e-9)
-   zapíše chybu do logu a vrátí ji. Stahování skončí hlášením se seznamem rozdílů. Existující kurz se automaticky
-   nepřepisuje, protože podle něj už mohou být zaúčtované doklady.
-3. **Kniha se zdrojem ECB (riziko 4).** Nejdřív test, který chování potvrdí nebo vyvrátí. Potvrdí-li se, `_publish`
-   do knih ECB zapíše i měny, které ECB nevyhlašuje, nebo přepočet takové měny skončí chybou. Výběr řešení
-   přijde zvlášť ke schválení podle výsledku testu.
-4. **Plánovaná úloha (riziko 5).** Zůstane vypnutá v datech modulu (instalace do testovací databáze nemá stahovat).
-   Zapnutí v `investra_dev` a později v produkci bude krok nasazení se souhlasem uživatele.
+1. **Druh kurzu v evidenci.** Nové pole `origin` (Vyhlášený / Ruční přepis / Ruční kurz, výchozí Vyhlášený),
+   `reason` (povinný u ručních), `overridden_id` (u přepisu odkaz na vyhlášený kurz). Pole `source` zůstává
+   a u ručního záznamu určuje základ (ČNB = CZK, ECB = EUR), do kterých knih se kurz promítne.
+   Jedinečnost se rozšíří na `(source, date, currency_id, origin)`.
+2. **Kdo zapisuje.** Ruční přepis a ruční kurz založí jen skupina `investra_entity.group_valuation_approver`
+   přes formulář s povinným důvodem. Záznam se pak nemění ani nemaže, stejně jako vyhlášený kurz.
+   Oprava přepisu = nový přepis; platí poslední.
+   - Ruční kurz jde zadat jen tam, kde vyhlášený kurz k datu neexistuje; jinak je to přepis.
+   - Přepis k datu, ke kterému existuje schválené nebo pozdější ocenění fondu s touto knihou, se odmítne.
+3. **Který kurz platí.** `get_rate` a `_publish` vezmou k datu nejdřív poslední ruční přepis, jinak vyhlášený
+   nebo ruční kurz. Ocenění ukáže u řádku portfolia, že kurz je ruční (zdroj kurzu už v portfoliu je).
+4. **Zámek kurzů Odoo.** Dědičnost `res.currency.rate`: `create`, `write` a `unlink` projdou jen ze zápisu evidence
+   (příznak v kontextu) nebo pro kód běžící jako superuživatel (`env.su`). Ruční zápis v nastavení měn se odmítne
+   hláškou s odkazem na evidenci kurzů. Tím odpadají rizika 1 a 3.
+5. **Žádné tiché přeskočení.** `_publish_value` při existujícím kurzu přepíše hodnotu jen u přepisu z evidence;
+   jinak rozdíl ohlásí v logu i ve výsledku stahování a kurz nechá. Odpadá riziko 2.
+6. **Kniha se zdrojem ECB (riziko 4).** Nejdřív test, který chování potvrdí nebo vyvrátí; řešení podle výsledku
+   ke schválení zvlášť.
+7. **Plánovaná úloha (riziko 5).** Zůstane v datech modulu vypnutá; zapnutí v `investra_dev` je krok nasazení
+   se souhlasem uživatele.
+8. **Obrazovka** (zelená, po modelu): seznam kurzů dostane sloupec Druh a filtr „Ruční“; tlačítko „Přepsat kurz“
+   a „Nový ruční kurz“ jen pro skupinu schvalování ocenění.
 
 **Testy** (nové, v `investra_rates/tests/`):
-ruční změna a smazání vyhlášeného kurzu se odmítne; stahování kurz zapíše; ruční kurz měny bez vyhlášeného kurzu
-zadá účetní manažer, běžný účetní ne; kurz společnosti v knize ČNB se odmítne; stahování nad existujícím odlišným
-kurzem ohlásí rozdíl a kurz nezmění; kniha ECB a měna mimo ECB (riziko 4).
-Zámek platí pro zápis uživatele, ne pro kód běžící jako superuživatel (`env.su`), stejně jako u ostatních
-ochran v projektu. Existující testy v `test_rate.py`, které kurzy na začátku mažou, se proto nemění.
+ruční změna a smazání kurzu Odoo se odmítne; stažení kurz zapíše; přepis založí jen skupina schvalování ocenění
+a bez důvodu se odmítne; přepis se promítne do kurzu Odoo a `get_rate` ho vrátí; přepis k datu schváleného ocenění
+se odmítne; ruční kurz pro den s vyhlášeným kurzem se odmítne; stažení nad odlišným existujícím kurzem ohlásí rozdíl;
+kniha ECB a měna mimo ECB (riziko 4). Existující testy a jejich očekávané hodnoty se nemění.
 
 ## Dopad na data a účetnictví
 
-- Existující doklady ani kurzy se nemění.
+- Existující doklady ani kurzy se nemění. Přepis platí pro doklady a ocenění vytvořené po něm; už zaúčtované
+  doklady se opravují stornem a novým dokladem.
 - Před nasazením Claude ověří dotazem SELECT v `investra_dev`, zda už v `res.currency.rate` není kurz odlišný
   od `investra.rate`. Nalezené rozdíly předloží uživateli; opravují se jen přes Odoo, nikdy příkazem nad databází.
 - Nasazení znamená aktualizaci modulu `investra_rates`, ke které Claude požádá o souhlas.
@@ -71,12 +79,11 @@ ochran v projektu. Existující testy v `test_rate.py`, které kurzy na začátk
 ## Otázky pro uživatele
 
 1. Je potřeba zadávat kurzy měn, které ČNB vyhlašuje jen měsíčně (kurzy ostatních měn)? Pokud ano, navrhuji
-   doplnit jejich stahování jako další zdroj místo ručního zadání.
-2. Stačí pro ruční kurz role účetního manažera, nebo má jít přes čtyři oči jako ruční úpravy v ocenění
-   (revize, matice schvalování)?
-3. Má se rozdíl kurzů zobrazit i jako kontrola v kroku ocenění? To je změna `investra_nav` a samostatný krok.
+   doplnit jejich stahování jako další zdroj místo ručního kurzu.
+2. Má se ruční přepis kurzu zobrazit i jako upozornění v kontrolách ocenění? To je změna `investra_nav`
+   a samostatný krok.
 
 ## Zóna a provedení
 
-Červená zóna: provede Claude po schválení uživatelem, ne Antigravity. Odhad: jeden model, šest až osm testů,
-bez nových polí a bez migrace.
+Červená zóna: provede Claude po schválení uživatelem, ne Antigravity (kromě bodu 8). Odhad: dvě třídy modelu,
+tři nová pole, osm až deset testů, bez migrace dat (nové pole má výchozí hodnotu).
