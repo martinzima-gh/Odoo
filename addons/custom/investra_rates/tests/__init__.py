@@ -1,1 +1,1 @@
-from . import test_rate
+from . import test_rate, test_protection

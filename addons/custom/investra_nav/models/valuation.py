@@ -842,6 +842,22 @@ class InvestraValuation(models.Model):
             ("id", "not in", self.event_ids.move_id.ids),
         ])
         self._check("no_foreign_drafts", "K datu nejsou jiné nezaúčtované doklady", not pending, pending, severity="warning")
+        manual = self._manual_rates()
+        self._check("manual_rate", "Ocenění používá jen vyhlášené kurzy", not manual, "; ".join(manual), severity="warning")
+
+    def _manual_rates(self):
+        """Ruční kurzy, které ocenění k datu použilo (měny portfolia, tříd a fondu)."""
+        Rate = self.env["investra.rate"].sudo()
+        source = self._rate_source()
+        base = Rate.base_currency(source)
+        currencies = self.portfolio_line_ids.currency_id | self.fund_id.class_ids.currency_id | self.fund_id.currency_id
+        found = []
+        for currency in (currencies - base).sorted("name"):
+            record = Rate._effective(source, currency, self.date)
+            if record and record.origin != "published":
+                kind = dict(record._fields["origin"].selection)[record.origin]
+                found.append(f"{currency.name} {record.date}: {kind} ({record.reason})")
+        return found
 
     # --- postup --------------------------------------------------------------------------------
 
@@ -1170,3 +1186,23 @@ class InvestraValuationApproval(models.Model):
     name = fields.Char(required=True)
     user_id = fields.Many2one("res.users", readonly=True)
     approved_at = fields.Datetime(readonly=True)
+
+
+class InvestraRate(models.Model):
+    """Ruční kurz se nesmí dotknout už schváleného ocenění (rozhodnutí 2026-11-10 „Ochrana kurzů“)."""
+
+    _inherit = "investra.rate"
+
+    @api.model
+    def _check_change_allowed(self, source, day):
+        blocking = self.env["investra.valuation"].sudo().search([
+            ("fund_id.entity_id.rate_source", "=", source),
+            ("date", ">=", day),
+            ("state", "in", ("approved", "posted", "sent", "confirmed", "published")),
+        ], order="date", limit=1)
+        if blocking:
+            raise UserError(self.env._(
+                "K datu %(day)s nebo později je schválené ocenění %(valuation)s; ruční kurz by změnil jeho podklad. "
+                "Nejdřív ocenění vraťte.", day=day, valuation=blocking.display_name,
+            ))
+        return super()._check_change_allowed(source, day)

@@ -14,9 +14,14 @@ class TestFxRun(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # Kurzy Odoo zapisuje jen systém (ochrana kurzů 2026-11-10); pomocník testů Odoo je zakládá
+        # jménem testovacího účetního, proto ho voláme jako systém.
+        env = cls.env
+        cls.env = env(su=True)
         cls.foreign = cls.setup_other_currency("EUR", rates=[
             ("2040-01-01", 1 / 25), ("2040-01-31", 1 / 26), ("2040-02-29", 1 / 24),
-        ])
+        ]).with_env(env)
+        cls.env = env
         cls.base = cls.company_data["company"].currency_id
         for day, value in ((date(2040, 1, 1), "25"), (date(2040, 1, 31), "26"), (date(2040, 2, 29), "24")):
             rates = {"EUR": (Decimal(1), Decimal(value)), cls.base.name: (Decimal(1), Decimal(1))}

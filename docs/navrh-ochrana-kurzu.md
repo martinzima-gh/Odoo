@@ -87,3 +87,28 @@ kniha ECB a měna mimo ECB (riziko 4). Existující testy a jejich očekávané 
 
 Červená zóna: provede Claude po schválení uživatelem, ne Antigravity (kromě bodu 8). Odhad: dvě třídy modelu,
 tři nová pole, osm až deset testů, bez migrace dat (nové pole má výchozí hodnotu).
+
+## Provedení 2026-11-10
+
+Schváleno uživatelem 10. 11. 2026 (deník: „Ochrana kurzů“, „Přepis kurzu“). Provedl Claude v `feature/nav-prototyp`.
+
+- **Body 1–5 a 8 hotové.** Evidence má druh kurzu (Vyhlášený / Ruční přepis / Ruční kurz), důvod a odkaz na přepsaný
+  kurz. Ruční záznam zakládá jen skupina schvalování ocenění přes okno „Nový ruční kurz“ (seznam kurzů) nebo
+  „Přepsat kurz“ (detail kurzu). Platí poslední přepis k datu. Kurzy Odoo (`res.currency.rate`) zapisuje jen evidence
+  jako systém; ruční zápis, změna i smazání se odmítne. Stažený kurz existující odlišnou hodnotu v Odoo nepřepíše
+  a rozdíl zapíše do logu (WARNING).
+- **Přepis po schváleném ocenění:** modul ocenění odmítne ruční kurz k datu, ke kterému nebo po kterém existuje
+  ocenění fondu se stejným zdrojem kurzů ve stavu Schváleno a dál.
+- **Měsíční kurzy ČNB** (kurzy ostatních měn) se stahují za minulý a běžný měsíc. Odchylka: nejsou samostatný zdroj,
+  ale zdroj ČNB se značkou „měsíční“ (stejný vydavatel i základ CZK; samostatný zdroj by komplikoval nastavení knih).
+  Platí až 35 dní. Kurz 0,000 (zdroj měnu nevyhlašuje) se neukládá.
+- **Upozornění v ocenění:** kontrola „Ocenění používá jen vyhlášené kurzy“ se závažností Upozornění vypíše ruční kurzy
+  měn portfolia, tříd a fondu s důvodem.
+- **Jedinečnost v databázi:** `UNIQUE NULLS NOT DISTINCT (source, date, currency_id, origin, overridden_id)` – jeden
+  vyhlášený a jeden ruční kurz k datu, přepisy v řetězu.
+- **Test fondu se zdrojem ECB (bod 6) zatím neproveden** – zůstává otevřený.
+- Test `investra_fx_revaluation/tests/test_fx_run.py` zakládá kurzy Odoo pomocníkem testů Odoo; nově ho volá jako
+  systém. Očekávané hodnoty se nezměnily.
+
+Testy: `investra_rates/tests/test_protection.py` (10), `investra_nav/tests/test_manual_rate.py` (4); všech 311 testů
+modulů Investry prošlo. V `investra_dev` začne ochrana platit až po aktualizaci modulu `investra_rates` (se souhlasem).

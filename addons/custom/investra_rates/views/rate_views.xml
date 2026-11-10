@@ -1,13 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_rate_override_wizard_form" model="ir.ui.view">
+        <field name="name">investra.rate.override.wizard.form</field>
+        <field name="model">investra.rate.override.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Ruční kurz">
+                <div class="alert alert-warning" role="alert">
+                    Ruční kurz je výjimka. Platí pro účetnictví i ocenění a zůstane v evidenci s důvodem a jménem zadavatele;
+                    nejde změnit ani smazat. Opravu zadejte jako nový přepis.
+                </div>
+                <group>
+                    <group>
+                        <field name="origin" widget="radio"/>
+                        <field name="source"/>
+                        <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="date"/>
+                    </group>
+                    <group>
+                        <field name="quantity"/>
+                        <field name="rate"/>
+                        <field name="current_id" invisible="1"/>
+                        <field name="current_rate" invisible="not current_id"/>
+                        <field name="current_origin" invisible="not current_id"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="reason" placeholder="Proč se kurz zadává ručně (např. chyba zdroje, měna, kterou zdroj nevyhlašuje)"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Uložit kurz" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_rate_override_wizard" model="ir.actions.act_window">
+        <field name="name">Ruční kurz</field>
+        <field name="res_model">investra.rate.override.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
     <record id="view_rate_list" model="ir.ui.view">
         <field name="name">investra.rate.list</field>
         <field name="model">investra.rate</field>
         <field name="arch" type="xml">
-            <list create="false" edit="false" delete="false">
+            <list create="false" edit="false" delete="false" decoration-warning="origin != 'published'">
+                <header>
+                    <button name="%(action_rate_override_wizard)d" type="action" string="Nový ruční kurz"
+                            display="always" groups="investra_entity.group_valuation_approver"/>
+                </header>
                 <field name="date"/><field name="source"/><field name="currency_id"/>
-                <field name="quantity"/><field name="rate"/><field name="fetched_at"/>
+                <field name="quantity"/><field name="rate"/>
+                <field name="origin"/>
+                <field name="periodicity" optional="hide"/>
+                <field name="reason" optional="show"/>
+                <field name="create_uid" string="Zadal" optional="hide"/>
+                <field name="fetched_at" optional="hide"/>
             </list>
+        </field>
+    </record>
+    <record id="view_rate_form" model="ir.ui.view">
+        <field name="name">investra.rate.form</field>
+        <field name="model">investra.rate</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="%(action_rate_override_wizard)d" type="action" string="Přepsat kurz"
+                            context="{'default_origin': 'override', 'default_source': source, 'default_currency_id': currency_id, 'default_date': date, 'default_quantity': quantity, 'default_rate': rate}"
+                            groups="investra_entity.group_valuation_approver"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="origin == 'published'">
+                        <strong>Ruční kurz.</strong> Důvod: <field name="reason" readonly="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="source"/>
+                            <field name="currency_id"/>
+                            <field name="date"/>
+                            <field name="origin"/>
+                            <field name="periodicity"/>
+                        </group>
+                        <group>
+                            <field name="quantity"/>
+                            <field name="rate"/>
+                            <field name="overridden_id" invisible="not overridden_id"/>
+                            <field name="create_uid" string="Zadal"/>
+                            <field name="fetched_at"/>
+                            <field name="document_hash" invisible="not document_hash"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
     <record id="view_rate_search" model="ir.ui.view">
@@ -20,10 +104,14 @@
                 <filter name="filter_cnb" string="ČNB" domain="[('source', '=', 'cnb')]"/>
                 <filter name="filter_ecb" string="ECB" domain="[('source', '=', 'ecb')]"/>
                 <separator/>
+                <filter name="filter_manual" string="Ruční" domain="[('origin', '!=', 'published')]"/>
+                <filter name="filter_monthly" string="Měsíční" domain="[('periodicity', '=', 'monthly')]"/>
+                <separator/>
                 <filter name="filter_date" date="date" string="Datum kurzu"/>
                 <group>
                     <filter name="group_by_currency" string="Měna" context="{'group_by': 'currency_id'}"/>
                     <filter name="group_by_source" string="Zdroj" context="{'group_by': 'source'}"/>
+                    <filter name="group_by_origin" string="Druh" context="{'group_by': 'origin'}"/>
                     <filter name="group_by_date_month" string="Měsíc" context="{'group_by': 'date:month'}"/>
                 </group>
             </search>
@@ -32,7 +120,7 @@
     <record id="action_rate" model="ir.actions.act_window">
         <field name="name">Vyhlášené kurzy</field>
         <field name="res_model">investra.rate</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_rate_search"/>
     </record>
     <menuitem id="menu_rate" name="Kurzy měn" parent="investra_entity.menu_setup_accounting" action="action_rate" sequence="30"/>
