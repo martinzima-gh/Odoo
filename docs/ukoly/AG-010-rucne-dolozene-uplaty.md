@@ -91,4 +91,17 @@ Bez chyb; mění se jen `nav_views.xml` a tento soubor.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `0e67f80` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `0e67f80` do `feature/nav-prototyp` (fast-forward).
+- **Revize:** diff mění jen dva bloky ze zadání (zelená zóna), konec záložky zůstal. Text upozornění odpovídá kódu:
+  `_apply_external` bez důvodu nebo přílohy ocenění odmítne a částku účtuje jako úplatu přes události ocenění.
+  Výčet stavů v podmínce odpovídá modelu ocenění. Nálezy: žádné.
+- **Testy:** `check_views.py` – chyb: 0; `-u investra_nav` s jeho testy nad `investra_test` – 0 failed,
+  0 error(s) of 121 tests (Odoo při aktualizaci přijalo upravený formulář ocenění).
+- **Databáze `investra_test`:** uložený formulář obsahuje novou záložku s upozorněním. Podmínka viditelnosti
+  vyhodnocená nad daty: 3 spočtená ocenění – záložka vidět; 2 ke schválení a 4 zveřejněná bez záznamů – skrytá.
+  Ocenění s ručně doloženou úplatou v testovacích datech není, viditelnost ve schváleném ocenění se záznamem
+  je ověřena jen z podmínky.
+- **Neověřeno:** vzhled záložky a upozornění v prohlížeči.
