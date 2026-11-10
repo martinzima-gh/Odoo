@@ -105,4 +105,14 @@ Bez chyb; mění se jen `nav_views.xml` a tento soubor.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-10
+- **Provedl:** GitHub Copilot (režim Agent v okně na `~/odoo-review`) podle rozhodnutí 2026-11-09 „Copilot jako náhradní
+  vývojář“. Commit `ecab8a0` s autorem „Copilot“ udělal Claude v klonu.
+- **Sloučení:** `ecab8a0` do `feature/nav-prototyp` (fast-forward).
+- **Revize:** diff přidává jen záznam `view_movement_list` těsně před `view_movement_search` a dva filtry s oddělovačem
+  (zelená zóna); oba bloky jsou v souboru beze změny znaků, všech 10 polí seznamu existuje na modelu. Nálezy: žádné.
+- **Testy:** `check_views.py` – chyb: 0, `view_movement_list` je mezi ověřenými pohledy; `-u investra_nav` s jeho testy
+  nad `investra_test` – 0 failed, 0 error(s) of 121 tests.
+- **Databáze `investra_test`:** seznam je uložen jako pohled typu `list`, vyhledávání obsahuje oba filtry. Všech 7
+  pohybů v testovacích datech je zaúčtovaných, filtr „Nezaúčtováno“ proto vrátí prázdný seznam.
+- **Neověřeno:** vzhled seznamu a filtrů v prohlížeči.
