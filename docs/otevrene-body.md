@@ -50,6 +50,8 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Správa knihy a poplatků | Modely pravidel úplat, tříd a kalendáře mohou mít stejný přesun mezi knihami pro skupinu správce účetnictví | Prověřit a rozšířit ochranu záznamu |
 | Excel balíčku pro depozitáře | Text začínající `=` se zapíše jako vzorec | Vypnout `strings_to_formulas` |
 | Rozpad ostatních položek třídy | Přemostění tříd (schváleno 2026-11-10) ukazuje ostatní položky třídy jedním číslem; měnové zajištění, dohady a položky specifické pro třídu nejsou rozepsané | Rozhodnout teď, nebo až podle prvního fondu, který takové položky bude mít (rozpad podle rolí účtů) |
+| Kniha se zdrojem ECB a měna mimo ECB | Odoo může vzít společný kurz ČNB (základ CZK) a smíchat ho se základem EUR (riziko 4 plánu ochrany kurzů) | Napsat test, který chování potvrdí nebo vyvrátí; řešení ke schválení zvlášť |
+| Ochrana kurzů v `investra_dev` | Ochrana kurzů je hotová (2026-11-10), ale v `investra_dev` začne platit až po aktualizaci modulu `investra_rates`; stahování kurzů tam už běží | Aktualizovat modul se souhlasem uživatele |
 | Body podkladu UX bez plánu | Poznámky uživatele z 2026-11-10 (podklad mimo repozitář, shrnutí v `docs/predavka-2026-11-10-ux.md`): 3 přehled fondů jako tabulka a snímek; 5.3 výpočetní protokol; 8 zdroj, zaokrouhlení, poplatek a historie u úpisů a odkupů; 9 klasifikace IFRS 9 na obchodu; 10 sdílené tržní ceny a měna ceny; 14 termínované vklady; 15 detail účetních událostí; 16 pravidla úplat proti sešitům | Plán ke každému bodu zvlášť (oranžová a červená zóna). Doporučené pořadí: 10, 9, přemostění tříd, ochrana kurzů, 15, 8, 14, 16, 5.3, 3 |
 
 ## Chybějící podklady
