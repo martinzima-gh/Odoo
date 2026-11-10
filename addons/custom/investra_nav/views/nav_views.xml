@@ -160,6 +160,24 @@
         <field name="name">Pravidla úplat</field><field name="res_model">investra.fee.rule</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_fee_rule_search"/>
     </record>
+    <record id="view_movement_list" model="ir.ui.view">
+        <field name="name">investra.class.movement.list</field>
+        <field name="model">investra.class.movement</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date" string="Datum"/>
+                <field name="fund_id" string="Fond"/>
+                <field name="class_id" string="Třída"/>
+                <field name="movement_type" string="Typ"/>
+                <field name="units" string="Kusy"/>
+                <field name="currency_id" string="Měna kurzu" optional="show"/>
+                <field name="amount_class" string="Částka v měně kurzu" optional="show"/>
+                <field name="fx_rate" string="Kurz" optional="show"/>
+                <field name="amount" string="Částka ve funkční měně"/>
+                <field name="event_id" string="Účetní událost" optional="show"/>
+            </list>
+        </field>
+    </record>
     <record id="view_movement_search" model="ir.ui.view">
         <field name="name">investra.class.movement.search</field>
         <field name="model">investra.class.movement</field>
@@ -170,6 +188,9 @@
                 <field name="date"/>
                 <filter name="filter_subscription" string="Úpisy" domain="[('movement_type', '=', 'subscription')]"/>
                 <filter name="filter_redemption" string="Odkupy" domain="[('movement_type', '=', 'redemption')]"/>
+                <separator/>
+                <filter name="filter_unposted" string="Nezaúčtováno" domain="[('event_id', '=', False)]"/>
+                <filter name="filter_posted" string="Zaúčtováno" domain="[('event_id', '!=', False)]"/>
                 <separator/>
                 <filter name="filter_date" date="date" string="Datum"/>
                 <group>

@@ -96,12 +96,12 @@ Bez chyb; mění se jen `nav_views.xml` a tento soubor.
 
 ## Výsledek
 
-Doplní Antigravity.
+Úkol provedl Copilot.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_nav/views/nav_views.xml` (nový seznam a filtry v `view_movement_search`) a tento soubor (jen sekce Výsledek).
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — Zkontrolováno souborů: 11, chyb: 0; příkaz pro `view_archs` — `['view_movement_list']`; `grep -c 'id="view_movement_list"' addons/custom/investra_nav/views/nav_views.xml` — `1`; `git diff --check` — bez výstupu; `git diff --stat HEAD` — změny pouze v `nav_views.xml` a tomto souboru zadání. Všechna pole seznamu jsou v `investra_nav/models/movement.py`.
+- **Neověřeno:** zobrazení seznamu a funkčnost filtrů v běžícím Odoo; Odoo testy. Docker ani databáze nebyly spuštěny.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 
