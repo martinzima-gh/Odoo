@@ -8,7 +8,7 @@ Přestavba nabídky Investra podle návrhu schváleného uživatelem 10. 11. 202
 | Položka | Hodnota |
 |---|---|
 | Zóna | zelená (jen `menuitem` v XML pohledů) |
-| Výchozí větev | `revize/claude-app` |
+| Výchozí větev | `feature/nav-prototyp` |
 | Větev úkolu | `ag/AG-006-nabidka` (připraví Claude z výchozí větve) |
 | Zadal, dne | Claude na pokyn uživatele, 2026-11-10 |
 | Navazuje na | AG-005, návrh nabídky schválený 2026-11-10 |
@@ -216,7 +216,7 @@ git diff --check
 Bez výstupu.
 
 ```bash
-git diff --stat revize/claude-app
+git diff --stat HEAD
 ```
 Jen deset souborů z Rozsahu a tento soubor.
 

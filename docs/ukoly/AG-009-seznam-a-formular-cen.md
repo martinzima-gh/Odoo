@@ -9,7 +9,7 @@ z existujících polí.
 | Položka | Hodnota |
 |---|---|
 | Zóna | zelená (jen XML pohledů) |
-| Výchozí větev | `revize/claude-app` |
+| Výchozí větev | `feature/nav-prototyp` |
 | Větev úkolu | `ag/AG-009-ceny` (připraví Claude z výchozí větve) |
 | Zadal, dne | Claude na pokyn uživatele, 2026-11-10 |
 | Navazuje na | AG-006 (nezávisí na něm, lze dělat souběžně) |
@@ -96,7 +96,7 @@ grep -c 'id="view_price_list"\|id="view_price_form"' addons/custom/investra_inst
 Vypíše `2`.
 
 ```bash
-git diff --check && git diff --stat revize/claude-app
+git diff --check && git diff --stat HEAD
 ```
 Bez chyb; mění se jen `instrument_views.xml` a tento soubor.
 

@@ -9,7 +9,7 @@ a zaúčtuje se s oceněním po schválení.
 | Položka | Hodnota |
 |---|---|
 | Zóna | zelená (jen XML pohledů) |
-| Výchozí větev | `revize/claude-app` |
+| Výchozí větev | `feature/nav-prototyp` |
 | Větev úkolu | `ag/AG-010-rucne-dolozene-uplaty` (připraví Claude z výchozí větve) |
 | Zadal, dne | Claude na pokyn uživatele, 2026-11-10 |
 | Navazuje na | AG-008 (stejný soubor `nav_views.xml`; začni až po jeho sloučení) |
@@ -71,7 +71,7 @@ grep -c "Výpočty mimo Odoo\|Výpočet mimo Odoo" addons/custom/investra_nav/vi
 Vypíše `0`.
 
 ```bash
-git diff --check && git diff --stat revize/claude-app
+git diff --check && git diff --stat HEAD
 ```
 Bez chyb; mění se jen `nav_views.xml` a tento soubor.
 

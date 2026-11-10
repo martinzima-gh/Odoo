@@ -8,7 +8,7 @@ z 10. 11. 2026). Úkol doplní seznam z existujících polí a filtry zaúčtov�
 | Položka | Hodnota |
 |---|---|
 | Zóna | zelená (jen XML pohledů) |
-| Výchozí větev | `revize/claude-app` |
+| Výchozí větev | `feature/nav-prototyp` |
 | Větev úkolu | `ag/AG-008-seznam-upisu` (připraví Claude z výchozí větve) |
 | Zadal, dne | Claude na pokyn uživatele, 2026-11-10 |
 | Navazuje na | AG-006 (nezávisí na něm, lze dělat souběžně) |
@@ -79,7 +79,7 @@ grep -c 'id="view_movement_list"' addons/custom/investra_nav/views/nav_views.xml
 Vypíše `1`.
 
 ```bash
-git diff --check && git diff --stat revize/claude-app
+git diff --check && git diff --stat HEAD
 ```
 Bez chyb; mění se jen `nav_views.xml` a tento soubor.
 

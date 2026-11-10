@@ -8,7 +8,7 @@ z 10. 11. 2026). Výběr účtů má sloužit jen k výběru.
 | Položka | Hodnota |
 |---|---|
 | Zóna | zelená (jen formulář v XML pohledů) |
-| Výchozí větev | `revize/claude-app` |
+| Výchozí větev | `feature/nav-prototyp` |
 | Větev úkolu | `ag/AG-007-preceneni-vyber-uctu` (připraví Claude z výchozí větve) |
 | Zadal, dne | Claude na pokyn uživatele, 2026-11-10 |
 | Navazuje na | návrh nabídky a pořadí úkolů schválený 2026-11-10 |
@@ -61,7 +61,7 @@ grep -c "no_create" addons/custom/investra_fx_revaluation/views/fx_views.xml
 Vypíše `3`.
 
 ```bash
-git diff --check && git diff --stat revize/claude-app
+git diff --check && git diff --stat HEAD
 ```
 Bez chyb; mění se jen `fx_views.xml` a tento soubor.
 
