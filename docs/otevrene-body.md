@@ -49,10 +49,8 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Zámek splátky po zaúčtování | Částku splátky a `event_id` jde po zaúčtování změnit; dvojí zaúčtování zastaví klíč události | Zamknout stejně jako pohyb |
 | Správa knihy a poplatků | Modely pravidel úplat, tříd a kalendáře mohou mít stejný přesun mezi knihami pro skupinu správce účetnictví | Prověřit a rozšířit ochranu záznamu |
 | Excel balíčku pro depozitáře | Text začínající `=` se zapíše jako vzorec | Vypnout `strings_to_formulas` |
-| Ochrana kurzů (plán ke schválení) | Kurz v `res.currency.rate` jde ručně změnit a stahování existující kurz tiše přeskočí; doklad pak použije jiný kurz než ocenění | Plán `docs/navrh-ochrana-kurzu.md`, doporučena varianta C (vše přes evidenci kurzů). Kdo přepisuje, rozhodnuto 2026-11-10 („Přepis kurzu“). Otevřené: kurzy měn, které ČNB vyhlašuje měsíčně; upozornění na ruční kurz v kontrolách ocenění |
-| Přemostění kapitálu tříd (plán ke schválení) | Záložka Třídy neukazuje cestu od kapitálu minulého ocenění ke konečnému kurzu | Plán `docs/navrh-premosteni-trid.md`, doporučena varianta A (uložené hodnoty). Otevřené: dividendy jako pohyb třídy hned, nebo později; kapitál v měně zveřejnění třídy; rozpad ostatních položek třídy teď, nebo u prvního fondu |
+| Rozpad ostatních položek třídy | Přemostění tříd (schváleno 2026-11-10) ukazuje ostatní položky třídy jedním číslem; měnové zajištění, dohady a položky specifické pro třídu nejsou rozepsané | Rozhodnout teď, nebo až podle prvního fondu, který takové položky bude mít (rozpad podle rolí účtů) |
 | Body podkladu UX bez plánu | Poznámky uživatele z 2026-11-10 (podklad mimo repozitář, shrnutí v `docs/predavka-2026-11-10-ux.md`): 3 přehled fondů jako tabulka a snímek; 5.3 výpočetní protokol; 8 zdroj, zaokrouhlení, poplatek a historie u úpisů a odkupů; 9 klasifikace IFRS 9 na obchodu; 10 sdílené tržní ceny a měna ceny; 14 termínované vklady; 15 detail účetních událostí; 16 pravidla úplat proti sešitům | Plán ke každému bodu zvlášť (oranžová a červená zóna). Doporučené pořadí: 10, 9, přemostění tříd, ochrana kurzů, 15, 8, 14, 16, 5.3, 3 |
-| Kurzy měn v nabídce | Kurzy používá ocenění i účetnictví; po AG-006 jsou pod Ocenění | Rozhodnout, zda přesunout do Nastavení → Účtování (po AG-011) |
 
 ## Chybějící podklady
 
@@ -74,4 +72,3 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě zkušebních knih |
 | Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, předpisy, DORA | Postup po fázích, start na Investra Services |
 | Chybějící údaje při převzetí fondu | Bez pořizovacího kurzu nebo údajů po pozicích nejde oddělit FX a FV | Účetní postup pro stanovení hodnot ke dni přechodu |
-| Vypnuté stahování kurzů v `investra_dev` | Plánovaná úloha „Investra: stažení kurzů“ je vypnutá (ověřeno 2026-11-10, poslední kurz ze 6. 11. 2026); bez kurzů skončí ocenění chybou „chybí kurz“. Kurzy Odoo a evidence kurzů se zatím shodují (6 236 kurzů ČNB, bez rozdílu) | Zapnout v Odoo se souhlasem uživatele; v datech modulu zůstává vypnutá |
