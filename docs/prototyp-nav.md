@@ -132,6 +132,10 @@ docker compose -f docker-compose.investra.yml run --rm --no-deps -T odoo odoo \
 ```
 
 Pozor: `-i` u už nainstalovaného modulu testy nespustí, zpráva „0 tests“ není úspěch.
+Pozor: testy s `AccountTestInvoicingCommon` zakládají společnosti a čítač `res_company_id_seq` se po testu nevrací.
+Nad 10000 padá příprava testů (MissingError u kopie účtu, limit `COMPANY_OFFSET` v Odoo). Stav ověřit
+`SELECT last_value FROM res_company_id_seq;` a v testovací databázi ho vrátit
+`SELECT setval('res_company_id_seq', (SELECT max(id) FROM res_company));` (jen `investra_test`, ne `investra_dev`).
 Kurzy jsou v databázi společné a neměnné: testy s kurzy nesmí používat stejné období jako ukázková data.
 
 ## Ukázka
