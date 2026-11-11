@@ -1,111 +1,124 @@
 # Návrh: sdílené tržní ceny přes fondy a měna ceny
 
 Plán ke schválení. Červená zóna (`investra_instruments/models`, cena vstupuje do NAV v `investra_nav`, `record_guard`,
-pravidla přístupu). Stav 11. 11. 2026, připravil Claude podle bodu 10 podkladu UX z 10. 11. 2026. Nic není naprogramované.
+pravidla přístupu). Stav 11. 11. 2026, připravil Claude podle bodu 10 podkladu UX z 10. 11. 2026; upraveno podle
+odpovědí uživatele z 11. 11. 2026. Nic není naprogramované.
 
-**Cíl:** Tržní cenu kótovaného nástroje zadat a schválit jednou a použít ji ve všech fondech, které nástroj drží.
-U každé ceny je vidět a kontroluje se, v jaké měně je. Fond může mít vlastní cenu jen jako doloženou odchylku.
+**Bod 10 podkladu UX:** „Ceny: tabulka jen ID; ceny mají být sdílené přes fondy.“ Návrh v podkladu: sdílená tržní cena
+se schvaluje jednou; cena z posudku zůstává na fondu; seznam s nástrojem, datem, cenou, měnou, zdrojem a stavem.
+„Měna ceny“ tedy znamená, že u ceny musí být vidět, v jaké měně je.
+
+**Cíl:** Tržní cenu nástroje zadat a schválit jednou a použít ji ve všech fondech, které nástroj drží. Cena z posudku
+nebo jiná odchylka zůstává cenou fondu. Ocenění bere poslední známou cenu a upozorní na starou cenu.
 
 ## Jak to funguje dnes
 
 - `investra.instrument.price`: povinný `fund_id`, `company_id` = společnost fondu, unikátnost (fond, nástroj, datum),
-  stav Návrh → Schváleno, čtyři oči (zadavatel ani zakladatel neschvaluje), schválenou nejde měnit ani smazat.
+  stav Návrh → Schváleno, čtyři oči, schválenou nejde měnit ani smazat, cena na 8 desetinných míst.
 - Ocenění (`valuation.py`, `_approved_price`) hledá schválenou cenu **téhož fondu přesně k datu ocenění**;
-  hodnota = kusy × cena × kurz **měny nástroje** k datu ocenění podle zdroje kurzů fondu.
-- Na řádku portfolia se ukládá jednotková cena a zdroj (text), ne odkaz na záznam ceny.
-- Přehled (`dashboard.py`) počítá ceny v návrhu podle fondu.
-- Nástroj je společný (bez společnosti); `fund_id` na nástroji znamená „jen pro tento fond“.
+  hodnota = kusy × cena × kurz **měny nástroje** podle zdroje kurzů fondu. Rozhodnutí 2026-11-04 přitom říká
+  „poslední známá cena“.
+- Řádek portfolia ukládá jednotkovou cenu a zdroj (text), ne odkaz na záznam ceny. Hotové ocenění proto na pozdější
+  změnu ceny nereaguje.
+- Kontroly ocenění mají závažnost Stop (blokuje) a Upozornění (neblokuje, je vidět v kontrolách).
 
 ## Zjištěná rizika
 
-1. **Různé ceny téhož nástroje ke stejnému dni v různých fondech** – nikdo to nekontroluje; u depozitáře a auditora
-   těžko vysvětlitelné (rovné zacházení, Pravidla oceňování).
-2. **Násobná práce** – import z Bloombergu (rozhodnutí 2026-11-04) a schválení se opakuje pro každý fond.
-3. **Měna ceny je jen předpoklad** – cena se bere v měně nástroje. Cena z importu v jiné měně (např. pence místo liber,
-   USD u nástroje vedeného v EUR) projde bez chyby a zkreslí NAV.
-4. Cenu jde zadat fondu, který nástroj „jen pro jiný fond“ nesmí držet (chybí kontrola `instrument.fund_id`).
+1. Různé ceny téhož nástroje ke stejnému dni v různých fondech; nikdo to nekontroluje.
+2. Import z Bloombergu a schválení se opakuje pro každý fond.
+3. Měna ceny se neukazuje ani nekontroluje; cena v jiné měně z importu projde a zkreslí NAV.
+4. Cenu jde zadat fondu, který nástroj „jen pro jiný fond“ nesmí držet.
+5. O víkendu, svátku nebo u nelikvidního titulu ocenění skončí chybou, i když je k dispozici poslední známá cena.
 
 ## Varianty
 
 | | A: kopírování do fondů | B: jeden model, fond nepovinný (doporučeno) | C: samostatná tržní cena + cena fondu |
 |---|---|---|---|
-| Princip | Průvodce založí z jedné ceny návrhy pro všechny fondy s pozicí | Cena bez fondu = sdílená tržní cena; cena s fondem = odchylka fondu s důvodem | Nový model `investra.market.price`; cena fondu na ni odkazuje a schvaluje se ve fondu |
-| Počet schválení | za každý fond | jedno (odchylka zvlášť) | dvě úrovně |
-| Riziko rozdílných cen | zůstává | odchylka jen s důvodem a upozorněním v ocenění | nízké |
-| Zásah do kódu | malý | střední (model, pravidla, hledání ceny, testy) | velký (nový model, migrace, dvojí záznamy) |
-| Auditní stopa | duplicitní záznamy | jeden záznam + odkaz z řádku ocenění | nejpodrobnější, ale zdvojená |
+| Princip | Průvodce založí z jedné ceny návrhy pro všechny fondy s pozicí | Cena bez fondu = sdílená tržní cena; cena s fondem = cena fondu (posudek, odchylka) | Nový model tržní ceny; cena fondu na ni odkazuje |
+| Počet schválení | za každý fond | jedno | dvě úrovně |
+| Riziko rozdílných cen | zůstává | odchylka jen s důvodem a upozorněním | nízké |
+| Zásah do kódu | malý | střední | velký, dvojí záznamy |
 
-Doporučení **B**: řeší všechna čtyři rizika, zachová stávající schvalování a ochrany a dnešní ceny fondů zůstanou platné
-bez migrace dat.
+Doporučení **B**: odpovídá návrhu v podkladu UX, zachová schvalování a ochrany a dnešní ceny zůstanou platné
+bez převodu dat.
 
 ## Návrh řešení (varianta B)
 
 **Model ceny**
-- `fund_id` nepovinný. Prázdný = **sdílená tržní cena**; vyplněný = **cena fondu**.
-- Nové pole `scope` (Sdílená / Fond) jen pro zobrazení a filtry (počítané, uložené).
-- `company_id` už nebude jen `related` na fond: u ceny fondu = společnost fondu, u sdílené ceny = **kniha správce cen**
-  (nastavení, viz otázka 1). Ochrana knihy (`_book_fields`) platí dál: cenu nejde přesunout mezi sdílenou a fondem.
+- `fund_id` nepovinný. Prázdný = **sdílená tržní cena**; vyplněný = **cena fondu** (posudek, odchylka).
+- `company_id` u ceny fondu = společnost fondu, u sdílené ceny = **kniha správce cen** (parametr v nastavení;
+  rozhodnutí uživatele: Investra). Cenu nejde přesunout mezi sdílenou a fondem (ochrana knihy platí dál).
 - Unikátnost: (nástroj, datum) pro sdílenou cenu a (fond, nástroj, datum) pro cenu fondu – dva unikátní indexy
-  s podmínkou (PostgreSQL bere NULL jako různé hodnoty, prostá unikátnost by duplicitní sdílené ceny pustila;
-  syntaxi indexu s podmínkou v Odoo 20 ověřím).
-- Cena fondu ke dni, ke kterému existuje sdílená cena, musí mít **důvod odchylky** (např. jiný trh, znalecký posudek,
-  nelikvidní pozice ve fondu).
-- Nástroj „jen pro fond“ (`instrument.fund_id`): sdílenou cenu mít nesmí, cena fondu jen pro jeho fond.
+  s podmínkou (prostá unikátnost by duplicitní sdílené ceny pustila, NULL se v PostgreSQL nerovná NULL).
+- Cena fondu ke dni, ke kterému existuje sdílená cena, musí mít **důvod odchylky**.
+- Nástroj „jen pro fond“: sdílenou cenu mít nesmí, cena fondu jen pro jeho fond.
+- **Cena je vždy v jednotkách měny za kus** (ne v % jmenovité hodnoty ani v setinách). Přesnost **6 desetinných míst**
+  (dnes 8; v `investra_test` má víc než 6 míst 0 z 11 cen a 0 z 8 obchodů, `investra_dev` ceny zatím nemá).
 
 **Měna ceny**
-- Nové povinné pole `currency_id` (výchozí = měna nástroje), viditelné v seznamu, formuláři i importu.
-- Fáze 1 (doporučeno teď): měna ceny **musí** být měna nástroje – kontrola zachytí chybný sloupec měny při importu.
-  Hodnota NAV ani účtování se nemění, FX a přecenění na RH se dál dělí podle měny nástroje.
-- Fáze 2 (jen když ji první fondy potřebují): cena v jiné měně se přepočte na měnu nástroje křížovým kurzem
-  k datu ocenění podle zdroje kurzů fondu; do řádku ocenění se uloží původní cena, měna i kurz. Plán zvlášť.
+- Nové povinné pole `currency_id` (výchozí = měna nástroje) v seznamu, formuláři i importu. Musí se rovnat měně
+  nástroje; jinak import i uložení skončí chybou. Přepočet ceny z jiné měny se nedělá.
 
-**Ocenění**
-- Hledání ceny: schválená cena fondu k datu → jinak schválená sdílená cena k datu → jinak dnešní chyba „Chybí schválená cena“.
-- Řádek portfolia dostane odkaz na použitý záznam ceny (`price_id`) a příznak, zda šlo o cenu fondu.
-- Nová kontrola ocenění (Upozornění): fond použil vlastní cenu, i když existuje sdílená; ukáže obě ceny a důvod.
-- Přepočet do funkční měny zůstává ve fondu: sdílená cena je v měně nástroje, každý fond ji přepočte svým kurzem
-  (ČNB / ECB podle rozhodnutí „Zdroj kurzu“). Rozdíl v Kč/EUR mezi fondy je tedy správný.
+**Poslední známá cena a stáří ceny**
+- Nové pole **Maximální stáří ceny (dny)** na typu nástroje jako návrh a na nástroji jako platná hodnota
+  (stejně jako dnes klasifikace a způsob ocenění).
+- Ocenění vezme schválenou cenu s nejnovějším datem **do data ocenění včetně**: přednost má cena fondu před
+  sdílenou cenou téhož dne; novější sdílená cena má přednost před starší cenou fondu.
+- Žádná cena do data ocenění → Stop (jako dnes).
+- Cena starší než limit, nebo limit nevyplněný a cena není k datu ocenění → kontrola ocenění se závažností
+  **Upozornění** (překonatelná: ocenění pokračuje, upozornění je vidět v kontrolách a v balíčku pro depozitáře).
+  V detailu nástroj, datum ceny a stáří.
+- Řádek portfolia dostane odkaz na použitý záznam ceny (`price_id`) a datum ceny.
+- Upozornění také tehdy, když fond použil vlastní cenu, i když existuje sdílená ke stejnému dni (obě ceny a důvod).
+
+**Změna schválené ceny**
+- Hotová ocenění si drží svou cenu (uloženou na řádku), změna ceny v číselníku je nezmění. Kdo chce ocenění
+  přepočítat, vrátí ho stávajícím postupem vrácení nebo storna.
+- Schválenou cenu půjde opravit. Formulář před uložením upozorní (překonatelně): „Cena byla použita v oceněních: …“
+  (podle `price_id` na řádcích; u starších ocenění bez odkazu podle fondu, nástroje a data ocenění).
+- Oprava vrátí cenu do stavu Návrh, takže ji znovu schválí druhá osoba (zachová se rozhodnutí „Čtyři oči u ceny“).
+- Změny ceny se evidují v historii záznamu (kdo, kdy, původní a nová hodnota). Smazat cenu použitou v ocenění nejde.
 
 **Přístup a schvalování**
-- Čtení: uživatel s právem číst ceny vidí ceny svých společností **a všechny sdílené ceny** (pravidlo přístupu
-  `['|', ('fund_id', '=', False), ('company_id', 'in', company_ids)]` jen pro čtení).
-- Zápis a schválení sdílené ceny: jen uživatel s přístupem do knihy správce cen (příprava / schvalování ocenění).
-- Čtyři oči, zámek schválené ceny a zákaz smazání platí beze změny.
+- Čtení: ceny vlastních společností a všechny sdílené ceny (pravidlo jen pro čtení
+  `['|', ('fund_id', '=', False), ('company_id', 'in', company_ids)]`).
+- Zápis a schválení sdílené ceny: jen uživatel s přístupem do knihy správce cen; čtyři oči beze změny.
 - Přehled: ceny v návrhu u fondu = jeho ceny v návrhu + sdílené ceny v návrhu pro nástroje v jeho pozicích.
 
 **Obrazovky (po sloučení modelu, zelené zadání pro AG)**
-- Seznam cen: sloupce Rozsah, Měna, Důvod odchylky; filtry Sdílené / Fond; formulář s fondem nepovinným a nápovědou.
+- Seznam cen: nástroj, datum, cena, měna, rozsah (Sdílená / Fond), fond, zdroj, stav, důvod odchylky; filtry.
+- Nástroj a typ nástroje: pole Maximální stáří ceny.
 
 ## Dopad na data a účetnictví
 
-- Stávající ceny v `investra_dev` a `investra_test` zůstanou cenami fondu; `currency_id` se jim doplní měnou nástroje
-  při aktualizaci modulu (přes ORM, po souhlasu a záloze).
-- Výsledek NAV ani zaúčtované doklady se nemění; dosavadní ocenění zůstávají, nové pole `price_id` u nich bude prázdné.
-- Referenční scénáře: očekávané hodnoty se nemění; přibudou testy (níže).
+- Stávající ceny zůstanou cenami fondu; `currency_id` se doplní měnou nástroje při aktualizaci modulu (ORM,
+  po souhlasu a záloze). Hodnoty cen se zkrácením na 6 míst nezmění (ověřeno výše).
+- Hotová ocenění a zaúčtované doklady se nemění. Nové ocenění k víkendu nebo svátku dnes skončí chybou, nově projde
+  s poslední známou cenou a případným upozorněním.
+- Referenční scénáře: očekávané hodnoty se nemění (ceny jsou k datu ocenění).
 
-**Testy:** sdílená cena použitá dvěma fondy s různým zdrojem kurzů; cena fondu má přednost a vyvolá upozornění;
-cena fondu bez důvodu při existující sdílené ceně odmítnuta; duplicitní sdílená cena odmítnuta; měna ceny ≠ měna
-nástroje odmítnuta; uživatel bez knihy správce cen sdílenou cenu nezaloží ani neschválí, ale přečte; nástroj
-„jen pro fond“ bez sdílené ceny; přesun ceny mezi sdílenou a fondem odmítnut.
+**Testy:** sdílená cena ve dvou fondech s různým zdrojem kurzů; cena fondu má přednost téhož dne a vyvolá
+upozornění; cena fondu bez důvodu odmítnuta; duplicitní sdílená cena odmítnuta; měna ceny ≠ měna nástroje odmítnuta;
+7 místo odmítnuto/zaokrouhleno; poslední známá cena v limitu bez upozornění, nad limitem s upozorněním, bez ceny Stop;
+oprava schválené ceny vrátí návrh a hotové ocenění se nezmění; smazání použité ceny odmítnuto; uživatel bez knihy
+správce cen sdílenou cenu přečte, ale nezaloží ani neschválí.
 
-## Otázky pro uživatele
+## Odpovědi uživatele (11. 11. 2026)
 
-1. **Kniha správce cen:** která společnost sdílené ceny „vlastní“ a kdo je smí zadávat – investiční společnost
-   (obhospodařovatel/administrátor fondů), nebo Investra Services? Doporučení: parametr v nastavení, výchozí
-   investiční společnost; do jejího založení Investra Services.
-2. **Co je bod 10 „měna ceny“:** stačí měnu ceny zobrazit a kontrolovat (fáze 1), nebo už první fondy mají ceny
-   v jiné měně, než je měna nástroje (fáze 2)?
-3. **Kotace v procentech nebo setinách** (dluhopisy v % jmenovité hodnoty, akcie v pencích): řešit „násobitelem kotace“
-   na ceně? Doporučení: ne teď, až podle pozic prvního fondu.
-4. **Poslední známá cena:** rozhodnutí 2026-11-04 říká „poslední známá cena“, kód chce cenu přesně k datu ocenění
-   (víkendy, svátky, nelikvidní tituly). Doporučení: samostatný krok hned po tomto – hledat poslední schválenou cenu
-   do data ocenění s limitem stáří (parametr fondu) a upozorněním v ocenění.
-5. **Oprava schválené sdílené ceny:** dnes ji nejde změnit; chyba by se týkala více fondů. Doporučení: zatím řešit
-   cenou fondu s důvodem; řízené zrušení schválení (jen dokud na ceně nestojí ocenění od stavu Ke schválení) jako
-   otevřený bod.
+1. Kniha správce cen: Investra (upřesnit, která společnost, viz níže).
+2. Měna ceny podle bodu 10: zobrazit a kontrolovat; přepočet z jiné měny se nedělá.
+3. Cena vždy v jednotkách měny za kus, až 6 desetinných míst.
+4. Poslední známá cena; při stáří nad parametr (na nástroji) překonatelné upozornění.
+5. Bez složitého zrušení schválení: hotová ocenění drží svou cenu, změna ceny upozorní na použití v oceněních.
+
+## Zbývá upřesnit
+
+- Která společnost je „Investra“ pro knihu správce cen: Investra Services s.r.o., nebo investiční společnost
+  (do jejího založení Services)? Řeší se parametrem, kód na tom nezávisí.
+- Přesnost 6 míst i pro cenu na obchodu (dnes také 8)? Doporučení: ano, stejná cena na kus.
 
 ## Zóna a provedení
 
-Červená zóna: provede Claude po schválení plánu a odpovědích na otázky 1 a 2. Pořadí: model a pravidla přístupu
-(`investra_instruments`) → hledání ceny, `price_id` a kontrola (`investra_nav`) → přehled (`investra_dashboard`) →
+Červená zóna: provede Claude po schválení plánu. Pořadí: model, stáří ceny a pravidla přístupu
+(`investra_instruments`) → hledání ceny, `price_id`, kontroly (`investra_nav`) → přehled (`investra_dashboard`) →
 testy v `investra_test` → aktualizace `investra_dev` se souhlasem a zálohou → zelené zadání obrazovek pro AG.
