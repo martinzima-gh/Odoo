@@ -16,7 +16,7 @@ SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id"}
 BOOKED_TRADE_FIELDS = {"fund_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate"}
 SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
 # Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
-PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "source"}
+PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "currency_id", "source", "deviation_reason"}
 
 
 class InvestraInstrumentType(models.Model):
@@ -45,6 +45,10 @@ class InvestraInstrumentType(models.Model):
     valuation_method = fields.Selection(VALUATION_METHOD, required=True, string="Navržený způsob ocenění")
     role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Navržená role účtu")
     cnb_sheet = fields.Char(string="Navržený list ČNB")
+    max_price_age = fields.Integer(
+        string="Navržené maximální stáří ceny (dny)",
+        help="Návrh pro nové nástroje tohoto typu. 0 = ocenění upozorní na každou cenu starší než datum ocenění.",
+    )
 
     _code_uniq = models.Constraint("unique(code)", "Kód typu nástroje musí být jedinečný.")
 
@@ -64,6 +68,11 @@ class InvestraInstrument(models.Model):
     valuation_method = fields.Selection(VALUATION_METHOD, required=True, string="Způsob ocenění", tracking=True)
     role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Role účtu", tracking=True)
     cnb_sheet = fields.Char(string="List ČNB", tracking=True)
+    max_price_age = fields.Integer(
+        string="Maximální stáří ceny (dny)", tracking=True,
+        help="Ocenění vezme poslední známou schválenou cenu; je-li starší o víc dní, ocenění upozorní (nezastaví). "
+             "0 = upozornit na každou cenu starší než datum ocenění.",
+    )
     deviates_from_type = fields.Boolean(compute="_compute_deviates", string="Odchylka od návrhu typu")
     fair_value_level = fields.Selection([("1", "Úroveň 1"), ("2", "Úroveň 2"), ("3", "Úroveň 3")], string="Úroveň RH")
     market = fields.Char(string="Trh")
@@ -90,7 +99,7 @@ class InvestraInstrument(models.Model):
     def _type_proposal(self, kind):
         return {
             "ifrs9_category": kind.ifrs9_category, "valuation_method": kind.valuation_method,
-            "role_id": kind.role_id.id, "cnb_sheet": kind.cnb_sheet,
+            "role_id": kind.role_id.id, "cnb_sheet": kind.cnb_sheet, "max_price_age": kind.max_price_age,
         }
 
     @api.model_create_multi
@@ -163,38 +172,93 @@ class InvestraInstrumentCashflow(models.Model):
 
 
 class InvestraInstrumentPrice(models.Model):
-    """Cena k datu. Do ocenění vstupuje jen schválená; schválenou nelze měnit."""
+    """Cena k datu v jednotkách měny nástroje za kus. Do ocenění vstupuje jen schválená.
+
+    Cena bez fondu je sdílená tržní cena (vede ji kniha investiční společnosti, platí pro všechny fondy);
+    cena s fondem je cena fondu (posudek, odchylka). Opravená schválená cena se vrací ke schválení.
+    """
 
     _name = "investra.instrument.price"
-    _inherit = ["investra.record.guard"]
+    _inherit = ["investra.record.guard", "mail.thread"]
     _description = "Cena nástroje"
     _order = "date desc"
-    _book_fields = ("fund_id",)
+    _book_fields = ("fund_id", "company_id")
     _system_fields = SYSTEM_PRICE_FIELDS
 
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", index=True, string="Nástroj")
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
-    company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    date = fields.Date(required=True, string="Datum")
-    price = fields.Float(required=True, digits=(20, 8), string="Cena")
-    source = fields.Char(required=True, string="Zdroj")
-    state = fields.Selection([("draft", "Návrh"), ("approved", "Schváleno")], default="draft", required=True, readonly=True, string="Stav")
+    fund_id = fields.Many2one(
+        "investra.fund", ondelete="restrict", index=True, string="Fond",
+        help="Prázdné = sdílená tržní cena pro všechny fondy. Vyplněné = cena jen pro tento fond (posudek, odchylka).",
+    )
+    scope = fields.Selection(
+        [("shared", "Sdílená"), ("fund", "Fond")], compute="_compute_scope", store=True, precompute=True, string="Rozsah",
+    )
+    # Kniha ceny: u ceny fondu společnost fondu, u sdílené ceny kniha investiční společnosti; nastaví se při založení.
+    company_id = fields.Many2one("res.company", required=True, readonly=True, index=True, string="Kniha")
+    date = fields.Date(required=True, string="Datum", tracking=True)
+    price = fields.Float(required=True, digits=(20, 8), string="Cena", tracking=True, help="V jednotkách měny ceny za kus.")
+    currency_id = fields.Many2one(
+        "res.currency", compute="_compute_currency_id", store=True, precompute=True, readonly=False, required=True, string="Měna",
+        tracking=True, help="Musí se rovnat měně nástroje.",
+    )
+    source = fields.Char(required=True, string="Zdroj", tracking=True)
+    deviation_reason = fields.Char(
+        string="Důvod odchylky", tracking=True,
+        help="Povinné u ceny fondu, když ke stejnému dni existuje sdílená tržní cena.",
+    )
+    state = fields.Selection(
+        [("draft", "Návrh"), ("approved", "Schváleno")], default="draft", required=True, readonly=True, string="Stav",
+        tracking=True,
+    )
     entered_by = fields.Many2one("res.users", default=lambda self: self.env.user, readonly=True, string="Zadal")
     approved_by = fields.Many2one("res.users", readonly=True, string="Schválil")
 
     _uniq = models.Constraint("unique(fund_id, instrument_id, date)", "Cena nástroje k datu už existuje.")
+    # NULL se v PostgreSQL nerovná NULL, proto sdílené ceny potřebují vlastní index.
+    _shared_uniq = models.UniqueIndex(
+        "(instrument_id, date) WHERE fund_id IS NULL", "Sdílená cena nástroje k datu už existuje.",
+    )
+
+    @api.depends("fund_id")
+    def _compute_scope(self):
+        for price in self:
+            price.scope = "fund" if price.fund_id else "shared"
+
+    @api.depends("instrument_id")
+    def _compute_currency_id(self):
+        for price in self:
+            price.currency_id = price.instrument_id.currency_id
+
+    @api.model
+    def _shared_price_company(self):
+        """Sdílené ceny vede kniha investiční společnosti (rozhodnutí 2026-11-11)."""
+        books = self.env["investra.entity"].sudo().search([("entity_type", "=", "manager")])
+        if len(books) != 1:
+            raise UserError(self.env._(
+                "Sdílené tržní ceny vede kniha investiční společnosti, která zatím není založená (nebo jich je víc). "
+                "Zadejte cenu fondu."
+            ))
+        return books.company_id
 
     @api.model_create_multi
     def create(self, vals_list):
         if not self.env.su and any(SYSTEM_PRICE_FIELDS & set(vals) for vals in vals_list):
             raise UserError(self.env._("Cenu schvaluje jen schvalovací krok."))
+        for vals in vals_list:
+            fund = self.env["investra.fund"].browse(vals.get("fund_id", self.env.context.get("default_fund_id")))
+            vals["company_id"] = fund.company_id.id if fund else self._shared_price_company().id
         return super().create(vals_list)
 
     def write(self, vals):
         if not self.env.su and SYSTEM_PRICE_FIELDS & set(vals):
             raise UserError(self.env._("Cenu schvaluje jen schvalovací krok."))
-        if self.filtered(lambda p: p.state == "approved") and set(vals) - {"state", "approved_by"}:
-            raise UserError(self.env._("Schválenou cenu nejde měnit."))
+        approved = self.filtered(lambda p: p.state == "approved")
+        if approved and set(vals) - {"state", "approved_by"}:
+            if {"instrument_id", "fund_id", "date", "company_id"} & set(vals):
+                raise UserError(self.env._("U schválené ceny nejde změnit nástroj, fond ani datum. Založte novou cenu."))
+            # Oprava schválené ceny: zpět do návrhu, schválí ji znovu druhá osoba. Hotová ocenění drží svou cenu.
+            if "state" not in vals:
+                approved.sudo().write({"state": "draft", "approved_by": False})
         if not self.env.su and PRICE_INPUT_FIELDS & set(vals):
             vals = {**vals, "entered_by": self.env.user.id}
         return super().write(vals)
@@ -203,6 +267,28 @@ class InvestraInstrumentPrice(models.Model):
         if self.filtered(lambda p: p.state == "approved"):
             raise UserError(self.env._("Schválenou cenu nejde smazat."))
         return super().unlink()
+
+    @api.constrains("instrument_id", "fund_id", "currency_id", "date", "deviation_reason")
+    def _check_price(self):
+        for price in self:
+            instrument = price.instrument_id
+            if price.currency_id != instrument.currency_id:
+                raise ValidationError(self.env._(
+                    "Měna ceny %(price)s se musí rovnat měně nástroje %(instrument)s (%(name)s).",
+                    price=price.currency_id.name, instrument=instrument.currency_id.name, name=instrument.name,
+                ))
+            if instrument.fund_id and price.fund_id != instrument.fund_id:
+                raise ValidationError(self.env._(
+                    "Nástroj %(name)s patří jen fondu %(fund)s; cenu lze zadat jen tomuto fondu.",
+                    name=instrument.name, fund=instrument.fund_id.display_name,
+                ))
+            if price.fund_id and not price.deviation_reason and self.sudo().search_count([
+                ("instrument_id", "=", instrument.id), ("date", "=", price.date), ("fund_id", "=", False),
+            ], limit=1):
+                raise ValidationError(self.env._(
+                    "Ke dni %(day)s existuje sdílená cena %(name)s; cena fondu musí mít důvod odchylky.",
+                    day=price.date, name=instrument.name,
+                ))
 
     def action_approve(self):
         if not self.env.user.has_group("investra_entity.group_valuation_approver"):

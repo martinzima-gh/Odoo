@@ -111,7 +111,12 @@ class InvestraFund(models.Model):
         )
         if unsettled:
             warning.append(_("Obchody po termínu vypořádání: %s", unsettled))
-        prices = self.env["investra.instrument.price"].search_count([("fund_id", "=", self.id), ("state", "=", "draft")])
+        # Ceny fondu v návrhu a sdílené ceny v návrhu pro nástroje, které fond drží.
+        instruments = self.env["investra.trade"].sudo()._positions(self, today)
+        prices = self.env["investra.instrument.price"].sudo().search_count([
+            ("state", "=", "draft"), "|", ("fund_id", "=", self.id),
+            "&", ("fund_id", "=", False), ("instrument_id", "in", [i.id for i in instruments]),
+        ])
         if prices:
             warning.append(_("Ceny čekající na schválení: %s", prices))
         return danger, warning

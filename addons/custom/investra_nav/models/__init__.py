@@ -1,1 +1,1 @@
-from . import fee_rule, movement, valuation, package, instrument_accrual, return_wizard, attachment
+from . import fee_rule, movement, valuation, package, instrument_accrual, return_wizard, attachment, price_usage

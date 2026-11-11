@@ -108,13 +108,20 @@ class TestInstrument(InstrumentCase):
                 "price": 1, "source": "x", "state": "approved",
             })
 
-    def test_approved_price_is_immutable(self):
+    def test_approved_price_cannot_be_deleted_or_moved(self):
+        # Opravu ceny řeší test_shared_price (rozhodnutí 2026-11-11); smazat ani přesunout ji nejde.
         price = self.price()
         price.with_user(self.approver).action_approve()
         with self.assertRaises(UserError):
-            price.with_user(self.preparer).write({"price": 11})
+            price.with_user(self.preparer).write({"date": "2026-11-29"})
         with self.assertRaises(UserError):
             price.with_user(self.preparer).unlink()
+
+    def test_shared_price_needs_manager_book(self):
+        with self.assertRaises(UserError):
+            self.env["investra.instrument.price"].with_user(self.preparer).create({
+                "instrument_id": self.instrument.id, "date": "2026-11-30", "price": 10, "source": "test",
+            })
 
     def test_trade_posts_event_with_instrument_and_currency(self):
         trade = self.env["investra.trade"].create({

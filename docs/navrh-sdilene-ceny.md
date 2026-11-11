@@ -1,6 +1,6 @@
 # Návrh: sdílené tržní ceny přes fondy a měna ceny
 
-Plán ke schválení. Červená zóna (`investra_instruments/models`, cena vstupuje do NAV v `investra_nav`, `record_guard`,
+Plán schválen uživatelem 11. 11. 2026 (varianta B). Červená zóna (`investra_instruments/models`, cena vstupuje do NAV v `investra_nav`, `record_guard`,
 pravidla přístupu). Stav 11. 11. 2026, připravil Claude podle bodu 10 podkladu UX z 10. 11. 2026; upraveno podle
 odpovědí uživatele z 11. 11. 2026. Nic není naprogramované.
 
@@ -47,13 +47,13 @@ bez převodu dat.
 **Model ceny**
 - `fund_id` nepovinný. Prázdný = **sdílená tržní cena**; vyplněný = **cena fondu** (posudek, odchylka).
 - `company_id` u ceny fondu = společnost fondu, u sdílené ceny = **kniha správce cen** (parametr v nastavení;
-  rozhodnutí uživatele: Investra). Cenu nejde přesunout mezi sdílenou a fondem (ochrana knihy platí dál).
+  kniha investiční společnosti, dokud nevznikne, sdílenou cenu zadat nejde). Cenu nejde přesunout mezi sdílenou a fondem (ochrana knihy platí dál).
 - Unikátnost: (nástroj, datum) pro sdílenou cenu a (fond, nástroj, datum) pro cenu fondu – dva unikátní indexy
   s podmínkou (prostá unikátnost by duplicitní sdílené ceny pustila, NULL se v PostgreSQL nerovná NULL).
 - Cena fondu ke dni, ke kterému existuje sdílená cena, musí mít **důvod odchylky**.
 - Nástroj „jen pro fond“: sdílenou cenu mít nesmí, cena fondu jen pro jeho fond.
-- **Cena je vždy v jednotkách měny za kus** (ne v % jmenovité hodnoty ani v setinách). Přesnost **6 desetinných míst**
-  (dnes 8; v `investra_test` má víc než 6 míst 0 z 11 cen a 0 z 8 obchodů, `investra_dev` ceny zatím nemá).
+- **Cena je vždy v jednotkách měny za kus** (ne v % jmenovité hodnoty ani v setinách). Přesnost zůstává
+  **8 desetinných míst**, stejně jako cena na obchodu (rozhodnutí uživatele 11. 11. 2026).
 
 **Měna ceny**
 - Nové povinné pole `currency_id` (výchozí = měna nástroje) v seznamu, formuláři i importu. Musí se rovnat měně
@@ -92,33 +92,52 @@ bez převodu dat.
 ## Dopad na data a účetnictví
 
 - Stávající ceny zůstanou cenami fondu; `currency_id` se doplní měnou nástroje při aktualizaci modulu (ORM,
-  po souhlasu a záloze). Hodnoty cen se zkrácením na 6 míst nezmění (ověřeno výše).
+  po souhlasu a záloze).
 - Hotová ocenění a zaúčtované doklady se nemění. Nové ocenění k víkendu nebo svátku dnes skončí chybou, nově projde
   s poslední známou cenou a případným upozorněním.
 - Referenční scénáře: očekávané hodnoty se nemění (ceny jsou k datu ocenění).
 
 **Testy:** sdílená cena ve dvou fondech s různým zdrojem kurzů; cena fondu má přednost téhož dne a vyvolá
 upozornění; cena fondu bez důvodu odmítnuta; duplicitní sdílená cena odmítnuta; měna ceny ≠ měna nástroje odmítnuta;
-7 místo odmítnuto/zaokrouhleno; poslední známá cena v limitu bez upozornění, nad limitem s upozorněním, bez ceny Stop;
+poslední známá cena v limitu bez upozornění, nad limitem s upozorněním, bez ceny Stop;
 oprava schválené ceny vrátí návrh a hotové ocenění se nezmění; smazání použité ceny odmítnuto; uživatel bez knihy
 správce cen sdílenou cenu přečte, ale nezaloží ani neschválí.
 
 ## Odpovědi uživatele (11. 11. 2026)
 
-1. Kniha správce cen: Investra (upřesnit, která společnost, viz níže).
+1. Kniha správce cen: budoucí investiční společnost.
 2. Měna ceny podle bodu 10: zobrazit a kontrolovat; přepočet z jiné měny se nedělá.
-3. Cena vždy v jednotkách měny za kus, až 6 desetinných míst.
+3. Cena vždy v jednotkách měny za kus; přesnost 8 desetinných míst jako u obchodu.
 4. Poslední známá cena; při stáří nad parametr (na nástroji) překonatelné upozornění.
 5. Bez složitého zrušení schválení: hotová ocenění drží svou cenu, změna ceny upozorní na použití v oceněních.
 
-## Zbývá upřesnit
-
-- Která společnost je „Investra“ pro knihu správce cen: Investra Services s.r.o., nebo investiční společnost
-  (do jejího založení Services)? Řeší se parametrem, kód na tom nezávisí.
-- Přesnost 6 míst i pro cenu na obchodu (dnes také 8)? Doporučení: ano, stejná cena na kus.
+Doplněno po schválení: kniha správce cen je budoucí investiční společnost; přesnost ceny i obchodu zůstává 8 míst.
 
 ## Zóna a provedení
 
 Červená zóna: provede Claude po schválení plánu. Pořadí: model, stáří ceny a pravidla přístupu
 (`investra_instruments`) → hledání ceny, `price_id`, kontroly (`investra_nav`) → přehled (`investra_dashboard`) →
 testy v `investra_test` → aktualizace `investra_dev` se souhlasem a zálohou → zelené zadání obrazovek pro AG.
+
+## Provedení 2026-11-11
+
+- `investra_instruments`: cena s nepovinným fondem, rozsah, kniha (`company_id` se nastaví při založení), měna ceny,
+  důvod odchylky, historie změn (chatter), oprava schválené ceny vrací návrh; unikátní index sdílené ceny; pole
+  Maximální stáří ceny na typu a nástroji; pravidla přístupu rozdělená na čtení (vlastní knihy + sdílené ceny)
+  a zápis (vlastní knihy); seznam, formulář a filtry cen.
+- `investra_nav`: poslední známá cena, `price_id` a `price_date` na řádku portfolia, kontroly `price_age`
+  a `price_fund_deviation` (Upozornění), upozornění formuláře při opravě použité ceny (`price_usage.py`).
+- `investra_dashboard`: ceny v návrhu včetně sdílených cen pro nástroje v pozicích fondu.
+- Testy: 17 nových (`investra_instruments/tests/test_shared_price.py`, `investra_nav/tests/test_shared_price.py`);
+  celá sada Investry v `investra_test` 328 testů, 0 chyb. Stávajících 11 cen v `investra_test` se převedlo jako
+  ceny fondu s měnou nástroje. `investra_dev` modul nástrojů zatím nemá, aktualizace tam není potřeba.
+- Ukázkové dotazy: `docs/sql/10-ceny.sql` (ověřeno v `investra_test`).
+
+**Odchylky od plánu:**
+- Kniha správce cen není samostatný parametr v nastavení: je to kniha typu „Investiční společnost“ (právě jedna).
+  Dokud neexistuje, sdílenou cenu zadat nejde a ocenění používá ceny fondu jako dosud. Důvod: jednodušší, bez
+  dalšího nastavení, odpovídá rozhodnutí uživatele.
+- Obrazovky (minimum potřebné k obsluze) udělal Claude rovnou, ne jako zelené zadání pro AG.
+- Počet sdílených cen v návrhu na přehledu nemá vlastní test (stávající test přehledu prošel).
+- Maximální stáří ceny má zatím u všech typů a nástrojů hodnotu 0: ocenění upozorní na každou cenu starší než
+  datum ocenění. Výchozí hodnoty pro typy nastaví uživatel.

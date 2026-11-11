@@ -280,13 +280,15 @@ class InvestraValuation(models.Model):
         return self.fund_id._fx_at(currency, self.date)
 
     def _approved_price(self, instrument):
-        price = self.env["investra.instrument.price"].search([
-            ("fund_id", "=", self.fund_id.id), ("instrument_id", "=", instrument.id),
-            ("date", "=", self.date), ("state", "=", "approved"),
-        ], limit=1)
-        if not price:
-            raise UserError(self.env._("Chybí schválená cena %(name)s k %(day)s.", name=instrument.name, day=self.date))
-        return price
+        """Poslední známá schválená cena do data ocenění; téhož dne má cena fondu přednost před sdílenou."""
+        prices = self.env["investra.instrument.price"].search([
+            ("instrument_id", "=", instrument.id), ("date", "<=", self.date), ("state", "=", "approved"),
+            "|", ("fund_id", "=", self.fund_id.id), ("fund_id", "=", False),
+        ], order="date desc", limit=2)
+        if not prices:
+            raise UserError(self.env._("Chybí schválená cena %(name)s do %(day)s.", name=instrument.name, day=self.date))
+        latest = prices.filtered(lambda p: p.date == prices[0].date)
+        return latest.filtered("fund_id")[:1] or latest[:1]
 
     def _compute_portfolio(self):
         """Přecení nástroje a založí řádky listu portfolio; změna ceny a kurzu jde zvlášť."""
@@ -301,10 +303,12 @@ class InvestraValuation(models.Model):
             if amortised:
                 value_ccy = instrument._accrued_value(self.fund_id, self.date)
                 unit_price, price_source = float(value_ccy / d(quantity)), self.env._("Naběhlá hodnota")
+                price_values = {}
             else:
                 price = self._approved_price(instrument)
                 value_ccy = d(quantity) * d(price.price)
                 unit_price, price_source = price.price, price.source
+                price_values = {"price_id": price.id, "price_date": price.date}
             value = engine.money(value_ccy * fx)
             # Jen účet nástrojů: protiúčty přecenění nesou nástroj také, ale nejsou jeho účetní hodnotou.
             domain = [("investra_instrument_id", "=", instrument.id), ("account_id", "=", instrument_account.id)]
@@ -352,6 +356,7 @@ class InvestraValuation(models.Model):
                 "quantity": quantity,
                 "price": unit_price,
                 "price_source": price_source,
+                **price_values,
                 "cost_currency": sum(t.quantity * t.price for t in trades),
                 "cost": sum(t.quantity * t.price * t._booked_fx() for t in trades),
                 "fair_value_currency": float(value_ccy),
@@ -845,6 +850,40 @@ class InvestraValuation(models.Model):
         self._check("no_foreign_drafts", "K datu nejsou jiné nezaúčtované doklady", not pending, pending, severity="warning")
         manual = self._manual_rates()
         self._check("manual_rate", "Ocenění používá jen vyhlášené kurzy", not manual, "; ".join(manual), severity="warning")
+        stale = self._stale_prices()
+        self._check("price_age", "Ceny nejsou starší než povolené stáří", not stale, "; ".join(stale), severity="warning")
+        deviating = self._deviating_prices()
+        self._check("price_fund_deviation", "Fond používá sdílené tržní ceny", not deviating, "; ".join(deviating),
+                    severity="warning")
+
+    def _stale_prices(self):
+        """Ceny starší než maximální stáří nástroje (poslední známá cena, rozhodnutí 2026-11-11)."""
+        found = []
+        for line in self.portfolio_line_ids.filtered("price_id").sorted("name"):
+            age = (self.date - line.price_date).days
+            if age > line.instrument_id.max_price_age:
+                found.append(self.env._(
+                    "%(name)s: cena k %(day)s, stáří %(age)s dní (limit %(limit)s)",
+                    name=line.name, day=line.price_date, age=age, limit=line.instrument_id.max_price_age,
+                ))
+        return found
+
+    def _deviating_prices(self):
+        """Ceny fondu použité tam, kde ke stejnému dni existuje schválená sdílená cena."""
+        Price = self.env["investra.instrument.price"].sudo()
+        found = []
+        for line in self.portfolio_line_ids.filtered(lambda l: l.price_id.fund_id).sorted("name"):
+            shared = Price.search([
+                ("instrument_id", "=", line.instrument_id.id), ("date", "=", line.price_date),
+                ("fund_id", "=", False), ("state", "=", "approved"),
+            ], limit=1)
+            if shared:
+                found.append(self.env._(
+                    "%(name)s %(day)s: cena fondu %(fund)s místo sdílené %(shared)s (%(reason)s)",
+                    name=line.name, day=line.price_date, fund=line.price_id.price, shared=shared.price,
+                    reason=line.price_id.deviation_reason or "",
+                ))
+        return found
 
     def _manual_rates(self):
         """Ruční kurzy, které ocenění k datu použilo (měny portfolia, tříd a fondu)."""
@@ -1157,6 +1196,8 @@ class InvestraValuationPortfolio(models.Model):
     quantity = fields.Float(digits=(20, 6), string="Kusy")
     price = fields.Float(digits=(20, 8), string="Cena")
     price_source = fields.Char(string="Zdroj ceny")
+    price_id = fields.Many2one("investra.instrument.price", ondelete="restrict", string="Použitá cena")
+    price_date = fields.Date(string="Datum ceny")
     cost_currency = fields.Float(digits=(20, 2), string="Pořizovací hodnota v měně")
     cost = fields.Float(digits=(20, 2), string="Pořizovací hodnota v měně fondu")
     fair_value_currency = fields.Float(digits=(20, 2), string="Reálná hodnota v měně")
