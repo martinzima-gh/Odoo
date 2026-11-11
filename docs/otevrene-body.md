@@ -53,7 +53,6 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Správa knihy a poplatků | Modely pravidel úplat, tříd a kalendáře mohou mít stejný přesun mezi knihami pro skupinu správce účetnictví | Prověřit a rozšířit ochranu záznamu |
 | Excel balíčku pro depozitáře | Text začínající `=` se zapíše jako vzorec | Vypnout `strings_to_formulas` |
 | Rozpad ostatních položek třídy | Přemostění tříd (schváleno 2026-11-10) ukazuje ostatní položky třídy jedním číslem; měnové zajištění, dohady a položky specifické pro třídu nejsou rozepsané | Rozhodnout teď, nebo až podle prvního fondu, který takové položky bude mít (rozpad podle rolí účtů) |
-| Ochrana kurzů v `investra_dev` | Ochrana kurzů je hotová (2026-11-10), ale v `investra_dev` začne platit až po aktualizaci modulu `investra_rates`; stahování kurzů tam už běží | Aktualizovat modul se souhlasem uživatele |
 | Body podkladu UX bez plánu | Poznámky uživatele z 2026-11-10 (podklad mimo repozitář, shrnutí v `docs/predavka-2026-11-10-ux.md`): 3 přehled fondů jako tabulka a snímek; 5.3 výpočetní protokol; 8 zdroj, zaokrouhlení, poplatek a historie u úpisů a odkupů; 9 klasifikace IFRS 9 na obchodu; 14 termínované vklady; 15 detail účetních událostí; 16 pravidla úplat proti sešitům (bod 10 hotový 2026-11-11) | Plán ke každému bodu zvlášť (oranžová a červená zóna). Doporučené pořadí: 9, 15, 8, 14, 16, 5.3, 3 |
 | Maximální stáří ceny pro typy nástrojů | Pole je hotové (2026-11-11), ale všude je 0: ocenění upozorní na každou cenu starší než datum ocenění | Uživatel nastaví výchozí počet dní u typů nástrojů podle Pravidel oceňování |
 
@@ -77,4 +76,3 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě zkušebních knih |
 | Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, předpisy, DORA | Postup po fázích, start na Investra Services |
 | Chybějící údaje při převzetí fondu | Bez pořizovacího kurzu nebo údajů po pozicích nejde oddělit FX a FV | Účetní postup pro stanovení hodnot ke dni přechodu |
-| Platnost kurzů v `investra_dev` | Tabulka Platnost kurzů a odstranění stáří z fondu a profilu (2026-11-11) začnou v `investra_dev` platit až po aktualizaci `investra_rates`, `investra_nav`, `investra_fx_revaluation` | Aktualizovat se souhlasem uživatele (spolu s bodem Ochrana kurzů v `investra_dev`) |

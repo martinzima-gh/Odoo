@@ -15,8 +15,8 @@
 
 **Zbývá – první krok:** plán bodu 15 (pak 8, 14, 16, 5.3, 3) z `docs/otevrene-body.md`.
 
-**Otevřené otázky:** smazat složku příloh (filestore) `investra_test_kontrola` ve svazku Odoo?
-Aktualizace modulů v `investra_dev` (bod Platnost kurzů v `investra_dev`) čeká na souhlas.
+**Dodatek:** na pokyn uživatele smazána složka příloh `investra_test_kontrola`; v `investra_dev` aktualizovány
+`investra_rates` a `investra_fx_revaluation` (záloha před aktualizací v `zalohy/`). Otevřené otázky z této relace nezbývají.
 
 **Přečíst (nejvýš 5):**
 1. `CLAUDE.md`
