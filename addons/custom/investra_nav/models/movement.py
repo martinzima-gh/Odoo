@@ -14,8 +14,7 @@ class InvestraFund(models.Model):
             return Decimal(1)
         Rate = self.env["investra.rate"].sudo()
         source = self.entity_id.rate_source
-        age = self.max_rate_age_days
-        return Rate.get_rate(source, currency, day, age) / Rate.get_rate(source, self.currency_id, day, age)
+        return Rate.get_rate(source, currency, day) / Rate.get_rate(source, self.currency_id, day)
 
 
 class InvestraClassMovement(models.Model):

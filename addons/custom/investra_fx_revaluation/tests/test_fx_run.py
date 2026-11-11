@@ -188,13 +188,20 @@ class TestFxRun(AccountTestInvoicingCommon):
         with self.assertRaises(UserError):
             self.create_run("2040-01-20")
 
-    def test_allowed_age_comes_from_profile(self):
-        self.profile.max_rate_age_days = 30
+    def allow_age(self, days):
+        """Výchozí stáří denního lístku v Platnosti kurzů (dříve pole stáří na profilu, platilo pro všechny měny).
+
+        Kontroluje se i kurz funkční měny testovací společnosti (USD), proto nestačí výjimka jen pro EUR.
+        """
+        self.env.ref("investra_rates.validity_cnb_daily").sudo().max_age_days = days
+
+    def test_allowed_age_comes_from_rate_validity(self):
+        self.allow_age(30)
         self.entry(self.receivable, 1000, 25000)
         self.assertFalse(self.create_run("2040-01-20").line_ids)
 
     def test_later_rate_is_never_used(self):
-        self.profile.max_rate_age_days = 30
+        self.allow_age(30)
         self.entry(self.receivable, 1000, 24000)
         self.assertEqual(self.create_run("2040-01-30").line_ids.rate, 25)
 

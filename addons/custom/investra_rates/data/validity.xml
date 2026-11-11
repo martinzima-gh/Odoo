@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Výchozí platnost kurzů (rozhodnutí 2026-11-11 „Platnost kurzů a smíšené kurzy“). noupdate: hodnoty mění uživatel. -->
+<odoo noupdate="1">
+    <record id="validity_cnb_daily" model="investra.rate.validity">
+        <field name="source">cnb</field>
+        <field name="periodicity">daily</field>
+        <field name="max_age_days">5</field>
+    </record>
+    <!-- Měsíční kurz ČNB (kurzy ostatních měn) platí do dalšího měsíčního vyhlášení. -->
+    <record id="validity_cnb_monthly" model="investra.rate.validity">
+        <field name="source">cnb</field>
+        <field name="periodicity">monthly</field>
+        <field name="max_age_days">35</field>
+    </record>
+    <record id="validity_ecb_daily" model="investra.rate.validity">
+        <field name="source">ecb</field>
+        <field name="periodicity">daily</field>
+        <field name="max_age_days">5</field>
+    </record>
+</odoo>

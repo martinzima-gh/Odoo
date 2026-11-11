@@ -20,8 +20,6 @@ CNB_MONTHLY_URL = (
     "kurzy-ostatnich-men/kurzy.txt?rok={year}&mesic={month}"
 )
 ECB_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
-# Měsíční kurz ČNB (kurzy ostatních měn) platí do dalšího měsíčního vyhlášení.
-MONTHLY_MAX_AGE_DAYS = 35
 APPROVER = "investra_entity.group_valuation_approver"
 ECB_NS = "{http://www.ecb.int/vocabulary/2002-08-01/eurofxref}"
 
@@ -163,9 +161,10 @@ class InvestraRate(models.Model):
         return self.env.ref("base.CZK" if source == "cnb" else "base.EUR")
 
     @api.model
-    def get_rate(self, source, currency, day, max_age_days=5):
+    def get_rate(self, source, currency, day):
         """Kurz platný k datu: poslední vyhlášený do data včetně, nikdy pozdější.
 
+        Nejvyšší stáří bere z tabulky Platnost kurzů podle lístku kurzu (denní / měsíční) a měny.
         Vrací počet jednotek základní měny zdroje za 1 jednotku měny.
         """
         if currency == self.base_currency(source):
@@ -173,12 +172,11 @@ class InvestraRate(models.Model):
         record = self._effective(source, currency, day)
         if not record:
             raise UserError(self.env._("Chybí kurz %(cur)s ke dni %(day)s.", cur=currency.name, day=day))
-        if record.periodicity == "monthly":
-            max_age_days = max(max_age_days, MONTHLY_MAX_AGE_DAYS)
+        max_age_days = self.env["investra.rate.validity"].max_age(source, record.periodicity, currency)
         if (day - record.date).days > max_age_days:
             raise UserError(self.env._(
-                "Kurz %(cur)s z %(rate_day)s je k datu %(day)s příliš starý.",
-                cur=currency.name, rate_day=record.date, day=day,
+                "Kurz %(cur)s z %(rate_day)s je k datu %(day)s příliš starý (nejvýš %(limit)s dní, Platnost kurzů).",
+                cur=currency.name, rate_day=record.date, day=day, limit=max_age_days,
             ))
         return record._base_per_unit()
 

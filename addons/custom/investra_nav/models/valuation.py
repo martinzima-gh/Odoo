@@ -30,7 +30,6 @@ class InvestraFund(models.Model):
     _inherit = "investra.fund"
 
     launch_date = fields.Date(string="Datum vzniku", help="Začátek prvního oceňovacího období.")
-    max_rate_age_days = fields.Integer(default=5, required=True, string="Nejvyšší stáří kurzu")
     approval_step_ids = fields.One2many("investra.fund.approval.step", "fund_id", string="Schvalovatelé před zaúčtováním")
 
 

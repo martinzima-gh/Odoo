@@ -77,3 +77,5 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě zkušebních knih |
 | Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, předpisy, DORA | Postup po fázích, start na Investra Services |
 | Chybějící údaje při převzetí fondu | Bez pořizovacího kurzu nebo údajů po pozicích nejde oddělit FX a FV | Účetní postup pro stanovení hodnot ke dni přechodu |
+| Testy přecenění v `investra_test` | Od 2026-11-11 10:45 padá příprava `TestFxRun` (AccountTestInvoicingCommon, MissingError u kopie daňového účtu), i s kódem před změnou Platnosti kurzů; v kopii ze zálohy `investra_test_kontrola` vše prochází | Zjistit, co se v `investra_test` změnilo (porovnat s kopií), nebo `investra_test` nahradit kopií se souhlasem uživatele |
+| Platnost kurzů v `investra_dev` | Tabulka Platnost kurzů a odstranění stáří z fondu a profilu (2026-11-11) začnou v `investra_dev` platit až po aktualizaci `investra_rates`, `investra_nav`, `investra_fx_revaluation` | Aktualizovat se souhlasem uživatele (spolu s bodem Ochrana kurzů v `investra_dev`) |

@@ -21,7 +21,6 @@ class InvestraFxProfile(models.Model):
         "account.journal", string="Deník", check_company=True, ondelete="restrict", domain="[('type', '=', 'general')]"
     )
     rate_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb", string="Zdroj kurzu")
-    max_rate_age_days = fields.Integer(required=True, default=5, string="Nejvyšší stáří kurzu (dny)")
 
     @api.constrains("rate_source", "company_id")
     def _check_rate_source(self):
@@ -94,9 +93,8 @@ class InvestraFxRun(models.Model):
         self.ensure_one()
         profile = self.profile_id
         Rate = self.env["investra.rate"].sudo()
-        source, age = profile.rate_source, profile.max_rate_age_days
-        base = self.company_id.currency_id
-        return float(Rate.get_rate(source, currency, self.date, age) / Rate.get_rate(source, base, self.date, age))
+        source, base = profile.rate_source, self.company_id.currency_id
+        return float(Rate.get_rate(source, currency, self.date) / Rate.get_rate(source, base, self.date))
 
     def action_compute(self):
         """Spočítá rozdíl po účtu, měně a partnerovi; opakovaný výpočet nahradí návrh."""

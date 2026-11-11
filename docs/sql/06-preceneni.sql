@@ -1,8 +1,8 @@
 -- Přecenění cizích měn (modul investra_fx_revaluation). Jen čtení.
 -- Ověřeno na databázi investra_test; v investra_dev zatím bez dat.
 
--- 1. Profily přecenění: zdroj kurzu, stáří a protiúčty
-SELECT p.name AS profil, p.rate_source AS zdroj_kurzu, p.max_rate_age_days AS stari_dny,
+-- 1. Profily přecenění: zdroj kurzu a protiúčty (stáří kurzu je v Platnosti kurzů, dotaz 5)
+SELECT p.name AS profil, p.rate_source AS zdroj_kurzu,
        g.name->>'cs_CZ' AS ucet_zisku, l.name->>'cs_CZ' AS ucet_ztraty
 FROM investra_fx_profile p
 LEFT JOIN account_account g ON g.id = p.gain_account_id
@@ -30,3 +30,10 @@ FROM investra_rate r
 JOIN res_currency c ON c.id = r.currency_id
 WHERE c.name IN ('EUR', 'USD') AND r.date >= DATE '2026-11-01'
 ORDER BY r.date DESC, c.name;
+
+-- 5. Platnost kurzů: nejvyšší stáří podle lístku a měny (bez měny = výchozí pro lístek)
+SELECT v.source AS zdroj, v.periodicity AS vyhlasovani, COALESCE(c.name, '(výchozí)') AS mena,
+       v.max_age_days AS nejvyssi_stari_dny, v.active AS aktivni, v.write_date AS zmeneno
+FROM investra_rate_validity v
+LEFT JOIN res_currency c ON c.id = v.currency_id
+ORDER BY v.source, v.periodicity, c.name NULLS FIRST;

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rate_validity_list" model="ir.ui.view">
+        <field name="name">investra.rate.validity.list</field>
+        <field name="model">investra.rate.validity</field>
+        <field name="arch" type="xml">
+            <list delete="false" decoration-muted="not active">
+                <field name="source"/>
+                <field name="periodicity"/>
+                <field name="currency_id" placeholder="výchozí pro lístek" options="{'no_create': True}"/>
+                <field name="max_age_days"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_rate_validity_form" model="ir.ui.view">
+        <field name="name">investra.rate.validity.form</field>
+        <field name="model">investra.rate.validity</field>
+        <field name="arch" type="xml">
+            <form delete="false">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivováno" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="alert alert-info" role="alert">
+                        Platí pro ocenění, přecenění cizích měn a úpisy a odkupy. Řádek bez měny je výchozí pro lístek,
+                        řádek s měnou je výjimka. Doklady v účetnictví počítají kurz standardně podle Odoo.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="source"/>
+                            <field name="periodicity"/>
+                            <field name="currency_id" placeholder="výchozí pro lístek" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="max_age_days"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_rate_validity_search" model="ir.ui.view">
+        <field name="name">investra.rate.validity.search</field>
+        <field name="model">investra.rate.validity</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="currency_id"/>
+                <filter name="filter_archived" string="Archivované" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_rate_validity" model="ir.actions.act_window">
+        <field name="name">Platnost kurzů</field>
+        <field name="res_model">investra.rate.validity</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_rate_validity_search"/>
+    </record>
+    <menuitem id="menu_rate_validity" name="Platnost kurzů" parent="investra_entity.menu_setup_accounting"
+              action="action_rate_validity" sequence="31"/>
+</odoo>

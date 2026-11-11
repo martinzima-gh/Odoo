@@ -206,3 +206,20 @@ Uživatel: „pokud je to standardní funkčnost Odoo, neohýbej“; kurzy ČNB 
   a odstranění stáří kurzu z fondu a profilu přecenění. Pro doklady Odoo se nepoužije. Provedení čeká na schválení.
 - Charakterizační test `test_ecb_book_mixes_cnb_rate_for_currency_outside_ecb` zůstává jako doklad akceptovaného chování
   (při upgradu Odoo upozorní na změnu).
+
+### Provedení – Platnost kurzů (2026-11-11)
+
+Schválil uživatel 11. 11. 2026. Model `investra.rate.validity` (`investra_rates` 20.0.0.2.0, nabídka Nastavení → Účtování →
+Platnost kurzů): výchozí řádky ČNB denní 5, ČNB měsíční 35, ECB 5 (`data/validity.xml`, noupdate), výjimky pro měny;
+mění jen skupina schvalování ocenění, chatter, mazání zakázané (archivace). `get_rate` bere stáří z tabulky
+(parametr `max_age_days` a konstanta `MONTHLY_MAX_AGE_DAYS` zanikly). Pole stáří na fondu a profilu přecenění odstraněna
+(sloupce v databázi zůstaly, nečíst je).
+
+Odchylky: (1) čtení tabulky má jen skupina `account.group_account_readonly` jako evidence kurzů; správce účetnictví bez
+této skupiny ji nevidí. (2) Testy přecenění mění výchozí stáří denního lístku, ne výjimku měny: kontroluje se i kurz
+funkční měny společnosti, stejně jako dřív u pole na profilu.
+
+Testy: nové `investra_rates/tests/test_validity.py` (10). Všech 362 testů modulů Investry prošlo v kopii
+`investra_test_kontrola` (obnova zálohy `zalohy/investra_test-2026-11-11-pred-platnosti-kurzu.dump`). V `investra_test`
+prošly `investra_rates` a `investra_nav`; testy přecenění tam padají už v přípravě testovací knihovny Odoo `account`
+(MissingError u kopie účtu), i s kódem před změnou – otevřený bod. `investra_dev` beze změny.

@@ -1,3 +1,5 @@
 id,name,model_id,group_id/id,operation,domain
 access_investra_rate_read,investra.rate read,investra.rate,account.group_account_readonly,r,
 access_investra_rate_override_wizard,investra.rate.override.wizard approver,investra.rate.override.wizard,investra_entity.group_valuation_approver,crud,
+access_investra_rate_validity_read,investra.rate.validity read,investra.rate.validity,account.group_account_readonly,r,
+access_investra_rate_validity_approver,investra.rate.validity approver,investra.rate.validity,investra_entity.group_valuation_approver,cru,
