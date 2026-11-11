@@ -44,6 +44,9 @@ conversion = E_["investra.accounting.event"]._create_event(company, "fx-nakup", 
 ])
 conversion._lock_events()
 conversion._post_events()
+# Zařazení v portfoliu Hlavní (model Ostatní, FVTPL); bez zařazení obchod nejde zaúčtovat (rozhodnutí 2026-11-11).
+for instrument in (bond, share):
+    E_["investra.portfolio.classification"].create({"portfolio_id": fund.portfolio_ids.id, "instrument_id": instrument.id, "valid_from": "2027-01-01"})
 for instrument, quantity, price, fx in ((bond, 3000, 10000, 1), (share, 10000, 100, 25)):
     E_["investra.trade"].create({"fund_id": fund.id, "instrument_id": instrument.id, "trade_date": "2027-01-06", "quantity": quantity, "price": price, "fx_rate": fx})._book()
 Rule = E_["investra.fee.rule"]

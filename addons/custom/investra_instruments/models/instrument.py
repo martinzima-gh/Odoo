@@ -10,17 +10,18 @@ VALUATION_METHOD = [
 DAY_COUNT = [
     ("act365", "ACT/365"), ("act360", "ACT/360"), ("act_act", "ACT/ACT ISDA"), ("thirty360_eu", "30E/360"), ("thirty360_us", "30/360 US"),
 ]
-# Po prvním obchodu neměnná pole, na kterých stojí zaúčtované hodnoty.
-LOCKED_AFTER_TRADE = {"type_id", "role_id", "ifrs9_category", "valuation_method"}
+# Po prvním obchodu neměnná pole nástroje. Klasifikace, způsob ocenění a role jsou v zařazení (rozhodnutí 2026-11-11).
+LOCKED_AFTER_TRADE = {"type_id"}
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id"}
-BOOKED_TRADE_FIELDS = {"fund_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate"}
+BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate"}
 SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
 # Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
 PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "currency_id", "source", "deviation_reason"}
 
 
 class InvestraInstrumentType(models.Model):
-    """Typ nástroje: nabízí výchozí hodnoty. Rozhoduje hodnota na nástroji, kterou může účetní změnit."""
+    """Typ nástroje: nabízí výchozí hodnoty. Klasifikaci, způsob ocenění a roli navrhuje pro zařazení ve fondu,
+    list ČNB a stáří ceny pro nástroj; rozhoduje účetní."""
 
     _name = "investra.instrument.type"
     _description = "Typ nástroje"
@@ -64,9 +65,6 @@ class InvestraInstrument(models.Model):
     currency_id = fields.Many2one("res.currency", required=True, string="Měna")
     type_id = fields.Many2one("investra.instrument.type", required=True, ondelete="restrict", string="Typ", tracking=True)
     type_group = fields.Selection(related="type_id.group", string="Skupina")
-    ifrs9_category = fields.Selection(IFRS9_CATEGORY, required=True, string="Kategorie IFRS 9", tracking=True)
-    valuation_method = fields.Selection(VALUATION_METHOD, required=True, string="Způsob ocenění", tracking=True)
-    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Role účtu", tracking=True)
     cnb_sheet = fields.Char(string="List ČNB", tracking=True)
     max_price_age = fields.Integer(
         string="Maximální stáří ceny (dny)", tracking=True,
@@ -95,12 +93,13 @@ class InvestraInstrument(models.Model):
     )
     accrual_note = fields.Char(string="Zdůvodnění lineárního úročení")
     cashflow_ids = fields.One2many("investra.instrument.cashflow", "instrument_id", string="Smluvní peněžní toky")
+    classification_ids = fields.One2many(
+        "investra.portfolio.classification", "instrument_id", string="Zařazení ve fondech",
+        help="Kategorie IFRS 9, způsob ocenění a role účtu podle obchodního modelu fondu (rozhodnutí 2026-11-11).",
+    )
 
     def _type_proposal(self, kind):
-        return {
-            "ifrs9_category": kind.ifrs9_category, "valuation_method": kind.valuation_method,
-            "role_id": kind.role_id.id, "cnb_sheet": kind.cnb_sheet, "max_price_age": kind.max_price_age,
-        }
+        return {"cnb_sheet": kind.cnb_sheet, "max_price_age": kind.max_price_age}
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -115,20 +114,11 @@ class InvestraInstrument(models.Model):
         if self.type_id:
             self.update(self._type_proposal(self.type_id))
 
-    @api.depends("type_id", "ifrs9_category", "valuation_method", "role_id", "cnb_sheet")
+    @api.depends("type_id", "cnb_sheet")
     def _compute_deviates(self):
         for instrument in self:
             kind = instrument.type_id
-            instrument.deviates_from_type = bool(kind) and (
-                (instrument.ifrs9_category, instrument.valuation_method, instrument.role_id, instrument.cnb_sheet or False)
-                != (kind.ifrs9_category, kind.valuation_method, kind.role_id, kind.cnb_sheet or False)
-            )
-
-    @api.constrains("ifrs9_category", "valuation_method")
-    def _check_valuation_method(self):
-        for instrument in self:
-            if (instrument.ifrs9_category == "amortised") != (instrument.valuation_method == "amortised"):
-                raise ValidationError(self.env._("Naběhlou hodnotou se oceňuje právě kategorie Naběhlá hodnota: %s.", instrument.name))
+            instrument.deviates_from_type = bool(kind) and (instrument.cnb_sheet or False) != (kind.cnb_sheet or False)
 
     @api.constrains("type_id", "fund_id", "class_id", "holding_kind", "commitment_amount")
     def _check_other_holding(self):
@@ -149,7 +139,7 @@ class InvestraInstrument(models.Model):
     def write(self, vals):
         if not self.env.su and LOCKED_AFTER_TRADE & set(vals):
             if self.env["investra.trade"].sudo().search_count([("instrument_id", "in", self.ids)], limit=1):
-                raise UserError(self.env._("Po prvním obchodu nejde měnit typ, klasifikaci, způsob ocenění ani roli účtu."))
+                raise UserError(self.env._("Po prvním obchodu nejde měnit typ nástroje."))
         return super().write(vals)
 
     def _effective_accrual(self, fund):
@@ -316,6 +306,14 @@ class InvestraTrade(models.Model):
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", string="Nástroj")
+    portfolio_id = fields.Many2one(
+        "investra.fund.portfolio", required=True, ondelete="restrict", index=True, string="Obchodní model",
+        domain="[('fund_id', '=', fund_id)]", help="Portfolio fondu s obchodním modelem; určuje klasifikaci IFRS 9 obchodu.",
+    )
+    classification_id = fields.Many2one(
+        "investra.portfolio.classification", compute="_compute_classification_id", string="Zařazení",
+    )
+    ifrs9_category = fields.Selection(IFRS9_CATEGORY, compute="_compute_classification_id", string="Kategorie IFRS 9")
     trade_date = fields.Date(required=True, string="Datum sjednání")
     settlement_date = fields.Date(string="Datum vypořádání")
     quantity = fields.Float(required=True, digits=(20, 6), help="Kladně nákup, záporně prodej.", string="Množství")
@@ -335,6 +333,51 @@ class InvestraTrade(models.Model):
             if not trade.quantity:
                 raise ValidationError(self.env._("Obchod musí mít množství."))
 
+    @api.depends("portfolio_id", "instrument_id", "trade_date")
+    def _compute_classification_id(self):
+        Classification = self.env["investra.portfolio.classification"]
+        for trade in self:
+            ready = trade.portfolio_id and trade.instrument_id and trade.trade_date
+            trade.classification_id = Classification._valid(trade.portfolio_id, trade.instrument_id, trade.trade_date) if ready else False
+            trade.ifrs9_category = trade.classification_id.ifrs9_category
+
+    @api.onchange("fund_id")
+    def _onchange_fund_id(self):
+        if self.fund_id and self.portfolio_id.fund_id != self.fund_id:
+            self.portfolio_id = self.fund_id._default_portfolio()
+
+    @api.constrains("fund_id", "portfolio_id")
+    def _check_portfolio(self):
+        for trade in self:
+            if trade.portfolio_id.fund_id != trade.fund_id:
+                raise ValidationError(self.env._("Obchodní model nepatří fondu obchodu."))
+
+    def _classification(self):
+        """Zařazení platné k datu sjednání; bez něj obchod nejde zaúčtovat."""
+        self.ensure_one()
+        classification = self.classification_id
+        if not classification:
+            raise UserError(self.env._(
+                "Nástroj %(name)s nemá v obchodním modelu %(portfolio)s k %(day)s zařazení. Založte ho v obchodních modelech fondu.",
+                name=self.instrument_id.name, portfolio=self.portfolio_id.name, day=self.trade_date,
+            ))
+        return classification
+
+    def _check_sale(self):
+        """Prodej nesmí vzít z portfolia víc kusů, než v něm k datu sjednání je."""
+        self.ensure_one()
+        if self.quantity >= 0:
+            return
+        held = sum(self.sudo().search([
+            ("fund_id", "=", self.fund_id.id), ("portfolio_id", "=", self.portfolio_id.id),
+            ("instrument_id", "=", self.instrument_id.id), ("trade_date", "<=", self.trade_date), ("id", "!=", self.id),
+        ]).mapped("quantity"))
+        if held + self.quantity < -1e-9:
+            raise UserError(self.env._(
+                "V obchodním modelu %(portfolio)s je k %(day)s jen %(held)s kusů %(name)s; prodej %(qty)s nejde zaúčtovat.",
+                portfolio=self.portfolio_id.name, day=self.trade_date, held=held, name=self.instrument_id.name, qty=-self.quantity,
+            ))
+
     @api.constrains("trade_date", "settlement_date")
     def _check_settlement_date(self):
         for trade in self:
@@ -345,6 +388,12 @@ class InvestraTrade(models.Model):
     def create(self, vals_list):
         if not self.env.su and any(SYSTEM_TRADE_FIELDS & set(vals) for vals in vals_list):
             raise UserError(self.env._("Stav obchodu mění jen zaúčtování."))
+        for vals in vals_list:
+            # Fond s jediným portfoliem: obchod ho dostane sám (rozhodnutí 2026-11-11, portfolio „Hlavní“).
+            if not vals.get("portfolio_id") and vals.get("fund_id"):
+                vals["portfolio_id"] = self.env["investra.fund"].browse(vals["fund_id"])._default_portfolio().id
+                if not vals["portfolio_id"]:
+                    raise UserError(self.env._("Fond má víc obchodních modelů; vyberte, do kterého obchod patří."))
         return super().create(vals_list)
 
     def write(self, vals):
@@ -393,7 +442,7 @@ class InvestraTrade(models.Model):
         """Dvojice řádků obchodu: role proti protiúčtu, v měně nástroje a ve funkční měně."""
         amount = self.quantity * self.price * fx
         foreign = self.quantity * self.price
-        extra = {"investra_instrument_id": self.instrument_id.id}
+        extra = {"investra_instrument_id": self.instrument_id.id, "investra_classification_id": self._classification().id}
         currency_id = self.instrument_id.currency_id.id
         foreign_currency = self.instrument_id.currency_id != self.company_id.currency_id
         debit = {"currency_id": currency_id, "amount_currency": foreign} if foreign_currency else {}
@@ -415,12 +464,14 @@ class InvestraTrade(models.Model):
             instrument = trade.instrument_id
             if instrument.type_group == "other_holding":
                 raise UserError(self.env._("Operace s ostatními podíly zatím nejsou napojené na účtování: %s.", instrument.name))
+            role = trade._classification().role_id.code
+            trade._check_sale()
             deferred = trade._is_deferred()
             if deferred and trade.fund_id.trade_recognition == "settlement_date":
                 trade.sudo().state = "unsettled"
                 continue
             counter = trade._unsettled_role() if deferred else "bank"
-            lines = trade._event_lines(instrument.role_id.code, counter, trade.fx_rate)
+            lines = trade._event_lines(role, counter, trade.fx_rate)
             event = trade._post_trade_event(f"trade:{trade.id}", f"Obchod {instrument.name}", trade.trade_date, lines)
             trade.sudo().write({"event_id": event.id, "state": "unsettled" if deferred else "settled"})
 
@@ -437,7 +488,7 @@ class InvestraTrade(models.Model):
             fx = trade.settlement_fx_rate or trade.fx_rate
             name = f"Vypořádání {instrument.name}"
             if trade.fund_id.trade_recognition == "settlement_date":
-                lines = trade._event_lines(instrument.role_id.code, "bank", fx)
+                lines = trade._event_lines(trade._classification().role_id.code, "bank", fx)
                 event = trade._post_trade_event(f"trade:{trade.id}", name, trade.settlement_date, lines)
                 trade.sudo().write({"event_id": event.id, "settlement_event_id": event.id, "state": "settled"})
             else:
@@ -446,19 +497,30 @@ class InvestraTrade(models.Model):
                 trade.sudo().write({"settlement_event_id": event.id, "state": "settled"})
 
     @api.model
-    def _recognised(self, fund, day, instrument=None):
+    def _recognised(self, fund, day, instrument=None, portfolio=None):
         """Obchody, které jsou k datu v pozici fondu podle jeho nastavení."""
         domain = [("fund_id", "=", fund.id), ("trade_date", "<=", day)]
         if instrument:
             domain.append(("instrument_id", "=", instrument.id))
+        if portfolio:
+            domain.append(("portfolio_id", "=", portfolio.id))
         return self.search(domain).filtered(lambda t: t._recognition_date() <= day)
 
     @api.model
-    def _positions(self, fund, day):
-        """Kusy a účetní hodnota po nástrojích k datu, z obchodů a z hlavní knihy."""
+    def _holdings(self, fund, day):
+        """Kusy po pozicích (nástroj, obchodní model) k datu; tentýž nástroj může být ve dvou modelech fondu."""
         quantities = {}
         for trade in self._recognised(fund, day):
-            quantities[trade.instrument_id] = quantities.get(trade.instrument_id, 0.0) + trade.quantity
+            key = (trade.instrument_id, trade.portfolio_id)
+            quantities[key] = quantities.get(key, 0.0) + trade.quantity
+        return {key: qty for key, qty in quantities.items() if qty}
+
+    @api.model
+    def _positions(self, fund, day):
+        """Kusy po nástrojích k datu, součet přes obchodní modely fondu."""
+        quantities = {}
+        for (instrument, _portfolio), qty in self._holdings(fund, day).items():
+            quantities[instrument] = quantities.get(instrument, 0.0) + qty
         return {instrument: qty for instrument, qty in quantities.items() if qty}
 
 
@@ -475,12 +537,17 @@ class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     investra_instrument_id = fields.Many2one("investra.instrument", string="Nástroj", ondelete="restrict", index="btree_not_null")
+    # Odchylka od plánu klasifikace: zařazení není v integritním hashi. Přidání pole by změnilo hash všech dříve
+    # zaúčtovaných dokladů a kontrola integrity by u nich selhala; po zaúčtování ho chrání zákaz změny níže.
+    investra_classification_id = fields.Many2one(
+        "investra.portfolio.classification", string="Zařazení", ondelete="restrict", index="btree_not_null",
+    )
 
     def _get_integrity_hash_fields(self):
         base = super()._get_integrity_hash_fields()
         return base + ["investra_instrument_id"] if "investra_class_id" in base else base
 
     def write(self, vals):
-        if "investra_instrument_id" in vals and self.filtered(lambda l: l.parent_state == "posted"):
-            raise UserError(self.env._("Nástroj nejde po zaúčtování změnit."))
+        if {"investra_instrument_id", "investra_classification_id"} & set(vals) and self.filtered(lambda l: l.parent_state == "posted"):
+            raise UserError(self.env._("Nástroj ani zařazení nejde po zaúčtování změnit."))
         return super().write(vals)

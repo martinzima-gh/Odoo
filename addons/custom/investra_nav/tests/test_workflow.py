@@ -267,6 +267,7 @@ class TestPortfolio(NavCase):
         self.instrument = self.env["investra.instrument"].create(
             {"name": "Akcie", "isin": "XS0000000000", "currency_id": self.eur.id, "type_id": self.env.ref("investra_instruments.type_equity").id}
         )
+        self.classify(self.fund, self.instrument)
         trade = self.env["investra.trade"].create({
             "fund_id": self.fund.id, "instrument_id": self.instrument.id, "trade_date": "2028-01-05",
             "quantity": 10, "price": 100, "fx_rate": 25,

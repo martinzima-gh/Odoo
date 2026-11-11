@@ -8,14 +8,12 @@ FROM investra_instrument_type t
 JOIN investra_account_role r ON r.id = t.role_id
 ORDER BY t."group", t.code;
 
--- 2. Nástroje, které se liší od návrhu svého typu
-SELECT i.name AS nastroj, t.code AS typ, i.ifrs9_category, t.ifrs9_category AS navrh_ifrs9,
-       ri.code AS role_uctu, rt.code AS navrh_role, i.valuation_method, t.valuation_method AS navrh_oceneni
+-- 2. Nástroje, jejichž list ČNB se liší od návrhu typu. Klasifikace, ocenění a role jsou od 2026-11-11
+--    v zařazení nástroje v obchodním modelu fondu (docs/sql/11-klasifikace.sql); staré sloupce nástroje nečíst.
+SELECT i.name AS nastroj, t.code AS typ, i.cnb_sheet AS list_cnb, t.cnb_sheet AS navrh_list_cnb
 FROM investra_instrument i
 JOIN investra_instrument_type t ON t.id = i.type_id
-JOIN investra_account_role ri ON ri.id = i.role_id
-JOIN investra_account_role rt ON rt.id = t.role_id
-WHERE i.ifrs9_category <> t.ifrs9_category OR i.role_id <> t.role_id OR i.valuation_method <> t.valuation_method
+WHERE coalesce(i.cnb_sheet, '') <> coalesce(t.cnb_sheet, '')
 ORDER BY i.name;
 
 -- 3. Metoda úročení fondů

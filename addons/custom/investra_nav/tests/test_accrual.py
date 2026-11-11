@@ -19,14 +19,27 @@ class TestAccrual(NavCase):
         self.purchase = self.trade(self.deposit, 950)
 
     def instrument(self, code, **vals):
-        return self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create({
             "name": f"{code} {self.fund.id}", "currency_id": self.czk.id,
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
         })
+        # Vklad a repo v modelu Držet pro inkaso (naběhlá hodnota), dluhopis v portfoliu Hlavní (FVTPL).
+        self.classify(self.fund, instrument, "hold_to_collect" if code in ("deposit", "repo") else "other")
+        return instrument
+
+    def held_in(self, instrument):
+        return instrument.classification_ids.filtered(lambda c: c.fund_id == self.fund).portfolio_id
 
     def trade(self, instrument, price, quantity=1, day="2029-01-01"):
         return self.env["investra.trade"].create({
-            "fund_id": self.fund.id, "instrument_id": instrument.id, "trade_date": day, "quantity": quantity, "price": price,
+            "fund_id": self.fund.id, "portfolio_id": self.held_in(instrument).id, "instrument_id": instrument.id,
+            "trade_date": day, "quantity": quantity, "price": price,
+        })
+
+    def repayment(self, instrument, day, amount):
+        return self.env["investra.instrument.repayment"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.held_in(instrument).id, "instrument_id": instrument.id,
+            "date": day, "amount": amount,
         })
 
     def test_eir_is_fund_default(self):
@@ -86,9 +99,7 @@ class TestAccrual(NavCase):
     def test_repayment_closes_position_and_keeps_full_interest(self):
         self.deposit_position()
         self.run_to_posted(self.valuation(self.fund, date(2029, 7, 1)))
-        repayment = self.env["investra.instrument.repayment"].create({
-            "fund_id": self.fund.id, "instrument_id": self.deposit.id, "date": "2030-01-01", "amount": 1000,
-        })
+        repayment = self.repayment(self.deposit, "2030-01-01", 1000)
         repayment.with_user(self.preparer).action_book()
         valuation = self.valuation(self.fund, date(2030, 1, 31))
         self.run_to_posted(valuation)
@@ -119,9 +130,7 @@ class TestAccrual(NavCase):
     def test_schedule_locked_after_repayment(self):
         self.deposit_position()
         self.deposit.write({"principal": 950, "start_date": "2029-01-01", "maturity_date": "2030-01-01"})
-        self.env["investra.instrument.repayment"].create({
-            "fund_id": self.fund.id, "instrument_id": self.deposit.id, "date": "2030-01-01", "amount": 1000,
-        })._book()
+        self.repayment(self.deposit, "2030-01-01", 1000)._book()
         with self.assertRaises(UserError):
             self.deposit.action_generate_schedule()
 
@@ -134,9 +143,7 @@ class TestAccrual(NavCase):
     def test_repayment_only_for_amortised(self):
         bond = self.instrument("bond")
         with self.assertRaises(ValidationError):
-            self.env["investra.instrument.repayment"].create({
-                "fund_id": self.fund.id, "instrument_id": bond.id, "date": "2030-01-01", "amount": 1000,
-            })
+            self.repayment(bond, "2030-01-01", 1000)
 
     def test_bond_books_to_own_role_and_position_check_holds(self):
         self.purchase.unlink()
@@ -152,3 +159,27 @@ class TestAccrual(NavCase):
         valuation.with_user(self.preparer).action_compute()
         check = valuation.check_ids.filtered(lambda c: c.code == "positions_ledger")
         self.assertEqual(check.status, "ok")
+
+    def test_same_deposit_in_two_models_values_separately(self):
+        """Tentýž vklad v naběhlé hodnotě (Držet pro inkaso) a v FVTPL (Hlavní): dvě pozice, oddělená účetní hodnota."""
+        self.deposit_position()
+        main = self.portfolio(self.fund)
+        self.classify(self.fund, self.deposit)
+        self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": main.id, "instrument_id": self.deposit.id,
+            "trade_date": "2029-01-01", "quantity": 1, "price": 950,
+        })._book()
+        day = date(2029, 7, 1)
+        price = self.env["investra.instrument.price"].with_user(self.preparer).create({
+            "fund_id": self.fund.id, "instrument_id": self.deposit.id, "date": day, "price": 980, "source": "Model",
+        })
+        price.with_user(self.approver).action_approve()
+        valuation = self.valuation(self.fund, day)
+        self.run_to_posted(valuation)
+        lines = valuation.portfolio_line_ids.filtered("instrument_id")
+        values = {line.ifrs9_category: Decimal(str(line.fair_value)) for line in lines}
+        self.assertEqual(values, {"amortised": Decimal("974.47"), "fvtpl": Decimal("980")})
+        self.assertEqual(self.balance("deposit"), Decimal("1954.47"))
+        self.assertEqual(self.balance("income_interest"), Decimal("-24.47"))
+        self.assertEqual(self.balance("gain_fair_value"), -30)
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "positions_ledger").status, "ok")

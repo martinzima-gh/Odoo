@@ -73,8 +73,9 @@ class TestCompanyAccess(NavCase):
 
     def test_repayment_stays_in_book(self):
         deposit = self.instrument(type_id=self.env.ref("investra_instruments.type_deposit").id)
+        held = self.classify(self.own, deposit, "hold_to_collect").portfolio_id
         self.assert_stays_in_book("investra.instrument.repayment", {
-            "fund_id": self.own.id, "instrument_id": deposit.id, "date": "2037-01-15", "amount": 1,
+            "fund_id": self.own.id, "portfolio_id": held.id, "instrument_id": deposit.id, "date": "2037-01-15", "amount": 1,
         }, "fund_id", self.fund)
 
     def test_valuation_stays_in_book(self):

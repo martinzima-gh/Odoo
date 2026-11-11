@@ -19,6 +19,7 @@ class TestCnbMap(NavCase):
         self.bond = self.env["investra.instrument"].create({
             "name": "Dluhopis", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_bond").id,
         })
+        self.classify(self.fund, self.bond)
         self.env["investra.trade"].create({
             "fund_id": self.fund.id, "instrument_id": self.bond.id, "trade_date": "2038-01-05", "quantity": 400, "price": 100,
         })._book()
@@ -49,10 +50,26 @@ class TestCnbMap(NavCase):
         self.assertEqual(self.value("RIS30_01", 1), self.value("RIS30_03", 1))
 
     def test_classification_changes_row(self):
+        # Řádek bere kategorii ze zařazení na řádku dokladu, ne z nástroje (rozhodnutí 2026-11-11).
         self.assertEqual(self.value("ROFO10_11", 8), 0)
-        self.bond.sudo().ifrs9_category = "fvoci"
+        classification = self.bond.classification_ids
+        self.env.cr.execute(
+            "UPDATE investra_portfolio_classification SET ifrs9_category = 'fvoci' WHERE id = %s", (classification.id,)
+        )
+        classification.invalidate_recordset(["ifrs9_category"])
         self.assertEqual(self.value("ROFO10_11", 8), 42000)
         self.assertEqual(self.value("ROFO10_11", 6), 0)
+
+    def test_same_bond_in_two_models_splits_rows(self):
+        held = self.portfolio(self.fund, "hold_to_collect")
+        self.bond.cashflow_ids = [(0, 0, {"date": "2040-01-01", "amount": 100})]
+        self.classify(self.fund, self.bond, "hold_to_collect")
+        self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": held.id, "instrument_id": self.bond.id, "trade_date": "2038-01-20",
+            "quantity": 100, "price": 100,
+        })._book()
+        self.assertEqual(self.value("ROFO10_11", 6), 42000)
+        self.assertEqual(self.value("ROFO10_11", 10), 10000)
 
     def test_nothing_is_unmapped(self):
         sheets = ("ROFO10_11", "ROFO10_21", "VYFO20_11")

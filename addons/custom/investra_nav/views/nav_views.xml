@@ -196,6 +196,8 @@
                         <page string="Portfolio"><field name="portfolio_line_ids"><list>
                             <field name="kind"/>
                             <field name="name"/>
+                            <field name="portfolio_id" optional="hide"/>
+                            <field name="ifrs9_category" optional="show"/>
                             <field name="isin" optional="show"/>
                             <field name="currency_id" optional="show"/>
                             <field name="quantity"/>
@@ -339,7 +341,7 @@
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <list><field name="date"/><field name="fund_id"/><field name="instrument_id"/><field name="amount"/><field name="event_id"/></list>
+            <list><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="amount"/><field name="event_id"/></list>
         </field>
     </record>
     <record id="view_repayment_search" model="ir.ui.view">
@@ -367,7 +369,7 @@
         <field name="arch" type="xml">
             <form>
                 <header><button name="action_book" type="object" string="Zaúčtovat" class="btn-primary" invisible="event_id"/></header>
-                <sheet><group><field name="fund_id"/><field name="instrument_id"/><field name="date"/><field name="amount"/><field name="fx_rate"/><field name="event_id"/></group></sheet>
+                <sheet><group><field name="fund_id"/><field name="portfolio_id" options="{'no_create': True}"/><field name="instrument_id"/><field name="date"/><field name="amount"/><field name="fx_rate"/><field name="event_id"/></group></sheet>
             </form>
         </field>
     </record>

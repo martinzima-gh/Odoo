@@ -33,6 +33,7 @@ class TestBenchmark(NavCase):
         day = date(2036, 1, 31)
         for index in range(instruments):
             item = self.env["investra.instrument"].create({"name": f"N{fund.id}-{index}", "currency_id": self.czk.id, "type_id": kind.id})
+            self.classify(fund, item)
             self.env["investra.trade"].create({
                 "fund_id": fund.id, "instrument_id": item.id, "trade_date": "2036-01-05", "quantity": 1, "price": 100,
             })._book()

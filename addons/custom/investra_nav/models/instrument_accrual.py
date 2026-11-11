@@ -25,15 +25,17 @@ class InvestraInstrument(models.Model):
             }), (0, 0, {"date": instrument.maturity_date, "amount": float(interest), "flow_type": "interest"})]
         return True
 
-    def _accrued_value(self, fund, day):
+    def _accrued_value(self, fund, day, portfolio=None):
         """Naběhlá hodnota pozice v měně nástroje; každý nákup má vlastní efektivní úrokovou míru.
 
         Jen výpočet: nic se neúčtuje. Prodej a lineární úročení s více toky zatím nejsou podporované.
+        Pozice je v jednom obchodním modelu fondu; bez něj se sečtou všechny modely.
         """
         self.ensure_one()
-        trades = self.env["investra.trade"].sudo().search([
-            ("fund_id", "=", fund.id), ("instrument_id", "=", self.id), ("trade_date", "<=", day),
-        ])
+        domain = [("fund_id", "=", fund.id), ("instrument_id", "=", self.id), ("trade_date", "<=", day)]
+        if portfolio:
+            domain.append(("portfolio_id", "=", portfolio.id))
+        trades = self.env["investra.trade"].sudo().search(domain)
         if any(trade.quantity < 0 for trade in trades):
             raise UserError(self.env._("Naběhlá hodnota po prodeji zatím není podporovaná: %s.", self.name))
         method = self._effective_accrual(fund)
@@ -69,17 +71,33 @@ class InvestraInstrumentRepayment(models.Model):
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", string="Nástroj")
+    portfolio_id = fields.Many2one(
+        "investra.fund.portfolio", required=True, ondelete="restrict", string="Obchodní model", domain="[('fund_id', '=', fund_id)]",
+    )
     date = fields.Date(required=True, string="Datum")
     amount = fields.Float(required=True, digits=(20, 2), string="Částka v měně nástroje")
     fx_rate = fields.Float(required=True, default=1, digits=(16, 6), string="Kurz")
     event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
 
-    @api.constrains("amount", "instrument_id")
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("portfolio_id") and vals.get("fund_id"):
+                vals["portfolio_id"] = self.env["investra.fund"].browse(vals["fund_id"])._default_portfolio().id
+        return super().create(vals_list)
+
+    def _classification(self):
+        self.ensure_one()
+        return self.env["investra.portfolio.classification"]._valid(self.portfolio_id, self.instrument_id, self.date)
+
+    @api.constrains("amount", "instrument_id", "portfolio_id", "fund_id")
     def _check_repayment(self):
         for repayment in self:
             if repayment.amount <= 0:
                 raise ValidationError(self.env._("Splátka musí být kladná."))
-            if repayment.instrument_id.valuation_method != "amortised":
+            if repayment.portfolio_id.fund_id != repayment.fund_id:
+                raise ValidationError(self.env._("Obchodní model nepatří fondu splátky."))
+            if repayment._classification().valuation_method != "amortised":
                 raise ValidationError(self.env._("Splátka je jen u nástroje v naběhlé hodnotě."))
 
     def action_book(self):
@@ -101,8 +119,9 @@ class InvestraInstrumentRepayment(models.Model):
                 company, f"repayment:{repayment.id}", f"Splátka {instrument.name}", repayment.date, "trade",
                 [
                     {"role": "bank", "amount": amount, "movement_type": "transaction", **debit},
-                    {"role": instrument.role_id.code, "amount": -amount, "movement_type": "transaction",
-                     "extra": {"investra_instrument_id": instrument.id}, **credit},
+                    {"role": repayment._classification().role_id.code, "amount": -amount, "movement_type": "transaction",
+                     "extra": {"investra_instrument_id": instrument.id, "investra_classification_id": repayment._classification().id},
+                     **credit},
                 ],
             )
             event._lock_events()

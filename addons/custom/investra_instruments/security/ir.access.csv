@@ -13,3 +13,9 @@ access_type_preparer,investra.instrument.type preparer,investra.instrument.type,
 access_type_manager,investra.instrument.type manager,investra.instrument.type,account.group_account_manager,cru,
 access_cashflow_read,investra.instrument.cashflow read,investra.instrument.cashflow,account.group_account_readonly,r,
 access_cashflow_preparer,investra.instrument.cashflow preparer,investra.instrument.cashflow,investra_entity.group_valuation_preparer,crud,
+access_portfolio_read,investra.fund.portfolio read,investra.fund.portfolio,account.group_account_readonly,r,
+access_portfolio_preparer,investra.fund.portfolio preparer,investra.fund.portfolio,investra_entity.group_valuation_preparer,cru,
+investra_portfolio_company_rule,Obchodní modely podle společnosti,investra.fund.portfolio,,crud,"[('company_id', 'in', company_ids)]"
+access_classification_read,investra.portfolio.classification read,investra.portfolio.classification,account.group_account_readonly,r,
+access_classification_preparer,investra.portfolio.classification preparer,investra.portfolio.classification,investra_entity.group_valuation_preparer,crud,
+investra_classification_company_rule,Zařazení podle společnosti,investra.portfolio.classification,,crud,"[('company_id', 'in', company_ids)]"

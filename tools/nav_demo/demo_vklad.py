@@ -46,8 +46,13 @@ deposit = scoped["investra.instrument"].create({
     "coupon_rate": 3.6, "day_count": "act360",
 })
 deposit.action_generate_schedule()
+# Vklad v modelu Držet pro inkaso se splněným testem SPPI: naběhlá hodnota (rozhodnutí 2026-11-11).
+held = scoped["investra.fund.portfolio"].create({"fund_id": fund.id, "name": "Držet pro inkaso", "business_model": "hold_to_collect"})
+scoped["investra.portfolio.classification"].create({
+    "portfolio_id": held.id, "instrument_id": deposit.id, "valid_from": "2026-09-15", "sppi": "pass",
+})
 scoped["investra.trade"].create({
-    "fund_id": fund.id, "instrument_id": deposit.id, "trade_date": "2026-09-15", "quantity": 1, "price": 5000000,
+    "fund_id": fund.id, "portfolio_id": held.id, "instrument_id": deposit.id, "trade_date": "2026-09-15", "quantity": 1, "price": 5000000,
 })._book()
 
 september, october = date(2026, 9, 30), date(2026, 10, 31)
@@ -64,7 +69,7 @@ second = scoped["investra.valuation"].with_user(preparer).create({"fund_id": fun
 second.action_compute()
 env.cr.commit()
 print("TOKY", [(str(f.date), f.flow_type, f.amount) for f in deposit.cashflow_ids])
-print("HODNOTA", deposit._accrued_value(fund, september), deposit._accrued_value(fund, october))
+print("HODNOTA", deposit._accrued_value(fund, september, held), deposit._accrued_value(fund, october, held))
 for valuation in (first, second):
     print(valuation.date, valuation.state, valuation.fund_capital, [(c.code, c.status) for c in valuation.check_ids])
 print("HOTOVO")

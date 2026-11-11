@@ -5,8 +5,7 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/><field name="isin"/><field name="type_id"/><field name="currency_id"/>
-                <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/><field name="cnb_sheet"/>
-                <field name="deviates_from_type"/>
+                <field name="cnb_sheet"/><field name="deviates_from_type"/>
             </list>
         </field>
     </record>
@@ -42,7 +41,7 @@
                             <field name="collateral" invisible="type_group != 'money_market'"/>
                         </group>
                         <group string="Návrh z typu, účetní může změnit">
-                            <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/><field name="cnb_sheet"/>
+                            <field name="cnb_sheet"/>
                             <field name="max_price_age"/>
                             <field name="fair_value_level"/><field name="deviates_from_type"/>
                         </group>
@@ -57,8 +56,16 @@
                         <field name="accrual_method"/>
                         <field name="accrual_note" invisible="accrual_method != 'linear'" required="accrual_method == 'linear'"/>
                     </group>
-                    <notebook invisible="type_group not in ('debt', 'money_market', 'loan')">
-                        <page string="Smluvní peněžní toky">
+                    <notebook>
+                        <page string="Zařazení ve fondech">
+                            <field name="classification_ids" readonly="1">
+                                <list>
+                                    <field name="fund_id"/><field name="portfolio_id"/><field name="business_model"/>
+                                    <field name="valid_from"/><field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Smluvní peněžní toky" invisible="type_group not in ('debt', 'money_market', 'loan')">
                             <field name="cashflow_ids">
                                 <list editable="bottom"><field name="date"/><field name="flow_type"/><field name="amount"/></list>
                             </field>
@@ -73,7 +80,8 @@
         <field name="name">investra.trade.list</field><field name="model">investra.trade</field>
         <field name="arch" type="xml">
             <list>
-                <field name="fund_id"/><field name="instrument_id"/><field name="trade_date"/><field name="settlement_date"/>
+                <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
+                <field name="ifrs9_category" optional="show"/><field name="trade_date"/><field name="settlement_date"/>
                 <field name="quantity"/><field name="price"/><field name="fx_rate"/><field name="state" widget="badge"/>
             </list>
         </field>
@@ -93,6 +101,7 @@
                 <filter name="filter_trade_date" date="trade_date" string="Datum obchodu"/>
                 <group>
                     <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_portfolio" string="Obchodní model" context="{'group_by': 'portfolio_id'}"/>
                     <filter name="group_by_instrument" string="Nástroj" context="{'group_by': 'instrument_id'}"/>
                     <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
                     <filter name="group_by_trade_date_month" string="Měsíc obchodu" context="{'group_by': 'trade_date:month'}"/>
@@ -113,7 +122,10 @@
                     <group>
                         <group>
                             <field name="fund_id" readonly="event_id or state == 'settled'"/>
+                            <field name="portfolio_id" readonly="event_id or state == 'settled'" options="{'no_create': True}"/>
                             <field name="instrument_id" readonly="event_id or state == 'settled'"/>
+                            <field name="classification_id"/>
+                            <field name="ifrs9_category"/>
                             <field name="quantity" readonly="event_id or state == 'settled'"/>
                             <field name="price" readonly="event_id or state == 'settled'"/>
                         </group>
@@ -134,8 +146,8 @@
         <field name="arch" type="xml">
             <list editable="bottom">
                 <field name="code"/><field name="name"/><field name="group"/><field name="kind"/>
-                <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/><field name="cnb_sheet"/>
-                <field name="max_price_age"/>
+                <field name="ifrs9_category" string="Kategorie (typická)"/><field name="valuation_method"/><field name="role_id"/>
+                <field name="cnb_sheet"/><field name="max_price_age"/>
             </list>
         </field>
     </record>
@@ -248,4 +260,111 @@
     <menuitem id="menu_instrument_type" name="Typy nástrojů" parent="investra_entity.menu_setup_instruments" action="action_instrument_type" sequence="20"/>
     <menuitem id="menu_price" name="Ceny" parent="menu_instruments" action="action_price" sequence="20"/>
     <menuitem id="menu_trade" name="Obchody" parent="menu_instruments" action="action_trade" sequence="10"/>
+
+    <record id="view_classification_list" model="ir.ui.view">
+        <field name="name">investra.portfolio.classification.list</field><field name="model">investra.portfolio.classification</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="fund_id"/><field name="portfolio_id"/><field name="instrument_id"/><field name="valid_from"/>
+                <field name="valid_to" optional="hide"/><field name="sppi"/><field name="designation" optional="show"/>
+                <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/>
+                <field name="deviates_from_proposal" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_classification_form" model="ir.ui.view">
+        <field name="name">investra.portfolio.classification.form</field><field name="model">investra.portfolio.classification</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Pozice">
+                            <field name="portfolio_id" options="{'no_create': True}"/><field name="fund_id"/><field name="business_model"/>
+                            <field name="instrument_id"/><field name="instrument_kind"/>
+                            <field name="valid_from"/><field name="valid_to"/>
+                        </group>
+                        <group string="Klasifikace IFRS 9">
+                            <field name="sppi"/><field name="designation"/>
+                            <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/>
+                            <field name="deviates_from_proposal"/><field name="note"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_classification_search" model="ir.ui.view">
+        <field name="name">investra.portfolio.classification.search</field><field name="model">investra.portfolio.classification</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="instrument_id"/><field name="fund_id"/><field name="portfolio_id"/>
+                <group>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_portfolio" string="Obchodní model" context="{'group_by': 'portfolio_id'}"/>
+                    <filter name="group_by_category" string="Kategorie IFRS 9" context="{'group_by': 'ifrs9_category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_portfolio_list" model="ir.ui.view">
+        <field name="name">investra.fund.portfolio.list</field><field name="model">investra.fund.portfolio</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/><field name="fund_id"/><field name="name"/><field name="business_model"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_portfolio_form" model="ir.ui.view">
+        <field name="name">investra.fund.portfolio.form</field><field name="model">investra.fund.portfolio</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="fund_id" options="{'no_create': True}"/><field name="name"/><field name="business_model"/>
+                        <field name="assessment"/><field name="active" invisible="1"/>
+                    </group>
+                    <field name="classification_ids" context="{'default_portfolio_id': id}">
+                        <list>
+                            <field name="instrument_id"/><field name="valid_from"/><field name="sppi"/><field name="designation"/>
+                            <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/>
+                            <field name="deviates_from_proposal"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_fund_form_portfolio" model="ir.ui.view">
+        <field name="name">investra.fund.form.portfolio</field><field name="model">investra.fund</field>
+        <field name="inherit_id" ref="investra_fund.view_fund_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Obchodní modely">
+                    <field name="portfolio_ids">
+                        <list><field name="sequence" widget="handle"/><field name="name"/><field name="business_model"/></list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_portfolio" model="ir.actions.act_window">
+        <field name="name">Obchodní modely</field><field name="res_model">investra.fund.portfolio</field><field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádný obchodní model</p>
+            <p>Portfolio fondu s obchodním modelem podle IFRS 9. Nový fond dostane portfolio „Hlavní“ s modelem Ostatní (FVTPL).</p>
+        </field>
+    </record>
+    <record id="action_classification" model="ir.actions.act_window">
+        <field name="name">Zařazení nástrojů</field><field name="res_model">investra.portfolio.classification</field>
+        <field name="view_mode">list,form</field><field name="search_view_id" ref="view_classification_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádné zařazení</p>
+            <p>Kategorie IFRS 9, způsob ocenění a role účtu nástroje v obchodním modelu fondu s platností od.
+               Obchod bez zařazení nejde zaúčtovat; po prvním obchodu zařazení změní jen reklasifikace.</p>
+        </field>
+    </record>
+    <menuitem id="menu_portfolio" name="Obchodní modely" parent="menu_instruments" action="action_portfolio" sequence="30"/>
+    <menuitem id="menu_classification" name="Zařazení nástrojů" parent="menu_instruments" action="action_classification" sequence="40"/>
 </odoo>

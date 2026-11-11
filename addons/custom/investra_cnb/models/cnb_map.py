@@ -56,7 +56,8 @@ class InvestraCnbMap(models.Model):
         if self.period == "ytd":
             domain.append(("date", ">=", start))
         if self.ifrs9_category:
-            domain.append(("investra_instrument_id.ifrs9_category", "=", self.ifrs9_category))
+            # Kategorie je v zařazení nástroje v obchodním modelu fondu, ne na nástroji (rozhodnutí 2026-11-11).
+            domain.append(("investra_classification_id.ifrs9_category", "=", self.ifrs9_category))
         return self._sum(domain)
 
     def _sheet_values(self, company, sheet, day):

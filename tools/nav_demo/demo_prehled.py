@@ -35,10 +35,15 @@ def make_fund(name, prefix):
     return scoped, fund, preparer, approver
 
 
-def instrument(scoped, name):
-    return scoped["investra.instrument"].create({
+def instrument(scoped, fund, name):
+    bond = scoped["investra.instrument"].create({
         "name": name, "currency_id": czk.id, "type_id": env.ref("investra_instruments.type_bond").id, "fair_value_level": "2",
     })
+    # Zařazení v portfoliu Hlavní (model Ostatní, FVTPL), rozhodnutí 2026-11-11.
+    scoped["investra.portfolio.classification"].create({
+        "portfolio_id": fund.portfolio_ids.id, "instrument_id": bond.id, "valid_from": "2026-09-01",
+    })
+    return bond
 
 
 def example(scoped, fund, report, period_end, due_date):
@@ -56,7 +61,7 @@ def approved_price(scoped, fund, bond, day, value, preparer, approver):
 
 # Beta: zářijové ocenění zveřejněné, říjnové po termínu, obchod po termínu vypořádání, termín po lhůtě.
 scoped, fund, preparer, approver = make_fund(BETA, "beta")
-bond = instrument(scoped, "Ukázkový dluhopis Beta")
+bond = instrument(scoped, fund, "Ukázkový dluhopis Beta")
 scoped["investra.trade"].create({"fund_id": fund.id, "instrument_id": bond.id, "trade_date": "2026-09-10", "quantity": 500, "price": 10000})._book()
 september, october = date(2026, 9, 30), date(2026, 10, 31)
 scoped["investra.valuation.calendar"].create([
@@ -83,7 +88,7 @@ example(scoped, fund, "Příklad: roční výkaz", date(2026, 12, 31), "2027-04-
 
 # Gama: bez ocenění, cena čekající na schválení a blízký termín.
 scoped, fund, preparer, approver = make_fund(GAMA, "gama")
-bond = instrument(scoped, "Ukázkový dluhopis Gama")
+bond = instrument(scoped, fund, "Ukázkový dluhopis Gama")
 scoped["investra.instrument.price"].with_user(preparer).create({
     "fund_id": fund.id, "instrument_id": bond.id, "date": "2026-10-31", "price": 9950, "source": "Ukázkový zdroj",
 })

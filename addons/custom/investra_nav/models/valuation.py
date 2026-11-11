@@ -168,9 +168,9 @@ class InvestraValuation(models.Model):
         return self._sum(("account_id", "=", account.id), *extra)
 
     def _position_balance(self):
-        """Zůstatek všech účtů, na kterých jsou nástroje, podle rolí typů a nástrojů."""
+        """Zůstatek všech účtů, na kterých jsou nástroje, podle rolí typů a zařazení fondu."""
         roles = self.env["investra.instrument.type"].sudo().search([]).role_id
-        roles |= self.env["investra.instrument"].sudo().search([]).role_id
+        roles |= self.env["investra.portfolio.classification"].sudo().search([("fund_id", "=", self.fund_id.id)]).role_id
         accounts = self.env["investra.role.account"].sudo().search(
             [("company_id", "=", self.company_id.id), ("role_id", "in", roles.ids)]
         ).account_id
@@ -294,14 +294,23 @@ class InvestraValuation(models.Model):
         """Přecení nástroje a založí řádky listu portfolio; změna ceny a kurzu jde zvlášť."""
         Trade = self.env["investra.trade"].sudo()
         Role = self.env["investra.account.role"]
+        Classification = self.env["investra.portfolio.classification"]
+        several = len(self.fund_id.portfolio_ids) > 1
         rows, lines = [], []
-        for instrument, quantity in Trade._positions(self.fund_id, self.date).items():
-            amortised = instrument.valuation_method == "amortised"
-            role = instrument.role_id.code
+        for (instrument, portfolio), quantity in Trade._holdings(self.fund_id, self.date).items():
+            # Klasifikace podle obchodního modelu fondu k datu ocenění (rozhodnutí 2026-11-11).
+            classification = Classification._valid(portfolio, instrument, self.date)
+            if not classification:
+                raise UserError(self.env._(
+                    "Nástroj %(name)s nemá v obchodním modelu %(portfolio)s k %(day)s zařazení.",
+                    name=instrument.name, portfolio=portfolio.name, day=self.date,
+                ))
+            amortised = classification.valuation_method == "amortised"
+            role = classification.role_id.code
             instrument_account = Role.account_for(self.company_id, role)
             fx = self._fx(instrument.currency_id)
             if amortised:
-                value_ccy = instrument._accrued_value(self.fund_id, self.date)
+                value_ccy = instrument._accrued_value(self.fund_id, self.date, portfolio)
                 unit_price, price_source = float(value_ccy / d(quantity)), self.env._("Naběhlá hodnota")
                 price_values = {}
             else:
@@ -311,7 +320,11 @@ class InvestraValuation(models.Model):
                 price_values = {"price_id": price.id, "price_date": price.date}
             value = engine.money(value_ccy * fx)
             # Jen účet nástrojů: protiúčty přecenění nesou nástroj také, ale nejsou jeho účetní hodnotou.
-            domain = [("investra_instrument_id", "=", instrument.id), ("account_id", "=", instrument_account.id)]
+            # Pozice je nástroj v jednom obchodním modelu; podle portfolia, aby přežila budoucí reklasifikaci.
+            domain = [
+                ("investra_instrument_id", "=", instrument.id), ("account_id", "=", instrument_account.id),
+                ("investra_classification_id.portfolio_id", "=", portfolio.id),
+            ]
             carrying = self._sum(*domain)
             line_model = self.env["account.move.line"].sudo()
             foreign_raw = line_model._read_group(self._line_domain(*domain), aggregates=["amount_currency:sum"])[0][0]
@@ -323,7 +336,7 @@ class InvestraValuation(models.Model):
             else:
                 price_effect, fx_effect = value - carrying, Decimal(0)
             movement = "accrued_interest" if amortised else "price_revaluation"
-            extra = {"investra_instrument_id": instrument.id}
+            extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
             currency_values = {"currency_id": instrument.currency_id.id} if foreign_currency else {}
             if price_effect:
                 lines.append({
@@ -345,12 +358,15 @@ class InvestraValuation(models.Model):
                 })
             if amortised and not value:
                 continue
-            trades = Trade._recognised(self.fund_id, self.date, instrument)
+            trades = Trade._recognised(self.fund_id, self.date, instrument, portfolio)
             rows.append({
                 "valuation_id": self.id,
                 "kind": instrument.type_id.kind,
                 "instrument_id": instrument.id,
-                "name": instrument.name,
+                "portfolio_id": portfolio.id,
+                "classification_id": classification.id,
+                # Fond s více obchodními modely: tentýž nástroj může mít dva řádky, název je rozliší.
+                "name": f"{instrument.name} – {portfolio.name}" if several else instrument.name,
                 "isin": instrument.isin,
                 "currency_id": instrument.currency_id.id,
                 "quantity": quantity,
@@ -437,22 +453,26 @@ class InvestraValuation(models.Model):
         ]).filtered(lambda t: t._recognition_date() > self.date)
         for trade in pending:
             instrument = trade.instrument_id
-            if instrument.ifrs9_category == "fvoci":
+            classification = trade._classification()
+            if classification.ifrs9_category == "fvoci":
                 raise UserError(self.env._("Změna RH do OCI zatím není podporovaná: %s.", instrument.name))
-            if instrument.ifrs9_category == "amortised":
+            if classification.ifrs9_category == "amortised":
                 continue
             value = d(trade.quantity) * d(self._approved_price(instrument).price) * self._fx(instrument.currency_id)
             cost = d(trade.quantity) * d(trade.price) * d(trade.fx_rate)
-            targets[instrument] = targets.get(instrument, Decimal(0)) + value - cost
+            key = (instrument, classification)
+            targets[key] = targets.get(key, Decimal(0)) + value - cost
         groups = Line._read_group(
-            self._line_domain(("account_id", "=", account.id)), groupby=["investra_instrument_id"], aggregates=["balance:sum"],
+            self._line_domain(("account_id", "=", account.id)),
+            groupby=["investra_instrument_id", "investra_classification_id"], aggregates=["balance:sum"],
         )
-        balances = {instrument: engine.money(balance) for instrument, balance in groups}
+        balances = {(instrument, classification): engine.money(balance) for instrument, classification, balance in groups}
         lines = []
-        for instrument in {*targets, *balances}:
-            difference = engine.money(targets.get(instrument, 0)) - balances.get(instrument, Decimal(0))
+        for key in {*targets, *balances}:
+            instrument, classification = key
+            difference = engine.money(targets.get(key, 0)) - balances.get(key, Decimal(0))
             if difference:
-                extra = {"investra_instrument_id": instrument.id}
+                extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
                 lines.append({"role": "unsettled_fair_value", "amount": difference, "movement_type": "price_revaluation", "extra": extra})
                 lines.append({"role": "gain_fair_value" if difference > 0 else "loss_fair_value", "amount": -difference,
                               "movement_type": "price_revaluation", "extra": extra})
@@ -1190,6 +1210,9 @@ class InvestraValuationPortfolio(models.Model):
         string="Druh",
     )
     instrument_id = fields.Many2one("investra.instrument", ondelete="restrict", string="Nástroj")
+    portfolio_id = fields.Many2one("investra.fund.portfolio", ondelete="restrict", string="Obchodní model")
+    classification_id = fields.Many2one("investra.portfolio.classification", ondelete="restrict", string="Zařazení")
+    ifrs9_category = fields.Selection(related="classification_id.ifrs9_category", string="Kategorie IFRS 9")
     name = fields.Char(required=True, string="Název")
     isin = fields.Char(string="ISIN")
     currency_id = fields.Many2one("res.currency", required=True, string="Měna")

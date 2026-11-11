@@ -2,7 +2,7 @@
 
 Stav 11. 11. 2026, připravil Claude podle bodu 9 podkladu UX z 10. 11. 2026 a rozhodnutí 2026-11-09
 „Klasifikace IFRS 9 podle fondu a obchodního modelu“ (krok A22 revize). **Varianta B zvolena uživatelem 11. 11. 2026
-(odpovědi níže); otevřená zůstává otázka 6. Nic není naprogramované.**
+(odpovědi níže) a plán schválen týž den.**
 Červená zóna: účtování obchodů, NAV, výkazy ČNB, `record_guard`, migrace.
 
 **Bod 9 podkladu UX:** klasifikace IFRS 9 patří k obchodu, ne ke sdílenému nástroji.
@@ -88,7 +88,7 @@ Zamítnuto předem: klasifikace jen na dvojici fond + nástroj (odporuje rozhodn
    integritního hashe a po zaúčtování neměnný (stejně jako nástroj).
 5. **`investra.instrument`**: pole `ifrs9_category`, `valuation_method`, `role_id` se odstraní (odpověď 2), včetně
    jejich podílu na příznaku „Odchylka od návrhu typu“; `max_price_age` a ostatní vlastnosti nástroje zůstávají.
-   `cnb_sheet` podle otázky 6. Typ nástroje dál navrhuje hodnoty, nově pro zařazení.
+   `cnb_sheet` zůstává na nástroji (odpověď 6). Typ nástroje dál navrhuje hodnoty, nově pro zařazení.
 
 Návrh kategorie podle obchodního modelu (jen výchozí hodnota, rozhoduje schválené zařazení):
 
@@ -153,10 +153,13 @@ Návrh kategorie podle obchodního modelu (jen výchozí hodnota, rozhoduje schv
 3. Zařazení bez schvalování čtyřma očima.
 4. FVOCI (účtování do OCI a chování ocenění do té doby) dát do otevřených bodů; mimo rozsah tohoto plánu.
 5. Nový fond dostane portfolio „Hlavní“ s modelem Ostatní (FVTPL).
-6. Otevřené: `cnb_sheet` (list ČNB) je kód listu položkového výkazu ČNB, na kterém se nástroj vykazuje
-   (např. DOFO31_11 Majetkové CP v majetku fondu, DOFO31_12 Dluhové CP, DOFO31_21/22 deriváty, RIS30_02 Přehled
-   poskytnutých úvěrů, RIS33_13 Security-by-security bez ISIN). Určuje ho povaha nástroje, ne klasifikace; zatím ho
-   žádný výpočet nečte. Doporučení: nechat na nástroji.
+6. `cnb_sheet` (list ČNB) zůstává na nástroji. Je to kód listu položkového výkazu (DOFO31_11 Majetkové CP, DOFO31_12
+   Dluhové CP, DOFO31_21/22 deriváty, RIS30_02 Přehled poskytnutých úvěrů, RIS33_13 bez ISIN); list určuje povaha nástroje,
+   ne klasifikace (ověřeno v `docs/cnb/polozky-FOFI20261201.csv`). Podle klasifikace se vykazuje rozvaha ROFO10_11/12
+   (řádky 6, 8, 9–11) a OCI v ROFO10_21/22 (řádky 34, 39) – ty bere převod ze zařazení. Sloupec „Ocenění reálnou
+   hodnotou“ v DOFO31 (ukazatel EFO0244) nemá v SDAT popis; odloženo do otevřených bodů.
+
+Plán schválen uživatelem 11. 11. 2026.
 
 ## Zóna a provedení
 
@@ -164,3 +167,27 @@ Návrh kategorie podle obchodního modelu (jen výchozí hodnota, rozhoduje schv
 a kontrola FVOCI → ČNB → UI → testy a porovnání referenčních scénářů → deník rozhodnutí, Claude Doc, export
 `docs/architektura.md`, `docs/sql/` (SELECT na zařazení a pozice po portfoliích). Instalace a upgrade modulů
 v `investra_test` jen se souhlasem uživatele.
+
+## Provedení 2026-11-11
+
+- Moduly: `investra_instruments` 20.0.0.4.0 (nové modely `investra.fund.portfolio`, `investra.portfolio.classification`,
+  obchod s portfoliem, pole klasifikace z nástroje odstraněna), `investra_nav` 20.0.0.2.0 (ocenění, úročení a splátky
+  po pozicích nástroj + portfolio), `investra_cnb` (kategorie ze zařazení). Ukázkové skripty `tools/nav_demo` upravené.
+- Testy v `investra_test`: 342 testů modulů Investry, 0 chyb (dříve 328; nové v `test_classification.py`,
+  dvě portfolia v ocenění v `test_accrual.py` a ve výkazu v `test_cnb_map.py`).
+- Migrace `investra_test` (záloha před ní `zalohy/investra_test-2026-11-11-pred-klasifikaci.dump`): 6 fondů s portfoliem
+  „Hlavní“, 7 zařazení (vklad ve fondu Delta v novém portfoliu „Držet pro inkaso“), 8 obchodů s portfoliem, 41 zaúčtovaných
+  řádků s nástrojem dostalo zařazení. Počet řádků (41), součet (122 022 000,00) i zůstatky po nástrojích jsou před a po stejné.
+- Ukázkové SELECTy `docs/sql/11-klasifikace.sql`; dotaz 2 v `docs/sql/04-typy-nastroju.sql` už nečte staré sloupce nástroje.
+
+**Odchylky od plánu:**
+1. Zařazení na řádku dokladu (`investra_classification_id`) **není v integritním hashi**. Všech 31 zaúčtovaných dokladů
+   v `investra_test` už hash má; přidání pole by změnilo jejich přepočtený hash a kontrola integrity Odoo by selhala.
+   Pole chrání zákaz změny po zaúčtování (stejně jako nástroj).
+2. Návrh kategorie zařazení se určuje z druhu nástroje a obchodního modelu (tabulka výše); kategorie na typu nástroje se
+   pro návrh nepoužívá (zůstává jako „typická“ informace). Dluhový nástroj s typem v naběhlé hodnotě mimo model Držet pro inkaso
+   dostane návrh způsobu ocenění „Model nebo znalec“.
+3. Řádky listu portfolio hotových ocenění migrace nedoplňuje (historický snímek); nová pole Obchodní model a Zařazení jsou u nich prázdná.
+4. Pozice v ocenění se páruje s hlavní knihou přes portfolio zařazení (ne přes konkrétní verzi zařazení), aby vydržela budoucí reklasifikaci.
+5. Staré sloupce `ifrs9_category`, `valuation_method`, `role_id` v tabulce `investra_instrument` Odoo nemaže; nečíst je.
+6. Obchod fondu s více obchodními modely bez vybraného portfolia systém odmítne; s jediným portfoliem se doplní samo.

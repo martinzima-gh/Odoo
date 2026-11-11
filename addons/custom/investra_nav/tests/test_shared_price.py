@@ -27,6 +27,7 @@ class TestSharedPriceValuation(NavCase):
     def new_fund(self):
         fund = self.make_fund(classes=[{"code": "A"}])
         self.subscribe(self.cls(fund, "A"), "2032-01-01", 100000, 1000)
+        self.classify(fund, self.instrument)
         self.env["investra.trade"].create({
             "fund_id": fund.id, "instrument_id": self.instrument.id, "trade_date": "2032-01-05",
             "quantity": 10, "price": 100, "fx_rate": 25,

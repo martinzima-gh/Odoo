@@ -16,16 +16,19 @@ class TestTradeRecognition(NavCase):
         self.fund = self.make_fund(classes=[{"code": "A"}])
         self.subscribe(self.cls(self.fund, "A"), "2031-03-01", 100000, 1000)
 
-    def instrument(self, currency=None, code="bond", **vals):
-        return self.env["investra.instrument"].create({
+    def instrument(self, currency=None, code="bond", model="other", **vals):
+        instrument = self.env["investra.instrument"].create({
             "name": f"Nástroj {self.fund.id} {code}", "currency_id": (currency or self.czk).id,
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
         })
+        self.classify(self.fund, instrument, model)
+        return instrument
 
     def trade(self, instrument, quantity=10, price=100, fx=1, settle="2031-04-05", **vals):
+        portfolio = instrument.classification_ids.filtered(lambda c: c.fund_id == self.fund).portfolio_id
         return self.env["investra.trade"].create({
-            "fund_id": self.fund.id, "instrument_id": instrument.id, "trade_date": "2031-03-02", "settlement_date": settle,
-            "quantity": quantity, "price": price, "fx_rate": fx, **vals,
+            "fund_id": self.fund.id, "portfolio_id": portfolio.id, "instrument_id": instrument.id, "trade_date": "2031-03-02",
+            "settlement_date": settle, "quantity": quantity, "price": price, "fx_rate": fx, **vals,
         })
 
     def balance(self, role, day="2031-12-31"):
@@ -161,7 +164,7 @@ class TestTradeRecognition(NavCase):
 
     def test_fvoci_before_settlement_stops(self):
         self.settlement_mode()
-        instrument = self.instrument(ifrs9_category="fvoci")
+        instrument = self.instrument(model="hold_collect_sell")
         self.trade(instrument)._book()
         self.price(instrument, date(2031, 3, 31), 110)
         with self.assertRaises(UserError):
