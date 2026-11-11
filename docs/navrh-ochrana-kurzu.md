@@ -149,3 +149,44 @@ Poté všechny testy modulů Investry v `investra_test`.
 
 **Otázky:** (1) Stačí pro doklady maximální stáří kurzu 5 dní (měsíční 35), jako výchozí u ocenění?
 (2) Ponechat smíšený kurz v zobrazení nastavení měn (bod 3), nebo ho v knize ECB skrýt?
+
+### Upřesnění 2026-11-11 po odpovědích uživatele (ke schválení)
+
+Odpovědi uživatele: (1) maximální stáří kurzu má být parametr měny a kurzovního lístku; (2) žádné smíšené kurzy,
+ani v zobrazení; (3) křížový kurz mezi ČNB a ECB se nepoužívá ani výjimečně, v krajním případě se zadá ruční kurz.
+Tím se mění body 3 a 4 návrhu výše a otázky (1) a (2) jsou zodpovězené.
+
+**A. Platnost kurzu podle lístku a měny** (`investra_rates`, nový model `investra.rate.validity`, nabídka
+Investra → Nastavení → Účtování → Platnost kurzů):
+- Řádek = kurzovní lístek (ČNB denní, ČNB měsíční, ECB) + měna (prázdná = výchozí pro lístek) + nejvyšší stáří ve dnech
+  (kalendářních, jako dnes). Výchozí řádky: ČNB denní 5, ČNB měsíční 35, ECB 5; měny jen výjimky.
+- `get_rate` bere stáří z řádku pro měnu, jinak z výchozího řádku lístku; lístek se určí podle vyhlášení kurzu
+  (denní / měsíční). Ruční kurz a ruční přepis mají platnost lístku, ke kterému patří (ruční kurz XDR ve zdroji ECB
+  = lístek ECB). Konstanta `MONTHLY_MAX_AGE_DAYS` zanikne.
+- Jedno nastavení pro všechny: doklady, ocenění, přecenění FX, úpisy a odkupy. Pole „Nejvyšší stáří kurzu“ na fondu
+  (`investra.fund.max_rate_age_days`) a na profilu přecenění (`investra.fx.profile.max_rate_age_days`) se odstraní;
+  dnes mají všude hodnotu 5 (`investra_test`: 5 fondů, 1 profil; `investra_dev` je ještě nemá), takže se výsledky nezmění.
+- Změnu tabulky smí jen skupina schvalování ocenění; změny se zaznamenávají (chatter), řádky nejde mazat, jen archivovat.
+
+**B. Žádné smíšené kurzy** (`investra_rates/models/currency.py`):
+- Doklady: zámek podle bodu 1 návrhu (`_get_conversion_rate` z evidence zdroje knihy).
+- Zobrazení a souhrny: pro knihu (`investra.entity`) se `res.currency._get_rates` nahradí čtením z evidence zdroje
+  knihy (poslední kurz do data včetně). Týká se nastavení měn (aktuální kurz) a souhrnů v cizí měně v analýze faktur
+  a analytických účtech (agregace `sum_currency`, ověřeno v Odoo 20). Měna bez kurzu zdroje knihy: nastavení měn ukáže
+  „Kurz ECB chybí“ místo čísla, souhrn v cizí měně skončí hláškou „Chybí kurz X“ (ne kurzem 1,0 ani kurzem ČNB).
+  Bod 4 (den navíc) pro knihy zanikne; pro společnost bez knihy zůstává.
+- Seznam kurzů v nastavení měn knihy ECB nebude ukazovat společné kurzy ČNB (pravidlo záznamů na `res.currency.rate`).
+- Ukládání kurzů do Odoo (`_publish`) se nemění: ČNB jako společné kurzy, ECB do knih ECB. Nic se nemaže.
+- Společnost bez knihy (dnes `investra_dev` společnost 1, `investra_test` společnosti 1 a 2) zůstává na chování Odoo.
+
+**C. Křížový kurz** se nepoužívá v žádné podobě. Měnu, kterou ECB nevyhlašuje, řeší v knize ECB jen ruční kurz s důvodem.
+
+**Testy navíc:** výjimka pro měnu přebije výchozí stáří lístku; měsíční lístek 35 dní bez konstanty; nastavení měn
+v knize ECB nezobrazí kurz JPY; souhrn analýzy faktur v JPY v knize ECB skončí hláškou; ocenění a přecenění FX berou
+stáří z tabulky (stávající očekávané hodnoty beze změny).
+
+**Migrace:** `investra_rates` (výchozí řádky tabulky), `investra_nav` a `investra_fx_revaluation` (odstranění polí;
+sloupce v databázi Odoo nemaže, nečíst je). Aktualizace v `investra_test` se souhlasem, v `investra_dev` zvlášť se souhlasem.
+
+**Rozhodnuto 11. 11. 2026:** stáří kurzu na fondu a profilu přecenění se odstraní, jediné místo nastavení je tabulka
+Platnost kurzů. Celý plán rizika 4 (body 1–2 návrhu a toto upřesnění) čeká na schválení provedení.
