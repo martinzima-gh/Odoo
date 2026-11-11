@@ -1,7 +1,8 @@
 # Návrh: klasifikace IFRS 9 podle obchodního modelu fondu
 
 Stav 11. 11. 2026, připravil Claude podle bodu 9 podkladu UX z 10. 11. 2026 a rozhodnutí 2026-11-09
-„Klasifikace IFRS 9 podle fondu a obchodního modelu“ (krok A22 revize). **Ke schválení uživatelem. Nic není naprogramované.**
+„Klasifikace IFRS 9 podle fondu a obchodního modelu“ (krok A22 revize). **Varianta B zvolena uživatelem 11. 11. 2026
+(odpovědi níže); otevřená zůstává otázka 6. Nic není naprogramované.**
 Červená zóna: účtování obchodů, NAV, výkazy ČNB, `record_guard`, migrace.
 
 **Bod 9 podkladu UX:** klasifikace IFRS 9 patří k obchodu, ne ke sdílenému nástroji.
@@ -73,7 +74,7 @@ Zamítnuto předem: klasifikace jen na dvojici fond + nástroj (odporuje rozhodn
 2. **`investra.portfolio.classification` – Zařazení nástroje**: portfolio, fond (related, uložené), nástroj, platnost od,
    platnost do (vyplní jen reklasifikace), kategorie IFRS 9, způsob ocenění, role účtu, test SPPI
    (Splněn / Nesplněn / Nehodnotí se – kapitálové nástroje a deriváty), určení (Žádné / FVTPL podle 4.1.5 / FVOCI podle 5.7.5),
-   zdůvodnění, stav Návrh → Schváleno (čtyři oči jako u cen, skupina schvalování ocenění).
+   zdůvodnění. Bez schvalování čtyřma očima (odpověď 3); změny se sledují v historii záznamu (`mail.thread`).
    - Unikátnost: portfolio + nástroj + platnost od; platnosti stejného portfolia a nástroje se nepřekrývají.
    - Návrh hodnot při založení: z typu nástroje a obchodního modelu (tabulka níže); účetní může změnit, odchylka
      od návrhu je vidět stejně jako dnes u nástroje.
@@ -81,12 +82,13 @@ Zamítnuto předem: klasifikace jen na dvojici fond + nástroj (odporuje rozhodn
    - Kontroly: naběhlá hodnota ⇔ kategorie Naběhlá hodnota (jako dnes); naběhlá hodnota a FVOCI dluhu jen se SPPI Splněn;
      FVOCI kapitálového nástroje jen s určením 5.7.5; nástroj vyhrazený fondu (`instrument.fund_id`) jen v portfoliu tohoto fondu.
 3. **`investra.trade`**: nové povinné pole `portfolio_id` (výchozí = jediné aktivní portfolio fondu) a vypočtené uložené
-   `classification_id` = zařazení platné k datu sjednání. Obchod bez schváleného zařazení nejde zaúčtovat.
+   `classification_id` = zařazení platné k datu sjednání. Obchod bez zařazení nejde zaúčtovat.
    `portfolio_id` patří do `BOOKED_TRADE_FIELDS`. Prodej nesmí z portfolia vzít víc kusů, než v něm k datu je.
 4. **`account.move.line`**: nový rozměr `investra_classification_id` vedle `investra_instrument_id`, zahrnutý do
    integritního hashe a po zaúčtování neměnný (stejně jako nástroj).
-5. **`investra.instrument`**: pole `ifrs9_category`, `valuation_method`, `role_id` se odstraní (otázka 2);
-   `cnb_sheet`, `max_price_age` a ostatní vlastnosti nástroje zůstávají. Typ nástroje dál navrhuje hodnoty.
+5. **`investra.instrument`**: pole `ifrs9_category`, `valuation_method`, `role_id` se odstraní (odpověď 2), včetně
+   jejich podílu na příznaku „Odchylka od návrhu typu“; `max_price_age` a ostatní vlastnosti nástroje zůstávají.
+   `cnb_sheet` podle otázky 6. Typ nástroje dál navrhuje hodnoty, nově pro zařazení.
 
 Návrh kategorie podle obchodního modelu (jen výchozí hodnota, rozhoduje schválené zařazení):
 
@@ -105,8 +107,9 @@ Návrh kategorie podle obchodního modelu (jen výchozí hodnota, rozhoduje schv
   Účetní hodnota se čte filtrem nástroj + portfolio zařazení + účet role. Řádek listu portfolio dostane portfolio
   a zařazení; v přehledu fondů a balíčku pro depozitáře se pozice ve dvou portfoliích ukážou jako dva řádky.
 - Cena se nemění: sdílená tržní cena nebo cena fondu platí pro všechna portfolia fondu (rozhodnutí 2026-11-11).
-- **FVOCI:** dokud nebude naplánované účtování do OCI (kapitálový fond, recyklace u dluhu, úrok efektivní mírou do výsledku),
-  ocenění s pozicí FVOCI **zastaví** kontrolou se závažností Stop. Dnešní tiché účtování do výsledku tím skončí.
+- **FVOCI:** mimo rozsah tohoto plánu (odpověď 4). Účtování do OCI (kapitálový fond, recyklace u dluhu, úrok efektivní
+  mírou do výsledku) i chování ocenění s pozicí FVOCI do té doby jsou v otevřených bodech. Tento plán dnešní chování
+  nemění: změna RH pozice FVOCI jde dál do výsledku, změna RH nevypořádaného obchodu FVOCI dál zastaví.
 - **Reklasifikace (4.4.1):** v tomto kroku jen ochrana: novou verzi zařazení s jinou kategorií po prvním obchodu
   systém odmítne s odkazem na budoucí řízený krok (rozhodnutí 2026-11-07 „Změna klasifikace“). Datum reklasifikace
   podle IFRS 9 je první den následujícího účetního období; samotný krok a jeho účtování budou samostatný plán.
@@ -118,17 +121,15 @@ Návrh kategorie podle obchodního modelu (jen výchozí hodnota, rozhoduje schv
 - Fond: záložka Obchodní modely (portfolia) se zařazeními nástrojů.
 - Nástroj: místo klasifikace přehled „Zařazení ve fondech“ (jen čtení).
 - Obchod: výběr portfolia, vedle zobrazená kategorie a způsob ocenění; upozornění, když zařazení chybí nebo není schválené.
-- Seznam zařazení ke schválení (jako u cen).
 
 ## Dopad na data a účetnictví
 
 - `investra_dev`: modul nástrojů nemá, nic se tam nemění.
 - `investra_test`: migrace (schéma, souhlas uživatele): pro každý fond portfolio „Hlavní“ (`other`); pro každou dvojici
-  fond + nástroj s obchodem zařazení s hodnotami z nástroje, platnost od prvního obchodu, stav Schváleno
-  (schválil „migrace“, uvedeno v zdůvodnění); doplnění `portfolio_id` u obchodů a `investra_classification_id`
-  u zaúčtovaných řádků. Zůstatky ani částky se nemění; doplňuje se jen rozměr.
-- Očekávané hodnoty referenčních scénářů se nesmí změnit. Výjimka: scénář s pozicí FVOCI by nově zastavil; pokud
-  takový je, ukážu ho před změnou.
+  fond + nástroj s obchodem zařazení s hodnotami z nástroje, platnost od prvního obchodu (zdůvodnění „migrace“);
+  doplnění `portfolio_id` u obchodů a `investra_classification_id` u zaúčtovaných řádků. Zůstatky ani částky se nemění;
+  doplňuje se jen rozměr.
+- Očekávané hodnoty referenčních scénářů se nesmí změnit.
 - Hash integrity: přidání pole do hashe se týká jen nových dokladů; u migrovaných dokladů ověřím, že kontrola integrity
   Odoo neselže (jinak pole do hashe zapojit jen pro doklady od data migrace).
 
@@ -137,23 +138,25 @@ Návrh kategorie podle obchodního modelu (jen výchozí hodnota, rozhoduje schv
 1. Tentýž nástroj: fond 1 FVTPL, fond 2 naběhlá hodnota; obě ocenění správně a nezávisle.
 2. Jeden fond, dvě portfolia (FVTPL a naběhlá hodnota) s týmž dluhopisem: dvě pozice, oddělená účetní hodnota.
 3. Prodej z portfolia nad počet kusů v něm → chyba; prodej z druhého portfolia nesníží první.
-4. Obchod bez schváleného zařazení nejde zaúčtovat; zadavatel nemůže schválit vlastní zařazení.
+4. Obchod bez zařazení nejde zaúčtovat; nový fond má portfolio „Hlavní“ a obchod ho dostane jako výchozí.
 5. Po prvním obchodu nejde změnit kategorii, způsob ocenění, roli ani obchodní model portfolia.
-6. Pozice FVOCI → ocenění zastaví kontrola Stop.
+6. Nová verze zařazení s jinou kategorií po prvním obchodu je odmítnuta (reklasifikace zatím není).
 7. Kontroly SPPI a určení 5.7.5; nástroj vyhrazený fondu nejde zařadit do cizího portfolia.
 8. ČNB ROFO10_11 řádky 6, 8, 10, 11 podle kategorie zařazení.
 9. Migrace: počty obchodů a řádků s doplněným rozměrem, součty zůstatků po nástrojích před a po beze změny.
 10. Všech 328 stávajících testů projde (po úpravě testů, které dnes nastavují klasifikaci na nástroji).
 
-## Otázky pro uživatele
+## Odpovědi uživatele (11. 11. 2026)
 
-1. Souhlasíte s variantou B (portfolio s obchodním modelem + zařazení nástroje), nebo chcete A či C?
-2. Pole klasifikace na nástroji **odstranit** (doporučuji; jinak hrozí, že je někdo bude brát jako platné), nebo nechat
-   jako „navržené“ hodnoty mezi typem a zařazením?
-3. Má zařazení procházet schválením čtyřma očima jako ceny? (Doporučuji ano: má přímý účetní dopad.)
-4. Pozice FVOCI do doby naprogramování OCI: **zastavit ocenění** (doporučuji), nebo jen upozornit?
-5. Výchozí portfolio nového fondu „Hlavní“ s modelem Ostatní (FVTPL) – vyhovuje, nebo má fond portfolio zakládat vždy ručně?
-6. `cnb_sheet` (list ČNB) nechat na nástroji? Pokud se list liší podle kategorie, přesune se do zařazení.
+1. Varianta B.
+2. Pole klasifikace z nástroje odstranit.
+3. Zařazení bez schvalování čtyřma očima.
+4. FVOCI (účtování do OCI a chování ocenění do té doby) dát do otevřených bodů; mimo rozsah tohoto plánu.
+5. Nový fond dostane portfolio „Hlavní“ s modelem Ostatní (FVTPL).
+6. Otevřené: `cnb_sheet` (list ČNB) je kód listu položkového výkazu ČNB, na kterém se nástroj vykazuje
+   (např. DOFO31_11 Majetkové CP v majetku fondu, DOFO31_12 Dluhové CP, DOFO31_21/22 deriváty, RIS30_02 Přehled
+   poskytnutých úvěrů, RIS33_13 Security-by-security bez ISIN). Určuje ho povaha nástroje, ne klasifikace; zatím ho
+   žádný výpočet nečte. Doporučení: nechat na nástroji.
 
 ## Zóna a provedení
 

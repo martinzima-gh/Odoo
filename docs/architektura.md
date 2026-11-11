@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 285. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 286. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -135,6 +135,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Předávka mezi relacemi | Na konci úkolu, na pokyn „předávka“ nebo u dlouhé konverzace vzniká krátký předávací protokol v adresáři předávek repozitáře (nejvýš 40 řádků, bez důvěrných dat) a odpověď končí promptem pro novou relaci. Nová relace čte jen soubory z předávky. | 2026-11-11, rozhodl uživatel: úspora kreditů – krátké relace s předávkou místo dlouhých konverzací. Pravidlo je v pravidlech projektu (CLAUDE.md). |
 | Sdílené tržní ceny | Cena bez fondu je sdílená tržní cena, schvaluje se jednou a platí pro všechny fondy; vede ji kniha investiční společnosti. Cena s fondem je cena fondu (posudek, odchylka), při sdílené ceně téhož dne s důvodem. Cena je v jednotkách měny nástroje za kus, měna se ukazuje a kontroluje. Ocenění bere poslední známou schválenou cenu; cena starší než maximální stáří nástroje je překonatelné upozornění. Oprava schválené ceny ji vrátí ke schválení druhou osobou; hotová ocenění drží svou cenu. | 2026-11-11, schválil uživatel (plán docs/navrh-sdilene-ceny.md, varianta B). Upřesňuje Reálnou hodnotu (poslední známá cena) a Čtyři oči u ceny. Provedeno týž den. |
 | Datum ceny v balíčku | List portfolio v balíčku pro depozitáře má sloupec Datum ceny za zdrojem ceny. | 2026-11-11, schválil uživatel: ocenění bere poslední známou cenu, která může být starší než datum ocenění. Provedeno týž den. |
+| Obchodní model fondu a zařazení nástroje | Fond má jedno nebo více portfolií s obchodním modelem (Držet pro inkaso, Inkaso i prodej, Ostatní). Pro nástroj v portfoliu je zařazení s kategorií IFRS 9, způsobem ocenění, rolí účtu, testem SPPI, určením (IFRS 9 4.1.5, 5.7.5) a platností od; obchod nese portfolio. Klasifikace, způsob ocenění a role se z nástroje odstraní, typ nástroje je dál navrhuje. Zařazení bez schvalování čtyřma očima. Nový fond dostane portfolio „Hlavní“ s modelem Ostatní (FVTPL). Účtování FVOCI je samostatný otevřený bod. | 2026-11-11, zvolil uživatel (plán docs/navrh-klasifikace-ifrs9.md, varianta B). Upřesňuje Klasifikaci IFRS 9 podle fondu a obchodního modelu (2026-11-09). Otevřené: list ČNB na nástroji, nebo v zařazení. Zatím neprovedeno. |
 
 ## Hranice systémů a vlastnictví dat
 
