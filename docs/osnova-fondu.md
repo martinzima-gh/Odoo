@@ -151,3 +151,11 @@ Volitelně (samostatný plán): otisk ocenění převést z čísla účtu na ro
 - Zjištěno mimo migraci: ukázkový dluhopis má v zařazení roli `instrument` místo `instrument_debt` z typu (nová kontrola
   ho ukazuje); ocenění fondu Beta k 2026-10-31 nejde přepočítat pro chybějící schválenou cenu dluhopisu (stav ukázkových dat);
   fond Ukázkový k 2027-02-28 dává po přepočtu cenu CZK 1,0021 místo dřívějších 1,0020 i se starým kódem (posun dat od 8. 11.).
+- Oprava ukázkových dat `investra_test` (souhlas uživatele 2026-11-11, záloha
+  `zalohy/investra_test-2026-11-11-pred-opravou-ukazkovych-dat.dump`): role dluhopisu změněna na `instrument_debt` ve třech
+  zařazeních (fondy Ukázkový, Alfa, Beta; jako superuser, po obchodu je role zamčená, poznámka v historii zařazení) a zůstatek
+  přeúčtován událostí „Ostatní“ z 381000 na 382000 (Ukázkový a Alfa 30 240 000 k 2027-02-01 kvůli uzávěrce k 2027-01-31,
+  Beta 10 000 k 2026-10-04). Zveřejněná ocenění k 2027-01-31 zůstávají s účtem 381000. Fondu Beta doplněna cena dluhopisu
+  k 2026-10-31 (10 000, zadal `beta_priprava`, schválil `beta_schvaleni`). Ověření: součet 381+382 v každé knize beze změny,
+  FK konceptů 2027-02-28 shodné s výpočtem před opravou (Ukázkový 100 222 767,69, Alfa 31 111 205,69), Beta k 2026-10-31
+  10 042 000 (= vrácená verze), kontrola zařazení bez upozornění; SELECT 8 v `docs/sql/11-klasifikace.sql`.

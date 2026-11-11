@@ -70,3 +70,15 @@ FROM investra_portfolio_classification z
 JOIN investra_fund_portfolio p ON p.id = z.portfolio_id
 JOIN investra_instrument i ON i.id = z.instrument_id
 ORDER BY i.name, p.name;
+
+-- 8. Kontrola: role zařazení se liší od role typu nástroje (má být prázdné; výjimkou je účast v RH,
+--    kde návrh dává roli participation_fv místo participation)
+SELECT c.name AS fond, i.name AS nastroj, t.name AS typ, rt.code AS role_typu, rz.code AS role_zarazeni, z.valid_from AS plati_od
+FROM investra_portfolio_classification z
+JOIN investra_instrument i ON i.id = z.instrument_id
+JOIN investra_instrument_type t ON t.id = i.type_id
+JOIN investra_account_role rt ON rt.id = t.role_id
+JOIN investra_account_role rz ON rz.id = z.role_id
+JOIN res_company c ON c.id = z.company_id
+WHERE z.role_id <> t.role_id
+ORDER BY c.name, i.name;
