@@ -20,7 +20,7 @@ Pak: test knihy se zdrojem ECB a měny mimo ECB, body 15, 8, 14, 16, 5.3, 3.
 
 **Rozhodnutí:** „Sdílené tržní ceny“ (deník 2026-11-11).
 
-**Otevřené otázky:** výchozí maximální stáří ceny u typů nástrojů (uživatel); datum ceny v balíčku pro depozitáře;
+**Otevřené otázky:** výchozí maximální stáří ceny u typů nástrojů (uživatel);
 rozpad ostatních položek třídy; Community vs Enterprise; sloučení do `main`.
 
 **Postupy:** testy `-u <moduly> --test-enable --test-tags /<moduly>` nad `investra_test` (`docs/prototyp-nav.md`, Spuštění testů);

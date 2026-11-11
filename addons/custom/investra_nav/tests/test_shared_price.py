@@ -104,3 +104,9 @@ class TestSharedPriceValuation(NavCase):
         self.assertEqual(shared.state, "draft")
         self.assertEqual(self.line(valuation).price, 110)
         self.assertIn(valuation, shared._used_in_valuations())
+
+    def test_package_shows_price_date(self):
+        self.instrument.max_price_age = 5
+        self.price(110, day=date(2032, 1, 27))
+        row = [r for r in self.compute()._package_rows_portfolio() if r["name"] == "Akcie"][0]
+        self.assertEqual(row["price_date"], "2032-01-27")

@@ -7,7 +7,7 @@ from odoo.exceptions import UserError
 
 PORTFOLIO_COLUMNS = [
     ("Druh", "kind"), ("Název", "name"), ("ISIN", "isin"), ("Měna", "currency"), ("Kusy", "quantity"), ("Cena", "price"),
-    ("Zdroj ceny", "price_source"), ("Pořizovací hodnota v měně", "cost_currency"),
+    ("Zdroj ceny", "price_source"), ("Datum ceny", "price_date"), ("Pořizovací hodnota v měně", "cost_currency"),
     ("Pořizovací hodnota v měně fondu", "cost"), ("Reálná hodnota v měně", "fair_value_currency"),
     ("Kurz", "fx_rate"), ("Zdroj kurzu", "fx_source"), ("Reálná hodnota v měně fondu", "fair_value"),
     ("Změna proti pořízení", "change"), ("Podíl na FK", "weight"),
@@ -43,6 +43,8 @@ class InvestraValuation(models.Model):
                 "quantity": line.quantity,
                 "price": line.price,
                 "price_source": line.price_source or "",
+                # Poslední známá cena může být starší než datum ocenění (rozhodnutí 2026-11-11).
+                "price_date": line.price_date.isoformat() if line.price_date else "",
                 "cost_currency": line.cost_currency,
                 "cost": line.cost,
                 "fair_value_currency": line.fair_value_currency,

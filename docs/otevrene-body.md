@@ -54,7 +54,6 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Ochrana kurzů v `investra_dev` | Ochrana kurzů je hotová (2026-11-10), ale v `investra_dev` začne platit až po aktualizaci modulu `investra_rates`; stahování kurzů tam už běží | Aktualizovat modul se souhlasem uživatele |
 | Body podkladu UX bez plánu | Poznámky uživatele z 2026-11-10 (podklad mimo repozitář, shrnutí v `docs/predavka-2026-11-10-ux.md`): 3 přehled fondů jako tabulka a snímek; 5.3 výpočetní protokol; 8 zdroj, zaokrouhlení, poplatek a historie u úpisů a odkupů; 9 klasifikace IFRS 9 na obchodu; 14 termínované vklady; 15 detail účetních událostí; 16 pravidla úplat proti sešitům (bod 10 hotový 2026-11-11) | Plán ke každému bodu zvlášť (oranžová a červená zóna). Doporučené pořadí: 9, 15, 8, 14, 16, 5.3, 3 |
 | Maximální stáří ceny pro typy nástrojů | Pole je hotové (2026-11-11), ale všude je 0: ocenění upozorní na každou cenu starší než datum ocenění | Uživatel nastaví výchozí počet dní u typů nástrojů podle Pravidel oceňování |
-| Datum ceny v balíčku pro depozitáře | Ocenění bere poslední známou cenu; balíček ukazuje cenu a zdroj, ale ne její datum | Rozhodnout, zda sloupec doplnit (zelená zóna) |
 
 ## Chybějící podklady
 
