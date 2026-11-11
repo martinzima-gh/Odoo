@@ -1,6 +1,6 @@
 # Návrh: schvalovací matice obhospodařovatele
 
-Stav: **odpovědi 1–3 zapracované, otázka 4 (role) otevřená** (2026-11-11). Zóna: červená (schvalování ocenění, `record_guard`
+Stav: **schváleno uživatelem 11. 11. 2026**. Otázka 4: nové role se nezavádějí, „kdo“ = skupina Investry, volitelně jmenovití uživatelé. Zóna: červená (schvalování ocenění, `record_guard`
 a oprávnění). Podnět uživatele: na začátku bude málo lidí a ne všichni budou mít přístup; testy jsou jednodušší
 bez druhé osoby.
 
@@ -58,7 +58,7 @@ dnešní chování, tedy druhá osoba ano). Doklady a ocenění se nemění.
    s depozitářem Odoo neověří – odpovědnost nastavení matice.
 2. Výjimka z uzamčení: stejně jako 1, podle matice.
 3. Fond smí řádek matice jen zpřísnit.
-4. Role: dotaz na dnešní skupiny – přehled níže, rozhodnutí otevřené.
+4. Role: nové se nezavádějí; „kdo“ = skupina Investry, volitelně jmenovití uživatelé (souhlas s doporučením).
 
 ## Dnešní skupiny (ověřeno v kódu)
 
