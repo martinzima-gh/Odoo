@@ -1,6 +1,6 @@
 # Návrh: úpisy a odkupy – zdroj, zaokrouhlení, poplatek, historie (bod 8 UX)
 
-Stav: **odpovědi 1–5 zapracované, čeká na potvrzení bodů F a „Ověřit“**. Zóna: zdroj a historie oranžová;
+Stav: **odpovědi zapracované, čeká na potvrzení vrstvy 2 zámku (G)**. Zóna: zdroj a historie oranžová;
 zaokrouhlení, poplatek, zaúčtování a zámek ocenění červená (účtování, NAV). Navazuje na rozhodnutí „Kurz úpisu
 v průběhu období“ (2026-11-04), „Cesta úpisů“ (2026-11-09) a „Detail účetních událostí“ (2026-11-11).
 
@@ -35,7 +35,7 @@ Totéž platí pro obchod nebo doklad: změní účetnictví pod schváleným oc
 **B. Cena a zaokrouhlení (červená)** – odpověď 1 a 5
 - Pole `price` (cena za kus v měně kurzu) a `valuation_id` (ocenění, z něhož cena je).
 - Parametry na fondu jako výchozí, na třídě s přepsáním (stejně jako desetinná místa kurzu): desetinná místa
-  kusů, způsob zaokrouhlení kusů, komu patří rozdíl (zůstává ve fondu → kapitál třídy / vrací se investorovi
+  kusů (výchozí 6), způsob zaokrouhlení kusů (výchozí dolů), komu patří rozdíl (výchozí zůstává ve fondu) (zůstává ve fondu → kapitál třídy / vrací se investorovi
   → závazek, výplatu zadává IS).
 - Vše posílá a určuje IS: kusy, cenu, hrubou částku, poplatek i rozdíl. Odoo nic nedopočítává, jen kontroluje:
   `hrubá částka = kusy × cena + poplatek + rozdíl`, kusy odpovídají desetinným místům a způsobu třídy,
@@ -43,7 +43,8 @@ Totéž platí pro obchod nebo doklad: změní účetnictví pod schváleným oc
 
 **C. Poplatek (červená)** – odpověď 2
 - Parametr na fondu, přepsání na třídě: sazba vstupního a výstupního poplatku. Poplatek se platí ven
-  (obhospodařovatel nebo distributor): závazek fondu, kapitál třídy dostane jen čistou částku.
+  (obhospodařovatel nebo distributor, příjemce se eviduje u pohybu; parametr určuje výchozího): závazek fondu
+  vůči příjemci, kapitál třídy dostane jen čistou částku.
 - Z IS přichází částka poplatku; Odoo ji porovná se sazbou. Při ručním zadání se poplatek předvyplní ze sazby
   a uživatel ho může upravit; odchylka od sazby se zobrazí v kontrolách ocenění.
 
@@ -55,18 +56,27 @@ Totéž platí pro obchod nebo doklad: změní účetnictví pod schváleným oc
 **E. Zaúčtování v UI (červená)** – odpověď 4
 - Tlačítko „Zaúčtovat“ pro skupinu přípravy ocenění, i hromadně ze seznamu. Před zaúčtováním kontroly B a C.
 
-**F. Obecný zámek schváleného ocenění (červená, nové)**
-- Od stavu Schváleno (dál Zaúčtováno, U depozitáře, Potvrzeno, Zveřejněno) nejde do fondové knihy zaúčtovat
+**F. Obecný zámek ocenění – vrstva 1, měkký (červená, nové; samostatný krok před B–E)**
+- Od stavu Ke schválení (dál Schváleno, Zaúčtováno, U depozitáře, Potvrzeno) nejde do fondové knihy zaúčtovat
   ani stornovat doklad s datem ≤ datu ocenění, kromě dokladů samotného ocenění. Kontrola na jednom místě
   (`investra_posting`, zaúčtování dokladu) – pokryje obchody, splátky, časové rozlišení, úpisy, odkupy i ruční doklady.
 - Úpis a odkup s datem ≤ datu takového ocenění nejde založit, změnit ani smazat ani před zaúčtováním.
 - Cesta ven zůstává: vrácení ocenění (dnešní postup) – pak se do něj účtovat dá.
-- `hard_lock_date` při zveřejnění zůstává beze změny.
+
+**G. Zámek po zveřejnění – vrstva 2 a pojistka (červená, návrh, čeká na potvrzení)**
+- Ověřeno v Odoo 20: `hard_lock_date` nejde zrušit ani posunout zpět, ani administrátorem. Dnes ho nastaví
+  zveřejnění ocenění, takže pojistka na zrušení dnes neexistuje.
+- Návrh: zveřejnění nastaví zámek pro všechny (`fiscalyear_lock_date`) k datu ocenění. Pojistkou je
+  standardní výjimka Odoo (`account.lock_exception`): důvod, uživatel, čas konce, odvolání, auditní stopa změn
+  během výjimky. Investra doplní: výjimku zakládá jen skupina schvalování ocenění, účinná až po potvrzení
+  druhou osobou, je vidět v kontrolách příštího ocenění.
+- `hard_lock_date` (nevratný) až po účetní závěrce ověřené auditorem, ruční krok schvalovatele.
+- Mění rozhodnutí „Zaúčtování ocenění“ (2026-11-06) jen v tom, kterým zámkem Odoo se období uzamyká.
 
 ## Dopad na data a účetnictví
 
 - Migrace: stávající pohyby dostanou `source = ruční`, `price = částka / kusy`, poplatek a rozdíl 0;
-  parametry fondu výchozí (6 míst, dolů, rozdíl ve fondu – ověřit).
+  parametry fondu výchozí (6 míst, dolů, rozdíl ve fondu).
 - Zaúčtované doklady se nemění. Nové pohyby s poplatkem nebo rozdílem mají 3–4 řádky; nové role účtů
   (závazek z poplatku, rozdíl ze zaokrouhlení, závazek vůči investorovi) v `investra_chart_fund`.
 - Kapitál třídy a měřená výkonnost berou čistou částku. Očekávané hodnoty referenčních scénářů se nemění
@@ -93,9 +103,15 @@ Totéž platí pro obchod nebo doklad: změní účetnictví pod schváleným oc
 5. Vše posílá a určuje IS.
 Souhlas s doporučením: B–E (nyní B–F) najednou, A jako první samostatný krok.
 
+## Odpovědi uživatele – druhé kolo (11. 11. 2026)
+
+- Zámek ve dvou vrstvách: měkký (vratný vrácením ocenění) a tvrdý po zveřejnění; i na zrušení posledního
+  zámku musí být pojistka → návrh G.
+- Měkký zámek od stavu Ke schválení, jako samostatný krok před B–E.
+- Příjemce poplatku: evidovat oba (obhospodařovatel, distributor).
+- Výchozí hodnoty: 6 míst kusů, dolů, rozdíl ve fondu.
+
 ## Ověřit u uživatele
 
-- F: zámek od stavu Schváleno, nebo už od Ke schválení (schvalovatel pak schvaluje neměnný stav)?
-- F: provést v bodu 8, nebo jako samostatný bod před ním (týká se všech dokladů, nejen úpisů)?
-- C: příjemce poplatku jen evidovat (obhospodařovatel / distributor), nebo je to jen jeden závazek fondu?
-- B: výchozí hodnoty parametrů (počet míst kusů, způsob, komu patří rozdíl).
+- G: zveřejnění nastaví vratný zámek pro všechny s výjimkou jako pojistkou; nevratný tvrdý zámek až po auditu
+  účetní závěrky. Souhlas?
