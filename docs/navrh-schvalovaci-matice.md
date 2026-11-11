@@ -1,6 +1,6 @@
 # Návrh: schvalovací matice obhospodařovatele
 
-Stav: **návrh, čeká na odpovědi uživatele** (2026-11-11). Zóna: červená (schvalování ocenění, `record_guard`
+Stav: **odpovědi 1–3 zapracované, otázka 4 (role) otevřená** (2026-11-11). Zóna: červená (schvalování ocenění, `record_guard`
 a oprávnění). Podnět uživatele: na začátku bude málo lidí a ne všichni budou mít přístup; testy jsou jednodušší
 bez druhé osoby.
 
@@ -42,8 +42,8 @@ kategorie IFRS 9.
   upozornění v kontrolách – vidí ho schvalovatel, depozitář i auditor.
 - Změnu matice smí jen skupina schvalování ocenění; změny se sledují (chatter) a první další ocenění ji ukáže
   v kontrolách.
-- Zákaz „sám sobě“ platí i při vypnuté druhé osobě jen tam, kde je to nutné: výjimka z uzamčení zůstává vždy
-  se dvěma lidmi (otázka 2).
+- Druhou osobu jde vypnout u každé činnosti včetně schválení ocenění a výjimky z uzamčení (odpovědi 1 a 2);
+  výchozí hodnota je zapnuto. Vypnutí je vidět v kontrolách ocenění (výše).
 
 **Testy:** automatické testy dál běží s druhou osobou a nově i bez ní (matice v testu). Ruční zkoušení v
 `investra_test` půjde s maticí bez druhé osoby – to řeší podnět „pro testy bez 4 očí“.
@@ -51,7 +51,27 @@ kategorie IFRS 9.
 **Dopad:** pole `second_person_required` a kroky schválení na fondu se převedou migrací do matice (výchozí =
 dnešní chování, tedy druhá osoba ano). Doklady a ocenění se nemění.
 
-## Otázky pro uživatele
+## Odpovědi uživatele (11. 11. 2026)
+
+1. Ocenění: druhou osobu jde v matici vypnout (i v produkci). Mění rozhodnutí 2026-11-04 „u fondů Investry
+   povinná druhá osoba“ na „podle matice obhospodařovatele“. Soulad s vnitřními předpisy, statuty a dohodou
+   s depozitářem Odoo neověří – odpovědnost nastavení matice.
+2. Výjimka z uzamčení: stejně jako 1, podle matice.
+3. Fond smí řádek matice jen zpřísnit.
+4. Role: dotaz na dnešní skupiny – přehled níže, rozhodnutí otevřené.
+
+## Dnešní skupiny (ověřeno v kódu)
+
+| Skupina | Co dnes smí |
+|---|---|
+| Uživatel (`base.group_user`) | přihlášení |
+| Účetnictví – jen čtení (`account.group_account_readonly`) | číst účetnictví a záznamy Investry |
+| Investra: příprava ocenění | zadávat nástroje, ceny, obchody, splátky, úpisy a odkupy, klasifikaci, protistrany, termíny ČNB, počítat a předkládat ocenění |
+| Investra: schvalování ocenění | schvalovat ocenění a ceny, vracet, stornovat a zveřejňovat ocenění, ruční kurz, platnost kurzů, výjimky z uzamčení |
+| Účetnictví – správce (`account.group_account_manager`) | nastavení: účetní knihy, fondy a třídy, pravidla úplat, kroky schválení, alokace, profily přecenění, převodová tabulka ČNB, role účtů |
+
+Jiné role (vedení fondu, compliance, depozitář) dnes nejsou.
+## Původní otázky
 
 1. **Ocenění bez druhé osoby:** smí matice druhou osobu u schválení ocenění vypnout? Mění to rozhodnutí
    2026-11-04 a musí to odpovídat vnitřním předpisům a statutům (řídicí a kontrolní systém obhospodařovatele,
