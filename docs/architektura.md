@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 283. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 284. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -133,6 +133,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Vrácení a storno ocenění | Schvalovatel může s povinným důvodem vrátit ocenění před zaúčtováním (návrhy zaniknou bez storna), vrátit ho za depozitáře a nově stornovat zaúčtované nebo depozitářem potvrzené ocenění (storno dokladů k datu ocenění). Vždy vznikne nová verze v návrhu, stará zůstane s důvodem. Storno se odmítne, když na ocenění navazuje pozdější ocenění. Zveřejněné ocenění se nevrací. | 2026-11-10, schválil uživatel. Oprava po zveřejnění se řeší dalším oceněním nebo podle statutu, ne návratem v systému (období je nevratně uzamčené). |
 | Zámek příloh ocenění | Přílohy ocenění (balíček pro depozitáře, soubory ručně doložených úplat) a řádky ručně doložených úplat po odeslání ke schválení nejde změnit ani smazat. Nový balíček vznikne jako nová příloha; uložený otisk upozorní, kdyby soubor neodpovídal. | 2026-11-10, nález a schválení uživatele: u zveřejněného ocenění šlo balíček přepsat jiným souborem, protože Odoo řídí práva k příloze jen podle práva zápisu do ocenění, ne podle jeho stavu. |
 | Předávka mezi relacemi | Na konci úkolu, na pokyn „předávka“ nebo u dlouhé konverzace vzniká krátký předávací protokol v adresáři předávek repozitáře (nejvýš 40 řádků, bez důvěrných dat) a odpověď končí promptem pro novou relaci. Nová relace čte jen soubory z předávky. | 2026-11-11, rozhodl uživatel: úspora kreditů – krátké relace s předávkou místo dlouhých konverzací. Pravidlo je v pravidlech projektu (CLAUDE.md). |
+| Sdílené tržní ceny | Cena bez fondu je sdílená tržní cena, schvaluje se jednou a platí pro všechny fondy; vede ji kniha investiční společnosti. Cena s fondem je cena fondu (posudek, odchylka), při sdílené ceně téhož dne s důvodem. Cena je v jednotkách měny nástroje za kus, měna se ukazuje a kontroluje. Ocenění bere poslední známou schválenou cenu; cena starší než maximální stáří nástroje je překonatelné upozornění. Oprava schválené ceny ji vrátí ke schválení druhou osobou; hotová ocenění drží svou cenu. | 2026-11-11, schválil uživatel (plán docs/navrh-sdilene-ceny.md, varianta B). Upřesňuje Reálnou hodnotu (poslední známá cena) a Čtyři oči u ceny. Provedeno týž den. |
 
 ## Hranice systémů a vlastnictví dat
 
