@@ -3,9 +3,9 @@
 **Cíl:** prototyp NAV na Odoo 20 (`addons/custom/`); bod 9 hotový, další na řadě test knihy se zdrojem ECB a body 15, 8, 14, 16, 5.3, 3.
 
 **Stav:** větev `feature/nav-prototyp` (pushnuto), poslední commit je ten s touto předávkou; `main` je pozadu (sloučení jen na pokyn).
-Testy: 342 testů modulů Investry v `investra_test`, 0 chyb. `investra_test` je zmigrovaná (záloha před migrací
-`zalohy/investra_test-2026-11-11-pred-klasifikaci.dump`). `investra_dev` se nic nedotklo.
-Web `investra-test-web` (port 8071) běží se starým kódem: před prohlídkou restart se souhlasem uživatele.
+Testy: 351 testů modulů Investry v `investra_test`, 0 chyb. `investra_test` je na `investra_instruments` 20.0.0.5.0
+(zálohy `zalohy/investra_test-2026-11-11-pred-klasifikaci.dump` a `…-pred-dodatkem-ifrs9.dump`). `investra_dev` beze změny.
+Web `investra-test-web` (port 8071) běží s novým kódem. Souběžně jiná relace pracuje na kurzech (necommitnuté soubory nechat).
 
 **Hotovo 11. 11.:**
 - Plán `docs/navrh-klasifikace-ifrs9.md` (varianta B) schválen a proveden; sekce Provedení a 6 odchylek v plánu.
@@ -13,11 +13,16 @@ Web `investra-test-web` (port 8071) běží se starým kódem: před prohlídkou
   SPPI, určení 4.1.5 / 5.7.5); obchod a splátka nesou portfolio; klasifikace z nástroje odstraněna, list ČNB na nástroji zůstal.
 - Ocenění po pozicích nástroj + portfolio; ČNB bere kategorii ze zařazení; zařazení není v integritním hashi (odchylka 1).
 - Deník, otevřené body, Claude Doc (revize 287), export `docs/architektura.md`, `docs/sql/11-klasifikace.sql`.
+- Dodatek (plán, sekce Dodatek a Provedení dodatku): zařazení po krocích (a) povaha, (b) SPPI se zněním (EU) 2025/1047,
+  (c) obchodní model (Řízení na RH, Obchodování), (d) povinná, (e) určení/volba, (f) výsledek se zdůvodněním;
+  ruční přepsání kategorie se zdůvodněním a upozorněním v ocenění; jen kombinace přípustné podle IFRS 9.
 
-**Zbývá – první krok:** napsat test knihy se zdrojem ECB a měny mimo ECB (otevřený bod „Kniha se zdrojem ECB…“),
-který potvrdí nebo vyvrátí míchání kurzů ČNB a ECB; řešení ke schválení zvlášť. Pak plány bodů 15, 8, 14, 16, 5.3, 3.
+**Zbývá – první krok:** prohlédnout s uživatelem formulář zařazení v prohlížeči (port 8071) a ověřit, že nabízí jen
+přípustné volby (mezera 5 neprověřena v UI). Pak: potvrzení SPPI u migrovaného vkladu, primární ověření (EU) 2025/1047,
+plány bodů 15, 8, 14, 16, 5.3, 3 (kurzy řeší jiná relace).
 
-**Rozhodnutí:** „Obchodní model fondu a zařazení nástroje“ a „Klasifikace podle fondu – provedení“ (deník 2026-11-11).
+**Rozhodnutí:** „Obchodní model fondu a zařazení nástroje“, „Klasifikace podle fondu – provedení“ a
+„Klasifikace IFRS 9 po krocích (a)–(f)“ (deník 2026-11-11).
 
 **Otevřené otázky:** účtování FVOCI a chování ocenění s pozicí FVOCI do té doby; sloupec EFO0244 v DOFOS31;
 reklasifikace (IFRS 9 4.4.1) jako samostatný krok; výchozí maximální stáří ceny u typů; Community vs Enterprise; sloučení do `main`.
@@ -28,6 +33,6 @@ v testech zařazení přes `NavCase.classify()`; fond s více portfolii musí m�
 **Přečíst (nejvýš 5):**
 1. `CLAUDE.md`
 2. tato předávka
-3. `docs/otevrene-body.md` (řádek Kniha se zdrojem ECB a měna mimo ECB)
-4. `docs/navrh-ochrana-kurzu.md` (riziko 4)
-5. `addons/custom/investra_rates/models/rate.py`
+3. `docs/navrh-klasifikace-ifrs9.md` (sekce Dodatek a Provedení dodatku)
+4. `addons/custom/investra_instruments/models/portfolio.py`
+5. `docs/otevrene-body.md` (řádky Primární ověření novely IFRS 9 a Potvrzení SPPI)
