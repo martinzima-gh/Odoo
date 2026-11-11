@@ -112,3 +112,40 @@ Schváleno uživatelem 10. 11. 2026 (deník: „Ochrana kurzů“, „Přepis ku
 
 Testy: `investra_rates/tests/test_protection.py` (10), `investra_nav/tests/test_manual_rate.py` (4); všech 311 testů
 modulů Investry prošlo. V `investra_dev` začne ochrana platit až po aktualizaci modulu `investra_rates` (se souhlasem).
+
+## Riziko 4 – plán řešení (2026-11-11, ke schválení)
+
+**Zjištění:** test `test_ecb_book_mixes_cnb_rate_for_currency_outside_ecb` potvrdil, že kniha ECB přepočte měnu
+mimo ECB společným kurzem ČNB (1000 JPY = 151,23 „EUR“, ve skutečnosti CZK). Podle kódu Odoo (`_get_rates`) platí
+pro všechny knihy také: měna bez kurzu má kurz 1,0 a před prvním kurzem se vezme pozdější kurz.
+
+**Rozhodnutí uživatele 11. 11. 2026:** varianta B (zámek) + C (ruční kurz s důvodem). Zámek platí pro knihy ČNB
+i ECB, kurzovní lístky se mají chovat shodně. Křížový kurz mezi lístky se nepoužívá, ČNB a ECB jsou nezávislé zdroje.
+
+**Návrh provedení** (červená zóna, `investra_rates/models/currency.py`):
+
+1. Dědičnost `res.currency._get_conversion_rate`. Přes tuto metodu berou kurz všechny doklady účetnictví Odoo
+   (řádky dokladů, platby, kurzové rozdíly při párování); jiné čtení kurzů modul `account` nemá (ověřeno prohledáním).
+   Pro společnost, která je knihou (`investra.entity`), vrátí poměr z evidence:
+   `get_rate(zdroj knihy, z měny, den) / get_rate(zdroj knihy, do měny, den)`. Je to stejná funkce jako u ocenění,
+   přecenění FX a pohybů: poslední kurz do data včetně, nikdy pozdější, maximální stáří 5 dní (měsíční kurzy 35).
+   Chybějící nebo starý kurz se odmítne hláškou „Chybí kurz X ke dni …“. Pro společnost bez knihy zůstává chování Odoo.
+2. Ruční kurz (C) se nemění: zadává ho skupina schvalování ocenění s důvodem v okně „Nový ruční kurz“; pro knihu ECB
+   jako kurz zdroje ECB (např. XDR). Hláška zámku na okno odkáže.
+3. Kurzy Odoo (`res.currency.rate`) se dál zapisují z evidence. Slouží pro zobrazení v nastavení měn; v knize ECB tam
+   u měny mimo ECB dál uvidíme smíšený kurz (jen zobrazení, doklady ho nepoužijí).
+4. Úprava `_get_rates` o den navíc zůstane kvůli zobrazení; pro doklady ji nahradí bod 1.
+
+**Dopad:** doklad v měně bez platného kurzu nejde založit ani zaúčtovat, dokud se kurz nestáhne nebo nezadá ručně.
+Existující doklady a jejich kurzy se nemění; koncept si drží kurz řádku, dokud se nezmění datum nebo měna.
+
+**Testy:** charakterizační test se obrátí (kniha ECB a JPY: odmítnutí; po ručním kurzu ECB správný přepočet);
+nově kniha ČNB a měna bez kurzu (odmítnutí místo 1,0), kurz jen po datu dokladu (odmítnutí), starý kurz (odmítnutí),
+faktura v cizí měně a kurzový rozdíl při párování z evidence. Testy, které zakládají jen kurz Odoo bez evidence
+(např. `investra_fx_revaluation/tests/test_fx_run.py`), se převedou na kurz v evidenci; očekávané hodnoty se nemění.
+Poté všechny testy modulů Investry v `investra_test`.
+
+**Nasazení:** aktualizace `investra_rates` v `investra_test`; v `investra_dev` až se souhlasem.
+
+**Otázky:** (1) Stačí pro doklady maximální stáří kurzu 5 dní (měsíční 35), jako výchozí u ocenění?
+(2) Ponechat smíšený kurz v zobrazení nastavení měn (bod 3), nebo ho v knize ECB skrýt?
