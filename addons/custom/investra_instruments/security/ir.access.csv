@@ -19,3 +19,5 @@ investra_portfolio_company_rule,Obchodní modely podle společnosti,investra.fun
 access_classification_read,investra.portfolio.classification read,investra.portfolio.classification,account.group_account_readonly,r,
 access_classification_preparer,investra.portfolio.classification preparer,investra.portfolio.classification,investra_entity.group_valuation_preparer,crud,
 investra_classification_company_rule,Zařazení podle společnosti,investra.portfolio.classification,,crud,"[('company_id', 'in', company_ids)]"
+access_classification_override_wizard,investra.classification.override.wizard preparer,investra.classification.override.wizard,investra_entity.group_valuation_preparer,crud,
+access_classification_override_wizard_appr,investra.classification.override.wizard approver,investra.classification.override.wizard,investra_entity.group_valuation_approver,crud,

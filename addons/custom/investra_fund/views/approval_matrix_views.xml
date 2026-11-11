@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Schvalovací matice -->
+    <record id="view_approval_matrix_list" model="ir.ui.view">
+        <field name="name">investra.approval.matrix.list</field>
+        <field name="model">investra.approval.matrix</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="activity"/>
+                <field name="manager_id"/>
+                <field name="fund_id" optional="show"/>
+                <field name="valid_from"/>
+                <field name="performer_role"/>
+                <field name="second_person" widget="badge" decoration-warning="second_person == 'no'"/>
+                <field name="persons"/>
+                <field name="note" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_approval_matrix_search" model="ir.ui.view">
+        <field name="name">investra.approval.matrix.search</field>
+        <field name="model">investra.approval.matrix</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="activity"/>
+                <field name="manager_id"/>
+                <field name="fund_id"/>
+                <filter name="alone" string="Bez druhé osoby" domain="[('second_person', '=', 'no')]"/>
+                <group>
+                    <filter name="group_activity" string="Činnost" context="{'group_by': 'activity'}"/>
+                    <filter name="group_manager" string="Obhospodařovatel" context="{'group_by': 'manager_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_approval_matrix_form" model="ir.ui.view">
+        <field name="name">investra.approval.matrix.form</field>
+        <field name="model">investra.approval.matrix</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="second_person != 'no'">
+                        Činnost provede jeden člověk bez druhé osoby. Každý takový úkon se zapíše a ocenění ho ukáže
+                        v kontrolách. Soulad s vnitřními předpisy, statuty a dohodou s depozitářem Odoo neověřuje.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="activity"/>
+                            <field name="manager_id" invisible="fund_id"/>
+                            <field name="fund_id" invisible="manager_id"/>
+                            <field name="valid_from"/>
+                        </group>
+                        <group>
+                            <field name="performer_role"/>
+                            <field name="performer_user_ids" widget="many2many_tags"/>
+                            <field name="second_person"/>
+                            <field name="persons"/>
+                        </group>
+                    </group>
+                    <field name="step_ids" invisible="second_person == 'no'">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="role"/>
+                            <field name="user_ids" widget="many2many_tags"/>
+                        </list>
+                    </field>
+                    <field name="note" placeholder="Poznámka, např. odkaz na vnitřní předpis"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_approval_matrix" model="ir.actions.act_window">
+        <field name="name">Schvalovací matice</field>
+        <field name="res_model">investra.approval.matrix</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_activity': 1}</field>
+        <field name="help" type="html">
+            <p>Pro každou činnost: kolik lidí ji provede a jakou nejnižší roli musí mít každý stupeň.
+               Změna = nový řádek s pozdějším „Platí od“; platný řádek se nepřepisuje.</p>
+        </field>
+    </record>
+    <menuitem id="menu_approval_matrix" name="Schvalovací matice" parent="investra_entity.menu_setup_funds"
+              action="action_approval_matrix" sequence="30"/>
+
+    <!-- Žádosti podle matice -->
+    <record id="view_approval_request_list" model="ir.ui.view">
+        <field name="name">investra.approval.request.list</field>
+        <field name="model">investra.approval.request</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="create_date" string="Požádáno"/>
+                <field name="activity"/>
+                <field name="record_name"/>
+                <field name="company_id" optional="show"/>
+                <field name="requested_by"/>
+                <field name="state" widget="badge" decoration-warning="state == 'pending'" decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_approval_request_form" model="ir.ui.view">
+        <field name="name">investra.approval.request.form</field>
+        <field name="model">investra.approval.request</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_approve" type="object" string="Potvrdit" class="btn-primary" invisible="state != 'pending'"
+                            confirm="Po posledním potvrzení se úkon hned provede. Potvrdit?"/>
+                    <button name="action_reject" type="object" string="Zamítnout" invisible="state != 'pending'"/>
+                    <button name="action_open_record" type="object" string="Otevřít záznam" invisible="not res_id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="activity"/>
+                            <field name="record_name"/>
+                            <field name="company_id"/>
+                            <field name="res_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="requested_by"/>
+                            <field name="create_date" string="Požádáno"/>
+                            <field name="done_at"/>
+                            <field name="matrix_id"/>
+                        </group>
+                    </group>
+                    <field name="summary"/>
+                    <field name="line_ids">
+                        <list>
+                            <field name="name"/><field name="role"/><field name="user_ids" widget="many2many_tags"/>
+                            <field name="user_id"/><field name="approved_at"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_approval_request" model="ir.actions.act_window">
+        <field name="name">Žádosti ke schválení</field>
+        <field name="res_model">investra.approval.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p>Úkony se čtyřma očima podle schvalovací matice: první osoba požádá, další potvrdí a teprve pak se úkon provede.</p>
+        </field>
+    </record>
+    <menuitem id="menu_approval_request" name="Žádosti ke schválení" parent="investra_entity.menu_setup_audit"
+              action="action_approval_request" sequence="10"/>
+
+    <!-- Úkony bez druhé osoby -->
+    <record id="view_approval_log_list" model="ir.ui.view">
+        <field name="name">investra.approval.log.list</field>
+        <field name="model">investra.approval.log</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="create_date" string="Kdy"/>
+                <field name="activity"/>
+                <field name="record_name"/>
+                <field name="user_id"/>
+                <field name="company_id" optional="show"/>
+                <field name="matrix_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_approval_log" model="ir.actions.act_window">
+        <field name="name">Úkony bez druhé osoby</field>
+        <field name="res_model">investra.approval.log</field>
+        <field name="view_mode">list</field>
+    </record>
+    <menuitem id="menu_approval_log" name="Úkony bez druhé osoby" parent="investra_entity.menu_setup_audit"
+              action="action_approval_log" sequence="30"/>
+</odoo>

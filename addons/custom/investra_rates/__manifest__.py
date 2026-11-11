@@ -1,7 +1,7 @@
 {
     "name": "Investra Rates",
     "summary": "Kurzy ČNB a ECB se zdrojem a datem stažení",
-    "version": "20.0.0.2.0",
+    "version": "20.0.0.3.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

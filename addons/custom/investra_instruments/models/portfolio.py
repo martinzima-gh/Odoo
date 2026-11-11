@@ -57,6 +57,8 @@ LOCKED_CLASSIFICATION = {
     "portfolio_id", "instrument_id", "valid_from", "instrument_nature", "nature_note", "sppi", "sppi_note", "sppi_version",
     "designation", "designation_note", "category_override", "override_note", "valuation_method", "role_id",
 }
+# Ruční kategorii zapisuje jen krok podle schvalovací matice (rozhodnutí 2026-11-11); hodnotu nejde poslat přes API.
+_OVERRIDE_OK = object()
 COMPUTED_CLASSIFICATION = {"ifrs9_category", "mandatory_category", "computed_category", "classification_basis"}
 
 
@@ -257,8 +259,48 @@ class InvestraPortfolioClassification(models.Model):
             method = kind.valuation_method
         return {"valuation_method": method, "role_id": kind.role_id.id}
 
+    def _override_gate(self, funds, record=None):
+        """Ruční kategorie podle matice: jeden člověk = zapíše se; čtyři oči = jen žádostí („Ruční kategorie…“)."""
+        if self.env.su or self.env.context.get("investra_override") is _OVERRIDE_OK:
+            return
+        Matrix = self.env["investra.approval.matrix"]
+        rule = Matrix._rule("classification_override", funds)
+        rule.check_performer(self.env)
+        if rule.persons > 1:
+            raise UserError(self.env._(
+                "Ruční kategorie IFRS 9 vyžaduje podle schvalovací matice potvrzení druhou osobou. "
+                "Uložte zařazení bez ní a použijte tlačítko „Ruční kategorie…“."
+            ))
+        return rule
+
+    def _log_override(self, rule):
+        if rule:
+            for record in self:
+                self.env["investra.approval.matrix"]._log_alone(rule, record)
+
+    def request_category_override(self, category_override, override_note):
+        """Žádost o ruční kategorii; po potvrzení (nebo hned u jednoho člověka) ji zapíše."""
+        self.ensure_one()
+        Matrix = self.env["investra.approval.matrix"]
+        label = dict(IFRS9_CATEGORY).get(category_override, category_override or "bez ruční kategorie")
+        request = Matrix._gate(
+            "classification_override", self, "request_category_override", self.sudo().fund_id,
+            {"category_override": category_override, "override_note": override_note},
+            summary=self.env._("Ruční kategorie %(cat)s: %(note)s", cat=label, note=override_note or ""),
+        )
+        if request:
+            return request._action_open()
+        self.with_context(investra_override=_OVERRIDE_OK).write({
+            "category_override": category_override, "override_note": override_note,
+        })
+        return True
+
     @api.model_create_multi
     def create(self, vals_list):
+        overrides = [vals for vals in vals_list if vals.get("category_override")]
+        if overrides:
+            portfolios = self.env["investra.fund.portfolio"].sudo().browse([v.get("portfolio_id") for v in overrides])
+            rule = self._override_gate(portfolios.fund_id)
         for vals in vals_list:
             if COMPUTED_CLASSIFICATION & set(vals):
                 raise UserError(self.env._("Klasifikace se určuje z povahy nástroje, testu SPPI, obchodního modelu a určení."))
@@ -275,7 +317,10 @@ class InvestraPortfolioClassification(models.Model):
                 )
                 for field, value in proposal.items():
                     vals.setdefault(field, value)
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        if overrides:
+            records.filtered("category_override")._log_override(rule)
+        return records
 
     @api.onchange("instrument_id")
     def _onchange_instrument_nature(self):
@@ -405,7 +450,13 @@ class InvestraPortfolioClassification(models.Model):
             raise UserError(self.env._(
                 "Po prvním obchodu nejde zařazení změnit; změna je reklasifikace (IFRS 9 4.4.1), která zatím není podporovaná."
             ))
-        return super().write(vals)
+        # Nastavení nebo změna ruční kategorie jde podle matice; zrušení (návrat k rozhodovacímu stromu) ne.
+        changed = vals.get("category_override") and self.filtered(lambda r: r.category_override != vals["category_override"])
+        rule = changed and self._override_gate(self.sudo().fund_id)
+        result = super().write(vals)
+        if changed:
+            changed._log_override(rule)
+        return result
 
     def unlink(self):
         if self._trades():

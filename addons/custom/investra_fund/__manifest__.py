@@ -1,12 +1,12 @@
 {
     "name": "Investra Fund",
-    "summary": "Fondy, třídy a kalendář ocenění",
-    "version": "20.0.0.1.0",
+    "summary": "Fondy, třídy, kalendář ocenění a schvalovací matice",
+    "version": "20.0.0.2.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",
     "depends": ["investra_entity"],
-    "data": ["security/ir.access.csv", "views/fund_views.xml"],
+    "data": ["security/ir.access.csv", "data/approval_matrix.xml", "views/fund_views.xml", "views/approval_matrix_views.xml"],
     "installable": True,
     "application": False,
 }

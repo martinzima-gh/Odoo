@@ -170,6 +170,19 @@ class TestLockException(LockCase):
         with self.assertRaises(UserError):
             self.manual_move("2027-01-21").action_post()
 
+    def test_matrix_without_second_person_lets_requester_confirm(self):
+        # Schvalovací matice (rozhodnutí 2026-11-11): výjimka podle matice, i bez druhé osoby; zapíše se.
+        self.env["investra.approval.matrix"].create({
+            "activity": "lock_exception", "second_person": "no", "performer_role": "approver",
+        })
+        request = self.request()
+        request.with_user(self.approver).action_confirm()
+        self.assertEqual(request.state, "active")
+        log = self.env["investra.approval.log"].search([
+            ("res_model", "=", request._name), ("res_id", "=", request.id),
+        ])
+        self.assertEqual(log.user_id, self.approver)
+
     def test_rejected_request_creates_no_exception(self):
         request = self.request()
         request.with_user(self.approver2).action_reject()

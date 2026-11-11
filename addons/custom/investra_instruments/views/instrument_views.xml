@@ -275,10 +275,39 @@
             </list>
         </field>
     </record>
+    <record id="view_classification_override_wizard_form" model="ir.ui.view">
+        <field name="name">investra.classification.override.wizard.form</field>
+        <field name="model">investra.classification.override.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <p>Ruční kategorie je odchylka od rozhodovacího stromu IFRS 9 a ukáže se v ocenění. Vyžaduje-li schvalovací
+                   matice druhou osobu, vznikne žádost a kategorie se zapíše až po potvrzení.</p>
+                <group>
+                    <field name="classification_id" readonly="1"/>
+                    <field name="category_override"/>
+                    <field name="override_note"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Potvrdit" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_classification_override_wizard" model="ir.actions.act_window">
+        <field name="name">Ruční kategorie IFRS 9</field>
+        <field name="res_model">investra.classification.override.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
     <record id="view_classification_form" model="ir.ui.view">
         <field name="name">investra.portfolio.classification.form</field><field name="model">investra.portfolio.classification</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="%(action_classification_override_wizard)d" type="action" string="Ruční kategorie…"
+                            context="{'default_classification_id': id}" invisible="not id"/>
+                </header>
                 <sheet>
                     <group>
                         <group string="Pozice">

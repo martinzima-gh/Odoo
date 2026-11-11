@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Výchozí schvalovací matice = chování před maticí (rozhodnutí 2026-11-11). Změna = nový řádek s pozdějším „Platí od“. -->
+    <record id="matrix_default_valuation_approve" model="investra.approval.matrix">
+        <field name="activity">valuation_approve</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">preparer</field>
+        <field name="second_person">yes</field>
+        <field name="step_ids" eval="[(0, 0, {'name': 'Kontrola druhou osobou', 'role': 'approver'})]"/>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+    <record id="matrix_default_valuation_return" model="investra.approval.matrix">
+        <field name="activity">valuation_return</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">approver</field>
+        <field name="second_person">no</field>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+    <record id="matrix_default_valuation_publish" model="investra.approval.matrix">
+        <field name="activity">valuation_publish</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">approver</field>
+        <field name="second_person">no</field>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+    <record id="matrix_default_price_approve" model="investra.approval.matrix">
+        <field name="activity">price_approve</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">preparer</field>
+        <field name="second_person">yes</field>
+        <field name="step_ids" eval="[(0, 0, {'name': 'Kontrola druhou osobou', 'role': 'approver'})]"/>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+    <record id="matrix_default_manual_rate" model="investra.approval.matrix">
+        <field name="activity">manual_rate</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">approver</field>
+        <field name="second_person">no</field>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+    <record id="matrix_default_lock_exception" model="investra.approval.matrix">
+        <field name="activity">lock_exception</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">approver</field>
+        <field name="second_person">yes</field>
+        <field name="step_ids" eval="[(0, 0, {'name': 'Kontrola druhou osobou', 'role': 'approver'})]"/>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+    <record id="matrix_default_subscription_manual" model="investra.approval.matrix">
+        <field name="activity">subscription_manual</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">preparer</field>
+        <field name="second_person">no</field>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+    <record id="matrix_default_classification_override" model="investra.approval.matrix">
+        <field name="activity">classification_override</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">preparer</field>
+        <field name="second_person">no</field>
+        <field name="note">Výchozí – chování před maticí</field>
+        <field name="builtin" eval="True"/>
+    </record>
+</odoo>

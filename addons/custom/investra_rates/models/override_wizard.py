@@ -39,7 +39,8 @@ class InvestraRateOverrideWizard(models.TransientModel):
         )
         return {
             "type": "ir.actions.act_window",
-            "res_model": "investra.rate",
+            # Podle schvalovací matice může místo kurzu vzniknout žádost ke schválení.
+            "res_model": record._name,
             "res_id": record.id,
             "view_mode": "form",
             "target": "current",

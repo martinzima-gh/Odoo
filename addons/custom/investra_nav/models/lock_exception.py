@@ -2,14 +2,14 @@
 
 Zveřejnění ocenění nastaví vratný zámek Odoo pro všechny (`fiscalyear_lock_date`). Snížit ho pod datum
 zveřejněného ocenění nejde. Pojistkou je výjimka Odoo (`account.lock_exception`); u fondové knihy vzniká jen
-ze žádosti, kterou podá schvalovatel ocenění a potvrdí jiný schvalovatel. Nevratný `hard_lock_date` se nastavuje
-ručně až po auditu účetní závěrky (standardní průvodce Odoo).
+ze žádosti. Kdo žádá a kolik lidí ji potvrdí, určuje schvalovací matice, činnost „Výjimka z uzamčení“
+(rozhodnutí „Schvalovací matice“, 2026-11-11; výchozí: schvalovatel ocenění požádá, jiný potvrdí).
+Nevratný `hard_lock_date` se nastavuje ručně až po auditu účetní závěrky (standardní průvodce Odoo).
 """
 
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import UserError
 
-APPROVER = "investra_entity.group_valuation_approver"
 # Výjimku a snížení zámku u fondové knihy smí provést jen tento modul.
 _ALLOW = object()
 
@@ -88,13 +88,20 @@ class InvestraLockExceptionRequest(models.Model):
     confirmed_at = fields.Datetime(readonly=True, string="Potvrzeno dne")
     exception_id = fields.Many2one("account.lock_exception", readonly=True, string="Výjimka Odoo")
 
-    def _require_approver(self):
-        if not self.env.su and not self.env.user.has_group(APPROVER):
-            raise AccessError(self.env._("Výjimku z uzamčení řeší jen skupina schvalování ocenění."))
+    def _funds(self, company=None):
+        return self.env["investra.fund"].sudo().search([("company_id", "=", (company or self.company_id).id)])
+
+    def _require_approver(self, company=None):
+        """Žádat, zamítnout a ukončit smí ten, kdo podle schvalovací matice smí o výjimku požádat."""
+        if self.env.su:
+            return
+        rule = self.env["investra.approval.matrix"]._rule("lock_exception", self._funds(company))
+        rule.check_performer(self.env)
 
     @api.model_create_multi
     def create(self, vals_list):
-        self._require_approver()
+        for vals in vals_list:
+            self._require_approver(self.env["res.company"].browse(vals.get("company_id") or self.env.company.id))
         for vals in vals_list:
             vals.pop("requested_by", None)
             vals["state"] = "draft"
@@ -123,21 +130,27 @@ class InvestraLockExceptionRequest(models.Model):
             if record.end_datetime <= fields.Datetime.now():
                 raise UserError(self.env._("Konec výjimky musí být v budoucnosti."))
 
+    def _confirmers(self):
+        return self.env["investra.approval.done"].sudo().search([
+            ("res_model", "=", self._name), ("res_id", "=", self.id),
+        ]).user_id
+
     def action_confirm(self):
-        self._require_approver()
+        """Krok potvrzení podle schvalovací matice; výjimka Odoo vznikne po posledním kroku."""
+        Matrix = self.env["investra.approval.matrix"]
         for record in self:
             if record.state != "draft":
                 raise UserError(self.env._("Potvrdit lze jen čekající žádost."))
-            if record.requested_by == self.env.user:
-                raise UserError(self.env._("Žádost musí potvrdit jiný schvalovatel než ten, kdo o ni požádal."))
             record._validate()
+            if not Matrix._approve_step("lock_exception", record, record._funds(), record.requested_by):
+                continue
             exception = self.env["account.lock_exception"].sudo().with_context(investra_lock_exception=_ALLOW).create({
                 "company_id": record.company_id.id,
                 "user_id": record.user_id.id,
                 "fiscalyear_lock_date": record.lock_date,
                 "end_datetime": record.end_datetime,
                 "reason": f"{record.reason} (žádost {record.id}, požádal {record.requested_by.name}, "
-                          f"potvrdil {self.env.user.name})",
+                          f"potvrdil {', '.join(record._confirmers().mapped('name'))})",
             })
             record.sudo().write({
                 "state": "active", "exception_id": exception.id,
@@ -146,7 +159,8 @@ class InvestraLockExceptionRequest(models.Model):
         return True
 
     def action_reject(self):
-        self._require_approver()
+        for record in self:
+            record._require_approver()
         if self.filtered(lambda r: r.state != "draft"):
             raise UserError(self.env._("Zamítnout lze jen čekající žádost."))
         self.sudo().state = "rejected"
@@ -154,7 +168,8 @@ class InvestraLockExceptionRequest(models.Model):
 
     def action_revoke(self):
         """Předčasné ukončení výjimky, např. po dokončení opravy."""
-        self._require_approver()
+        for record in self:
+            record._require_approver()
         for record in self.filtered(lambda r: r.state == "active"):
             record.exception_id.sudo().action_revoke()
             record.sudo().state = "revoked"

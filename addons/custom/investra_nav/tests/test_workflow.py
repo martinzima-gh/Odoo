@@ -111,10 +111,11 @@ class TestWorkflow(NavCase):
             move.with_user(manager).line_ids[0].name = "změna"
 
     def test_two_step_approval_needs_two_people(self):
-        self.env["investra.fund.approval.step"].create([
-            {"fund_id": self.fund.id, "sequence": 1, "name": "Kontrola"},
-            {"fund_id": self.fund.id, "sequence": 2, "name": "Vedení fondu"},
-        ])
+        # Kroky schválení fondu jsou od 2026-11-11 řádkem schvalovací matice (zpřísnění pro fond).
+        self.env["investra.approval.matrix"].create({
+            "activity": "valuation_approve", "fund_id": self.fund.id, "second_person": "steps",
+            "step_ids": [(0, 0, {"sequence": 1, "name": "Kontrola"}), (0, 0, {"sequence": 2, "name": "Vedení fondu"})],
+        })
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()
         valuation.action_submit()

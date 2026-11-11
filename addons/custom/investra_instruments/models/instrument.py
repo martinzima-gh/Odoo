@@ -249,6 +249,11 @@ class InvestraInstrumentPrice(models.Model):
             # Oprava schválené ceny: zpět do návrhu, schválí ji znovu druhá osoba. Hotová ocenění drží svou cenu.
             if "state" not in vals:
                 approved.sudo().write({"state": "draft", "approved_by": False})
+        if set(vals) - {"state", "approved_by"}:
+            # Změněná cena se schvaluje znovu od prvního kroku.
+            self.env["investra.approval.done"].sudo().search([
+                ("res_model", "=", self._name), ("res_id", "in", self.ids),
+            ]).unlink()
         if not self.env.su and PRICE_INPUT_FIELDS & set(vals):
             vals = {**vals, "entered_by": self.env.user.id}
         return super().write(vals)
@@ -281,16 +286,20 @@ class InvestraInstrumentPrice(models.Model):
                 ))
 
     def action_approve(self):
-        if not self.env.user.has_group("investra_entity.group_valuation_approver"):
-            raise UserError(self.env._("Ceny schvaluje jen uživatel se skupinou schvalování ocenění."))
+        """Schválení ceny podle schvalovací matice (rozhodnutí 2026-11-11).
+
+        Čtyři oči (výchozí): schvaluje role schvalování ocenění, nikdy zadavatel. Jeden člověk: smí i zadavatel
+        a úkon se zapíše. Sdílená cena se týká všech fondů, platí nejpřísnější pravidlo z nich.
+        """
         if self.sudo().company_id - self.env.companies:
             raise AccessError(self.env._("Cena patří jiné společnosti."))
         if self.filtered(lambda p: p.state != "draft"):
             raise UserError(self.env._("Schválit jde jen cenu v návrhu."))
+        Matrix = self.env["investra.approval.matrix"]
         for price in self:
-            if self.env.user in price.entered_by | price.create_uid:
-                raise UserError(self.env._("Zadavatel nemůže schválit vlastní cenu."))
-        self.sudo().write({"state": "approved", "approved_by": self.env.user.id})
+            funds = price.sudo().fund_id or self.env["investra.fund"].sudo().search([])
+            if Matrix._approve_step("price_approve", price, funds, price.sudo().entered_by | price.sudo().create_uid):
+                price.sudo().write({"state": "approved", "approved_by": self.env.user.id})
 
 
 class InvestraTrade(models.Model):

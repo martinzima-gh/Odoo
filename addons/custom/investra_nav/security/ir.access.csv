@@ -15,9 +15,6 @@ access_benchmark_value_prep,investra.benchmark.value prep,investra.benchmark.val
 access_class_movement_read,investra.class.movement read,investra.class.movement,account.group_account_readonly,r,
 access_class_movement_prep,investra.class.movement prep,investra.class.movement,investra_entity.group_valuation_preparer,crud,
 investra_class_movement_rule,investra.class.movement company,investra.class.movement,,crud,"[('company_id', 'in', company_ids)]"
-access_approval_step_read,investra.fund.approval.step read,investra.fund.approval.step,account.group_account_readonly,r,
-access_approval_step_mgr,investra.fund.approval.step mgr,investra.fund.approval.step,account.group_account_manager,crud,
-investra_approval_step_rule,investra.fund.approval.step company,investra.fund.approval.step,,crud,"[('company_id', 'in', company_ids)]"
 access_valuation_read,investra.valuation read,investra.valuation,account.group_account_readonly,r,
 access_valuation_prep,investra.valuation prep,investra.valuation,investra_entity.group_valuation_preparer,cru,
 investra_valuation_rule,investra.valuation company,investra.valuation,,crud,"[('company_id', 'in', company_ids)]"
@@ -41,3 +38,4 @@ access_val_return_wizard,investra.valuation.return.wizard approver,investra.valu
 access_lock_exception_request_read,investra.lock.exception.request read,investra.lock.exception.request,account.group_account_readonly,r,
 access_lock_exception_request_appr,investra.lock.exception.request appr,investra.lock.exception.request,investra_entity.group_valuation_approver,cru,
 investra_lock_exception_request_rule,investra.lock.exception.request company,investra.lock.exception.request,,crud,"[('company_id', 'in', company_ids)]"
+access_lock_exception_request_prep,investra.lock.exception.request prep,investra.lock.exception.request,investra_entity.group_valuation_preparer,cru,

@@ -42,6 +42,9 @@ class InvestraValuationReturnWizard(models.TransientModel):
         if self.mode not in methods:
             raise UserError(self.env._("Neznámý krok."))
         new = getattr(self.valuation_id, methods[self.mode])(self.reason)
+        if new._name == "investra.approval.request":
+            # Schvalovací matice: úkon čeká na potvrzení druhou osobou.
+            return new._action_open()
         return {
             "type": "ir.actions.act_window",
             "res_model": "investra.valuation",

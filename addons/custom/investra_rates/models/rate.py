@@ -260,10 +260,20 @@ class InvestraRate(models.Model):
         return True
 
     @api.model
-    def create_manual(self, origin, source, currency, day, quantity, rate, reason):
-        """Ruční přepis vyhlášeného kurzu nebo ruční kurz měny, kterou zdroj k datu nevyhlásil."""
+    def _check_manual_access(self, source):
+        """Kdo smí zadat ruční kurz. Háček: investra_nav ho řídí schvalovací maticí (rozhodnutí 2026-11-11)."""
         if not self.env.su and not self.env.user.has_group(APPROVER):
             raise AccessError(self.env._("Ruční kurz smí zadat jen uživatel se skupinou schvalování ocenění."))
+
+    @api.model
+    def _manual_pending(self, origin, source, currency, day, quantity, rate, reason):
+        """Háček: vrátí žádost, má-li ruční kurz počkat na potvrzení druhou osobou (investra_nav, matice)."""
+        return None
+
+    @api.model
+    def create_manual(self, origin, source, currency, day, quantity, rate, reason):
+        """Ruční přepis vyhlášeného kurzu nebo ruční kurz měny, kterou zdroj k datu nevyhlásil."""
+        self._check_manual_access(source)
         if origin not in ("override", "manual"):
             raise UserError(self.env._("Neznámý druh ručního kurzu."))
         if not (reason or "").strip():
@@ -286,6 +296,9 @@ class InvestraRate(models.Model):
                 "Kurz %(cur)s k %(day)s neexistuje; použijte ruční kurz.", cur=currency.name, day=day,
             ))
         self._check_change_allowed(source, day)
+        pending = self._manual_pending(origin, source, currency, day, quantity, rate, reason.strip())
+        if pending:
+            return pending
         overridden = False
         if origin == "override":
             overridden = self.sudo()._effective(source, currency, day)

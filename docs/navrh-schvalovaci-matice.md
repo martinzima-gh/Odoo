@@ -1,6 +1,6 @@
 # Návrh: schvalovací matice obhospodařovatele
 
-Stav: **schváleno uživatelem 11. 11. 2026**. Otázka 4: nové role se nezavádějí, „kdo“ = skupina Investry, volitelně jmenovití uživatelé. Zóna: červená (schvalování ocenění, `record_guard`
+Stav: **schváleno uživatelem 11. 11. 2026, naprogramováno 11. 11. 2026** (podrobnosti provedení a odchylka v deníku rozhodnutí, „Schvalovací matice – provedení“). Otázka 4: nové role se nezavádějí, „kdo“ = skupina Investry, volitelně jmenovití uživatelé. Zóna: červená (schvalování ocenění, `record_guard`
 a oprávnění). Podnět uživatele: na začátku bude málo lidí a ne všichni budou mít přístup; testy jsou jednodušší
 bez druhé osoby.
 

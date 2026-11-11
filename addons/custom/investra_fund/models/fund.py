@@ -22,7 +22,13 @@ class InvestraFund(models.Model):
         default="monthly",
         string="Frekvence ocenění",
     )
-    second_person_required = fields.Boolean(default=True, string="Kontrola druhou osobou")
+    # Druhou osobu určuje schvalovací matice (rozhodnutí 2026-11-11); dřívější pole second_person_required
+    # převedla migrace investra_nav 20.0.0.6.0, sloupec v databázi zůstává jen pro historii.
+    manager_id = fields.Many2one(
+        "investra.entity", ondelete="restrict", domain=[("entity_type", "=", "manager")], string="Obhospodařovatel",
+        help="Investiční společnost; její schvalovací matice platí pro fond. Prázdné = výchozí matice.",
+    )
+    approval_matrix_ids = fields.One2many("investra.approval.matrix", "fund_id", string="Zpřísnění matice")
     price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")
     trade_recognition = fields.Selection(
@@ -48,6 +54,12 @@ class InvestraFund(models.Model):
         for fund in self:
             if fund.accrual_method == "linear" and not fund.accrual_note:
                 raise ValidationError(self.env._("Lineární úročení fondu musí mít zdůvodnění."))
+
+    @api.constrains("manager_id")
+    def _check_manager(self):
+        for fund in self:
+            if fund.manager_id and fund.manager_id.entity_type != "manager":
+                raise ValidationError(self.env._("Obhospodařovatel musí být kniha druhu Investiční společnost."))
 
     @api.constrains("entity_id")
     def _check_entity_type(self):

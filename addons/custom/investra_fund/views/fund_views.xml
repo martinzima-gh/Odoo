@@ -29,7 +29,7 @@
                 <sheet>
                     <group>
                         <field name="entity_id"/><field name="currency_id"/>
-                        <field name="valuation_frequency"/><field name="second_person_required"/>
+                        <field name="valuation_frequency"/><field name="manager_id"/>
                         <field name="price_digits"/><field name="price_rounding"/>
                         <field name="trade_recognition"/>
                         <field name="accrual_method"/>
@@ -42,6 +42,14 @@
                                     <field name="code"/><field name="name"/><field name="currency_id"/>
                                     <field name="isin"/><field name="price_digits"/><field name="price_rounding"/>
                                     <field name="distribution"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Zpřísnění matice">
+                            <field name="approval_matrix_ids">
+                                <list>
+                                    <field name="activity"/><field name="valid_from"/><field name="performer_role"/>
+                                    <field name="second_person"/><field name="persons"/>
                                 </list>
                             </field>
                         </page>

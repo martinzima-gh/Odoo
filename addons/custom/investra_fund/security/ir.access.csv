@@ -8,3 +8,14 @@ investra_class_company_rule,Třídy podle společnosti,investra.fund.class,,crud
 access_investra_calendar_read,investra.valuation.calendar read,investra.valuation.calendar,account.group_account_readonly,r,
 access_investra_calendar_manager,investra.valuation.calendar manager,investra.valuation.calendar,account.group_account_manager,crud,
 investra_calendar_company_rule,Kalendář podle společnosti,investra.valuation.calendar,,crud,"[('company_id', 'in', company_ids)]"
+access_approval_matrix_read,investra.approval.matrix read,investra.approval.matrix,account.group_account_readonly,r,
+access_approval_matrix_appr,investra.approval.matrix approver,investra.approval.matrix,investra_entity.group_valuation_approver,crud,
+access_approval_matrix_step_read,investra.approval.matrix.step read,investra.approval.matrix.step,account.group_account_readonly,r,
+access_approval_matrix_step_appr,investra.approval.matrix.step approver,investra.approval.matrix.step,investra_entity.group_valuation_approver,crud,
+access_approval_log_read,investra.approval.log read,investra.approval.log,account.group_account_readonly,r,
+investra_approval_log_rule,investra.approval.log company,investra.approval.log,,crud,"['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]"
+access_approval_done_read,investra.approval.done read,investra.approval.done,account.group_account_readonly,r,
+investra_approval_done_rule,investra.approval.done company,investra.approval.done,,crud,"['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]"
+access_approval_request_read,investra.approval.request read,investra.approval.request,account.group_account_readonly,r,
+investra_approval_request_rule,investra.approval.request company,investra.approval.request,,crud,"['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]"
+access_approval_request_line_read,investra.approval.request.line read,investra.approval.request.line,account.group_account_readonly,r,
