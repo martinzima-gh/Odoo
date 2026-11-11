@@ -843,14 +843,18 @@ class InvestraValuation(models.Model):
                     abs(opening - previous_fk) <= tolerance, f"{opening} / {previous_fk}")
 
     def _run_movement_checks(self):
-        """Úpisy a odkupy období (rozhodnutí „Úpisy a odkupy (bod 8 UX)“, 2026-11-11); jen upozornění."""
+        """Úpisy a odkupy období (rozhodnutí „Úpisy a odkupy (bod 8 UX)“, 2026-11-11).
+
+        Nezaúčtovaný pohyb ocenění zastaví (rozhodnutí 2026-11-11): jinak by ruční pohyb vstoupil do NAV bez
+        schválení podle matice. Poplatek a cena jsou upozornění.
+        """
         movements = self.env["investra.class.movement"].sudo().search([
             ("fund_id", "=", self.fund_id.id), ("date", ">", self._period_start()), ("date", "<=", self.date),
             ("state", "!=", "reversed"),
         ])
         draft = movements.filtered(lambda m: m.state == "draft")
         self._check("movements_posted", "Úpisy a odkupy období jsou zaúčtované", not draft,
-                    "; ".join(draft.mapped("display_name")), severity="warning")
+                    "; ".join(draft.mapped("display_name")))
         fees = movements.filtered(lambda m: abs(d(m.fee_amount_class) - d(m.fee_expected_class)) > Decimal("0.01"))
         self._check("movement_fee_rate", "Poplatky úpisů a odkupů odpovídají sazbě třídy", not fees,
                     "; ".join(f"{m.display_name}: {m.fee_amount_class} / {m.fee_expected_class}" for m in fees),

@@ -70,17 +70,24 @@ class TestValuationLock(LockCase):
         draft = self.env["investra.class.movement"].create({
             "class_id": self.a.id, "date": "2027-01-20", "manual_reason": "Test", "movement_type": "subscription", "amount": 100, "units": 1,
         })
-        self.submitted()
+        # Nezaúčtovaný pohyb v období ocenění předložení zastaví (rozhodnutí 2026-11-11).
+        valuation = self.valuation(self.fund, self.day)
+        valuation.action_compute()
+        with self.assertRaisesRegex(UserError, "zaúčtované"):
+            valuation.action_submit()
+        draft._book()
+        valuation.action_compute()
+        valuation.action_submit()
         with self.assertRaises(UserError):
             self.env["investra.class.movement"].create({
                 "class_id": self.a.id, "date": "2027-01-31", "manual_reason": "Test", "movement_type": "subscription", "amount": 100, "units": 1,
             })
         with self.assertRaises(UserError):
-            draft.units = 2
+            draft.sudo().write({"units": 2})
         with self.assertRaises(UserError):
             draft.unlink()
         with self.assertRaises(UserError):
-            draft._book()
+            draft.action_reverse("Chyba")
         later = self.env["investra.class.movement"].create({
             "class_id": self.a.id, "date": "2027-02-01", "manual_reason": "Test", "movement_type": "redemption", "amount": 50, "units": 0.5,
         })

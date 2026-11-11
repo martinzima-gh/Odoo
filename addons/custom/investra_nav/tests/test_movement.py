@@ -201,6 +201,14 @@ class TestMovement(NavCase):
         self.assertEqual(checks["movements_posted"], "ok")
         self.assertEqual(checks["movement_price"], "warning")
 
+    def test_unbooked_movement_stops_valuation(self):
+        self.move(self.a, 1000, 100, 10)
+        valuation = self.valuation(self.fund, date(2027, 1, 31))
+        valuation.action_compute()
+        self.assertEqual({c.code: c.status for c in valuation.check_ids}["movements_posted"], "stop")
+        with self.assertRaisesRegex(UserError, "zaúčtované"):
+            valuation.action_submit()
+
     # --- E: zaúčtování v UI a schvalovací matice -----------------------------------------------------------
 
     def test_bulk_booking_from_list(self):
