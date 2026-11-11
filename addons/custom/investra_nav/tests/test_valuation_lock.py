@@ -6,9 +6,8 @@ from odoo.tests import tagged
 from .common import NavCase
 
 
-@tagged("post_install", "-at_install")
-class TestValuationLock(NavCase):
-    """Zámek ocenění, vrstva 1: od Ke schválení do Potvrzeno nic s datem ≤ datu ocenění."""
+class LockCase(NavCase):
+    """Společný fond, úpis a pomůcky pro testy zámku ocenění."""
 
     def setUp(self):
         super().setUp()
@@ -35,6 +34,12 @@ class TestValuationLock(NavCase):
                 (0, 0, {"account_id": accounts[1].id, "debit": 0, "credit": 10, "name": "x"}),
             ],
         })
+
+
+
+@tagged("post_install", "-at_install")
+class TestValuationLock(LockCase):
+    """Zámek ocenění, vrstva 1: od Ke schválení do Potvrzeno nic s datem ≤ datu ocenění."""
 
     def test_computed_valuation_does_not_lock(self):
         valuation = self.valuation(self.fund, self.day)
@@ -107,3 +112,77 @@ class TestValuationLock(NavCase):
         self.submitted()
         other = self.make_fund(classes=[{"code": "X"}])
         self.subscribe(self.cls(other, "X"), "2027-01-20", 100, 1)
+
+
+@tagged("post_install", "-at_install")
+class TestLockException(LockCase):
+    """Zámek ocenění, vrstva 2: vratný zámek po zveřejnění a výjimka se dvěma schvalovateli."""
+
+    def setUp(self):
+        super().setUp()
+        self.published = self.run_to_published(self.valuation(self.fund, self.day))
+        self.company = self.fund.company_id
+        self.Request = self.env["investra.lock.exception.request"]
+
+    def request(self, user=None, lock_date="2027-01-15"):
+        return self.Request.with_user(user or self.approver).create({
+            "company_id": self.company.id, "user_id": self.env.user.id, "lock_date": lock_date,
+            "end_datetime": "2099-01-01 00:00:00", "reason": "Oprava chybného úpisu",
+        })
+
+    def test_publish_sets_soft_lock_only(self):
+        self.assertEqual(self.company.fiscalyear_lock_date, self.day)
+        self.assertFalse(self.company.hard_lock_date)
+        with self.assertRaises(UserError):
+            self.manual_move("2027-01-20").action_post()
+
+    def test_lock_cannot_be_lowered_or_bypassed_by_odoo_exception(self):
+        with self.assertRaises(UserError):
+            self.company.fiscalyear_lock_date = "2027-01-15"
+        with self.assertRaises(UserError):
+            self.company.fiscalyear_lock_date = False
+        with self.assertRaises(UserError):
+            self.env["account.lock_exception"].create({
+                "company_id": self.company.id, "fiscalyear_lock_date": "2027-01-15", "reason": "obejití",
+            })
+        self.company.fiscalyear_lock_date = "2027-02-28"
+
+    def test_only_approver_requests_and_other_approver_confirms(self):
+        from odoo.exceptions import AccessError
+        with self.assertRaises(AccessError):
+            self.request(user=self.preparer)
+        request = self.request()
+        with self.assertRaises(UserError):
+            request.with_user(self.approver).action_confirm()
+        request.with_user(self.approver2).action_confirm()
+        self.assertEqual(request.state, "active")
+        self.assertEqual(request.exception_id.state, "active")
+        move = self.manual_move("2027-01-20")
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+        following = self.valuation(self.fund, date(2027, 2, 28))
+        following.action_compute()
+        check = following.check_ids.filtered(lambda c: c.code == "lock_exception")
+        self.assertEqual(check.status, "warning")
+        self.assertIn("Oprava chybného úpisu", check.detail)
+        request.with_user(self.approver).action_revoke()
+        self.assertEqual(request.exception_id.state, "revoked")
+        with self.assertRaises(UserError):
+            self.manual_move("2027-01-21").action_post()
+
+    def test_rejected_request_creates_no_exception(self):
+        request = self.request()
+        request.with_user(self.approver2).action_reject()
+        self.assertFalse(request.exception_id)
+        with self.assertRaises(UserError):
+            request.with_user(self.approver2).action_confirm()
+
+    def test_hard_lock_cannot_be_opened(self):
+        self.company.sudo().hard_lock_date = "2027-01-20"
+        with self.assertRaises(UserError):
+            self.request(lock_date="2027-01-15")
+
+    def test_next_valuation_without_exception_is_ok(self):
+        following = self.valuation(self.fund, date(2027, 2, 28))
+        following.action_compute()
+        self.assertEqual(following.check_ids.filtered(lambda c: c.code == "lock_exception").status, "ok")

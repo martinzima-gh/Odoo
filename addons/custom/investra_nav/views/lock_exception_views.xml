@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_lock_exception_request_list" model="ir.ui.view">
+        <field name="name">investra.lock.exception.request.list</field>
+        <field name="model">investra.lock.exception.request</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="create_date" string="Požádáno"/>
+                <field name="company_id"/>
+                <field name="user_id"/>
+                <field name="lock_date"/>
+                <field name="end_datetime"/>
+                <field name="requested_by"/>
+                <field name="confirmed_by" optional="show"/>
+                <field name="state" widget="badge" decoration-warning="state == 'draft'" decoration-success="state == 'active'"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_lock_exception_request_form" model="ir.ui.view">
+        <field name="name">investra.lock.exception.request.form</field>
+        <field name="model">investra.lock.exception.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" type="object" string="Potvrdit" class="btn-primary" invisible="state != 'draft'"
+                            confirm="Výjimka otevře uzamčené období zveřejněného ocenění. Potvrdit?"/>
+                    <button name="action_reject" type="object" string="Zamítnout" invisible="state != 'draft'"/>
+                    <button name="action_revoke" type="object" string="Ukončit výjimku" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="state != 'draft'"/>
+                            <field name="user_id" readonly="state != 'draft'"/>
+                            <field name="lock_date" readonly="state != 'draft'"/>
+                            <field name="end_datetime" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="requested_by"/>
+                            <field name="confirmed_by"/>
+                            <field name="confirmed_at"/>
+                            <field name="exception_id"/>
+                        </group>
+                    </group>
+                    <field name="reason" readonly="state != 'draft'" placeholder="Co se opravuje a proč (např. chyba zjištěná auditorem v ocenění k …)"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_lock_exception_request" model="ir.actions.act_window">
+        <field name="name">Výjimky z uzamčení</field>
+        <field name="res_model">investra.lock.exception.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím žádná výjimka z uzamčení</p>
+            <p>Zveřejněné ocenění uzamkne období fondové knihy. Opravu do něj umožní jen výjimka: požádá o ni
+               schvalovatel ocenění, potvrdí ji jiný schvalovatel a příští ocenění ji ukáže v kontrolách.</p>
+        </field>
+    </record>
+    <menuitem id="menu_lock_exception_request" name="Výjimky z uzamčení" parent="investra_entity.menu_setup_audit"
+              action="action_lock_exception_request" sequence="20"/>
+</odoo>

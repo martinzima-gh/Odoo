@@ -38,3 +38,6 @@ access_repayment_read,investra.instrument.repayment read,investra.instrument.rep
 access_repayment_preparer,investra.instrument.repayment preparer,investra.instrument.repayment,investra_entity.group_valuation_preparer,cru,
 investra_repayment_rule,Splátky podle společnosti,investra.instrument.repayment,,crud,"[('company_id', 'in', company_ids)]"
 access_val_return_wizard,investra.valuation.return.wizard approver,investra.valuation.return.wizard,investra_entity.group_valuation_approver,crud,
+access_lock_exception_request_read,investra.lock.exception.request read,investra.lock.exception.request,account.group_account_readonly,r,
+access_lock_exception_request_appr,investra.lock.exception.request appr,investra.lock.exception.request,investra_entity.group_valuation_approver,cru,
+investra_lock_exception_request_rule,investra.lock.exception.request company,investra.lock.exception.request,,crud,"[('company_id', 'in', company_ids)]"

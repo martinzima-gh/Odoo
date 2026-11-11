@@ -182,7 +182,9 @@ class TestWorkflow(NavCase):
     def test_publish_locks_period_and_blocks_later_storno(self):
         valuation = self.run_to_published(self.valuation(self.fund, self.day))
         self.assertEqual(valuation.state, "published")
-        self.assertEqual(self.fund.company_id.hard_lock_date, self.day)
+        # Vrstva 2 zámku (rozhodnutí 2026-11-11): vratný zámek pro všechny, nevratný až po auditu.
+        self.assertEqual(self.fund.company_id.fiscalyear_lock_date, self.day)
+        self.assertFalse(self.fund.company_id.hard_lock_date)
         with self.assertRaises(UserError):
             valuation.sudo().event_ids._reverse_events()
 

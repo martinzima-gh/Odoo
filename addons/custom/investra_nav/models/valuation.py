@@ -877,9 +877,24 @@ class InvestraValuation(models.Model):
         self._check("manual_rate", "Ocenění používá jen vyhlášené kurzy", not manual, "; ".join(manual), severity="warning")
         stale = self._stale_prices()
         self._check("price_age", "Ceny nejsou starší než povolené stáří", not stale, "; ".join(stale), severity="warning")
+        exceptions = self._lock_exceptions_since_previous()
+        self._check("lock_exception", "Uzamčené období nebylo otevřeno výjimkou", not exceptions,
+                    "; ".join(exceptions), severity="warning")
         deviating = self._deviating_prices()
         self._check("price_fund_deviation", "Fond používá sdílené tržní ceny", not deviating, "; ".join(deviating),
                     severity="warning")
+
+    def _lock_exceptions_since_previous(self):
+        """Výjimky z uzamčení knihy od zveřejnění předchozího ocenění (vrstva 2 zámku, rozhodnutí 2026-11-11)."""
+        # U fondové knihy vzniká výjimka Odoo jen potvrzením žádosti; čas potvrzení i zveřejnění je čas aplikace.
+        domain = [("company_id", "=", self.company_id.id), ("state", "in", ("active", "revoked"))]
+        if self.previous_id.published_at:
+            domain.append(("confirmed_at", ">=", self.previous_id.published_at))
+        requests = self.env["investra.lock.exception.request"].sudo().search(domain, order="id")
+        return [
+            f"{r.user_id.name}, do {r.lock_date}: {r.reason} (požádal {r.requested_by.name}, potvrdil {r.confirmed_by.name})"
+            for r in requests
+        ]
 
     def _stale_prices(self):
         """Ceny starší než maximální stáří nástroje (poslední známá cena, rozhodnutí 2026-11-11)."""
@@ -1021,7 +1036,7 @@ class InvestraValuation(models.Model):
     def action_reverse(self, reason):
         """Storno zaúčtovaného nebo depozitářem potvrzeného ocenění a nová verze (rozhodnutí 2026-11-10).
 
-        Zveřejněné ocenění se nestornuje: období je nevratně uzamčené.
+        Zveřejněné ocenění se nestornuje: období je uzamčené, oprava jde jen výjimkou z uzamčení.
         """
         self._require(APPROVER)
         self._require_state("posted", "confirmed")
@@ -1046,11 +1061,17 @@ class InvestraValuation(models.Model):
         return record._new_version()
 
     def action_publish(self):
-        """Zveřejnění uzamkne ocenění i období; hard lock je nevratný, proto až po depozitáři."""
+        """Zveřejnění uzamkne ocenění i období zámkem pro všechny (vrstva 2, rozhodnutí 2026-11-11).
+
+        Zámek je vratný jen výjimkou ze žádosti (`investra.lock.exception.request`); nevratný hard lock
+        se nastavuje ručně až po auditu účetní závěrky.
+        """
         self._require(APPROVER)
         self._require_state("confirmed")
         for record in self.sudo():
-            record.company_id.hard_lock_date = record.date
+            company = record.company_id
+            if not company.fiscalyear_lock_date or company.fiscalyear_lock_date < record.date:
+                company.fiscalyear_lock_date = record.date
             record.write({"state": "published", "published_at": fields.Datetime.now()})
         return True
 
