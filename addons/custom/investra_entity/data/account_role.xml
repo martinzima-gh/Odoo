@@ -36,4 +36,9 @@
     <record id="role_expense_performance" model="investra.account.role"><field name="code">expense_performance</field><field name="name">Výkonnostní odměna</field><field name="category">expense</field></record>
     <record id="role_expense_other" model="investra.account.role"><field name="code">expense_other</field><field name="name">Ostatní náklady</field><field name="category">expense</field></record>
     <record id="role_expense_tax" model="investra.account.role"><field name="code">expense_tax</field><field name="name">Daň z příjmů</field><field name="category">expense</field></record>
+    <!-- Úpisy a odkupy (rozhodnutí „Úpisy a odkupy – účty“, 2026-11-11) -->
+    <record id="role_subscription_fee_payable" model="investra.account.role"><field name="code">subscription_fee_payable</field><field name="name">Závazek z poplatků za úpis a odkup</field><field name="category">liability</field></record>
+    <record id="role_investor_rounding_payable" model="investra.account.role"><field name="code">investor_rounding_payable</field><field name="name">Závazek vůči investorům z rozdílů ze zaokrouhlení</field><field name="category">liability</field></record>
+    <record id="role_rounding_gain" model="investra.account.role"><field name="code">rounding_gain</field><field name="name">Rozdíly ze zaokrouhlení úpisů a odkupů – výnos</field><field name="category">income</field></record>
+    <record id="role_rounding_loss" model="investra.account.role"><field name="code">rounding_loss</field><field name="name">Rozdíly ze zaokrouhlení úpisů a odkupů – náklad</field><field name="category">expense</field></record>
 </odoo>

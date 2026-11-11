@@ -1,6 +1,11 @@
+import csv
+from pathlib import Path
+
 from odoo import api, models
 
 from .template_investra_fund import ROLE_ACCOUNTS
+
+TEMPLATE_CSV = Path(__file__).parent.parent / "data" / "template" / "account.account-investra_fund.csv"
 
 
 class InvestraEntity(models.Model):
@@ -13,11 +18,38 @@ class InvestraEntity(models.Model):
             entity._map_fund_roles()
         return entity
 
+    def _ensure_fund_accounts(self):
+        """Doplní do knihy účty šablony, které v ní chybějí (nové účty po aktualizaci modulu).
+
+        Účet dostane stejné xmlid jako při načtení šablony (`account.<kniha>_<id>`); stávající účty se nemění.
+        """
+        self.ensure_one()
+        company = self.company_id
+        chart = self.env["account.chart.template"].sudo().with_company(company)
+        Data = self.env["ir.model.data"].sudo()
+        Account = self.env["account.account"].sudo().with_company(company)
+        with TEMPLATE_CSV.open(encoding="utf-8") as handle:
+            for row in csv.DictReader(handle):
+                if chart.ref(row["id"], raise_if_not_found=False):
+                    continue
+                account = Account.search([("code", "=", row["code"]), ("company_ids", "in", company.id)], limit=1)
+                account = account or Account.create({
+                    "name": row["name"], "code": row["code"], "account_type": row["account_type"],
+                    "reconcile": row["reconcile"] == "True", "company_ids": [(6, 0, company.ids)],
+                })
+                Data.create({
+                    "module": "account", "name": f"{company.id}_{row['id']}", "model": "account.account",
+                    "res_id": account.id, "noupdate": True,
+                })
+
     def _map_fund_roles(self):
+        """Mapování rolí na účty šablony; existující mapování se nemění."""
         self.ensure_one()
         chart = self.env["account.chart.template"].sudo().with_company(self.company_id)
-        roles = self.env["investra.account.role"].search([("code", "in", list(ROLE_ACCOUNTS))])
-        self.env["investra.role.account"].sudo().create([
+        Mapping = self.env["investra.role.account"].sudo()
+        mapped = Mapping.search([("company_id", "=", self.company_id.id)]).role_id
+        roles = self.env["investra.account.role"].search([("code", "in", list(ROLE_ACCOUNTS))]) - mapped
+        Mapping.create([
             {
                 "company_id": self.company_id.id,
                 "role_id": role.id,

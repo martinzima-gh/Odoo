@@ -18,7 +18,7 @@ class TestClassCurrency(NavCase):
 
     def movement(self, kind="subscription", **vals):
         record = self.env["investra.class.movement"].create({
-            "class_id": self.fund_class.id, "date": "2033-01-03", "movement_type": kind, "amount_class": 1000, "units": 10, **vals,
+            "class_id": self.fund_class.id, "date": "2033-01-03", "manual_reason": "Test", "movement_type": kind, "amount_class": 1000, "units": 10, **vals,
         })
         record._book()
         return record

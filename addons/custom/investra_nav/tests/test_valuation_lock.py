@@ -68,12 +68,12 @@ class TestValuationLock(LockCase):
 
     def test_movement_cannot_be_created_changed_or_deleted_in_locked_period(self):
         draft = self.env["investra.class.movement"].create({
-            "class_id": self.a.id, "date": "2027-01-20", "movement_type": "subscription", "amount": 100, "units": 1,
+            "class_id": self.a.id, "date": "2027-01-20", "manual_reason": "Test", "movement_type": "subscription", "amount": 100, "units": 1,
         })
         self.submitted()
         with self.assertRaises(UserError):
             self.env["investra.class.movement"].create({
-                "class_id": self.a.id, "date": "2027-01-31", "movement_type": "subscription", "amount": 100, "units": 1,
+                "class_id": self.a.id, "date": "2027-01-31", "manual_reason": "Test", "movement_type": "subscription", "amount": 100, "units": 1,
             })
         with self.assertRaises(UserError):
             draft.units = 2
@@ -82,7 +82,7 @@ class TestValuationLock(LockCase):
         with self.assertRaises(UserError):
             draft._book()
         later = self.env["investra.class.movement"].create({
-            "class_id": self.a.id, "date": "2027-02-01", "movement_type": "redemption", "amount": 50, "units": 0.5,
+            "class_id": self.a.id, "date": "2027-02-01", "manual_reason": "Test", "movement_type": "redemption", "amount": 50, "units": 0.5,
         })
         with self.assertRaises(UserError):
             later.date = "2027-01-30"

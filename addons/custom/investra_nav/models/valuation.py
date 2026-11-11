@@ -210,6 +210,7 @@ class InvestraValuation(models.Model):
         for fund_class in self.fund_id.class_ids:
             movements = self.env["investra.class.movement"].sudo().search([
                 ("class_id", "=", fund_class.id), ("date", ">", start), ("date", "<=", self.date),
+                ("state", "!=", "reversed"),
             ])
             prior = previous.get(fund_class)
             capital = d(prior.capital if prior else 0)
@@ -226,9 +227,9 @@ class InvestraValuation(models.Model):
                 "opening_units": units,
                 "subscriptions": subscriptions,
                 "redemptions": redemptions,
-                "subscription_amount": sum((d(m.amount) for m in subscriptions), Decimal(0)),
+                "subscription_amount": sum((d(m.capital_amount) for m in subscriptions), Decimal(0)),
                 "subscription_units": sum((d(m.units) for m in subscriptions), Decimal(0)),
-                "redemption_amount": sum((d(m.amount) for m in redemptions), Decimal(0)),
+                "redemption_amount": sum((d(m.capital_amount) for m in redemptions), Decimal(0)),
                 "redemption_units": sum((d(m.units) for m in redemptions), Decimal(0)),
             }
         total = sum(row["pre_capital"] for row in result.values())
@@ -596,6 +597,7 @@ class InvestraValuation(models.Model):
             if version.perf_measure == "capital":
                 movements = self.env["investra.class.movement"].sudo().search([
                     ("class_id", "=", fund_class.id), ("date", ">", base_date), ("date", "<=", self.date),
+                    ("state", "!=", "reversed"),
                 ])
                 flows = [(m.date, m.signed_amount) for m in movements]
             spec = {
@@ -772,12 +774,13 @@ class InvestraValuation(models.Model):
         shared = value - row["pre_capital"] - delta
         shared_raw = engine.money(row["ratio"] * neutral) - row["pre_capital"]
 
+        # Kapitál třídy bere čistou částku pohybu (bez poplatku, rozdíl podle toho, komu patří).
         def in_class_currency(movement):
             if same_currency:
-                return d(movement.amount)
+                return d(movement.capital_amount)
             if movement.amount_class:
-                return d(movement.amount_class)
-            return d(movement.amount) / (d(movement.fx_rate) or fx_rate)
+                return d(movement.capital_amount_class)
+            return d(movement.capital_amount) / (d(movement.fx_rate) or fx_rate)
 
         if not previous:
             opening_class = Decimal(0)
@@ -839,6 +842,23 @@ class InvestraValuation(models.Model):
         self._check("bridge_opening", "Přemostění: součet FK (t−1) tříd = FK minulého ocenění",
                     abs(opening - previous_fk) <= tolerance, f"{opening} / {previous_fk}")
 
+    def _run_movement_checks(self):
+        """Úpisy a odkupy období (rozhodnutí „Úpisy a odkupy (bod 8 UX)“, 2026-11-11); jen upozornění."""
+        movements = self.env["investra.class.movement"].sudo().search([
+            ("fund_id", "=", self.fund_id.id), ("date", ">", self._period_start()), ("date", "<=", self.date),
+            ("state", "!=", "reversed"),
+        ])
+        draft = movements.filtered(lambda m: m.state == "draft")
+        self._check("movements_posted", "Úpisy a odkupy období jsou zaúčtované", not draft,
+                    "; ".join(draft.mapped("display_name")), severity="warning")
+        fees = movements.filtered(lambda m: abs(d(m.fee_amount_class) - d(m.fee_expected_class)) > Decimal("0.01"))
+        self._check("movement_fee_rate", "Poplatky úpisů a odkupů odpovídají sazbě třídy", not fees,
+                    "; ".join(f"{m.display_name}: {m.fee_amount_class} / {m.fee_expected_class}" for m in fees),
+                    severity="warning")
+        prices = movements.filtered("price_reason")
+        self._check("movement_price", "Úpisy a odkupy za zveřejněný kurz třídy", not prices,
+                    "; ".join(f"{m.display_name}: {m.price_reason}" for m in prices), severity="warning")
+
     def _check(self, code, name, ok, detail="", severity="stop"):
         self.env["investra.valuation.check"].sudo().create({
             "valuation_id": self.id,
@@ -882,6 +902,7 @@ class InvestraValuation(models.Model):
         exceptions = self._lock_exceptions_since_previous()
         self._check("lock_exception", "Uzamčené období nebylo otevřeno výjimkou", not exceptions,
                     "; ".join(exceptions), severity="warning")
+        self._run_movement_checks()
         deviating = self._deviating_prices()
         self._check("price_fund_deviation", "Fond používá sdílené tržní ceny", not deviating, "; ".join(deviating),
                     severity="warning")

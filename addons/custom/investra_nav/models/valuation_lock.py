@@ -73,8 +73,8 @@ class InvestraClassMovement(models.Model):
         return records
 
     def write(self, vals):
-        # Vazbu na událost zapisuje zaúčtování; to hlídá zámek dokladu.
-        if set(vals) - {"event_id"}:
+        # Vazbu na událost, stav a ocenění s cenou zapisuje zaúčtování; to hlídá zámek dokladu.
+        if set(vals) - {"event_id", "state", "valuation_id"}:
             for movement in self:
                 movement._check_valuation_lock(movement.company_id, movement.date, self.env._("Změna úpisu nebo odkupu"))
         result = super().write(vals)

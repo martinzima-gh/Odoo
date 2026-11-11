@@ -58,7 +58,7 @@ class TestCompanyAccess(NavCase):
 
     def test_movement_stays_in_book(self):
         self.assert_stays_in_book("investra.class.movement", {
-            "class_id": self.cls(self.own, "A").id, "date": "2037-01-15", "movement_type": "subscription", "amount": 100, "units": 1,
+            "class_id": self.cls(self.own, "A").id, "date": "2037-01-15", "manual_reason": "Test", "movement_type": "subscription", "amount": 100, "units": 1,
         }, "class_id", self.cls(self.fund, "A"))
 
     def test_trade_stays_in_book(self):
@@ -103,7 +103,7 @@ class TestCompanyAccess(NavCase):
 
     def test_movement_event_is_system_field(self):
         event = self.subscribe(self.cls(self.fund, "A"), "2037-01-15", 100, 1).event_id
-        vals = {"class_id": self.cls(self.fund, "A").id, "date": "2037-01-16", "movement_type": "subscription", "amount": 1, "units": 1}
+        vals = {"class_id": self.cls(self.fund, "A").id, "date": "2037-01-16", "manual_reason": "Test", "movement_type": "subscription", "amount": 1, "units": 1}
         Movement = self.env["investra.class.movement"].with_user(self.preparer)
         with self.assertRaises(UserError):
             Movement.create({**vals, "event_id": event.id})
@@ -112,7 +112,7 @@ class TestCompanyAccess(NavCase):
 
     def test_preparer_deletes_unbooked_movement(self):
         movement = self.as_outsider(self.env["investra.class.movement"]).create({
-            "class_id": self.cls(self.own, "A").id, "date": "2037-01-15", "movement_type": "subscription", "amount": 100, "units": 1,
+            "class_id": self.cls(self.own, "A").id, "date": "2037-01-15", "manual_reason": "Test", "movement_type": "subscription", "amount": 100, "units": 1,
         })
         movement.write({"units": 2})
         movement.unlink()

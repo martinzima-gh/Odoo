@@ -66,7 +66,7 @@ class NavCase(TransactionCase):
 
     def subscribe(self, fund_class, day, amount, units, kind="subscription"):
         movement = self.env["investra.class.movement"].create({
-            "class_id": fund_class.id, "date": day, "movement_type": kind, "amount": amount, "units": units,
+            "class_id": fund_class.id, "date": day, "manual_reason": "Test", "movement_type": kind, "amount": amount, "units": units,
         })
         movement._book()
         return movement

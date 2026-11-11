@@ -3,6 +3,11 @@ from odoo.exceptions import ValidationError
 
 
 PRICE_ROUNDING = [("down", "Dolů"), ("half_up", "Matematicky"), ("up", "Nahoru")]
+# Úpisy a odkupy (rozhodnutí „Úpisy a odkupy (bod 8 UX)“, 2026-11-11): parametry fondu, třída je při založení převezme
+# a smí je přepsat – stejně jako desetinná místa kurzu.
+ROUNDING_OWNER = [("fund", "Zůstává ve fondu"), ("investor", "Vrací se investorovi")]
+FEE_RECIPIENT = [("manager", "Obhospodařovatel"), ("distributor", "Distributor")]
+MOVEMENT_PARAMS = ("unit_digits", "unit_rounding", "rounding_owner", "entry_fee_rate", "exit_fee_rate", "fee_recipient")
 
 
 class InvestraFund(models.Model):
@@ -31,6 +36,15 @@ class InvestraFund(models.Model):
     approval_matrix_ids = fields.One2many("investra.approval.matrix", "fund_id", string="Zpřísnění matice")
     price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")
+    unit_digits = fields.Integer(default=6, required=True, string="Výchozí desetinná místa kusů")
+    unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kusů")
+    rounding_owner = fields.Selection(
+        ROUNDING_OWNER, required=True, default="fund", string="Výchozí: rozdíl ze zaokrouhlení kusů",
+        help="Zůstává ve fondu = kapitál třídy; vrací se investorovi = závazek, výplatu zadává IS.",
+    )
+    entry_fee_rate = fields.Float(digits=(7, 4), default=0.0, string="Výchozí vstupní poplatek (%)", help="Sazba z hrubé platby úpisu.")
+    exit_fee_rate = fields.Float(digits=(7, 4), default=0.0, string="Výchozí výstupní poplatek (%)", help="Sazba z hrubé částky odkupu (kusy × cena).")
+    fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce poplatku")
     trade_recognition = fields.Selection(
         [("trade_date", "Trade date accounting"), ("settlement_date", "Settlement date accounting")],
         required=True,
@@ -86,6 +100,12 @@ class InvestraFundClass(models.Model):
     price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Bez zadání platí hodnota fondu.")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kurzu", help="Bez zadání platí hodnota fondu.")
     distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True, string="Rozdělování výnosu")
+    unit_digits = fields.Integer(required=True, string="Desetinná místa kusů", help="Bez zadání platí hodnota fondu.")
+    unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
+    rounding_owner = fields.Selection(ROUNDING_OWNER, required=True, string="Rozdíl ze zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
+    entry_fee_rate = fields.Float(digits=(7, 4), string="Vstupní poplatek (%)", help="Bez zadání platí hodnota fondu.")
+    exit_fee_rate = fields.Float(digits=(7, 4), string="Výstupní poplatek (%)", help="Bez zadání platí hodnota fondu.")
+    fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, string="Příjemce poplatku", help="Bez zadání platí hodnota fondu.")
 
     _fund_code_uniq = models.Constraint("unique(fund_id, code)", "Kód třídy musí být ve fondu jedinečný.")
 
@@ -95,6 +115,8 @@ class InvestraFundClass(models.Model):
             fund = self.env["investra.fund"].browse(vals.get("fund_id"))
             vals.setdefault("price_digits", fund.price_digits)
             vals.setdefault("price_rounding", fund.price_rounding)
+            for name in MOVEMENT_PARAMS:
+                vals.setdefault(name, fund[name])
         return super().create(vals_list)
 
     @api.depends("code", "fund_id.name")
@@ -107,6 +129,15 @@ class InvestraFundClass(models.Model):
         for record in self:
             if not 0 <= record.price_digits <= 18:
                 raise ValidationError(self.env._("Počet desetinných míst kurzu musí být 0 až 18."))
+
+    @api.constrains("unit_digits", "entry_fee_rate", "exit_fee_rate")
+    def _check_movement_params(self):
+        for record in self:
+            # Kusy se ukládají na 6 desetinných míst (pohyb i výsledek ocenění).
+            if not 0 <= record.unit_digits <= 6:
+                raise ValidationError(self.env._("Počet desetinných míst kusů musí být 0 až 6."))
+            if not (0 <= record.entry_fee_rate <= 100 and 0 <= record.exit_fee_rate <= 100):
+                raise ValidationError(self.env._("Sazba poplatku musí být 0 až 100 %."))
 
 
 class InvestraValuationCalendar(models.Model):

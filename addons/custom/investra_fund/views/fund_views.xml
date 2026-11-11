@@ -32,16 +32,25 @@
                         <field name="valuation_frequency"/><field name="manager_id"/>
                         <field name="price_digits"/><field name="price_rounding"/>
                         <field name="trade_recognition"/>
+                    </group>
+                    <group string="Úpisy a odkupy – výchozí hodnoty tříd">
+                        <field name="unit_digits"/><field name="unit_rounding"/><field name="rounding_owner"/>
+                        <field name="entry_fee_rate"/><field name="exit_fee_rate"/><field name="fee_recipient"/>
+                    </group>
+                    <group>
                         <field name="accrual_method"/>
                         <field name="accrual_note" invisible="accrual_method != 'linear'" required="accrual_method == 'linear'"/>
                     </group>
                     <notebook>
                         <page string="Třídy">
-                            <field name="class_ids">
+                            <field name="class_ids" context="{'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner, 'default_entry_fee_rate': entry_fee_rate, 'default_exit_fee_rate': exit_fee_rate, 'default_fee_recipient': fee_recipient}">
                                 <list editable="bottom">
                                     <field name="code"/><field name="name"/><field name="currency_id"/>
                                     <field name="isin"/><field name="price_digits"/><field name="price_rounding"/>
                                     <field name="distribution"/>
+                                    <field name="unit_digits" optional="show"/><field name="unit_rounding" optional="show"/>
+                                    <field name="rounding_owner" optional="show"/><field name="entry_fee_rate" optional="show"/>
+                                    <field name="exit_fee_rate" optional="show"/><field name="fee_recipient" optional="show"/>
                                 </list>
                             </field>
                         </page>

@@ -115,3 +115,17 @@ Souhlas s doporučením: B–E (nyní B–F) najednou, A jako první samostatný
 
 - G: souhlas 11. 11. 2026 – zveřejnění nastaví vratný zámek pro všechny s výjimkou jako pojistkou; nevratný tvrdý zámek až po auditu
   účetní závěrky.
+
+## Provedení (11. 11. 2026)
+
+Upřesnění od uživatele: nové účty a role; odkup: kusy × cena = výplata + poplatek + rozdíl; sazba z hrubé částky;
+zbytek do 0,01 na výnos/náklad ze zaokrouhlení (výsledek fondu), větší = chyba. Čísla účtů pracovní (osnova podle 501 otevřená).
+
+| Případ | Řádky dokladu (MD +, D −) |
+|---|---|
+| Úpis | banka +platba; kapitál třídy −(kusy × cena + rozdíl, zůstává-li ve fondu); závazek z poplatků −poplatek; závazek vůči investorům −rozdíl (vrací-li se); zbytek: výnos −/náklad + |
+| Odkup | kapitál třídy +(kusy × cena − rozdíl, zůstává-li ve fondu); banka −výplata; závazek z poplatků −poplatek; závazek vůči investorům −rozdíl (vrací-li se); zbytek: náklad +/výnos − |
+| Bez poplatku a rozdílu | banka / kapitál třídy jako dřív (regrese ověřena testem) |
+
+Kód: `investra_nav/models/movement.py`, kontroly ocenění `_run_movement_checks`, testy `investra_nav/tests/test_movement.py`.
+Deník: „Úpisy a odkupy – účty a vzorce“ a „Úpisy a odkupy – provedení (body A–E)“, včetně odchylek od plánu.

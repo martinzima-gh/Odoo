@@ -19,7 +19,7 @@ class TestManualRate(NavCase):
         self.rate("2036-01-31", 25)
         self.subscribe(self.cls(self.fund, "C"), "2036-01-02", 1000, 10)
         self.env["investra.class.movement"].create({
-            "class_id": self.cls(self.fund, "E").id, "date": "2036-01-02", "movement_type": "subscription",
+            "class_id": self.cls(self.fund, "E").id, "date": "2036-01-02", "manual_reason": "Test", "movement_type": "subscription",
             "amount_class": 40, "fx_rate": 25, "units": 10,
         })._book()
         self.day = date(2036, 1, 31)

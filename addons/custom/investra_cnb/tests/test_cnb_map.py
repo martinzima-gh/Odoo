@@ -5,8 +5,7 @@ from odoo.tests import tagged
 from odoo.addons.investra_nav.tests.common import NavCase
 
 
-@tagged("post_install", "-at_install")
-class TestCnbMap(NavCase):
+class CnbMapCase(NavCase):
     """Fond s úpisem 100 000, dluhopisem za 40 000 přeceněným na 42 000; rok 2038 jen pro tyto testy."""
 
     def setUp(self):
@@ -27,10 +26,18 @@ class TestCnbMap(NavCase):
             "fund_id": self.fund.id, "instrument_id": self.bond.id, "date": self.day, "price": 105, "source": "Test",
         })
         price.with_user(self.approver).action_approve()
+        self._before_valuation()
         self.run_to_posted(self.valuation(self.fund, self.day))
+
+    def _before_valuation(self):
+        """Doklady s datem v období ocenění; po zaúčtování ocenění je zámek ocenění (vrstva 1) odmítne."""
 
     def value(self, sheet, row, column=1):
         return self.Map._sheet_values(self.company, sheet, self.day).get((row, column), 0)
+
+
+@tagged("post_install", "-at_install")
+class TestCnbMap(CnbMapCase):
 
     def test_assets_by_row(self):
         self.assertEqual(self.value("ROFO10_11", 4), 60000)
@@ -60,16 +67,6 @@ class TestCnbMap(NavCase):
         self.assertEqual(self.value("ROFO10_11", 8), 42000)
         self.assertEqual(self.value("ROFO10_11", 6), 0)
 
-    def test_same_bond_in_two_models_splits_rows(self):
-        held = self.portfolio(self.fund, "hold_to_collect")
-        self.bond.cashflow_ids = [(0, 0, {"date": "2040-01-01", "amount": 100})]
-        self.classify(self.fund, self.bond, "hold_to_collect")
-        self.env["investra.trade"].create({
-            "fund_id": self.fund.id, "portfolio_id": held.id, "instrument_id": self.bond.id, "trade_date": "2038-01-20",
-            "quantity": 100, "price": 100,
-        })._book()
-        self.assertEqual(self.value("ROFO10_11", 6), 42000)
-        self.assertEqual(self.value("ROFO10_11", 10), 10000)
 
     def test_nothing_is_unmapped(self):
         sheets = ("ROFO10_11", "ROFO10_21", "VYFO20_11")
@@ -93,3 +90,21 @@ class TestCnbMap(NavCase):
     def test_other_company_is_isolated(self):
         other = self.make_fund(classes=[{"code": "A"}])
         self.assertFalse(any(self.Map._sheet_values(other.company_id, "ROFO10_11", self.day).values()))
+
+
+@tagged("post_install", "-at_install")
+class TestCnbMapTwoModels(CnbMapCase):
+    """Stejný dluhopis i v portfoliu Držet pro inkaso; obchod se zaúčtuje před oceněním (zámek ocenění)."""
+
+    def _before_valuation(self):
+        held = self.portfolio(self.fund, "hold_to_collect")
+        self.bond.cashflow_ids = [(0, 0, {"date": "2040-01-01", "amount": 100})]
+        self.classify(self.fund, self.bond, "hold_to_collect")
+        self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": held.id, "instrument_id": self.bond.id, "trade_date": "2038-01-20",
+            "quantity": 100, "price": 100,
+        })._book()
+
+    def test_same_bond_in_two_models_splits_rows(self):
+        self.assertEqual(self.value("ROFO10_11", 6), 42000)
+        self.assertEqual(self.value("ROFO10_11", 10), 10000)

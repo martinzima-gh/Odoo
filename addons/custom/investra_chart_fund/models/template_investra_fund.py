@@ -22,6 +22,9 @@ ROLE_ACCOUNTS = {
     "redemption_payable": "ifa_325200",
     "fee_payable": "ifa_325300",
     "performance_payable": "ifa_325400",
+    # Čísla 3255xx–3256xx, 668100, 548100 jsou pracovní jako celá šablona (osnova podle 501 je otevřený bod).
+    "subscription_fee_payable": "ifa_325500",
+    "investor_rounding_payable": "ifa_325600",
     "accrual": "ifa_389000",
     "tax_payable": "ifa_341000",
     "class_capital": "ifa_413000",
@@ -31,6 +34,7 @@ ROLE_ACCOUNTS = {
     "income_interest": "ifa_662000",
     "income_dividend": "ifa_665000",
     "income_other": "ifa_668000",
+    "rounding_gain": "ifa_668100",
     "loss_fair_value": "ifa_511000",
     "loss_fx": "ifa_563000",
     "expense_management": "ifa_518100",
@@ -38,6 +42,7 @@ ROLE_ACCOUNTS = {
     "expense_depositary": "ifa_518300",
     "expense_performance": "ifa_518400",
     "expense_other": "ifa_548000",
+    "rounding_loss": "ifa_548100",
     "expense_tax": "ifa_591000",
 }
 

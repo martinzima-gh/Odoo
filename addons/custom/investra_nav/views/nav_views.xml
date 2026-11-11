@@ -278,23 +278,133 @@
         <field name="name">Pravidla úplat</field><field name="res_model">investra.fee.rule</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_fee_rule_search"/>
     </record>
+    <record id="action_movement_reverse_wizard" model="ir.actions.act_window">
+        <field name="name">Storno nebo oprava pohybu</field>
+        <field name="res_model">investra.class.movement.reverse.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
     <record id="view_movement_list" model="ir.ui.view">
         <field name="name">investra.class.movement.list</field>
         <field name="model">investra.class.movement</field>
         <field name="arch" type="xml">
-            <list>
+            <list decoration-muted="state == 'reversed'" decoration-info="state == 'draft'">
                 <field name="date" string="Datum"/>
                 <field name="fund_id" string="Fond"/>
                 <field name="class_id" string="Třída"/>
                 <field name="movement_type" string="Typ"/>
+                <field name="source" optional="show"/>
+                <field name="external_ref" optional="hide"/>
                 <field name="units" string="Kusy"/>
+                <field name="price" optional="show"/>
                 <field name="currency_id" string="Měna kurzu" optional="show"/>
-                <field name="amount_class" string="Částka v měně kurzu" optional="show"/>
+                <field name="amount_class" optional="show"/>
+                <field name="fee_amount_class" optional="show"/>
+                <field name="rounding_amount_class" optional="hide"/>
                 <field name="fx_rate" string="Kurz" optional="show"/>
-                <field name="amount" string="Částka ve funkční měně"/>
-                <field name="event_id" string="Účetní událost" optional="show"/>
+                <field name="amount"/>
+                <field name="capital_amount" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
+                <field name="event_id" string="Účetní událost" optional="hide"/>
             </list>
         </field>
+    </record>
+    <record id="view_movement_form" model="ir.ui.view">
+        <field name="name">investra.class.movement.form</field>
+        <field name="model">investra.class.movement</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_book" type="object" string="Zaúčtovat" class="btn-primary"
+                            groups="investra_entity.group_valuation_preparer" invisible="state != 'draft' or not id"/>
+                    <button name="%(action_movement_reverse_wizard)d" type="action" string="Opravit"
+                            context="{'default_movement_id': id, 'default_mode': 'correct'}"
+                            groups="investra_entity.group_valuation_preparer" invisible="state != 'posted'"/>
+                    <button name="%(action_movement_reverse_wizard)d" type="action" string="Stornovat"
+                            context="{'default_movement_id': id, 'default_mode': 'reverse'}"
+                            groups="investra_entity.group_valuation_preparer" invisible="state != 'posted'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Pohyb">
+                            <field name="class_id" readonly="state != 'draft'"/>
+                            <field name="fund_id"/>
+                            <field name="movement_type" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="source" readonly="state != 'draft'"/>
+                            <field name="external_ref" readonly="state != 'draft'" required="source == 'is'"/>
+                            <field name="manual_reason" readonly="state != 'draft'" required="source == 'manual'"
+                                   invisible="source != 'manual'"/>
+                            <field name="replaced_id" invisible="not replaced_id"/>
+                        </group>
+                        <group string="Kusy a cena">
+                            <field name="units" readonly="state != 'draft'"/>
+                            <field name="price" readonly="state != 'draft'"/>
+                            <field name="valuation_id" invisible="not valuation_id"/>
+                            <field name="price_reason" readonly="state != 'draft'"/>
+                            <field name="currency_id"/>
+                            <field name="amount_class" readonly="state != 'draft'"/>
+                            <field name="fx_rate" readonly="state != 'draft'"/>
+                            <field name="amount" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Poplatek">
+                            <field name="fee_amount_class" readonly="state != 'draft'"/>
+                            <field name="fee_expected_class"/>
+                            <field name="fee_recipient" readonly="state != 'draft'"/>
+                            <field name="fee_partner_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Zaokrouhlení a výsledek">
+                            <field name="rounding_amount_class" readonly="state != 'draft'"/>
+                            <field name="rounding_owner" readonly="state != 'draft'"/>
+                            <field name="value_class"/>
+                            <field name="residual_class"/>
+                            <field name="payout_class" invisible="movement_type != 'redemption'"/>
+                            <field name="capital_amount"/>
+                            <field name="capital_amount_class"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'reversed'">
+                        <field name="reversal_reason"/>
+                    </group>
+                    <group>
+                        <field name="event_id"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_movement_reverse_wizard_form" model="ir.ui.view">
+        <field name="name">investra.class.movement.reverse.wizard.form</field>
+        <field name="model">investra.class.movement.reverse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Storno nebo oprava pohybu">
+                <group>
+                    <field name="movement_id" readonly="1"/>
+                    <field name="mode" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert"><field name="effect" readonly="1"/></div>
+                <group>
+                    <field name="reason" placeholder="Proč se pohyb stornuje nebo opravuje (uloží se k pohybu)"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Potvrdit" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_movement_book" model="ir.actions.server">
+        <field name="name">Zaúčtovat</field>
+        <field name="model_id" ref="model_investra_class_movement"/>
+        <field name="binding_model_id" ref="model_investra_class_movement"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[(4, ref('investra_entity.group_valuation_preparer'))]"/>
+        <field name="state">code</field>
+        <field name="code">result = records.action_book()
+if isinstance(result, dict):
+    action = result</field>
     </record>
     <record id="view_movement_search" model="ir.ui.view">
         <field name="name">investra.class.movement.search</field>
@@ -307,8 +417,12 @@
                 <filter name="filter_subscription" string="Úpisy" domain="[('movement_type', '=', 'subscription')]"/>
                 <filter name="filter_redemption" string="Odkupy" domain="[('movement_type', '=', 'redemption')]"/>
                 <separator/>
-                <filter name="filter_unposted" string="Nezaúčtováno" domain="[('event_id', '=', False)]"/>
-                <filter name="filter_posted" string="Zaúčtováno" domain="[('event_id', '!=', False)]"/>
+                <filter name="filter_unposted" string="Nezaúčtováno" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_posted" string="Zaúčtováno" domain="[('state', '=', 'posted')]"/>
+                <filter name="filter_reversed" string="Stornováno" domain="[('state', '=', 'reversed')]"/>
+                <separator/>
+                <filter name="filter_manual" string="Ruční zadání" domain="[('source', '=', 'manual')]"/>
+                <filter name="filter_is" string="Z IS" domain="[('source', '=', 'is')]"/>
                 <separator/>
                 <filter name="filter_date" date="date" string="Datum"/>
                 <group>

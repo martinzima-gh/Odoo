@@ -129,7 +129,7 @@ class TestBridge(NavCase):
         self.rate("2034-01-02", 25)
         self.rate("2034-01-31", 25)
         self.env["investra.class.movement"].create({
-            "class_id": self.cls(fund, "E").id, "date": "2034-01-02", "movement_type": "subscription",
+            "class_id": self.cls(fund, "E").id, "date": "2034-01-02", "manual_reason": "Test", "movement_type": "subscription",
             "amount_class": 40000, "fx_rate": 25, "units": 400,
         })._book()
         self.common_result(fund, "common0", "2034-01-31", 25000)

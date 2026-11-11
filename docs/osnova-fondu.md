@@ -19,10 +19,10 @@ Zdroj pravdy je `addons/custom/investra_chart_fund/data/template/account.account
 | Peníze | bankovní účet, peníze na cestě |
 | Investice | investiční nástroje |
 | Pohledávky | obchodní, ostatní, vnitřní zúčtování tříd |
-| Závazky | obchodní, úpis, odkup, úplaty, výkonnostní odměna, dohady, daň |
+| Závazky | obchodní, úpis, odkup, úplaty, výkonnostní odměna, poplatky za úpis a odkup, vůči investorům z rozdílů, dohady, daň |
 | Kapitál | kapitál tříd, výsledek minulých let, běžný výsledek |
-| Výnosy | přecenění, kurzové, úroky, dividendy, ostatní |
-| Náklady | přecenění, kurzové, obhospodařování, administrace, depozitář, výkonnostní odměna, ostatní, daň |
+| Výnosy | přecenění, kurzové, úroky, dividendy, ostatní, rozdíly ze zaokrouhlení úpisů a odkupů |
+| Náklady | přecenění, kurzové, obhospodařování, administrace, depozitář, výkonnostní odměna, ostatní, rozdíly ze zaokrouhlení úpisů a odkupů, daň |
 
 ## Vzor převodové tabulky
 
@@ -31,4 +31,4 @@ Zdroj pravdy je `addons/custom/investra_chart_fund/data/template/account.account
 
 ## K doplnění
 
-Rozlišení nástrojů pro výkazy (cenné papíry, účasti, úvěry, deriváty), podrozvaha, opravné položky, rezervy, časové rozlišení, neinvestiční část SICAV.
+Přečíslování podle osnovy pro finanční instituce (vyhláška 501, otevřený bod 2026-11-11). Rozlišení nástrojů pro výkazy (cenné papíry, účasti, úvěry, deriváty), podrozvaha, opravné položky, rezervy, časové rozlišení, neinvestiční část SICAV.
