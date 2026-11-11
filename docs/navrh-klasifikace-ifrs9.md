@@ -191,3 +191,51 @@ v `investra_test` jen se souhlasem uživatele.
 4. Pozice v ocenění se páruje s hlavní knihou přes portfolio zařazení (ne přes konkrétní verzi zařazení), aby vydržela budoucí reklasifikaci.
 5. Staré sloupce `ifrs9_category`, `valuation_method`, `role_id` v tabulce `investra_instrument` Odoo nemaže; nečíst je.
 6. Obchod fondu s více obchodními modely bez vybraného portfolia systém odmítne; s jediným portfoliem se doplní samo.
+
+## Dodatek 2026-11-11: jen kombinace přípustné podle IFRS 9 (ke schválení)
+
+Stav: plán, nic není naprogramované. Podnět: uživatel v UI vybral u akcie SPPI „Splněn“, určení 4.1.5 a naběhlou hodnotu.
+Uživatel 11. 11. schválil směr (kategorie se počítá, model „Ostatní“ rozdělit, účasti jen FVTPL); podrobný plán níže ke schválení.
+
+**Rozhodovací strom (citace neověřené, viz Ověření):**
+1. Derivát → FVTPL.
+2. Akcie a ostatní podíl → FVTPL; FVOCI jen volbou 5.7.5, a ne u nástroje drženého k obchodování.
+3. Podílový list fondu (puttable podle IAS 32 16A–16D) → FVTPL, bez volby 5.7.5 a bez SPPI.
+4. Účast → FVTPL (fondy účasti standardně nemají; IFRS 10.31 dceřiné podniky investiční jednotky povinně,
+   IAS 28.18 přidružené podniky volbou). Konsolidace ani ekvivalence se v systému neřeší.
+5. Dluh (dluhopis, úvěr, vklad, repo): model Držet pro inkaso / Inkaso i prodej + SPPI splněn → naběhlá hodnota / FVOCI;
+   SPPI nesplněn nebo jiný model → FVTPL; určení 4.1.5 jen u dluhu se splněným SPPI v modelu Držet pro inkaso nebo Inkaso i prodej.
+
+**Mezery dnešního stavu:** (1) dluh se splněným SPPI v modelu Držet pro inkaso jde uložit jako FVTPL bez určení;
+(2) podílový list fondu dovolí volbu FVOCI; (3) volba FVOCI jde i u portfolia k obchodování (model Ostatní to nerozlišuje);
+(4) určení 4.1.5 jde i tam, kde je nástroj ve FVTPL sám; (5) formulář nabízí SPPI, určení i kategorii volně;
+(6) účast dovolí volbu FVOCI.
+
+**Změny:**
+- Obchodní model „Ostatní“ se rozdělí na „Řízení na reálnou hodnotu“ (`fair_value`) a „Obchodování“ (`trading`).
+  Portfolio „Hlavní“ nového fondu i stávající portfolia `other` dostanou `fair_value`.
+- Kategorie IFRS 9 v zařazení je vypočtená a uložená (druh nástroje, model, SPPI, určení), ručně ji zadat nejde.
+- Kontroly: SPPI jen u dluhu, v modelech Držet pro inkaso a Inkaso i prodej povinně vyhodnocený; určení 4.1.5 jen u dluhu
+  se splněným SPPI v těchto modelech; volba 5.7.5 jen u akcie a ostatního podílu mimo model Obchodování.
+- Způsob ocenění: naběhlá hodnota se nastaví sama, jinak výběr z metod reálné hodnoty (jako dnes).
+- Formulář: SPPI jen u dluhu, určení jen u dluhu, akcie a ostatního podílu; kategorie jen ke čtení.
+- Migrace `investra_instruments` 20.0.0.5.0: `other` → `fair_value`; přepočet kategorie stávajících zařazení
+  a porovnání s uloženou – při rozdílu se aktualizace zastaví (nic se tiše nemění). Stávající data v `investra_test`
+  rozdíl mít nemají (6 × FVTPL v modelu Ostatní, 1 × vklad v naběhlé hodnotě se splněným SPPI). Skript 20.0.0.4.0
+  se upraví, aby zakládal `fair_value`.
+- Testy: každá mezera (1)–(6) vlastním testem; stávající testy s modelem `other` a se zadanou kategorií upravit.
+- Dokumentace: deník, Claude Doc, export architektury, `docs/sql/11-klasifikace.sql` beze změny struktury.
+
+**Ověření v IFRS (přijaté EU, nařízení (EU) 2023/1803) – potvrdí uživatel:**
+- IFRS 9 4.1.2 a 4.1.2A: naběhlá hodnota a FVOCI jsou u dluhu se splněným SPPI v daném modelu povinné (ne volba),
+  FVTPL jen určením 4.1.5.
+- IFRS 9 4.1.5: určení jen při prvotním zachycení a jen k odstranění nebo významnému snížení účetního nesouladu.
+- IFRS 9 5.7.5 a definice „držený k obchodování“ (příloha A): volba FVOCI je vyloučená u nástrojů k obchodování
+  a u podmíněného protiplnění podle IFRS 3; volí se po jednotlivých investicích.
+- IAS 32 (odst. 96C nebo obdobný) a závěr IFRIC 2017 k puttable nástrojům: podílový list fondu není pro volbu 5.7.5
+  kapitálovým nástrojem a nesplní SPPI.
+- IFRS 10.31 a IAS 28.18: dceřiné podniky investiční jednotky povinně FVTPL; přidružené podniky fondů FVTPL volbou.
+- Novela IFRS 9/IFRS 7 (květen 2024, účinnost 1. 1. 2026): změna testu SPPI; převzetí do práva EU a číslo nařízení.
+
+**Zóna:** červená (klasifikace, migrace), provede Claude po schválení; aktualizace modulů v `investra_test` se souhlasem.
+Rozpracovaná verze modelu je mimo repozitář; do schválení se kód nemění.
