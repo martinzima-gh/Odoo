@@ -1,7 +1,7 @@
 # Jednotná osnova fondů (pracovní návrh)
 
-Stav 2026-11-07. Rámec: vyhláška č. 501/2002 Sb., případně IFRS podle knihy. Čísla účtů jsou **pracovní** a nemají oporu v předpisu;
-prototyp je používá, aby šlo testovat. Pravidla pracují s rolemi, takže změna čísla nemění výpočty.
+Stav 2026-11-11. Rámec: vyhláška č. 501/2002 Sb., případně IFRS podle knihy. Čísla účtů jsou od 2026-11-11 podle skupin
+směrné účtové osnovy (příloha č. 4), viz převodová tabulka níže. Pravidla pracují s rolemi, takže změna čísla nemění výpočty.
 Vazbu na položky účetní závěrky a na výkazy ČNB je potřeba ověřit proti aktuálnímu znění vyhlášky, před zápisem do šablony.
 
 ## Zásady
@@ -43,8 +43,8 @@ Pozor na posun tříd: dosud 5 = náklady a 6 = výnosy, nově **6 = náklady, 7
 | 254000 | Reverzní repo | 134000 | repo | 13 | protistrana banka nebo centrální banka (sektor ESA S.121, S.122) | uživatel 2026-11-11 |
 | – | (nový) Reverzní repo s nebankovní protistranou | 212000 | repo_client (nová) | 21 a 24 | ostatní sektory ESA | uživatel 2026-11-11 |
 | 255000 | Poskytnuté úvěry | 211000 | loan_given | 21 a 24 Poskytnuté úvěry a jiné pohl. | | |
-| 256000 | Účasti | 411000 | participation | 41 Dlouhodobé finanční investice | dělení rolí: krok 2 plánu | |
-| – | (nový) Účasti oceňované RH do výsledku | 384000 | participation_fv (nová) | 38 | podle deníku 2026-11-11 | |
+| 256000 | Účasti → Účasti oceňované reálnou hodnotou do výsledku | 384000 | participation_fv (nová) | 38 | účet ifa_256000 i se zůstatkem zůstává účastem v RH (všechny účasti jsou dnes FVTPL), takže se nic nepřeúčtovává | uživatel 2026-11-11 |
+| – | (nový) Účasti | 411000 | participation | 41 Dlouhodobé finanční investice | nový účet ifa_411000 | uživatel 2026-11-11 |
 | 257000 | Deriváty | 312000 | derivative | 31 Pevné termínové operace | opce do 39, nová role až s deriváty (odloženo) | |
 | 258000 | Ostatní podíly | 385000 | other_holding | 38 | | |
 | 378100 | Pohledávky z nevypořádaných obchodů | 371000 | unsettled_receivable | 37 Pohl. a záv. z obchodování s CP | | |
@@ -82,6 +82,15 @@ Pozor na posun tříd: dosud 5 = náklady a 6 = výnosy, nově **6 = náklady, 7
 | 548100 | Rozdíly ze zaokrouhlení – náklad | 661100 | rounding_loss | 66 | | |
 | 591000 | Daň z příjmů (náklad) | 681000 | expense_tax | 68 Daň z příjmů | | |
 
+Účty, které zakládá Odoo mimo šablonu (přečísluje je migrace; nové knihy je dostanou ze šablony):
+
+| Původní účet | Původní název | Nový účet | Skupina 501 | Poznámka |
+|---|---|---|---|---|
+| 2211xx | Bank, Outstanding Receipts, Outstanding Payments | 1311xx | 13 | prefix bankovních účtů |
+| 2611xx | Funds in Transit | 3221xx | 32 | prefix převodů |
+| 999001 / 999002 | Cash Difference Gain / Loss | 761901 / 661901 | 76 / 66 | třída 9 je podle přílohy č. 4 podrozvaha |
+| 999997 / 999998 | Cash Discount Gain / Loss | 761902 / 661902 | 76 / 66 | totéž |
+
 Poznámka ke skupině 59: příloha ji nazývá „Hospodářský výsledek ve schvalovacím řízení“. V Odoo je to účet nerozděleného
 výsledku (`equity_unaffected`): nikdo na něj neúčtuje, rozvaha na něm ukazuje výsledek minulých let, který ještě nikdo nerozdělil, a výsledek běžného roku
 dopočítá. Výsledek běžného roku se v Odoo nezavírá přes závěrkové účty (58), proto je 59 věcně nejbližší. Rozhodnutí z deníku platí.
@@ -95,7 +104,7 @@ Mimo rozsah tohoto kroku (k doplnění): podrozvaha (91–99, hlavně 98 hodnoty
 2. Reverzní repo se dělí podle protistrany: banka nebo centrální banka (sektor ESA S.121, S.122) → 134000, ostatní → 212000.
 3. Závazky z úpisu, odkupu a rozdílů vůči investorům ve 37.
 
-## Plán přečíslování a migrace knih (návrh, červená zóna – čeká na schválení)
+## Plán přečíslování a migrace knih (schválen a proveden 2026-11-11)
 
 Účetní dopad: žádný doklad se nemění ani neúčtuje. Řádky dokladů odkazují na účet přes id, takže se změní jen
 číslo, pod kterým se zobrazují. Výkazy ČNB jsou mapované přes role (`investra.cnb.map`), přečíslování je nezasáhne.
@@ -123,3 +132,22 @@ Mimo rozsah tohoto kroku (k doplnění): podrozvaha (91–99, hlavně 98 hodnoty
    (`investra_nav` tam není nainstalovaný, fondové knihy ověřit dotazem).
 
 Volitelně (samostatný plán): otisk ocenění převést z čísla účtu na roli. Pojistka pak nebude potřeba.
+
+### Provedení 2026-11-11
+
+- Moduly: `investra_entity` 20.0.0.3.0 (role `repo_client`, `participation_fv`), `investra_chart_fund` 20.0.0.3.0 (šablona,
+  migrace), `investra_instruments` 20.0.0.8.0 (návrh role podle kategorie), `investra_counterparty` 20.0.0.2.0 (repo podle
+  sektoru), `investra_cnb` 20.0.0.3.0, `investra_nav` (kontrola „Zařazení pozic odpovídá návrhu“, upozornění).
+- Odchylky od plánu: (1) účasti obráceně, než uváděla první verze tabulky: stávající účet `ifa_256000` nese účasti v RH (384000)
+  a pro roli účastí ve 41 je nový účet, aby se zůstatky nepřesouvaly; (2) navíc přečíslovány pomocné účty Odoo 999xxx
+  (třída 9 je podrozvaha) a šablona je nastaví sama; (3) kontrola ocenění ukazuje každou odchylku zařazení od návrhu
+  (role i způsob ocenění), ne jen repo; (4) mapování ČNB nových rolí je stejné jako u původních rolí (repo řádek 11 / RIS30 9,
+  účasti řádek 14 / RIS30 10). Zda účasti v RH nepatří na ROFO10_11 řádek 6 nebo 7, potvrdí metodik.
+- Ověření na kopii `investra_test`: předvaha podle id účtu shodná (37 řádků, MD, D, zůstatek, částka v měně); 51 účtů v každé
+  z 5 knih přečíslováno, přibyly 212000 a 411000; všechny role mapované na účet i do ČNB; NAV pěti přepočtených ocenění
+  shodné se základem bez migrace (porovnáno se starým kódem); testy 432 / 0 chyb ve 13 modulech; referenční scénáře 55 OK.
+- `investra_test`: 5 ocenění Ke schválení vráceno s důvodem „Přečíslování osnovy podle vyhlášky 501“ (rozhodl uživatel),
+  záloha `zalohy/investra_test-2026-11-11-pred-osnovou-501.dump`, aktualizace modulů, předvaha shodná, web 8071 restartován.
+- Zjištěno mimo migraci: ukázkový dluhopis má v zařazení roli `instrument` místo `instrument_debt` z typu (nová kontrola
+  ho ukazuje); ocenění fondu Beta k 2026-10-31 nejde přepočítat pro chybějící schválenou cenu dluhopisu (stav ukázkových dat);
+  fond Ukázkový k 2027-02-28 dává po přepočtu cenu CZK 1,0021 místo dřívějších 1,0020 i se starým kódem (posun dat od 8. 11.).

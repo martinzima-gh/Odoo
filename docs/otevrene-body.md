@@ -27,7 +27,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Příplatek mimo základní kapitál | Zda se počítá do CET1 a na který řádek DOFOS60 patří; ovlivňuje vykázaný kapitál | Potvrdit s auditorem nebo ČNB |
 | Podrobnosti dividend | Účet pro výplatu, dopad na kurz k rozhodnému dni | Upřesnit |
 | Zdroje cen | Jaká aktiva fondy drží, frekvence posudků | Upřesnit |
-| Osnova fondů podle vyhlášky 501 | Šablona `investra_fund` je pracovní návrh s čísly podle logiky osnovy pro podnikatele (vyhláška 500); fondy účtují podle vyhlášky 501/2002 Sb. a osnovy pro finanční instituce. Výpočty pracují s rolemi, přečíslování je nezmění | Ověřit zdroj a aktuální znění osnovy pro finanční instituce (vyhláška 501 a související opatření MF), navrhnout převod rolí na nová čísla a vazbu na výkazy; provést převodem v šabloně a migrací knih před prvním ostrým fondem. Upozornil uživatel 11. 11. 2026 |
+| Účasti v reálné hodnotě ve výkazu ČNB | Po přečíslování podle vyhlášky 501 (2026-11-11) má účast v RH vlastní roli `participation_fv`; do ROFO10_11 jde zatím na řádek 14 jako dosud, IFRS 9 a metodika ale mohou chtít řádek 6 nebo 7 (finanční aktiva v RH do výsledku) | Potvrdí účetní metodik; současně ověřit závaznost tříd a skupin směrné osnovy (§ 66 vyhlášky 501 doslovně neověřen) |
 | Možnosti IS | Závěrka, identifikátory, příjem číselníku a kurzu, dividendy, API | Získat dokumentaci |
 | Aktualizace předpisů | Funkční měna EUR, schvalování, střediska SICAV v předpisu 12 | Projít později, nyní neměnit |
 | Start Investra Services | Současné účetnictví, termín přechodu, plátcovství DPH, hosting, formát importu mezd | Upřesnit |

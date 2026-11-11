@@ -7,6 +7,7 @@ from odoo.tests import TransactionCase, tagged
 from odoo.tools import mute_logger
 
 from odoo.addons.investra_counterparty.models.counterparty import lei_is_valid
+from odoo.addons.investra_instruments.tests.test_instrument import InstrumentCase
 
 
 @tagged("post_install", "-at_install")
@@ -65,3 +66,28 @@ class TestCounterparty(TransactionCase):
             "type_id": self.env.ref("investra_instruments.type_bond").id,
         })
         self.assertFalse(instrument._issuer_profile(date(2026, 2, 1)))
+
+
+@tagged("post_install", "-at_install")
+class TestRepoRole(InstrumentCase):
+    """Reverzní repo podle sektoru protistrany: banka skupina 13, ostatní skupina 21 (rozhodnutí 2026-11-11)."""
+
+    def repo(self, sector_code):
+        partner = self.env["res.partner"].create({"name": f"Protistrana {sector_code}"})
+        self.env["investra.counterparty.profile"].create({
+            "partner_id": partner.id, "valid_from": "2000-01-01", "country_id": self.env.ref("base.cz").id,
+            "sector_id": self.env["investra.esa.sector"].search([("code", "=", sector_code)]).id,
+        })
+        instrument = self.env["investra.instrument"].create({
+            "name": f"Repo {sector_code}", "currency_id": self.czk.id, "counterparty_id": partner.id,
+            "type_id": self.env.ref("investra_instruments.type_repo").id,
+        })
+        return self.classify(self.fund, instrument, "hold_to_collect")
+
+    def test_bank_counterparty_keeps_repo(self):
+        self.assertEqual(self.repo("1220000").role_id, self.env.ref("investra_entity.role_repo"))
+
+    def test_non_bank_counterparty_is_repo_client(self):
+        classification = self.repo("1100000")
+        self.assertEqual(classification.role_id, self.env.ref("investra_entity.role_repo_client"))
+        self.assertFalse(classification.deviates_from_proposal)

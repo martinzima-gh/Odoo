@@ -9,8 +9,12 @@ ROLE_ACCOUNTS = {
     "instrument_debt": "ifa_252000",
     "deposit": "ifa_253000",
     "repo": "ifa_254000",
+    "repo_client": "ifa_212000",
     "loan_given": "ifa_255000",
-    "participation": "ifa_256000",
+    # Účet ifa_256000 (dříve „Účasti“) nese účasti v reálné hodnotě do výsledku, aby se zůstatky při rozdělení role
+    # nepřesouvaly; účasti ve skupině 41 mají nový účet ifa_411000 (převodová tabulka v docs/osnova-fondu.md).
+    "participation": "ifa_411000",
+    "participation_fv": "ifa_256000",
     "derivative": "ifa_257000",
     "other_holding": "ifa_258000",
     "unsettled_receivable": "ifa_378100",
@@ -22,7 +26,8 @@ ROLE_ACCOUNTS = {
     "redemption_payable": "ifa_325200",
     "fee_payable": "ifa_325300",
     "performance_payable": "ifa_325400",
-    # Čísla 3255xx–3256xx, 668100, 548100 jsou pracovní jako celá šablona (osnova podle 501 je otevřený bod).
+    # Interní identifikátory ifa_* jsou původní pracovní čísla; skutečné kódy podle přílohy č. 4 vyhlášky 501/2002 Sb.
+    # jsou v CSV šablony (rozhodnutí 2026-11-11 „Osnova fondů – převodová tabulka“).
     "subscription_fee_payable": "ifa_325500",
     "investor_rounding_payable": "ifa_325600",
     "accrual": "ifa_389000",
@@ -52,16 +57,16 @@ class AccountChartTemplate(models.AbstractModel):
 
     @template("investra_fund")
     def _get_investra_fund_template_data(self):
-        return {"name": "Investra fond (pracovní návrh)", "country": "cz", "code_digits": "6"}
+        return {"name": "Investra fond (osnova podle vyhlášky 501)", "country": "cz", "code_digits": "6"}
 
     @template("investra_fund", "res.company")
     def _get_investra_fund_res_company(self):
         return {
             self.env.company.id: {
                 "account_fiscal_country_id": "base.cz",
-                "bank_account_code_prefix": "2211",
-                "cash_account_code_prefix": "2111",
-                "transfer_account_code_prefix": "2611",
+                "bank_account_code_prefix": "1311",
+                "cash_account_code_prefix": "1111",
+                "transfer_account_code_prefix": "3221",
                 "income_currency_exchange_account_id": "ifa_663000",
                 "expense_currency_exchange_account_id": "ifa_563000",
                 "account_journal_suspense_account_id": "ifa_261000",
@@ -69,5 +74,10 @@ class AccountChartTemplate(models.AbstractModel):
                 "payable_account_id": "ifa_321000",
                 "income_account_id": "ifa_668000",
                 "expense_account_id": "ifa_548000",
+                # Bez nich Odoo založí účty 999xxx, ale třída 9 je podle vyhlášky 501 podrozvaha.
+                "default_cash_difference_income_account_id": "ifa_761901",
+                "default_cash_difference_expense_account_id": "ifa_661901",
+                "account_journal_early_pay_discount_gain_account_id": "ifa_761902",
+                "account_journal_early_pay_discount_loss_account_id": "ifa_661902",
             },
         }

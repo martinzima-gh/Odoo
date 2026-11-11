@@ -1,7 +1,7 @@
 {
     "name": "Investra Chart Fund",
     "summary": "Pracovní návrh jednotné osnovy fondů a mapování rolí",
-    "version": "20.0.0.2.0",
+    "version": "20.0.0.3.0",
     "category": "Accounting/Localizations/Account Charts",
     "author": "Investra",
     "license": "LGPL-3",

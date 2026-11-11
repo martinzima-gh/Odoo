@@ -246,7 +246,7 @@ class InvestraPortfolioClassification(models.Model):
         return "eu_2025_1047" if start >= AMENDMENT_FROM else "pre_2025_1047"
 
     @api.model
-    def _proposal(self, instrument, portfolio, nature, sppi="na", designation="none", override=False):
+    def _proposal(self, instrument, portfolio, nature, sppi="na", designation="none", override=False, valid_from=None):
         """Návrh způsobu ocenění a role z typu; naběhlá hodnota jen u výsledné kategorie Naběhlá hodnota."""
         kind = instrument.type_id
         final = override or self._final(self._mandatory(nature, portfolio.business_model, sppi), designation)
@@ -257,7 +257,15 @@ class InvestraPortfolioClassification(models.Model):
             method = "model"
         else:
             method = kind.valuation_method
-        return {"valuation_method": method, "role_id": kind.role_id.id}
+        return {"valuation_method": method, "role_id": self._proposal_role(instrument, kind.role_id, final, valid_from).id}
+
+    @api.model
+    def _proposal_role(self, instrument, role, category, valid_from):
+        """Role podle osnovy vyhlášky 501: účast v reálné hodnotě do výsledku je ve skupině 38, ostatní účasti ve 41
+        (rozhodnutí 2026-11-11). Repo podle protistrany doplňuje modul protistran."""
+        if role == self.env.ref("investra_entity.role_participation") and category == "fvtpl":
+            return self.env.ref("investra_entity.role_participation_fv")
+        return role
 
     def _override_gate(self, funds, record=None):
         """Ruční kategorie podle matice: jeden člověk = zapíše se; čtyři oči = jen žádostí („Ruční kategorie…“)."""
@@ -313,7 +321,7 @@ class InvestraPortfolioClassification(models.Model):
             if instrument and portfolio:
                 proposal = self._proposal(
                     instrument, portfolio, vals["instrument_nature"], vals.get("sppi", "na"), vals.get("designation", "none"),
-                    vals.get("category_override"),
+                    vals.get("category_override"), vals.get("valid_from") or fields.Date.context_today(self),
                 )
                 for field, value in proposal.items():
                     vals.setdefault(field, value)
@@ -336,10 +344,12 @@ class InvestraPortfolioClassification(models.Model):
         if self.instrument_id and self.portfolio_id and self.instrument_nature:
             self.update(self._proposal(
                 self.instrument_id, self.portfolio_id, self.instrument_nature, self.sppi, self.designation, self.category_override,
+                self.valid_from,
             ))
 
     @api.depends(
         "instrument_id", "portfolio_id", "instrument_nature", "sppi", "designation", "category_override", "valuation_method", "role_id",
+        "valid_from",
     )
     def _compute_deviates(self):
         for record in self:
@@ -348,7 +358,7 @@ class InvestraPortfolioClassification(models.Model):
                 continue
             proposal = record._proposal(
                 record.instrument_id, record.portfolio_id, record.instrument_nature, record.sppi, record.designation,
-                record.category_override,
+                record.category_override, record.valid_from,
             )
             record.deviates_from_proposal = (
                 (record.valuation_method, record.role_id.id) != (proposal["valuation_method"], proposal["role_id"])

@@ -345,3 +345,16 @@ class TestTradeCompanyAccess(InstrumentCase):
         self.assertEqual(trade.state, "unsettled")
         trade.with_user(self.preparer).action_settle()
         self.assertEqual(trade.state, "settled")
+
+
+@tagged("post_install", "-at_install")
+class TestChartRoles(InstrumentCase):
+    def test_participation_at_fair_value_goes_to_group_38(self):
+        """Účast ve FVTPL má roli participation_fv (skupina 38), rozhodnutí 2026-11-11."""
+        participation = self.env["investra.instrument"].create({
+            "name": "Účast Y", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_participation").id,
+        })
+        classification = self.classify(self.fund, participation)
+        self.assertEqual(classification.ifrs9_category, "fvtpl")
+        self.assertEqual(classification.role_id, self.env.ref("investra_entity.role_participation_fv"))
+        self.assertFalse(classification.deviates_from_proposal)
