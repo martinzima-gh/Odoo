@@ -91,6 +91,24 @@ class TestRate(TransactionCase):
         self.assertAlmostEqual(self.czk._convert(24300, self.eur, ecb_book, day), 1000.0, places=2)
         self.assertEqual(self.eur._convert(1000, self.czk, cnb_book, day), 24345.0)
 
+    def test_ecb_book_mixes_cnb_rate_for_currency_outside_ecb(self):
+        """Riziko 4 plánu ochrany kurzů (otevřený bod „Kniha se zdrojem ECB a měna mimo ECB“): POTVRZENO 2026-11-11.
+
+        Charakterizační test: zachycuje dnešní chybné chování. JPY je ve vzorku jen u ČNB (ve skutečnosti
+        např. XDR nebo měsíční kurzy ČNB). Kniha ECB má EUR = 1 jako kurz knihy, pro JPY kurz knihy nemá,
+        a Odoo (res.currency._get_rates) proto vezme společný kurz ČNB se základem CZK. 1000 JPY se tak
+        přepočte na 151,23 „EUR“, což je částka v CZK. Po schválené opravě se test obrátí na očekávané chování.
+        """
+        ecb_book = self.env["investra.entity"].create_book("ECB JPY", "fund", "cas501", self.eur, "cz").company_id
+        self.stored._publish()
+        self.Rate._store("ecb", *parse_ecb(ECB), ECB)._publish()
+        day = date(2026, 11, 6)
+        mixed_czk = 1000 * 15.123 / 100  # CZK za 1000 JPY podle ČNB
+        converted = self.jpy._convert(1000, self.eur, ecb_book, day, round=False)
+        self.assertAlmostEqual(converted, mixed_czk, places=6)
+        # Kontrola: měna, kterou ECB vyhlašuje, se přepočte správně (1,1 USD = 1 EUR).
+        self.assertAlmostEqual(self.env.ref("base.USD")._convert(1100, self.eur, ecb_book, day, round=False), 1000.0, places=6)
+
     def test_ecb_rate_is_inverse_of_cnb_quotation(self):
         ecb = self.Rate._store("ecb", *parse_ecb(ECB), ECB)
         self.assertEqual(self.Rate.get_rate("ecb", self.czk, date(2026, 11, 6)), 1 / Decimal("24.3"))
