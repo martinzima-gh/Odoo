@@ -1,6 +1,6 @@
 # Návrh: úpisy a odkupy – zdroj, zaokrouhlení, poplatek, historie (bod 8 UX)
 
-Stav: **odpovědi zapracované, čeká na potvrzení vrstvy 2 zámku (G)**. Zóna: zdroj a historie oranžová;
+Stav: **schváleno uživatelem 11. 11. 2026** (včetně G). Pořadí provedení: F, G, pak A–E. Zóna: zdroj a historie oranžová;
 zaokrouhlení, poplatek, zaúčtování a zámek ocenění červená (účtování, NAV). Navazuje na rozhodnutí „Kurz úpisu
 v průběhu období“ (2026-11-04), „Cesta úpisů“ (2026-11-09) a „Detail účetních událostí“ (2026-11-11).
 
@@ -113,5 +113,5 @@ Souhlas s doporučením: B–E (nyní B–F) najednou, A jako první samostatný
 
 ## Ověřit u uživatele
 
-- G: zveřejnění nastaví vratný zámek pro všechny s výjimkou jako pojistkou; nevratný tvrdý zámek až po auditu
-  účetní závěrky. Souhlas?
+- G: souhlas 11. 11. 2026 – zveřejnění nastaví vratný zámek pro všechny s výjimkou jako pojistkou; nevratný tvrdý zámek až po auditu
+  účetní závěrky.
