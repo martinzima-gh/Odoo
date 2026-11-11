@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 282. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 283. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -132,6 +132,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Stahování kurzů ve vývojové instanci | Plánovaná úloha stahování kurzů je ve vývojové databázi zapnutá, chybějící kurzy ČNB z 9. 11. doplněny. V datech modulu zůstává vypnutá a zapíná se při nasazení. | 2026-11-10, schválil uživatel. Kurzy Odoo a evidence kurzů ČNB se po doplnění shodují. |
 | Vrácení a storno ocenění | Schvalovatel může s povinným důvodem vrátit ocenění před zaúčtováním (návrhy zaniknou bez storna), vrátit ho za depozitáře a nově stornovat zaúčtované nebo depozitářem potvrzené ocenění (storno dokladů k datu ocenění). Vždy vznikne nová verze v návrhu, stará zůstane s důvodem. Storno se odmítne, když na ocenění navazuje pozdější ocenění. Zveřejněné ocenění se nevrací. | 2026-11-10, schválil uživatel. Oprava po zveřejnění se řeší dalším oceněním nebo podle statutu, ne návratem v systému (období je nevratně uzamčené). |
 | Zámek příloh ocenění | Přílohy ocenění (balíček pro depozitáře, soubory ručně doložených úplat) a řádky ručně doložených úplat po odeslání ke schválení nejde změnit ani smazat. Nový balíček vznikne jako nová příloha; uložený otisk upozorní, kdyby soubor neodpovídal. | 2026-11-10, nález a schválení uživatele: u zveřejněného ocenění šlo balíček přepsat jiným souborem, protože Odoo řídí práva k příloze jen podle práva zápisu do ocenění, ne podle jeho stavu. |
+| Předávka mezi relacemi | Na konci úkolu, na pokyn „předávka“ nebo u dlouhé konverzace vzniká krátký předávací protokol v adresáři předávek repozitáře (nejvýš 40 řádků, bez důvěrných dat) a odpověď končí promptem pro novou relaci. Nová relace čte jen soubory z předávky. | 2026-11-11, rozhodl uživatel: úspora kreditů – krátké relace s předávkou místo dlouhých konverzací. Pravidlo je v pravidlech projektu (CLAUDE.md). |
 
 ## Hranice systémů a vlastnictví dat
 

@@ -101,6 +101,17 @@ Neupravovat zdrojový kód Odoo core ani Odoo Mates. Funkce řešit vlastním ad
   Do `main` ani do kódu nezasahuje. Nálezy pak zapracujeme a uzavřené přeneseme do deníku rozhodnutí.
 - Kontrola na vyžádání lokálně: „Proveď kontrolu projektu podle docs/kontrola-zadani.md.“
 
+### Předávka mezi relacemi
+
+- Na konci každého úkolu, a také když uživatel napíše „předávka“ nebo když je konverzace dlouhá,
+  vytvoř krátký předávací protokol.
+- Ulož ho do `docs/predavky/RRRR-MM-DD-tema.md` (nejvýš 40 řádků, bez důvěrných dat) a commitni do pracovní větve.
+- Obsah: cíl; stav (větev, poslední commit); co je hotové; co zbývá s prvním konkrétním krokem; přijatá rozhodnutí;
+  otevřené otázky; soubory, které má nová relace přečíst (nejvýš 5).
+- Na konec odpovědi vypiš hotový prompt pro novou relaci (3–5 řádků):
+  „Přečti CLAUDE.md a docs/predavky/…; pokračuj krokem …“.
+- Nová relace čte jen soubory z předávky a nic dalšího neprochází celé.
+
 ## Zdroje
 
 - Metodika výkazů ČNB: https://sdat.cnb.cz/sdat_ext/ → Metodické informace → Výkazy, rámec „Fondy“
