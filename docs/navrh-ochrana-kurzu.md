@@ -189,4 +189,20 @@ stáří z tabulky (stávající očekávané hodnoty beze změny).
 sloupce v databázi Odoo nemaže, nečíst je). Aktualizace v `investra_test` se souhlasem, v `investra_dev` zvlášť se souhlasem.
 
 **Rozhodnuto 11. 11. 2026:** stáří kurzu na fondu a profilu přecenění se odstraní, jediné místo nastavení je tabulka
-Platnost kurzů. Celý plán rizika 4 (body 1–2 návrhu a toto upřesnění) čeká na schválení provedení.
+Platnost kurzů. Zámek a část B upřesnění zrušeny rozhodnutím níže.
+
+### Rozhodnutí 2026-11-11 (odpoledne): neohýbat standard Odoo, riziko 4 akceptováno
+
+Uživatel: „pokud je to standardní funkčnost Odoo, neohýbej“; kurzy ČNB zůstanou společné, riziko natažení kurzu
+ČNB do knihy ECB akceptuje; den navíc v `_get_rates` (bod 4) zůstává.
+
+- **Ruší se:** zámek v `_get_conversion_rate` (bod 1 návrhu), náhrada `_get_rates` pro knihy a skrytí společných kurzů
+  v zobrazení (Upřesnění, část B). Doklady, zobrazení a souhrny Odoo počítají standardně: kurz knihy, jinak společný;
+  bez kurzu 1,0; před prvním kurzem pozdější kurz.
+- **Zůstává:** ruční kurz s důvodem (bod 2, C) – v knize ECB jím uživatel doplní měnu, kterou ECB nevyhlašuje;
+  den navíc v `_get_rates` (kurz platí v den vyhlášení, § 24 odst. 6 zákona o účetnictví – znění neověřeno);
+  ukládání kurzů beze změny (ČNB společně, ECB do knih ECB).
+- **Zůstává k provedení:** tabulka Platnost kurzů (Upřesnění, část A) pro ocenění, přecenění FX a úpisy a odkupy,
+  a odstranění stáří kurzu z fondu a profilu přecenění. Pro doklady Odoo se nepoužije. Provedení čeká na schválení.
+- Charakterizační test `test_ecb_book_mixes_cnb_rate_for_currency_outside_ecb` zůstává jako doklad akceptovaného chování
+  (při upgradu Odoo upozorní na změnu).

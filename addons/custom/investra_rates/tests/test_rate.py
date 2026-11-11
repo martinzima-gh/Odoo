@@ -94,10 +94,11 @@ class TestRate(TransactionCase):
     def test_ecb_book_mixes_cnb_rate_for_currency_outside_ecb(self):
         """Riziko 4 plánu ochrany kurzů (otevřený bod „Kniha se zdrojem ECB a měna mimo ECB“): POTVRZENO 2026-11-11.
 
-        Charakterizační test: zachycuje dnešní chybné chování. JPY je ve vzorku jen u ČNB (ve skutečnosti
+        Charakterizační test: zachycuje akceptované standardní chování Odoo. JPY je ve vzorku jen u ČNB (ve skutečnosti
         např. XDR nebo měsíční kurzy ČNB). Kniha ECB má EUR = 1 jako kurz knihy, pro JPY kurz knihy nemá,
         a Odoo (res.currency._get_rates) proto vezme společný kurz ČNB se základem CZK. 1000 JPY se tak
-        přepočte na 151,23 „EUR“, což je částka v CZK. Po schválené opravě se test obrátí na očekávané chování.
+        přepočte na 151,23 „EUR“, což je částka v CZK. Riziko uživatel akceptoval (deník 2026-11-11 „Riziko 4
+        akceptováno, standard Odoo“); test hlídá, že se standardní chování Odoo nezměnilo (např. při upgradu).
         """
         ecb_book = self.env["investra.entity"].create_book("ECB JPY", "fund", "cas501", self.eur, "cz").company_id
         self.stored._publish()
