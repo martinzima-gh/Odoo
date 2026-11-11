@@ -1,1 +1,1 @@
-from . import test_scenarios, test_workflow, test_fees, test_accrual, test_trade_recognition, test_class_currency, test_company_access, test_benchmark, test_bridge, test_return, test_attachment_lock, test_manual_rate, test_shared_price
+from . import test_scenarios, test_workflow, test_fees, test_accrual, test_trade_recognition, test_class_currency, test_company_access, test_benchmark, test_bridge, test_return, test_attachment_lock, test_manual_rate, test_shared_price, test_valuation_lock
