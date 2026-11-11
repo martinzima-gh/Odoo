@@ -24,7 +24,7 @@ class TestAccrual(NavCase):
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
         })
         # Vklad a repo v modelu Držet pro inkaso (naběhlá hodnota), dluhopis v portfoliu Hlavní (FVTPL).
-        self.classify(self.fund, instrument, "hold_to_collect" if code in ("deposit", "repo") else "other")
+        self.classify(self.fund, instrument, "hold_to_collect" if code in ("deposit", "repo") else "fair_value")
         return instrument
 
     def held_in(self, instrument):
@@ -183,3 +183,26 @@ class TestAccrual(NavCase):
         self.assertEqual(self.balance("income_interest"), Decimal("-24.47"))
         self.assertEqual(self.balance("gain_fair_value"), -30)
         self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "positions_ledger").status, "ok")
+
+    def test_manual_override_warns_in_valuation(self):
+        """Ruční přepsání kategorie se ukáže v kontrolách ocenění jako upozornění."""
+        self.purchase.unlink()
+        self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 2000, 20)
+        bond = self.env["investra.instrument"].create({
+            "name": f"Přepsaný {self.fund.id}", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_bond").id,
+        })
+        self.classify(self.fund, bond, category_override="fvoci", override_note="Test přepsání")
+        self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": bond.id,
+            "trade_date": "2029-01-01", "quantity": 1, "price": 500,
+        })._book()
+        day = date(2029, 1, 31)
+        price = self.env["investra.instrument.price"].with_user(self.preparer).create({
+            "fund_id": self.fund.id, "instrument_id": bond.id, "date": day, "price": 500, "source": "Test",
+        })
+        price.with_user(self.approver).action_approve()
+        valuation = self.valuation(self.fund, day)
+        valuation.with_user(self.preparer).action_compute()
+        check = valuation.check_ids.filtered(lambda c: c.code == "classification_override")
+        self.assertEqual(check.status, "warning")
+        self.assertIn("Přepsaný", check.detail)

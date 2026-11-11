@@ -43,18 +43,20 @@ class NavCase(TransactionCase):
             })
         return fund
 
-    def portfolio(self, fund, model="other"):
+    def portfolio(self, fund, model="fair_value"):
         """Portfolio fondu s obchodním modelem; „Hlavní“ (Ostatní) vzniká s fondem, ostatní se založí."""
         found = fund.portfolio_ids.filtered(lambda p: p.business_model == model)[:1]
         if found:
             return found
-        names = {"hold_to_collect": "Držet pro inkaso", "hold_collect_sell": "Inkaso i prodej", "other": "Ostatní"}
+        names = {"hold_to_collect": "Držet pro inkaso", "hold_collect_sell": "Inkaso i prodej", "fair_value": "Reálná hodnota",
+                 "trading": "Obchodování"}
         return self.env["investra.fund.portfolio"].create({"fund_id": fund.id, "name": names[model], "business_model": model})
 
-    def classify(self, fund, instrument, model="other", day="2000-01-01", **vals):
-        """Zařazení nástroje v obchodním modelu fondu; kategorii a ostatní navrhne systém, není-li zadaná."""
-        if model != "other" and instrument.type_id.kind in ("bond", "loan", "deposit", "repo"):
+    def classify(self, fund, instrument, model="fair_value", day="2000-01-01", **vals):
+        """Zařazení nástroje v obchodním modelu fondu; kategorie se vypočte, ocenění a roli navrhne systém."""
+        if model in ("hold_to_collect", "hold_collect_sell") and instrument.type_id.kind in ("bond", "loan", "deposit", "repo"):
             vals.setdefault("sppi", "pass")
+            vals.setdefault("sppi_note", "Test: pevný úrok a jistina")
         return self.env["investra.portfolio.classification"].create({
             "portfolio_id": self.portfolio(fund, model).id, "instrument_id": instrument.id, "valid_from": day, **vals,
         })

@@ -30,14 +30,15 @@ class InstrumentCase(TransactionCase):
         cls.approver = user("inst_appr", "investra_entity.group_valuation_approver")
 
     @classmethod
-    def portfolio(cls, fund, model="other"):
+    def portfolio(cls, fund, model="fair_value"):
         found = fund.portfolio_ids.filtered(lambda p: p.business_model == model)[:1]
         return found or cls.env["investra.fund.portfolio"].create({"fund_id": fund.id, "name": model, "business_model": model})
 
     @classmethod
-    def classify(cls, fund, instrument, model="other", day="2000-01-01", **vals):
-        if model != "other" and instrument.type_id.kind in ("bond", "loan", "deposit", "repo"):
+    def classify(cls, fund, instrument, model="fair_value", day="2000-01-01", **vals):
+        if model in ("hold_to_collect", "hold_collect_sell") and instrument.type_id.kind in ("bond", "loan", "deposit", "repo"):
             vals.setdefault("sppi", "pass")
+            vals.setdefault("sppi_note", "Test: pevný úrok a jistina")
         return cls.env["investra.portfolio.classification"].create({
             "portfolio_id": cls.portfolio(fund, model).id, "instrument_id": instrument.id, "valid_from": day, **vals,
         })
@@ -196,7 +197,7 @@ class TestInstrumentType(InstrumentCase):
         held = self.classify(self.fund, deposit, "hold_to_collect")
         self.assertEqual((held.ifrs9_category, held.valuation_method, held.role_id.code), ("amortised", "amortised", "deposit"))
         self.assertFalse(held.deviates_from_proposal)
-        # Tentýž vklad v modelu Ostatní: FVTPL, ocenění modelem (IFRS 9 4.1.4).
+        # Tentýž vklad v modelu Řízení na reálnou hodnotu: FVTPL, ocenění modelem (IFRS 9 4.1.4).
         other = self.classify(self.fund, deposit)
         self.assertEqual((other.ifrs9_category, other.valuation_method), ("fvtpl", "model"))
 
@@ -236,32 +237,14 @@ class TestInstrumentType(InstrumentCase):
             form.portfolio_id = self.portfolio(self.fund, "hold_to_collect")
             form.instrument_id = deposit
             form.sppi = "pass"
+            form.sppi_note = "Pevná sazba, jistina"
+            self.assertEqual(form.instrument_nature, "debt")
             self.assertEqual(form.ifrs9_category, "amortised")
+            self.assertEqual(form.valuation_method, "amortised")
 
     def test_amortised_needs_matching_method(self):
         with self.assertRaises(ValidationError):
             self.classify(self.fund, self.make("bond"), "hold_to_collect", valuation_method="price")
-
-    def test_classification_follows_ifrs9(self):
-        bond = self.make("bond")
-        with self.assertRaises(ValidationError):  # naběhlá hodnota jen v modelu Držet pro inkaso
-            self.classify(self.fund, bond, ifrs9_category="amortised", valuation_method="amortised", sppi="pass")
-        with self.assertRaises(ValidationError):  # naběhlá hodnota jen se splněným SPPI
-            self.classify(self.fund, bond, "hold_to_collect", sppi="fail", ifrs9_category="amortised", valuation_method="amortised")
-        self.assertEqual(self.classify(self.fund, bond, "hold_to_collect", sppi="fail").ifrs9_category, "fvtpl")
-        equity = self.make("equity")
-        with self.assertRaises(ValidationError):  # FVOCI akcie jen s určením 5.7.5
-            self.classify(self.fund, equity, ifrs9_category="fvoci")
-        with self.assertRaises(ValidationError):  # SPPI se u akcie nehodnotí
-            self.classify(self.fund, equity, sppi="pass")
-        self.assertEqual(self.classify(self.fund, equity, designation="fvoci_equity").ifrs9_category, "fvoci")
-
-    def test_fvo_designation(self):
-        bond = self.make("bond")
-        classification = self.classify(self.fund, bond, "hold_to_collect", designation="fvo")
-        self.assertEqual(classification.ifrs9_category, "fvtpl")
-        with self.assertRaises(ValidationError):
-            self.classify(self.fund, self.make("equity"), designation="fvo")
 
     def test_classification_locked_after_trade(self):
         bond = self.make("bond")

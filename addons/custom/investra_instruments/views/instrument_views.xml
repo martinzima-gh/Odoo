@@ -265,10 +265,13 @@
         <field name="name">investra.portfolio.classification.list</field><field name="model">investra.portfolio.classification</field>
         <field name="arch" type="xml">
             <list>
-                <field name="fund_id"/><field name="portfolio_id"/><field name="instrument_id"/><field name="valid_from"/>
-                <field name="valid_to" optional="hide"/><field name="sppi"/><field name="designation" optional="show"/>
-                <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/>
-                <field name="deviates_from_proposal" optional="show"/>
+                <field name="fund_id"/><field name="portfolio_id"/><field name="business_model" optional="show"/>
+                <field name="instrument_id"/><field name="instrument_nature" optional="show"/><field name="valid_from"/>
+                <field name="valid_to" optional="hide"/><field name="sppi" optional="show"/>
+                <field name="mandatory_category" optional="show"/><field name="designation" optional="show"/>
+                <field name="category_override" optional="show"/>
+                <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id" optional="show"/>
+                <field name="deviates_from_proposal" optional="hide"/>
             </list>
         </field>
     </record>
@@ -279,14 +282,45 @@
                 <sheet>
                     <group>
                         <group string="Pozice">
-                            <field name="portfolio_id" options="{'no_create': True}"/><field name="fund_id"/><field name="business_model"/>
+                            <field name="portfolio_id" options="{'no_create': True}"/><field name="fund_id"/>
                             <field name="instrument_id"/><field name="instrument_kind"/>
                             <field name="valid_from"/><field name="valid_to"/>
                         </group>
-                        <group string="Klasifikace IFRS 9">
-                            <field name="sppi"/><field name="designation"/>
-                            <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/>
-                            <field name="deviates_from_proposal"/><field name="note"/>
+                        <group string="(a) Povaha nástroje">
+                            <field name="instrument_nature"/>
+                            <field name="nature_note" placeholder="Posouzení podle IAS 32, je-li povaha jiná než podle druhu"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="(b) Test SPPI" invisible="instrument_nature not in ('debt', 'puttable')">
+                            <field name="sppi"/>
+                            <field name="sppi_version" invisible="sppi == 'na'" required="sppi != 'na'"/>
+                            <field name="sppi_note" invisible="sppi == 'na'" required="sppi != 'na'"/>
+                        </group>
+                        <group string="(c) Obchodní model">
+                            <field name="business_model"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="(d) Povinná klasifikace">
+                            <field name="mandatory_category"/>
+                        </group>
+                        <group string="(e) Určení / volba" invisible="instrument_nature not in ('debt', 'puttable', 'equity')">
+                            <field name="designation"/>
+                            <field name="designation_note" invisible="designation == 'none'" required="designation != 'none'"/>
+                        </group>
+                    </group>
+                    <group string="(f) Výsledek">
+                        <group>
+                            <field name="computed_category"/>
+                            <field name="category_override"/>
+                            <field name="override_note" invisible="not category_override" required="category_override"/>
+                            <field name="ifrs9_category"/>
+                            <field name="valuation_method" readonly="ifrs9_category == 'amortised'"/>
+                            <field name="role_id"/><field name="deviates_from_proposal"/><field name="note"/>
+                        </group>
+                        <group>
+                            <field name="classification_basis" nolabel="1" colspan="2"/>
                         </group>
                     </group>
                 </sheet>
@@ -326,9 +360,9 @@
                     </group>
                     <field name="classification_ids" context="{'default_portfolio_id': id}">
                         <list>
-                            <field name="instrument_id"/><field name="valid_from"/><field name="sppi"/><field name="designation"/>
+                            <field name="instrument_id"/><field name="instrument_nature"/><field name="valid_from"/><field name="sppi"/>
+                            <field name="mandatory_category"/><field name="designation"/>
                             <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id"/>
-                            <field name="deviates_from_proposal"/>
                         </list>
                     </field>
                 </sheet>
@@ -353,7 +387,7 @@
         <field name="name">Obchodní modely</field><field name="res_model">investra.fund.portfolio</field><field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Zatím tu není žádný obchodní model</p>
-            <p>Portfolio fondu s obchodním modelem podle IFRS 9. Nový fond dostane portfolio „Hlavní“ s modelem Ostatní (FVTPL).</p>
+            <p>Portfolio fondu s obchodním modelem podle IFRS 9. Nový fond dostane portfolio „Hlavní“ s modelem Řízení na reálnou hodnotu; model je potřeba posoudit a doložit.</p>
         </field>
     </record>
     <record id="action_classification" model="ir.actions.act_window">

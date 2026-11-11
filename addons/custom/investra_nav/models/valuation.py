@@ -861,6 +861,12 @@ class InvestraValuation(models.Model):
             ("fund_id", "=", self.fund_id.id), ("state", "=", "unsettled"), ("settlement_date", "<=", self.date),
         ])
         self._check("trades_settled", "Obchody po termínu vypořádání jsou vypořádané", not overdue, overdue, severity="warning")
+        # Ruční přepsání kategorie IFRS 9 je odchylka od rozhodovacího stromu; schvalovatel ji musí vidět (rozhodnutí 2026-11-11).
+        overridden = self.portfolio_line_ids.classification_id.filtered("category_override")
+        self._check(
+            "classification_override", "Pozice bez ručně přepsané kategorie IFRS 9", not overridden,
+            ", ".join(overridden.mapped("display_name")), severity="warning",
+        )
         transit = self._role_balance("cash_in_transit")
         self._check("transit_zero", "Peníze na cestě jsou nulové", transit == 0, transit, severity="warning")
         pending = self.env["account.move"].sudo().search_count([

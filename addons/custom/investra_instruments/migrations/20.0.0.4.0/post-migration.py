@@ -26,13 +26,13 @@ def migrate(cr, version):
         if key not in portfolios:
             found = Portfolio.search([("fund_id", "=", fund.id), ("business_model", "=", model)], limit=1)
             if not found:
-                name = {"other": "Hlavní", "hold_to_collect": "Držet pro inkaso", "hold_collect_sell": "Inkaso i prodej"}[model]
+                name = {"fair_value": "Hlavní", "hold_to_collect": "Držet pro inkaso", "hold_collect_sell": "Inkaso i prodej"}[model]
                 found = Portfolio.create({"fund_id": fund.id, "name": name, "business_model": model, "assessment": NOTE})
             portfolios[key] = found
         return portfolios[key]
 
     for fund in env["investra.fund"].search([]):
-        portfolio(fund, "other")
+        portfolio(fund, "fair_value")
 
     if not _column_exists(cr, "investra_instrument", "ifrs9_category"):
         return
@@ -45,7 +45,8 @@ def migrate(cr, version):
         fund = env["investra.fund"].browse(fund_id)
         instrument = env["investra.instrument"].browse(instrument_id)
         debt = instrument.type_id.kind in DEBT_KINDS
-        model = "other"
+        # Model „Ostatní“ byl 2026-11-11 rozdělen; stávající portfolia jsou Řízení na reálnou hodnotu (migrace 20.0.0.5.0).
+        model = "fair_value"
         if category == "amortised":
             model = "hold_to_collect"
         elif category == "fvoci" and debt:
@@ -53,13 +54,18 @@ def migrate(cr, version):
         target = portfolio(fund, model)
         classification = Classification.search([("portfolio_id", "=", target.id), ("instrument_id", "=", instrument.id)], limit=1)
         if not classification:
+            sppi = "pass" if debt and category in ("amortised", "fvoci") else "na"
+            designation = "fvoci_equity" if category == "fvoci" and not debt else "none"
+            # Kategorie se od verze 20.0.0.5.0 počítá; vstupy se volí tak, aby vyšla stejná jako na nástroji.
             classification = Classification.create({
                 "portfolio_id": target.id, "instrument_id": instrument.id, "valid_from": first_day,
-                "ifrs9_category": category, "valuation_method": method, "role_id": role_id,
-                "sppi": "pass" if debt and category in ("amortised", "fvoci") else "na",
-                "designation": "fvoci_equity" if category == "fvoci" and not debt else "none",
+                "valuation_method": method, "role_id": role_id, "sppi": sppi, "designation": designation,
+                "sppi_note": "Převzato migrací z dřívější klasifikace nástroje; potvrdit posouzení SPPI." if sppi != "na" else False,
+                "designation_note": "Převzato migrací z dřívější klasifikace nástroje; potvrdit." if designation != "none" else False,
                 "note": NOTE,
             })
+            if classification.ifrs9_category != category:
+                raise RuntimeError(f"Migrace: zařazení {classification.id} by změnilo kategorii {category} -> {classification.ifrs9_category}")
         cr.execute(
             "UPDATE investra_trade SET portfolio_id = %s WHERE fund_id = %s AND instrument_id = %s AND portfolio_id IS NULL",
             (target.id, fund.id, instrument.id),

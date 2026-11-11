@@ -10,9 +10,11 @@ JOIN investra_fund f ON f.id = p.fund_id
 JOIN res_company c ON c.id = f.company_id
 ORDER BY c.name, p.sequence, p.id;
 
--- 2. Zařazení nástrojů: kategorie, způsob ocenění a role s platností
-SELECT c.name AS fond, p.name AS portfolio, i.name AS nastroj, z.valid_from AS plati_od, z.valid_to AS plati_do,
-       z.sppi, z.designation AS urceni, z.ifrs9_category AS kategorie, z.valuation_method AS oceneni, r.code AS role_uctu
+-- 2. Zařazení nástrojů: (a) povaha, (b) SPPI, (c) model, (d) povinná klasifikace, (e) určení, (f) kategorie a ocenění
+SELECT c.name AS fond, p.name AS portfolio, p.business_model AS model, i.name AS nastroj, z.valid_from AS plati_od,
+       z.valid_to AS plati_do, z.instrument_nature AS povaha, z.sppi, z.sppi_version AS zneni_sppi,
+       z.mandatory_category AS povinna, z.designation AS urceni, z.ifrs9_category AS kategorie,
+       z.valuation_method AS oceneni, r.code AS role_uctu
 FROM investra_portfolio_classification z
 JOIN investra_fund_portfolio p ON p.id = z.portfolio_id
 JOIN investra_fund f ON f.id = p.fund_id
@@ -61,3 +63,10 @@ WHERE NOT EXISTS (
     WHERE z.portfolio_id = t.portfolio_id AND z.instrument_id = t.instrument_id
       AND z.valid_from <= t.trade_date AND (z.valid_to IS NULL OR z.valid_to >= t.trade_date)
 );
+
+-- 7. Zdůvodnění klasifikace (audit): kroky (a)–(f) s odkazy na odstavce a poznámkami účetní
+SELECT i.name AS nastroj, p.name AS portfolio, z.classification_basis AS zduvodneni
+FROM investra_portfolio_classification z
+JOIN investra_fund_portfolio p ON p.id = z.portfolio_id
+JOIN investra_instrument i ON i.id = z.instrument_id
+ORDER BY i.name, p.name;

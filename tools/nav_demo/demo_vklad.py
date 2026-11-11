@@ -50,6 +50,7 @@ deposit.action_generate_schedule()
 held = scoped["investra.fund.portfolio"].create({"fund_id": fund.id, "name": "Držet pro inkaso", "business_model": "hold_to_collect"})
 scoped["investra.portfolio.classification"].create({
     "portfolio_id": held.id, "instrument_id": deposit.id, "valid_from": "2026-09-15", "sppi": "pass",
+    "sppi_note": "Pevná sazba, jistina a úrok k splatnosti",
 })
 scoped["investra.trade"].create({
     "fund_id": fund.id, "portfolio_id": held.id, "instrument_id": deposit.id, "trade_date": "2026-09-15", "quantity": 1, "price": 5000000,

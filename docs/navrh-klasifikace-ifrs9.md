@@ -239,3 +239,48 @@ Uživatel 11. 11. schválil směr (kategorie se počítá, model „Ostatní“ 
 
 **Zóna:** červená (klasifikace, migrace), provede Claude po schválení; aktualizace modulů v `investra_test` se souhlasem.
 Rozpracovaná verze modelu je mimo repozitář; do schválení se kód nemění.
+
+### Odpovědi uživatele k dodatku (11. 11. 2026) a upřesněný návrh
+
+Uživatel ověřil body 1–5 vůči IFRS přijatým EU (ANO; u podílových listů nejdřív posoudit IAS 32 u emitenta,
+pak IFRS 9 a SPPI; výjimka IAS 32 pro puttable nástroje nezakládá volbu 5.7.5). Bod 6: novela „Amendments to the
+Classification and Measurement of Financial Instruments“ převzata nařízením Komise (EU) 2025/1047 z 27. 5. 2025
+(Úř. věst. L 28. 5. 2025), povinně od prvního účetního období začínajícího 1. 1. 2026 nebo později – ověřeno jen
+ze sekundárního zdroje (OIC, https://www.fondazioneoic.eu/regolamento-ue-2025-1047-della-commissione-del-27-maggio-2025-che-adotta-modifiche-a-ifrs-9-e-ifrs-7/?lang=en);
+EUR-Lex se nepodařilo načíst, dřívější použití neověřeno. Pokyn: pokračovat a v kódu oddělit (a)–(f) s doložitelným zdůvodněním.
+
+Zařazení (`investra.portfolio.classification`) ponese odděleně:
+- **(a) Povaha nástroje** `instrument_nature`: dluhový / kapitálový (IAS 32.11) / podílový list s právem odkupu nebo závazek
+  emitenta (IAS 32 16A–16D) / derivát / účast. Výchozí z druhu typu; změna jen s posouzením `nature_note`.
+- **(b) Test SPPI** `sppi` (splněn / nesplněn / nehodnotí se), `sppi_note` (povinné při hodnocení), `sppi_version`
+  (IFRS 9 před novelou / ve znění (EU) 2025/1047; pro období od 1. 1. 2026 jen novela). Hodnotí se u dluhových
+  nástrojů a podílových listů; v modelech Držet pro inkaso a Inkaso i prodej povinně.
+- **(c) Obchodní model** z portfolia (`business_model`, posouzení `assessment`); „Ostatní“ rozděleno na
+  Řízení na reálnou hodnotu a Obchodování.
+- **(d) Povinná klasifikace** `mandatory_category` (vypočtená): dluh a podílový list se splněným SPPI → naběhlá hodnota
+  (4.1.2) / FVOCI (4.1.2A), jinak FVTPL (4.1.4); kapitálový nástroj, derivát a účast → FVTPL.
+- **(e) Určení / volba** `designation` + `designation_note` (povinné): 4.1.5 jen u povinné naběhlé hodnoty nebo FVOCI;
+  5.7.5 jen u kapitálového nástroje mimo model Obchodování. Podílový list, účast a derivát volbu nemají.
+- **(f) Výsledná kategorie** `ifrs9_category` (vypočtená) a **zdůvodnění** `classification_basis` (vypočtený a sledovaný
+  text: povaha → SPPI → model → povinná klasifikace → určení → výsledek, s odkazy na odstavce a poznámkami účetní).
+- Po prvním obchodu jsou (a), (b), (e) a jejich posouzení zamčené; změna = reklasifikace (zatím není).
+- Migrace 20.0.0.5.0: `other` → `fair_value`; povaha z druhu typu; u splněného SPPI poznámka „převzato migrací, potvrdit“
+  a znění podle data; přepočet kategorií a porovnání s uloženými – při rozdílu se aktualizace zastaví.
+- Ruční úprava (dotaz uživatele 11. 11.): do prvního obchodu může uživatel ručně měnit povahu (s posouzením), SPPI,
+  portfolio, určení, způsob ocenění i roli; kategorie se nezadává, plyne z těchto vstupů. Po prvním obchodu platí zámek
+  (změna = reklasifikace, zatím není). Uživatel potvrdil, že tak to má zůstat.
+- Ruční přepsání kategorie (rozhodnutí uživatele 11. 11.): pole „Ruční kategorie“ s povinným zdůvodněním; vypočtená
+  kategorie zůstává uložená vedle (`computed_category`), zdůvodnění (f) přepsání označí jako odchylku od rozhodovacího
+  stromu IFRS 9 a ocenění ukáže upozornění `classification_override`. Shodné s vypočtenou nejde; po prvním obchodu zamčené.
+  Doporučení Clauda bylo přepsání nepřidávat (všechny přípustné výsledky jdou přes vstupy); rozhodl uživatel.
+
+### Provedení dodatku 2026-11-11
+
+- `investra_instruments` 20.0.0.5.0: zařazení s kroky (a)–(f), vypočtená povinná a výsledná kategorie, ruční přepsání
+  se zdůvodněním, text „Zdůvodnění klasifikace“; modely Řízení na reálnou hodnotu a Obchodování; formulář po krocích.
+  `investra_nav`: upozornění ocenění `classification_override`.
+- Migrace `investra_test` (záloha `zalohy/investra_test-2026-11-11-pred-dodatkem-ifrs9.dump`): 5 portfolií `other` →
+  `fair_value`, povaha u 7 zařazení, u vkladu SPPI s poznámkou „převzato migrací, potvrdit“ a zněním (EU) 2025/1047;
+  kategorie všech 7 zařazení před a po stejné; 41 řádků dokladů, součet 122 022 000,00 beze změny.
+- Testy: 351 testů modulů Investry v `investra_test`, 0 chyb (nové v `TestClassificationRules`, přepsání v `test_accrual.py`).
+- Mezera 5 (formulář nabízí jen přípustné volby) je ověřená jen kontrolami při uložení a viditelností polí; v prohlížeči neprověřeno.

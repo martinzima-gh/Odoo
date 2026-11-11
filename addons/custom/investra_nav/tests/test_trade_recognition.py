@@ -16,7 +16,7 @@ class TestTradeRecognition(NavCase):
         self.fund = self.make_fund(classes=[{"code": "A"}])
         self.subscribe(self.cls(self.fund, "A"), "2031-03-01", 100000, 1000)
 
-    def instrument(self, currency=None, code="bond", model="other", **vals):
+    def instrument(self, currency=None, code="bond", model="fair_value", **vals):
         instrument = self.env["investra.instrument"].create({
             "name": f"Nástroj {self.fund.id} {code}", "currency_id": (currency or self.czk).id,
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
