@@ -15,8 +15,9 @@
   moduly aktualizovány, předvaha shodná, web 8071 restartován.
 - Deník (2 záznamy), otevřené body (bod osnovy uzavřen, nový bod ČNB pro účasti v RH), Claude Doc rev 304, export `docs/architektura.md`.
 
-**Zbývá – první krok:** smazat pomocné kopie `investra_test_osnova` a `investra_test_zaklad` (databáze a filestore) – čeká na
-souhlas uživatele. Dál: metodik potvrdí řádek ROFO10_11 pro účasti v RH (14, nebo 6/7); opravit ukázková data (dluhopis má
+Pomocné kopie `investra_test_osnova` a `investra_test_zaklad` (databáze a filestore) smazány na pokyn uživatele.
+
+**Zbývá – první krok:** opravit ukázková data v `investra_test` (se souhlasem). Dál: metodik potvrdí řádek ROFO10_11 pro účasti v RH (14, nebo 6/7); ukázková data: dluhopis má
 v zařazení roli `instrument` místo `instrument_debt`, chybějící schválená cena dluhopisu fondu Beta k 2026-10-31);
 `investra_dev` – přečíslování až se zálohou a souhlasem (fondové knihy ověřit dotazem, `investra_nav` tam není).
 
