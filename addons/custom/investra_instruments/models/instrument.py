@@ -452,8 +452,10 @@ class InvestraTrade(models.Model):
             {"role": counter_role, "amount": -amount, "movement_type": "transaction", **credit},
         ]
 
-    def _post_trade_event(self, key, name, day, lines):
-        event = self.env["investra.accounting.event"]._create_event(self.company_id, key, name, day, "trade", lines)
+    def _post_trade_event(self, key, name, day, lines, event_type="trade"):
+        event = self.env["investra.accounting.event"]._create_event(
+            self.company_id, key, name, day, event_type, lines, source=self,
+        )
         event._lock_events()
         event._post_events()
         return event
@@ -493,7 +495,9 @@ class InvestraTrade(models.Model):
                 trade.sudo().write({"event_id": event.id, "settlement_event_id": event.id, "state": "settled"})
             else:
                 lines = trade._event_lines(trade._unsettled_role(), "bank", fx)
-                event = trade._post_trade_event(f"trade-settle:{trade.id}", name, trade.settlement_date, lines)
+                event = trade._post_trade_event(
+                    f"trade-settle:{trade.id}", name, trade.settlement_date, lines, event_type="trade_settlement",
+                )
                 trade.sudo().write({"settlement_event_id": event.id, "state": "settled"})
 
     @api.model

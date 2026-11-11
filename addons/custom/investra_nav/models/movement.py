@@ -93,6 +93,7 @@ class InvestraClassMovement(models.Model):
                     {"role": "class_capital", "amount": -amount, "class_id": movement.class_id.id,
                      "movement_type": movement.movement_type},
                 ],
+                source=movement,
             )
             event._lock_events()
             event._post_events()

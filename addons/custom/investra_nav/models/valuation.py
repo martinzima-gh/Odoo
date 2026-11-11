@@ -244,7 +244,7 @@ class InvestraValuation(models.Model):
             line["amount"] = str(line["amount"])
         event = self.env["investra.accounting.event"]._create_event(
             self.company_id, f"valuation:{self.id}:{self.env.context.get('compute_run', 0)}:{kind}",
-            f"{name} ({self.date})", self.date, event_type, lines,
+            f"{name} ({self.date})", self.date, event_type, lines, source=self,
         )
         self.event_ids = [(4, event.id)]
         return event

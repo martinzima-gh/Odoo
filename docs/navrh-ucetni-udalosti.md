@@ -1,7 +1,7 @@
 # Návrh: detail účetních událostí
 
 Stav 11. 11. 2026, připravil Claude podle bodu 15 podkladu UX z 10. 11. 2026. Odpovědi uživatele na otázky 1–3
-jsou níže (11. 11. 2026). **Provedení čeká na pokyn uživatele.**
+jsou níže (11. 11. 2026). **Provedeno 11. 11. 2026 na pokyn uživatele (sekce Provedení).**
 Červená zóna: `investra_posting` (účtování), migrace.
 
 **Bod 15 podkladu UX:** u účetní události vidět fond, částku, měnu a zdroj s proklikem.
@@ -64,3 +64,23 @@ v `investra_dev` se souhlasem uživatele (před ní záloha).
 1. Zobrazit i původní měnu (nástroje nebo třídy): **ano**.
 2. Druh jako výběr s českými názvy a oprava druhu u starých splátek migrací: **ano**.
 3. Staré události doplnit migrací: **ano**.
+
+## Provedení 2026-11-11
+
+- `investra_posting` 20.0.0.2.0: pole fond, zdroj (`res_model`, `res_id`, název zdroje), částka, měna, částka
+  a měna původní; druh jako výběr; `_create_event(…, source=)`; formulář s tlačítky Zdroj a Doklad, řádky dokladu
+  a technickou záložkou; sloupce a seskupení v seznamu; odkaz na událost v hlavičce dokladu.
+- `investra_instruments` 20.0.0.6.0 a `investra_nav` 20.0.0.3.0: zdroj u obchodu, vypořádání, úpisu a odkupu,
+  splátky a ocenění; migrace starých událostí.
+- `investra_test`: záloha `zalohy/investra_test-2026-11-11-pred-bodem-15.dump`, aktualizace tří modulů,
+  ověření na datech (žádný rozdíl částky proti součtu MD, fond vždy z knihy události), 378 testů modulů Investry
+  prošlo (15 nových). `investra_dev` modul `investra_posting` nemá, aktualizace se ho netýká.
+- Ukázkové SQL: `docs/sql/12-ucetni-udalosti.sql`.
+
+**Odchylky od plánu:**
+- Migrace hledá zdroj podle klíče události (`trade:<id>`, `movement:<id>`, `valuation:<id>:…`), ne přes vazby zpět:
+  klíč má pevný tvar a zůstává i u zrušených návrhů ocenění, které už nemusí být ve vazbě `event_ids`.
+- Nové události si částku ukládají při vzniku, takže zrušený návrh ji **zachová** (je vidět, co bylo zrušeno).
+  Prázdná zůstává jen u starých zrušených návrhů, jejichž doklad už neexistuje.
+- Druh má navíc hodnoty Konverze měn (`fx`, ukázkový skript `tools/nav_demo/demo.py`) a Ostatní (`other`, testy).
+- Vypořádání obchodu zachyceného k datu vypořádání je jediná událost s klíčem `trade:` a druhem Obchod.

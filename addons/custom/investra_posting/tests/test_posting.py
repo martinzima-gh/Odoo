@@ -34,7 +34,7 @@ class TestPosting(TransactionCase):
         ]
 
     def event(self, key="k1", day=date(2026, 11, 30), amount=100):
-        return self.Event._create_event(self.company, key, "Test", day, "test", self.lines(amount))
+        return self.Event._create_event(self.company, key, "Test", day, "other", self.lines(amount))
 
     def posted(self, key="p1"):
         event = self.event(key)
@@ -197,3 +197,72 @@ class TestPosting(TransactionCase):
         event = self.event()
         event._discard_events()
         self.assertNotEqual(self.event(), event)
+
+    # Bod 15: fond, zdroj, částka a měna události (docs/navrh-ucetni-udalosti.md)
+
+    def test_amount_is_debit_sum_of_move(self):
+        event = self.posted("a1")
+        self.assertEqual(event.amount, 100)
+        self.assertEqual(event.amount, sum(event.move_id.line_ids.mapped("debit")))
+        self.assertEqual(event.currency_id, self.czk)
+        self.assertFalse(event.foreign_currency_id)
+        self.assertFalse(event.amount_currency)
+
+    def test_source_and_fund_from_source(self):
+        event = self.Event._create_event(self.company, "s1", "Test", date(2026, 11, 30), "other", self.lines(), source=self.class_a)
+        self.assertEqual((event.res_model, event.res_id), ("investra.fund.class", self.class_a.id))
+        self.assertEqual(event.fund_id, self.fund)
+        self.assertEqual(event.source_name, self.class_a.display_name)
+        action = event.action_open_source()
+        self.assertEqual((action["res_model"], action["res_id"]), ("investra.fund.class", self.class_a.id))
+        self.assertEqual(event.action_open_move()["res_id"], event.move_id.id)
+
+    def test_without_source_has_no_fund_and_open_source_is_error(self):
+        event = self.event("s2")
+        self.assertFalse(event.fund_id)
+        self.assertFalse(event.source_name)
+        with self.assertRaises(UserError):
+            event.action_open_source()
+
+    def test_same_key_with_source_returns_same_event(self):
+        first = self.event("s3")
+        again = self.Event._create_event(self.company, "s3", "Test", date(2026, 11, 30), "other", self.lines(), source=self.class_a)
+        self.assertEqual(first, again)
+
+    def test_one_foreign_currency_gives_original_amount(self):
+        eur = self.env.ref("base.EUR")
+        lines = [
+            {"role": "bank", "amount": -2500, "currency_id": eur.id, "amount_currency": -100},
+            {"role": "performance_payable", "amount": 2500, "class_id": self.class_a.id},
+        ]
+        event = self.Event._create_event(self.company, "f1", "Test", date(2026, 11, 30), "other", lines)
+        self.assertEqual(event.amount, 2500)
+        self.assertEqual(event.foreign_currency_id, eur)
+        self.assertEqual(event.amount_currency, 100)
+
+    def test_mixed_foreign_currencies_leave_original_amount_empty(self):
+        eur, usd = self.env.ref("base.EUR"), self.env.ref("base.USD")
+        lines = [
+            {"role": "bank", "amount": 2500, "currency_id": eur.id, "amount_currency": 100},
+            {"role": "performance_payable", "amount": -2500, "currency_id": usd.id, "amount_currency": -110},
+        ]
+        event = self.Event._create_event(self.company, "f2", "Test", date(2026, 11, 30), "other", lines)
+        self.assertEqual(event.amount, 2500)
+        self.assertFalse(event.foreign_currency_id)
+
+    def test_discarded_event_keeps_amount(self):
+        event = self.event("d1")
+        event._discard_events()
+        self.assertFalse(event.move_id)
+        self.assertEqual(event.amount, 100)
+
+    def test_user_cannot_write_new_fields(self):
+        event = self.event("w1")
+        for values in ({"fund_id": self.fund.id}, {"amount": 1}, {"res_model": "res.partner"}, {"event_type": "trade"}):
+            with self.assertRaises(AccessError):
+                event.with_user(self.user).write(values)
+
+    def test_user_can_read_event_form(self):
+        event = self.posted("r1").with_user(self.user)
+        self.assertEqual(event.amount, 100)
+        self.assertEqual(len(event.move_line_ids), 2)

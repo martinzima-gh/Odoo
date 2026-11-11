@@ -48,6 +48,18 @@ class TestClassCurrency(NavCase):
         self.assertEqual(bank.amount_currency, -200)
         self.assertEqual(bank.balance, -5000)
 
+    def test_movement_events_carry_class_currency(self):
+        """Bod 15: úpis i odkup ukazují částku v měně třídy kladně, zdroj a fond."""
+        subscription = self.movement()
+        redemption = self.movement("redemption", amount_class=200, units=2)
+        for movement, functional, original in ((subscription, 25000, 1000), (redemption, 5000, 200)):
+            event = movement.event_id
+            self.assertEqual(event.event_type, "class_movement")
+            self.assertEqual((event.res_model, event.res_id, event.fund_id), ("investra.class.movement", movement.id, self.fund))
+            self.assertEqual(event.amount, functional)
+            self.assertEqual(event.foreign_currency_id, self.eur)
+            self.assertEqual(event.amount_currency, original)
+
     def test_nav_in_functional_price_in_class_currency(self):
         """EUR na účtu posílí v CZK; FK roste, kurz v EUR zůstává."""
         self.movement()

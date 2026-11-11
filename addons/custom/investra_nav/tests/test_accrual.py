@@ -108,6 +108,16 @@ class TestAccrual(NavCase):
         self.assertEqual(self.balance("bank"), 2000 - 950 + 1000)
         self.assertFalse(valuation.portfolio_line_ids.filtered("instrument_id"))
 
+    def test_repayment_event_has_own_type_and_source(self):
+        """Bod 15: splátka má druh Splátka (dříve Obchod), zdroj a fond."""
+        self.deposit_position()
+        repayment = self.repayment(self.deposit, "2030-01-01", 1000)
+        repayment.with_user(self.preparer).action_book()
+        event = repayment.event_id
+        self.assertEqual(event.event_type, "repayment")
+        self.assertEqual((event.res_model, event.res_id, event.fund_id), ("investra.instrument.repayment", repayment.id, self.fund))
+        self.assertEqual(event.amount, 1000)
+
     def test_repeated_compute_does_not_double_interest(self):
         self.deposit_position()
         valuation = self.valuation(self.fund, date(2029, 7, 1))

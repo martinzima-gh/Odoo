@@ -55,6 +55,42 @@ class TestTradeRecognition(NavCase):
     def test_default_is_trade_date(self):
         self.assertEqual(self.fund.trade_recognition, "trade_date")
 
+    def test_trade_events_carry_source_fund_and_type(self):
+        """Bod 15: obchod a vypořádání mají zdroj obchod, fond a vlastní druh."""
+        trade = self.trade(self.instrument())
+        trade._book()
+        trade._settle()
+        for event, kind in ((trade.event_id, "trade"), (trade.settlement_event_id, "trade_settlement")):
+            self.assertEqual(event.event_type, kind)
+            self.assertEqual((event.res_model, event.res_id), ("investra.trade", trade.id))
+            self.assertEqual(event.fund_id, self.fund)
+            self.assertEqual(event.amount, 1000)
+
+    def test_settlement_mode_event_is_trade(self):
+        self.settlement_mode()
+        trade = self.trade(self.instrument(code="equity"))
+        trade._book()
+        trade._settle()
+        self.assertEqual(trade.event_id, trade.settlement_event_id)
+        self.assertEqual(trade.event_id.event_type, "trade")
+
+    def test_foreign_trade_event_has_original_amount(self):
+        trade = self.trade(self.instrument(currency=self.eur), fx=25, settle="2031-03-02")
+        trade._book()
+        self.assertEqual(trade.event_id.amount, 25000)
+        self.assertEqual(trade.event_id.foreign_currency_id, self.eur)
+        self.assertEqual(trade.event_id.amount_currency, 1000)
+
+    def test_valuation_events_carry_source_and_fund(self):
+        instrument = self.instrument()
+        self.trade(instrument)._book()
+        self.price(instrument, date(2031, 3, 31), 110)
+        valuation = self.post(date(2031, 3, 31))
+        self.assertTrue(valuation.event_ids)
+        for event in valuation.event_ids:
+            self.assertEqual((event.res_model, event.res_id, event.fund_id), ("investra.valuation", valuation.id, self.fund))
+            self.assertEqual(event.event_type, "valuation")
+
     def test_trade_date_books_payable_then_bank(self):
         trade = self.trade(self.instrument())
         trade._book()

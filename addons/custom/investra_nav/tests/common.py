@@ -72,7 +72,7 @@ class NavCase(TransactionCase):
         return movement
 
     def book(self, fund, key, day, lines):
-        event = self.env["investra.accounting.event"]._create_event(fund.company_id, key, key, day, "test", lines)
+        event = self.env["investra.accounting.event"]._create_event(fund.company_id, key, key, day, "other", lines)
         event._lock_events()
         event._post_events()
         return event

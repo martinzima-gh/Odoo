@@ -116,13 +116,14 @@ class InvestraInstrumentRepayment(models.Model):
             debit = {"currency_id": instrument.currency_id.id, "amount_currency": repayment.amount} if foreign else {}
             credit = {"currency_id": instrument.currency_id.id, "amount_currency": -repayment.amount} if foreign else {}
             event = self.env["investra.accounting.event"]._create_event(
-                company, f"repayment:{repayment.id}", f"Splátka {instrument.name}", repayment.date, "trade",
+                company, f"repayment:{repayment.id}", f"Splátka {instrument.name}", repayment.date, "repayment",
                 [
                     {"role": "bank", "amount": amount, "movement_type": "transaction", **debit},
                     {"role": repayment._classification().role_id.code, "amount": -amount, "movement_type": "transaction",
                      "extra": {"investra_instrument_id": instrument.id, "investra_classification_id": repayment._classification().id},
                      **credit},
                 ],
+                source=repayment,
             )
             event._lock_events()
             event._post_events()
