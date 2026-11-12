@@ -31,10 +31,34 @@ if [[ -z "${TEST_TAGS:-}" ]]; then
   TEST_TAGS="$(echo "$MODULES" | sed 's/^/\//; s/,/,\//g')"
 fi
 
+# Pojistka proti nechtěné migraci: -u aktualizuje i moduly, které na testovaném závisejí.
+# Když se verze v kódu liší od verze v databázi, spustila by se migrace – bez ALLOW_UPGRADE=1 se skončí.
+COMPOSE=(docker compose -f "$ROOT/docker-compose.investra.yml")
+DB_VERSIONS="$("${COMPOSE[@]}" exec -T db psql -U odoo -d "$DB" -tAc \
+  "SELECT name || ' ' || coalesce(latest_version, '') FROM ir_module_module WHERE name LIKE 'investra%' AND state = 'installed'")" || {
+  echo "Nelze přečíst verze modulů z $DB (běží služba db?)." >&2; exit 2; }
+PENDING=""
+while read -r NAME DBVER; do
+  [[ -z "$NAME" ]] && continue
+  MANIFEST="$ROOT/addons/custom/$NAME/__manifest__.py"
+  [[ -f "$MANIFEST" ]] || continue
+  CODEVER="$(sed -nE "s/.*[\"']version[\"'] *: *[\"']([^\"']+)[\"'].*/\1/p" "$MANIFEST" | head -1)"
+  [[ "$CODEVER" != "$DBVER" ]] && PENDING+="  $NAME: databáze $DBVER, kód $CODEVER"$'\n'
+done <<<"$DB_VERSIONS"
+if [[ -n "$PENDING" ]]; then
+  echo "Verze modulů v $DB se liší od kódu – běh by spustil upgrade a migraci:"
+  printf '%s' "$PENDING"
+  if [[ "${ALLOW_UPGRADE:-}" != "1" ]]; then
+    echo "Zastaveno. Upgrade testovací databáze je změna dat: po dohodě a se zálohou spusť s ALLOW_UPGRADE=1." >&2
+    exit 3
+  fi
+  echo "ALLOW_UPGRADE=1 – pokračuji včetně upgradu."
+fi
+
 echo "Testy: $MODULES | tagy: $TEST_TAGS | databáze: $DB"
 START=$(date +%s)
 set +e
-docker compose -f "$ROOT/docker-compose.investra.yml" run --rm --no-deps -T odoo odoo \
+"${COMPOSE[@]}" run --rm --no-deps -T odoo odoo \
   --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom \
   -d "$DB" --db-filter="^${DB}\$" -u "$MODULES" --test-enable --test-tags "$TEST_TAGS" \
   --stop-after-init --no-http --max-cron-threads=0 >"$LOG" 2>&1

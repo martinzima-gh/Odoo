@@ -122,7 +122,7 @@ Měření výkonu: test s tagem `nav_benchmark` se spouští jen výslovně. Oce
 
 ## Spuštění testů
 
-Zkráceně: `tools/run_tests.sh investra_nav[,další_modul]` – stejný příkaz pevně nad `investra_test`, celý log uloží do `.test-logs/` (mimo git) a vypíše jen souhrn a chyby. OK jen při nenulovém počtu testů a bez řádků ERROR v logu. Výběr třídy: `TEST_TAGS=/investra_nav:TřídaTestu`.
+Zkráceně: `tools/run_tests.sh investra_nav[,další_modul]` – stejný příkaz pevně nad `investra_test`, celý log uloží do `.test-logs/` (mimo git) a vypíše jen souhrn a chyby. OK jen při nenulovém počtu testů a bez řádků ERROR v logu. Výběr třídy: `TEST_TAGS=/investra_nav:TřídaTestu`. Když se verze modulu v kódu liší od `investra_test`, skript skončí (kód 3): `-u` aktualizuje i závislé moduly a spustil by migraci; upgrade jen po dohodě a se zálohou s `ALLOW_UPGRADE=1`.
 
 ```
 python3 -m unittest discover -s tools/nav_reference -p 'test_*.py'
