@@ -78,4 +78,11 @@ a obecné komentáře. Obchodní význam, který není v kódu nebo v tomto zad�
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, kontrola dotazů, nálezy z revize.
+- **Datum:** 2026-11-12, převzal Claude.
+- **Revize:** jen `docs/sql/22-kurzove-rozdily.sql` a Výsledek zadání; v souboru jen `WITH … SELECT`, role s hlavními
+  i dalšími účty, znaménka podle zadání. Nálezy žádné.
+- **Kontrola dotazů:** dočasná kopie `investra_test` (`investra_ci_ag015`), na ní přes ORM zaúčtován zkušební doklad
+  s druhem `fx_realised` (zisk 1 000, ztráta 300 u akcie v EUR, kniha 244). Dotaz 1 ukázal realizovaný 700 u nástroje,
+  dotaz 2 v měsíci 2027-03, dotaz 3 rozdíl 0 u obou rolí. Kopie smazána.
+- **Testy Odoo:** nespouštěny, úkol nemění kód.
+- **Sloučení:** 2026-11-12 do `feature/nav-prototyp`.
