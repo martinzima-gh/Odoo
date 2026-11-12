@@ -452,10 +452,16 @@ if isinstance(result, dict):
             </xpath>
         </field>
     </record>
+    <record id="action_repayment_reverse_wizard" model="ir.actions.act_window">
+        <field name="name">Storno nebo oprava splátky</field>
+        <field name="res_model">investra.instrument.repayment.reverse.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <list><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="amount"/><field name="event_id"/></list>
+            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
         </field>
     </record>
     <record id="view_repayment_search" model="ir.ui.view">
@@ -466,8 +472,9 @@ if isinstance(result, dict):
                 <field name="fund_id"/>
                 <field name="instrument_id"/>
                 <field name="date"/>
-                <filter name="filter_unposted" string="Nezaúčtováno" domain="[('event_id', '=', False)]"/>
-                <filter name="filter_posted" string="Zaúčtováno" domain="[('event_id', '!=', False)]"/>
+                <filter name="filter_unposted" string="Nezaúčtováno" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_posted" string="Zaúčtováno" domain="[('state', '=', 'posted')]"/>
+                <filter name="filter_reversed" string="Stornováno" domain="[('state', '=', 'reversed')]"/>
                 <separator/>
                 <filter name="filter_date" date="date" string="Datum"/>
                 <group>
@@ -482,8 +489,49 @@ if isinstance(result, dict):
         <field name="name">investra.instrument.repayment.form</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
             <form>
-                <header><button name="action_book" type="object" string="Zaúčtovat" class="btn-primary" invisible="event_id"/></header>
-                <sheet><group><field name="fund_id"/><field name="portfolio_id" options="{'no_create': True}"/><field name="instrument_id"/><field name="date"/><field name="amount"/><field name="fx_rate"/><field name="event_id"/></group></sheet>
+                <header>
+                    <button name="action_book" type="object" string="Zaúčtovat" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="%(action_repayment_reverse_wizard)d" type="action" string="Opravit"
+                            context="{'default_repayment_id': id, 'default_mode': 'correct'}"
+                            groups="investra_entity.group_valuation_preparer" invisible="state != 'posted'"/>
+                    <button name="%(action_repayment_reverse_wizard)d" type="action" string="Stornovat"
+                            context="{'default_repayment_id': id, 'default_mode': 'reverse'}"
+                            groups="investra_entity.group_valuation_preparer" invisible="state != 'posted'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="fund_id" readonly="state != 'draft'"/>
+                        <field name="portfolio_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                        <field name="instrument_id" readonly="state != 'draft'"/>
+                        <field name="date" readonly="state != 'draft'"/>
+                        <field name="amount" readonly="state != 'draft'"/>
+                        <field name="fx_rate" readonly="state != 'draft'"/>
+                        <field name="replaced_id" invisible="not replaced_id"/>
+                        <field name="event_id"/>
+                        <field name="reversal_reason" invisible="state != 'reversed'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_repayment_reverse_wizard_form" model="ir.ui.view">
+        <field name="name">investra.instrument.repayment.reverse.wizard.form</field>
+        <field name="model">investra.instrument.repayment.reverse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Storno nebo oprava splátky">
+                <group>
+                    <field name="repayment_id" readonly="1"/>
+                    <field name="mode" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert"><field name="effect" readonly="1"/></div>
+                <group>
+                    <field name="reason" placeholder="Proč se splátka stornuje nebo opravuje (uloží se ke splátce)"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Potvrdit" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
             </form>
         </field>
     </record>

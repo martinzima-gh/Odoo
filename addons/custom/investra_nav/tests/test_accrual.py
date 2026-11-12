@@ -118,6 +118,115 @@ class TestAccrual(NavCase):
         self.assertEqual((event.res_model, event.res_id, event.fund_id), ("investra.instrument.repayment", repayment.id, self.fund))
         self.assertEqual(event.amount, 1000)
 
+    # --- zámek, storno a oprava splátky (rozhodnutí 2026-11-12 „Zámek a storno splátky“) ----------
+
+    def booked_repayment(self, amount=1000):
+        self.deposit_position()
+        repayment = self.repayment(self.deposit, "2030-01-01", amount)
+        repayment.with_user(self.preparer).action_book()
+        return repayment
+
+    def test_draft_repayment_can_be_changed(self):
+        self.deposit_position()
+        repayment = self.repayment(self.deposit, "2030-01-01", 1000)
+        repayment.with_user(self.preparer).write({"amount": 999})
+        self.assertEqual((repayment.amount, repayment.state), (999, "draft"))
+
+    def test_posted_repayment_cannot_be_changed_or_deleted(self):
+        repayment = self.booked_repayment()
+        self.assertEqual(repayment.state, "posted")
+        for vals in ({"amount": 900}, {"fx_rate": 2}, {"date": "2030-01-02"}):
+            with self.assertRaises(UserError):
+                repayment.with_user(self.preparer).write(vals)
+        with self.assertRaises(UserError):
+            repayment.sudo().unlink()
+        self.assertEqual(repayment.amount, 1000)
+
+    def test_state_and_event_only_from_booking(self):
+        self.deposit_position()
+        with self.assertRaises(UserError):
+            self.env["investra.instrument.repayment"].with_user(self.preparer).create({
+                "fund_id": self.fund.id, "portfolio_id": self.held_in(self.deposit).id, "instrument_id": self.deposit.id,
+                "date": "2030-01-01", "amount": 1000, "state": "posted",
+            })
+        repayment = self.repayment(self.deposit, "2030-01-01", 1000)
+        for vals in ({"state": "posted"}, {"event_id": False}, {"reversal_reason": "x"}):
+            with self.assertRaises(UserError):
+                repayment.with_user(self.preparer).write(vals)
+
+    def test_reverse_reopens_position_and_unlocks_schedule(self):
+        self.deposit_position()
+        before = (self.balance("deposit"), self.balance("bank"))
+        repayment = self.repayment(self.deposit, "2030-01-01", 1000)
+        repayment.with_user(self.preparer).action_book()
+        self.assertEqual(self.balance("deposit"), before[0] - 1000)
+        with self.assertRaises(UserError):
+            repayment.with_user(self.preparer).action_reverse(" ")
+        result = repayment.with_user(self.preparer).action_reverse("Chybná částka")
+        self.assertEqual(result, repayment)
+        self.assertEqual((repayment.state, repayment.reversal_reason), ("reversed", "Chybná částka"))
+        event = repayment.event_id.sudo()
+        self.assertEqual(event.state, "reversed")
+        self.assertEqual(event.reversal_move_id.date, date(2030, 1, 1))
+        self.assertEqual((self.balance("deposit"), self.balance("bank")), before)
+        # Storno doklad nese nástroj, pozice nástroje je zase otevřená.
+        lines = self.env["account.move.line"].sudo().search([
+            ("investra_instrument_id", "=", self.deposit.id), ("parent_state", "=", "posted"),
+        ])
+        self.assertEqual(Decimal(str(round(sum(lines.mapped("balance")), 2))), Decimal("950"))
+        log = self.env["investra.approval.log"].sudo().search([("res_model", "=", repayment._name), ("res_id", "=", repayment.id)])
+        self.assertEqual(log.activity, "repayment_reverse")
+        with self.assertRaises(UserError):
+            repayment.with_user(self.preparer).action_reverse("Podruhé")
+        with self.assertRaises(UserError):
+            repayment.sudo().unlink()
+        self.deposit.write({"principal": 950, "start_date": "2029-01-01", "maturity_date": "2030-01-01"})
+        self.deposit.action_generate_schedule()
+
+    def test_correct_makes_linked_draft_and_books_new_amount(self):
+        repayment = self.booked_repayment(amount=990)
+        bank = self.balance("bank")
+        correction = repayment.with_user(self.preparer).action_correct("Banka připsala 1 000")
+        self.assertNotEqual(correction, repayment)
+        self.assertEqual((correction.state, correction.replaced_id, correction.amount), ("draft", repayment, 990))
+        self.assertFalse(correction.event_id)
+        self.assertEqual(repayment.state, "reversed")
+        correction.with_user(self.preparer).write({"amount": 1000})
+        correction.with_user(self.preparer).action_book()
+        self.assertEqual(correction.state, "posted")
+        self.assertEqual(self.balance("bank"), bank - 990 + 1000)
+        self.assertEqual(self.balance("deposit"), 950 - 1000)
+
+    def test_reverse_with_second_person_goes_through_request(self):
+        self.env["investra.approval.matrix"].create({
+            "activity": "repayment_reverse", "second_person": "yes", "performer_role": "preparer",
+            "valid_from": "2001-01-01", "step_ids": [(0, 0, {"sequence": 0, "name": "Kontrola", "role": "approver"})],
+        })
+        repayment = self.booked_repayment()
+        request = repayment.with_user(self.preparer).action_reverse("Chybná částka")
+        self.assertEqual(request._name, "investra.approval.request")
+        self.assertEqual(repayment.state, "posted")
+        with self.assertRaises(UserError):
+            request.with_user(self.preparer).action_approve()
+        request.with_user(self.approver).action_approve()
+        self.assertEqual(repayment.state, "reversed")
+
+    def test_locked_period_blocks_repayment_entry_and_reverse(self):
+        repayment = self.booked_repayment()
+        self.run_to_posted(self.valuation(self.fund, date(2030, 1, 31)))
+        with self.assertRaises(UserError):
+            repayment.with_user(self.preparer).action_reverse("Chybná částka")
+        self.assertEqual(repayment.state, "posted")
+        with self.assertRaises(UserError):
+            self.repayment(self.deposit, "2030-01-15", 10)
+
+    def test_reverse_wizard_reverses_and_correct_opens_new_draft(self):
+        repayment = self.booked_repayment()
+        Wizard = self.env["investra.instrument.repayment.reverse.wizard"].with_user(self.preparer)
+        action = Wizard.create({"repayment_id": repayment.id, "mode": "correct", "reason": "Překlep"}).action_confirm()
+        self.assertEqual(action["res_model"], "investra.instrument.repayment")
+        self.assertEqual(self.env["investra.instrument.repayment"].browse(action["res_id"]).replaced_id, repayment)
+
     def test_repeated_compute_does_not_double_interest(self):
         self.deposit_position()
         valuation = self.valuation(self.fund, date(2029, 7, 1))

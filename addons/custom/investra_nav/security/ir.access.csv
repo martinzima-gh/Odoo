@@ -40,3 +40,4 @@ access_lock_exception_request_appr,investra.lock.exception.request appr,investra
 investra_lock_exception_request_rule,investra.lock.exception.request company,investra.lock.exception.request,,crud,"[('company_id', 'in', company_ids)]"
 access_lock_exception_request_prep,investra.lock.exception.request prep,investra.lock.exception.request,investra_entity.group_valuation_preparer,cru,
 access_movement_reverse_wizard,investra.class.movement.reverse.wizard prep,investra.class.movement.reverse.wizard,investra_entity.group_valuation_preparer,crud,
+access_repayment_reverse_wizard,investra.instrument.repayment.reverse.wizard prep,investra.instrument.repayment.reverse.wizard,investra_entity.group_valuation_preparer,crud,
