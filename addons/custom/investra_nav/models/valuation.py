@@ -956,10 +956,16 @@ class InvestraValuation(models.Model):
         self._check("transit_zero", "Peníze a inkasa na cestě jsou nulové", transit == 0, transit, severity="warning")
         # Kalendářní splátka bez zaúčtování: ocenění by ji odúčtovalo do úroků (rozhodnutí 2026-11-12
         # „Návrhy kalendářních splátek“).
-        missing = self.env["investra.instrument.repayment"].sudo()._missing_scheduled(self.fund_id, self.date, posted_only=True)
+        Repayment = self.env["investra.instrument.repayment"].sudo()
+        missing = Repayment._missing_scheduled(self.fund_id, self.date, posted_only=True)
+        # Rozlišení pro uživatele: splátka je v návrhu (stačí zaúčtovat), nebo chybí úplně.
+        absent = {(i, m, d) for i, m, d, _p, _n in Repayment._missing_scheduled(self.fund_id, self.date)}
         self._check(
             "scheduled_repayments", "Splátky splatné podle kalendáře jsou zaúčtované", not missing,
-            ", ".join(f"{i.name} {format_date(self.env, d)}: {p + n}" for i, _m, d, p, n in missing), severity="warning",
+            ", ".join(
+                f"{i.name} {format_date(self.env, d)}: {p + n} ({self.env._('chybí') if (i, m, d) in absent else self.env._('v návrhu')})"
+                for i, m, d, p, n in missing
+            ), severity="warning",
         )
         unassigned = self._accounts_without_role()
         self._check("accounts_role", "Účty se zůstatkem mají roli (jinak chybí ve výkazech ČNB)", not unassigned,

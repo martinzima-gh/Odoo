@@ -468,7 +468,14 @@ class TestAccrual(NavCase):
         valuation.with_user(self.preparer).action_compute()
         check = valuation.check_ids.filtered(lambda c: c.code == "scheduled_repayments")
         self.assertEqual(check.status, "warning")
-        self.repayment(self.deposit, "2030-01-01", 1000)._book()
+        self.assertIn("chybí", check.detail)
+        # Splátka jen v návrhu: upozornění trvá, text říká „v návrhu“.
+        draft = self.env["investra.instrument.repayment"]._create_scheduled_drafts(self.fund, date(2030, 1, 31))
+        valuation.with_user(self.preparer).action_compute()
+        check = valuation.check_ids.filtered(lambda c: c.code == "scheduled_repayments")
+        self.assertEqual(check.status, "warning")
+        self.assertIn("v návrhu", check.detail)
+        draft._book()
         valuation.with_user(self.preparer).action_compute()
         self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "scheduled_repayments").status, "ok")
 
