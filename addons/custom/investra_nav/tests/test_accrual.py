@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 
 from .common import NavCase
@@ -450,6 +450,30 @@ class TestAccrual(NavCase):
         self.assertEqual((drafts.date, drafts.principal_amount, drafts.state, drafts.portfolio_id),
                          (date(2030, 1, 1), 1000, "draft", self.held_in(self.deposit)))
         self.assertFalse(Repayment._create_scheduled_drafts(self.fund, date(2030, 1, 6)))
+
+    def test_button_creates_drafts_in_advance_until_chosen_date(self):
+        """Tlačítko otevře okno s datem Návrhy do; toky do data se založí i předem, později už ne znovu."""
+        self.deposit_position()
+        Repayment = self.env["investra.instrument.repayment"]
+        action = Repayment.with_user(self.preparer).action_create_scheduled_drafts()
+        self.assertEqual(action["res_model"], "investra.instrument.repayment.drafts.wizard")
+        Wizard = self.env["investra.instrument.repayment.drafts.wizard"].with_user(self.preparer)
+        self.assertEqual(Wizard.create({"date_to": "2029-12-31"}).action_confirm()["params"]["type"], "info")
+        result = Wizard.create({"date_to": "2030-01-01"}).action_confirm()
+        self.assertEqual(result["params"]["type"], "success")
+        drafts = Repayment.search([("fund_id", "=", self.fund.id)])
+        self.assertEqual((len(drafts), drafts.date, drafts.principal_amount, drafts.state), (1, date(2030, 1, 1), 1000, "draft"))
+        Wizard.create({"date_to": "2030-01-05"}).action_confirm()
+        self.assertEqual(Repayment.search_count([("fund_id", "=", self.fund.id)]), 1)
+        # Bez role přípravy ocenění tlačítko ani okno nic nezaloží.
+        reader = self.env["res.users"].create({
+            "name": "reader", "login": "repayment_reader",
+            "group_ids": [(6, 0, [self.env.ref("base.group_user").id, self.env.ref("account.group_account_readonly").id])],
+        })
+        with self.assertRaises(AccessError):
+            Repayment.with_user(reader).action_create_scheduled_drafts()
+        with self.assertRaises(AccessError):
+            Repayment.with_user(reader)._create_drafts_until(date(2030, 1, 5))
 
     def test_scheduled_drafts_respect_prorata_and_interest_only_flows(self):
         self.purchase.unlink()

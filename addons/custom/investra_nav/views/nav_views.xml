@@ -458,6 +458,25 @@ if isinstance(result, dict):
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
+    <record id="view_repayment_drafts_wizard_form" model="ir.ui.view">
+        <field name="name">investra.instrument.repayment.drafts.wizard.form</field>
+        <field name="model">investra.instrument.repayment.drafts.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Návrhy podle kalendáře">
+                <p class="text-muted">
+                    Založí návrhy splátek pro toky kalendáře splatné do zvoleného data ve fondech vybraných společností.
+                    Nic se neúčtuje; návrh zaúčtujete až po kontrole. Tok, který už návrh nebo splátku má, se přeskočí.
+                </p>
+                <group>
+                    <field name="date_to"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Založit návrhy" class="btn-primary"/>
+                    <button string="Zrušit" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">

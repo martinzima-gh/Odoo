@@ -317,11 +317,24 @@ class InvestraInstrumentRepayment(models.Model):
         self.sudo()._create_scheduled_drafts(funds, fields.Date.context_today(self))
 
     def action_create_scheduled_drafts(self):
-        """Tlačítko v seznamu: totéž co denní úloha, jen pro fondy vybraných společností a s oprávněním přípravy."""
+        """Tlačítko v seznamu: otevře okno s datem „Návrhy do“ (rozhodnutí 2026-11-12 „Návrhy splátek předem“)."""
+        self._check_drafts_access()
+        return {
+            "type": "ir.actions.act_window", "name": self.env._("Návrhy podle kalendáře"),
+            "res_model": "investra.instrument.repayment.drafts.wizard", "view_mode": "form", "target": "new",
+        }
+
+    @api.model
+    def _check_drafts_access(self):
         if not self.env.user.has_group("investra_entity.group_valuation_preparer"):
             raise AccessError(self.env._("Na tento krok nemáte oprávnění."))
+
+    @api.model
+    def _create_drafts_until(self, day):
+        """Návrhy do zvoleného data pro fondy vybraných společností; totéž co denní úloha, jen ručně a případně předem."""
+        self._check_drafts_access()
         funds = self.env["investra.fund"].search([("company_id", "in", self.env.companies.ids)])
-        created = self._create_scheduled_drafts(funds, fields.Date.context_today(self))
+        created = self._create_scheduled_drafts(funds, day)
         return {
             "type": "ir.actions.client", "tag": "display_notification",
             "params": {
@@ -589,6 +602,26 @@ class InvestraInstrumentRepaymentReverseWizard(models.TransientModel):
             return result._action_open()
         return {"type": "ir.actions.act_window", "res_model": result._name, "res_id": result.id,
                 "view_mode": "form", "target": "current"}
+
+
+class InvestraInstrumentRepaymentDraftsWizard(models.TransientModel):
+    """Okno tlačítka Návrhy podle kalendáře: návrhy do zvoleného data, i předem; nic se neúčtuje.
+
+    Denní úloha dál zakládá jen toky splatné do dneška (rozhodnutí 2026-11-12 „Návrhy splátek předem“).
+    """
+
+    _name = "investra.instrument.repayment.drafts.wizard"
+    _description = "Návrhy splátek podle kalendáře"
+
+    date_to = fields.Date(
+        required=True, default=fields.Date.context_today, string="Návrhy do",
+        help="Založí návrhy pro toky kalendáře splatné do tohoto data včetně. Částky jsou podle stavu pozice dnes; "
+             "když do data toku přijde mimořádná splátka, návrh před zaúčtováním upravte.",
+    )
+
+    def action_confirm(self):
+        self.ensure_one()
+        return self.env["investra.instrument.repayment"]._create_drafts_until(self.date_to)
 
 
 class InvestraTrade(models.Model):
