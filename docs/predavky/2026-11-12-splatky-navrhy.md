@@ -16,7 +16,6 @@
   zaúčtované splátky („v návrhu“ / „chybí“). Testy na čisté DB `investra_nav` 240, 0 chyb; v `investra_test` 8 známých
   chyb testů matice (řádky 81 a 82 platné od 12. 11.).
 - Zálohy v `zalohy/investra_test-2026-11-12-pred-*.dump` (poslední `pred-navrhy-splatek`, 12:00). Doc rev 318.
-
 - 0.14.0: tlačítko Návrhy podle kalendáře má okno s datem Návrhy do (návrhy i předem; deník „Návrhy splátek předem“),
   241 testů 0 chyb, záloha `pred-navrhy-predem`, předvaha po upgradu shodná. Doc rev 319.
 
