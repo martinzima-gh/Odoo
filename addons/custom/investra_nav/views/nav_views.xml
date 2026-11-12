@@ -461,7 +461,7 @@ if isinstance(result, dict):
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="kind" optional="show"/><field name="closes_position" optional="show"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="fee_amount" optional="hide"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
+            <list decoration-muted="state == 'reversed'"><header><button name="action_create_scheduled_drafts" type="object" string="Návrhy podle kalendáře" display="always" groups="investra_entity.group_valuation_preparer"/></header><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="kind" optional="show"/><field name="closes_position" optional="show"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="fee_amount" optional="hide"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
         </field>
     </record>
     <record id="view_repayment_search" model="ir.ui.view">

@@ -1,7 +1,11 @@
+import logging
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .. import engine
+
+_logger = logging.getLogger(__name__)
 
 
 class InvestraInstrument(models.Model):
@@ -252,6 +256,80 @@ class InvestraInstrumentRepayment(models.Model):
                     factor *= (before - principal) / before
             repaid += principal
         return factor
+
+    # --- návrhy splátek podle kalendáře (rozhodnutí 2026-11-12 „Návrhy kalendářních splátek“) -------------
+
+    @api.model
+    def _missing_scheduled(self, fund, day, posted_only=False):
+        """Toky kalendáře splatné do data bez splátky: [(nástroj, model, datum toku, jistina, úrok)].
+
+        Tok je pokrytý, když má pozice nestornovanou splátku (s posted_only jen zaúčtovanou) k datu toku nebo pozdější.
+        Jistina a úrok jsou snížené koeficientem mimořádných splátek; pozice bez kusů se přeskočí.
+        """
+        states = ("posted",) if posted_only else ("draft", "posted")
+        missing = []
+        for instrument, portfolio in self.env["investra.trade"].sudo()._holdings(fund, day):
+            flow_days = sorted(set(instrument.cashflow_ids.filtered(lambda f: f.date <= day).mapped("date")))
+            if not flow_days:
+                continue
+            latest = self.sudo().search([
+                ("fund_id", "=", fund.id), ("instrument_id", "=", instrument.id), ("portfolio_id", "=", portfolio.id),
+                ("state", "in", states),
+            ], order="date desc", limit=1).date
+            for flow_day in flow_days:
+                if latest and latest >= flow_day:
+                    continue
+                probe = self.new({"fund_id": fund.id, "instrument_id": instrument.id, "portfolio_id": portfolio.id,
+                                  "date": flow_day, "kind": "scheduled"})
+                schedule = probe._schedule()
+                if flow_day not in schedule:
+                    continue
+                factor = self._prorata_factor(fund, instrument, portfolio, flow_day)
+                position = probe._position_principal()
+                due = sum((p for d, (p, _i) in schedule.items() if d <= flow_day), engine.ZERO)
+                principal = position - probe._other_repaid() - engine.money((position - due) * factor)
+                interest = engine.money(schedule[flow_day][1] * factor)
+                if principal > 0 or interest > 0:
+                    missing.append((instrument, portfolio, flow_day, max(principal, engine.ZERO), interest))
+        return missing
+
+    @api.model
+    def _create_scheduled_drafts(self, funds, day):
+        """Založí návrhy splátek pro splatné toky kalendáře; tok v zamčeném ocenění se přeskočí a zapíše do logu."""
+        created = self.browse()
+        for fund in funds:
+            for instrument, portfolio, flow_day, principal, interest in self._missing_scheduled(fund, day):
+                try:
+                    with self.env.cr.savepoint():
+                        created |= self.with_company(fund.company_id).create({
+                            "fund_id": fund.id, "instrument_id": instrument.id, "portfolio_id": portfolio.id,
+                            "date": flow_day, "kind": "scheduled",
+                            "principal_amount": float(principal), "interest_amount": float(interest),
+                        })
+                except (UserError, ValidationError) as error:
+                    _logger.warning("Návrh splátky %s k %s ve fondu %s nevznikl: %s", instrument.name, flow_day, fund.name, error)
+        return created
+
+    @api.model
+    def _cron_create_scheduled_drafts(self):
+        """Denní úloha: návrhy splátek podle kalendáře do dnešního data ve všech fondech; nic se neúčtuje."""
+        funds = self.env["investra.fund"].sudo().search([])
+        self.sudo()._create_scheduled_drafts(funds, fields.Date.context_today(self))
+
+    def action_create_scheduled_drafts(self):
+        """Tlačítko v seznamu: totéž co denní úloha, jen pro fondy vybraných společností a s oprávněním přípravy."""
+        if not self.env.user.has_group("investra_entity.group_valuation_preparer"):
+            raise AccessError(self.env._("Na tento krok nemáte oprávnění."))
+        funds = self.env["investra.fund"].search([("company_id", "in", self.env.companies.ids)])
+        created = self._create_scheduled_drafts(funds, fields.Date.context_today(self))
+        return {
+            "type": "ir.actions.client", "tag": "display_notification",
+            "params": {
+                "type": "success" if created else "info", "sticky": False,
+                "message": self.env._("Vytvořeno návrhů splátek: %s", len(created)),
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
+            },
+        }
 
     def _ready(self):
         return bool(self.fund_id and self.instrument_id and self.portfolio_id and self.date)

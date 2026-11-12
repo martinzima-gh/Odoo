@@ -439,6 +439,39 @@ class TestAccrual(NavCase):
             self.repayment(loan, "2029-07-01", 401)
         self.assertEqual(self.repayment(loan, "2029-07-01", 400).remaining_after, 400)
 
+    # --- návrhy splátek podle kalendáře (rozhodnutí 2026-11-12 „Návrhy kalendářních splátek“) -----------
+
+    def test_scheduled_drafts_are_created_once_and_not_booked(self):
+        self.deposit_position()
+        Repayment = self.env["investra.instrument.repayment"]
+        self.assertFalse(Repayment._create_scheduled_drafts(self.fund, date(2029, 12, 31)))
+        drafts = Repayment._create_scheduled_drafts(self.fund, date(2030, 1, 5))
+        self.assertEqual(len(drafts), 1)
+        self.assertEqual((drafts.date, drafts.principal_amount, drafts.state, drafts.portfolio_id),
+                         (date(2030, 1, 1), 1000, "draft", self.held_in(self.deposit)))
+        self.assertFalse(Repayment._create_scheduled_drafts(self.fund, date(2030, 1, 6)))
+
+    def test_scheduled_drafts_respect_prorata_and_interest_only_flows(self):
+        self.purchase.unlink()
+        self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 2000, 20)
+        loan = self.instrument("deposit")
+        loan.cashflow_ids = [(0, 0, {"date": "2029-07-01", "amount": 10, "flow_type": "interest"}),
+                             (0, 0, {"date": "2030-01-01", "amount": 1000}), (0, 0, {"date": "2030-01-01", "amount": 10, "flow_type": "interest"})]
+        self.trade(loan, 1000)._book()
+        self.repayment(loan, "2029-04-01", 400, kind="extraordinary")._book()
+        drafts = self.env["investra.instrument.repayment"]._create_scheduled_drafts(self.fund, date(2029, 7, 5))
+        self.assertEqual((drafts.date, drafts.principal_amount, drafts.interest_amount), (date(2029, 7, 1), 0, 6))
+
+    def test_valuation_warns_about_unbooked_scheduled_repayment(self):
+        self.deposit_position()
+        valuation = self.valuation(self.fund, date(2030, 1, 31))
+        valuation.with_user(self.preparer).action_compute()
+        check = valuation.check_ids.filtered(lambda c: c.code == "scheduled_repayments")
+        self.assertEqual(check.status, "warning")
+        self.repayment(self.deposit, "2030-01-01", 1000)._book()
+        valuation.with_user(self.preparer).action_compute()
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "scheduled_repayments").status, "ok")
+
     def test_form_offers_held_instruments_and_prefills_from_schedule(self):
         self.deposit_position()
         self.instrument("bond")  # zařazený, ale nedržený

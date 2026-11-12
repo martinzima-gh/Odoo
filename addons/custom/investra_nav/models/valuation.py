@@ -954,6 +954,13 @@ class InvestraValuation(models.Model):
         ):
             transit += self._role_balance("cash_in_transit_receipt")
         self._check("transit_zero", "Peníze a inkasa na cestě jsou nulové", transit == 0, transit, severity="warning")
+        # Kalendářní splátka bez zaúčtování: ocenění by ji odúčtovalo do úroků (rozhodnutí 2026-11-12
+        # „Návrhy kalendářních splátek“).
+        missing = self.env["investra.instrument.repayment"].sudo()._missing_scheduled(self.fund_id, self.date, posted_only=True)
+        self._check(
+            "scheduled_repayments", "Splátky splatné podle kalendáře jsou zaúčtované", not missing,
+            ", ".join(f"{i.name} {format_date(self.env, d)}: {p + n}" for i, _m, d, p, n in missing), severity="warning",
+        )
         unassigned = self._accounts_without_role()
         self._check("accounts_role", "Účty se zůstatkem mají roli (jinak chybí ve výkazech ČNB)", not unassigned,
                     ", ".join(a.display_name for a in unassigned), severity="warning")

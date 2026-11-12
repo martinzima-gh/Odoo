@@ -59,6 +59,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Mimořádná splátka – nový kalendář a prezentace | Předčasné ukončení a poměrné snížení hotové (rozhodnutí 2026-11-12 „Mimořádná splátka nástroje“); chybí nový splátkový kalendář s uloženou EIR (druh 3). Zbytek při předčasném ukončení jde zatím do úroků; IAS 1 82(aa) možná vyžaduje samostatný řádek (citace neověřena) | Ověřit citace a prezentaci s auditorem; druh 3 až u prvního takového úvěru |
 | Poplatek za předčasné splacení placený fondu | Splátka umí jen poplatek jako náklad fondu (612000); poplatek od dlužníka úvěru (výnos) nemá roli ani řádek ČNB | Rozhodnout s prvním úvěrem fondu |
 | Vypořádání obchodů přes peníze na cestě | Splátky půjdou přes 119100 a výpis je vynuluje; vypořádání obchodů dál účtuje přímo banku | Rozhodnout spolu s napojením výpisů (Enterprise) |
+| Přehled operací ke zpracování | Uživatel má na jednom místě vidět, co čeká na jeho krok (návrhy splátek podle kalendáře, nevypořádané obchody, neidentifikované platby, ocenění ke schválení…); přání uživatele 2026-11-12 | Průběžně evidovat, kde takové operace vznikají; dashboard navrhnout, až bude seznam úplný. Zatím: návrhy kalendářních splátek (2026-11-12) |
 
 ## Chybějící podklady
 
