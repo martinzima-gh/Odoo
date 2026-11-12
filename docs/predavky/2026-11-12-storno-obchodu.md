@@ -17,8 +17,12 @@ kvůli ručním řádkům matice 81 a 82 (bez druhé osoby od 12. 11.), stejně 
   (MISC/2026/11/0003 stornováno 0005, nové vypořádání 0006 s kurzem 1). Pomocné DB `investra_ci_storno*` smazány.
 - Pravidlo do CLAUDE.md: náhled zaúčtování u každé operace s účetním dopadem.
 
-**Zbývá – první krok:** uživatel opraví obchod 5348 v UI (Stornovat vypořádání, kurz vypořádání 1, Vypořádat);
-pak ověřit doklady a předvahu.
+- Obchod 5348 uživatel v UI stornoval celý (Stornovat): MISC/2026/11/0002 a 0003 stornovány dokladem 0005 a 0006,
+  saldo dokladů na všech účtech 0, obchod mimo pozice; opravný obchod nezaložen (zkušební data). Storno vypořádání
+  v UI zatím nevyzkoušeno (jen testy a kopie DB).
+
+**Zbývá – první krok:** vybrat s uživatelem další otevřený bod; kandidát „Náhled zaúčtování u dalších operací“
+(splátky nástrojů, pak úpisy a odkupy) – návrh nejdřív, programovat až po schválení.
 Pak otevřený bod „Náhled zaúčtování u dalších operací“ (splátky, úpisy a odkupy) – zatím neprogramovat.
 
 **Otevřené otázky:** žádné nové. Známé omezení: storno nevypořádaného obchodu bez dokladu (rozvaha ke dni vypořádání)
