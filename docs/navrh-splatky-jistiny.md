@@ -130,3 +130,51 @@ přecenění a kurzového rozdílu; u FVTPL realizovaný výsledek. Ocenění pa
   `investra_test` – předvaha a doklady před a po upgradu shodné, mapování rolí podle plánu, zkouška splátky vkladu
   ve fondu Delta (nabídka, předvyplnění 5 000 000 + 45 500, MD 119100 / D 132000, odmítnuté přeplacení).
 
+
+## Návrh etapy 2: úrok v reálné hodnotě a realizovaný výsledek (schváleno 12. 11. 2026)
+
+Stav dnes (ověřeno v kódu 12. 11.): ocenění v RH účtuje celý rozdíl hodnoty jako přecenění; úrok ze splátky jde na účet
+nástroje druhem pohybu `transaction`, takže ho ocenění doplatí jako **zisk z přecenění, ne jako úrok**. Prodej účtuje
+D nástroj v prodejní ceně a zbytek ocenění vynuluje jako nerealizované přecenění; role pro realizovaný výsledek není.
+Sloupec pořizovací ceny řádku portfolia sčítá i prodeje v prodejní ceně (po částečném prodeji nesedí).
+
+### Část A: úrok u nástrojů v RH
+
+1. **Kupónové nástroje:** naběhlý kupón **lineárně** podle smlouvy (konvence dnů, mezi dvěma toky kalendáře) na
+   zbývající kusy, s koeficientem mimořádných splátek. Lineárně proto, aby naběhlý úrok vykryl splátky jen kupónu.
+   Diskont nebo prémie proti nominálu se **nerozpouští**; rozdíl proti EIR se projeví v přecenění na RH.
+2. **Bezkupónové (diskontní) nástroje** (kalendář bez toků Úrok): diskont přirůstá do úroku **efektivní úrokovou
+   mírou** (`engine.amortised_cost`, každý nákup vlastní EIR, jako u naběhlé hodnoty).
+3. **Konvence ceny:** pole u typu nástroje (u nástroje jde přepsat) „cena je bez naběhlého úroku“. Dluhopis: cena bez
+   úroku, hodnota = kusy × cena + naběhlý úrok. Vklad a úvěr: úrok je v ceně, hodnota = kusy × cena; naběhlý úrok jen
+   rozdělí výsledek na úrok a přecenění.
+4. **Účtování:** naběhlý kupón i diskont na **stejný účet nástroje** jako pořízení, odlišené druhem pohybu
+   `accrued_interest`; žádný samostatný účet. Ocenění nejdřív doúčtuje
+   úrok = cílová úroková složka k datu − zaúčtovaná úroková složka (MD nástroj / D `income_interest`), pak přecenění a
+   kurzový rozdíl ze zbytku jako dnes. Úrok v cizí měně kurzem dne ocenění, kurzový rozdíl zůstává jeden.
+5. **Zaúčtovaná úroková složka** se počítá ze zdrojových záznamů: úrok z ocenění + naběhlý úrok zaplacený při nákupu −
+   úrok ze splátek − naběhlý úrok přijatý při prodeji. Zaúčtované splátky se proto nemigrují.
+6. **Naběhlý úrok u obchodu:** nové pole obchodu, **jen u dluhopisů** (druh typu `bond`; ne akcie ani ostatní podíly),
+   předvyplněné z kalendáře. Platba obchodu = kusy × cena + naběhlý úrok; úroková část jde na účet nástroje
+   druhem pohybu `accrued_interest`.
+
+### Část B: realizovaný výsledek v RH
+
+1. **Průměrná pořizovací cena pozice** (pravidlo „Částečný prodej“): kusy a pořizovací cena v měně nástroje i ve funkční
+   měně; splátka jistiny = prodej části jednotek za nominál. Opraví i sloupec pořizovací ceny.
+2. **Realizovaný výsledek = výnos − poměrná účetní hodnota** (pořizovací cena + přecenění + kurzový rozdíl; úrok řeší
+   část A). Dříve zaúčtované přecenění zůstává. Výsledek proti pořizovací ceně jen informativně v přehledu.
+3. **Nové role** `gain_realised` / `loss_realised` (účty ve skupině 6/5, ČNB VYFO20_11 ř. 30 jako přecenění);
+   realizovaný kurzový rozdíl na `gain_fx` / `loss_fx`.
+4. **Účtuje se v ocenění, při přecenění portfolia:** doúčtování snížené nebo uzavřené pozice se rozdělí na realizovanou
+   část (prodané a splacené jednotky od minulého ocenění) a nerealizovanou (zbytek). Datum dokladu = datum ocenění.
+
+Mimo etapu 2: FVOCI, prodej v naběhlé hodnotě, nový kalendář s EIR, generátor kalendáře s více kupóny (testovací
+kupónový dluhopis se zadá ručně). Citace IFRS 9 odst. 3.2.12, 5.7.1 a IFRS 7 odst. 20(a)(i) **neověřené** – ověřit v
+EUR-Lex a výklad s auditorem; daňový dopad rozdělení realizovaný / nerealizovaný ověřit s daňovým poradcem.
+
+**Provedení:** `investra_entity` / `investra_chart_fund` (role a účty, migrace osnovy), `investra_cnb` (mapování),
+`investra_instruments` (konvence ceny, naběhlý úrok obchodu), `investra_nav` (úroková složka a realizace v ocenění,
+průměrná cena). Testy na čisté DB s předem spočítanými příklady: dluhopis koupený uprostřed kupónu, ocenění, výplata
+kupónu, částečný a úplný prodej, bezkupónový dluhopis, vklad v RH se splátkou, cizí měna, storno splátky. Upgrade
+`investra_test` se zálohou a souhlasem.
