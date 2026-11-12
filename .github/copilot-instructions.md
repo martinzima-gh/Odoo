@@ -85,7 +85,7 @@
 - Pokud uživatel žádá „zkontroluj“, nejprve pouze analyzuj; soubory neměň, pokud změna nebyla požadována.
 - Před významnější změnou stručně sděl, co se změní a proč. Prováděj malé, vratné a snadno kontrolovatelné úpravy; neměň současně nesouvisející části.
 - Po změně Docker Compose validuj příslušný soubor pomocí `docker compose -f <soubor> config --quiet` ještě před spuštěním služeb.
-- Po změně Odoo addonu spusť dostupné relevantní testy. Testy a upgrade mohou měnit databázové schéma nebo data; před jejich spuštěním ověř cílovou databázi a použij izolované/testovací prostředí. Neprováděj testy proti produkčním datům.
+- Testy Odoo (Docker, databáze, upgrade modulu) nespouštíš; spouští je Claude přes `tools/run_tests.sh` nad `investra_test` (role podle `CLAUDE.md`: Copilot jen čte a komentuje). Číst můžeš logy v `.test-logs/`. Spustit smíš jen testy v čistém Pythonu bez databáze, např. `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"`.
 - Při chybě validace nebo testu ji výslovně uveď; neskrývej ji a nepokračuj slepě dalšími změnami.
 - Po dokončení shrň změněné soubory, účetní/provozní dopad a provedené kontroly.
 
@@ -122,4 +122,4 @@ Pokud nejsou významné problémy, napiš výslovně: **„Žádné zásadní n�
 
 ### Spolupráce při změnách
 
-Standardní tok je: Claude analyzuje a implementuje změnu, Copilot ji nezávisle kontroluje a podle potřeby spouští bezpečné testy, Claude vyhodnotí připomínky a provede oprávněné opravy, Copilot může provést finální review. Commit se řídí pravidly v `CLAUDE.md`; Copilot jej neprovádí.
+Standardní tok je: Claude analyzuje a implementuje změnu, Copilot ji nezávisle kontroluje (testy Odoo nespouští, viz výše), Claude vyhodnotí připomínky a provede oprávněné opravy, Copilot může provést finální review. Commit se řídí pravidly v `CLAUDE.md`; Copilot jej neprovádí.

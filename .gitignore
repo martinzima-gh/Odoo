@@ -27,3 +27,6 @@ duverne/
 
 # Lokální zálohy a kopie veřejné dokumentace
 zalohy/
+
+# Logy testů Odoo (tools/run_tests.sh)
+.test-logs/

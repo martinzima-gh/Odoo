@@ -122,6 +122,8 @@ Měření výkonu: test s tagem `nav_benchmark` se spouští jen výslovně. Oce
 
 ## Spuštění testů
 
+Zkráceně: `tools/run_tests.sh investra_nav[,další_modul]` – stejný příkaz pevně nad `investra_test`, celý log uloží do `.test-logs/` (mimo git) a vypíše jen souhrn a chyby. OK jen při nenulovém počtu testů a bez řádků ERROR v logu. Výběr třídy: `TEST_TAGS=/investra_nav:TřídaTestu`.
+
 ```
 python3 -m unittest discover -s tools/nav_reference -p 'test_*.py'
 python3 tools/nav_reference/nav_reference.py
