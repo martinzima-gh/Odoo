@@ -70,6 +70,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 - [ ] Zbývající ukazatele u položek a převodníky ČNB z Knihovny SDAT (ostatní je v `docs/cnb/`).
 - [ ] Ukázky nastavení tříd a alokací od zakladatelů.
 - [ ] Naběhlý úrok a klasifikace podle IFRS 9.
+- [ ] Logo Investra v originálních datech (vektor) pro Odoo; dodá Investra později.
 
 ## Rizika
 

@@ -22,6 +22,34 @@ Rozhodnutí 2026-11-12: s uživatelem smíš upravovat vzhled, ale jen v zelené
 - Bez commitu, pushe, Dockeru, databází a testů Odoo. Smíš spustit `tools/view_check` a testy v čistém Pythonu.
 - **Vždy dej Claudovi vědět:** po každé úpravě založ nebo doplň záznam `docs/ukoly/CP-RRRR-MM-DD-tema.md` podle `docs/ukoly/_sablona.md` (zóna zelená; v sekci Výsledek změněné soubory, co a proč se změnilo, co jsi ověřil). Na konci odpovědi uživateli napiš: „Řekni Claudovi: převezmi `docs/ukoly/CP-…` z `~/odoo-review`.“ Claude změnu zreviduje, vyzkouší a commitne s autorem „Copilot“.
 
+## Firemní identita ve vzhledu Odoo
+
+Rozhodnutí 2026-11-12. Zdroj: Investra Brand manuál verze 1.0 (na úložišti Investry; do repozitáře se nekopíruje). Cílem je přenést existující identitu do Odoo, ne vytvořit nový design. Firemní pravidla mají přednost před vlastními nápady; standardní UX Odoo zachovej tam, kde není důvod ho měnit.
+
+**Barvy (kap. 2):** jen přesné HEX hodnoty z manuálu, žádné další odstíny ani odstíny vytvořené průhledností (`opacity`, `rgba`, `mix()`, `lighten()` apod.).
+
+| Barva | Role | Základ | Odstíny 2 / 3 / 4 |
+|---|---|---|---|
+| Petroleum | hlavní barva (Petroleum 0 `#0c2631` = tmavší varianta pro vyšší kontrast) | `#112e3c` | `#596e78` / `#9daab0` / `#e8ebec` |
+| Ember | primární akcent | `#eb5b1f` | `#f28d62` / `#f8bea4` / `#feeee9` |
+| Lagoon | sekundární akcent | `#0b5156` | `#55868a` / `#9dbbbe` / `#e8eeee` |
+| Graphite | texty, doplňková grafika, podkladové plochy | `#2c2927` | `#6a6967` / `#a8a6a6` / `#eceaea` |
+
+- **Kontrast (WCAG 2.2 AA):** běžný text a malé popisky na bílé nebo světlém podkladu jen v barvách s kontrastem aspoň 4,5 : 1: Petroleum 0, Petroleum, Petroleum 2, Lagoon, Graphite, Graphite 2. Ember má na bílé jen 3,5 : 1, proto jen na velký text (od 24 px, tučně od 19 px), ikony, okraje a plochy bez drobného textu; tlačítko s textem dej v Petroleum. Odstíny 3 a 4 nikdy na text, jen na plochy a oddělovače.
+- **Stavy:** Ember je akcent značky, nikdy neoznačuje stav (chyba, varování). Pro stavy použij funkční barvy Odoo (`success`, `warning`, `danger`, `info`), jen kde nesou význam; dekorativně ne.
+- Barevný jazyk drž střídmý: klidné pozadí, výrazná textová hierarchie, jasné stavy, minimum vizuálního hluku.
+
+**Písmo (kap. 3):** Montserrat, náhradní Arial (`font-family: Montserrat, Arial, sans-serif`). Investra Sans v Odoo nepoužívej (rozhodnutí 2026-11-12).
+- Odoo je technická aplikace: základní text, formuláře a tabulky v **Regular 400**; Light 300 jen pro delší souvislý text (nápověda, popisy). Medium 500 zvýraznění a mezititulky, SemiBold 600 nadpisy, Bold 700 krátké výrazné titulky. Jen skutečné řezy, žádná umělá tučnost nebo kurzíva.
+- Částky a čísla v tabulkách s `font-variant-numeric: tabular-nums`, aby se sloupce zarovnaly.
+- Písmo se nikdy nenačítá z Google Fonts ani jiného CDN (přenos IP adres uživatelů třetí straně). Soubory písma do modulu přidává Claude (nejsou v zelené zóně); ty jen odkazuješ na hotovou `@font-face`.
+
+**Logo (kap. 1):** zatím se do Odoo nevkládá, originální data dodá Investra později. Pak platí: jen originální data (vektor), bez změny proporcí, deformace, natočení a efektů; ochranná zóna bez dalších prvků; minimální velikost na obrazovce 70 px (logo s claimem 130 px); na světlém podkladu Petroleum, na tmavém negativní bílá.
+
+**Co se v Odoo nepoužívá:** vlastní ikonografie (kap. 4) a vzory N a VA (kap. 5); ikony zůstávají z Odoo.
+
+**Kde:** styly patří do jednoho modulu vzhledu (`investra_theme`, založí Claude; do té doby se vzhled globálně nemění). Nezasahuj do Odoo core ani standardních modulů. Když návrh vyžaduje změnu mimo zelenou zónu (modely, pole, security, data, migrace, JavaScript, NAV, FX, účtování), zastav se a napiš to jako návrh do záznamu CP.
+
 ## Projekt a zdroje pravdy
 
 - Jde o vývojové prostředí Odoo pro Investra. Lokální workspace na Macu je primární pracovní prostředí; GitHub slouží k verzování a záloze projektu.
