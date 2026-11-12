@@ -549,8 +549,10 @@ class TestAccrual(NavCase):
         values = {line.ifrs9_category: Decimal(str(line.fair_value)) for line in lines}
         self.assertEqual(values, {"amortised": Decimal("974.47"), "fvtpl": Decimal("980")})
         self.assertEqual(self.balance("deposit"), Decimal("1954.47"))
-        self.assertEqual(self.balance("income_interest"), Decimal("-24.47"))
-        self.assertEqual(self.balance("gain_fair_value"), -30)
+        # Bezkupónový vklad v RH: diskont EIR do úroku (24,47), přecenění jen zbytek do ceny 980 (5,53); dřív celých 30
+        # do přecenění (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“).
+        self.assertEqual(self.balance("income_interest"), Decimal("-48.94"))
+        self.assertEqual(self.balance("gain_fair_value"), Decimal("-5.53"))
         self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "positions_ledger").status, "ok")
 
     def test_manual_override_warns_in_valuation(self):

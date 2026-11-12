@@ -203,9 +203,11 @@
                             <field name="quantity"/>
                             <field name="price"/>
                             <field name="cost" optional="hide"/>
+                            <field name="accrued_interest_currency" optional="show"/>
                             <field name="fair_value_currency" optional="hide"/>
                             <field name="fx_rate" optional="show"/>
                             <field name="fair_value"/>
+                            <field name="realised" optional="show"/>
                         </list></field></page>
                         <page string="Úplaty"><field name="fee_line_ids"><list><field name="rule_id"/><field name="class_id"/><field name="amount"/></list></field></page>
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">

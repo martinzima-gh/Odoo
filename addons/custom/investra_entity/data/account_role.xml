@@ -30,6 +30,9 @@
     <record id="role_income_dividend" model="investra.account.role"><field name="code">income_dividend</field><field name="name">Dividendové výnosy</field><field name="category">income</field></record>
     <record id="role_income_other" model="investra.account.role"><field name="code">income_other</field><field name="name">Ostatní výnosy</field><field name="category">income</field></record>
     <record id="role_loss_fair_value" model="investra.account.role"><field name="code">loss_fair_value</field><field name="name">Ztráta z přecenění na RH</field><field name="category">expense</field></record>
+    <!-- Realizovaný výsledek z prodeje a splacení nástrojů v RH (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“). -->
+    <record id="role_gain_realised" model="investra.account.role"><field name="code">gain_realised</field><field name="name">Realizovaný zisk z nástrojů</field><field name="category">income</field></record>
+    <record id="role_loss_realised" model="investra.account.role"><field name="code">loss_realised</field><field name="name">Realizovaná ztráta z nástrojů</field><field name="category">expense</field></record>
     <record id="role_loss_fx" model="investra.account.role"><field name="code">loss_fx</field><field name="name">Kurzová ztráta</field><field name="category">expense</field></record>
     <record id="role_expense_management" model="investra.account.role"><field name="code">expense_management</field><field name="name">Úplata za obhospodařování</field><field name="category">expense</field></record>
     <record id="role_expense_administration" model="investra.account.role"><field name="code">expense_administration</field><field name="name">Úplata za administraci</field><field name="category">expense</field></record>

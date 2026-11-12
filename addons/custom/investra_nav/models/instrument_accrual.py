@@ -65,7 +65,9 @@ class InvestraInstrument(models.Model):
                 factors[trade.portfolio_id] = Repayment._prorata_factor(fund, self, trade.portfolio_id, day)
             factor = factors[trade.portfolio_id]
             quantity = engine.dec(trade.quantity) * factor
-            cost = quantity * engine.dec(trade.price)
+            # Dluhopis koupený s naběhlým kupónem: zaplacený úrok je součástí pořizovací částky (rozhodnutí 2026-11-12
+            # „Úrok v RH a realizovaný výsledek“).
+            cost = quantity * engine.dec(trade.price) + engine.dec(trade._signed_accrued_interest()) * factor
             totals = {}
             for flow in self.cashflow_ids.filtered(lambda f: f.date > trade.trade_date):
                 totals[flow.date] = totals.get(flow.date, engine.ZERO) + engine.dec(flow.amount) * quantity
@@ -79,6 +81,97 @@ class InvestraInstrument(models.Model):
             elif day < flows[0][0]:
                 total += engine.linear_accrual(cost, flows[0][1], trade.trade_date, flows[0][0], day, basis)
         return engine.money(total)
+
+
+    # --- úrok u nástrojů v reálné hodnotě (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“) -----------
+
+    def _coupon_periods(self):
+        """Kupónová období [(začátek, konec, úrok na jednotku)] z toků Úrok kalendáře.
+
+        První období začíná Začátkem úročení, bez něj prvním obchodem s nástrojem (pak se úrok za dny před ním
+        nepočítá ani do naběhlého úroku obchodu).
+        """
+        self.ensure_one()
+        amounts = {}
+        for flow in self.cashflow_ids.filtered(lambda f: f.flow_type == "interest"):
+            amounts[flow.date] = amounts.get(flow.date, engine.ZERO) + engine.dec(flow.amount)
+        if not amounts:
+            return []
+        start = self.start_date or self.env["investra.trade"].sudo().search(
+            [("instrument_id", "=", self.id)], order="trade_date", limit=1).trade_date or min(amounts)
+        periods = []
+        for end in sorted(amounts):
+            if end > start:
+                periods.append((start, end, amounts[end]))
+                start = end
+        return periods
+
+    def _earned_coupon_unit(self, periods, day, factor_at=None):
+        """Úrok na jednotku vydělaný do data lineárně podle konvence dnů (kupón splatný v den toku je celý vydělaný).
+        factor_at(datum) sníží období koeficientem mimořádných splátek k jeho konci, nejpozději k datu."""
+        basis = self.day_count or "act365"
+        total = engine.ZERO
+        for start, end, amount in periods:
+            if day <= start:
+                break
+            share = engine.dec(1) if day >= end else engine.year_fraction(start, day, basis) / engine.year_fraction(start, end, basis)
+            total += amount * share * (factor_at(min(day, end)) if factor_at else 1)
+        return total
+
+    def _accrued_coupon_unit(self, day):
+        """Naběhlý kupón na jednotku k datu podle smlouvy (běžné období); předvyplnění u obchodu s dluhopisem."""
+        self.ensure_one()
+        periods = self._coupon_periods()
+        current = [(s, e, a) for s, e, a in periods if s < day < e]
+        if not current:
+            return engine.ZERO
+        start = current[0][0]
+        return self._earned_coupon_unit(current, day) if start < day else engine.ZERO
+
+    def _fair_value_interest(self, fund, portfolio, day):
+        """Úrok pozice v RH k datu v měně nástroje: (vydělaný úrok od pořízení, naběhlý úrok v hodnotě pozice).
+
+        Kupónové nástroje lineárně podle smlouvy, bezkupónové (jen toky Jistina) diskont efektivní úrokovou mírou.
+        Naběhlý úrok = vydělaný úrok + úrok zaplacený u nákupů − přijatý u prodejů − úrok ze splátek.
+        Nástroj bez kalendáře vrátí None (akcie, podíly). Jen výpočet: nic se neúčtuje.
+        """
+        self.ensure_one()
+        trades = self.env["investra.trade"].sudo()._recognised(fund, day, self, portfolio)
+        if not trades or not self.cashflow_ids:
+            return None
+        periods = self._coupon_periods()
+        earned = engine.ZERO
+        if periods:
+            Repayment = self.env["investra.instrument.repayment"].sudo()
+            factors = {}
+
+            def factor_at(when):
+                if when not in factors:
+                    factors[when] = Repayment._prorata_factor(fund, self, portfolio, when)
+                return factors[when]
+
+            at_day = self._earned_coupon_unit(periods, day, factor_at)
+            for trade in trades:
+                earned += engine.dec(trade.quantity) * (at_day - self._earned_coupon_unit(periods, trade.trade_date, factor_at))
+        else:
+            if any(trade.quantity < 0 for trade in trades):
+                raise UserError(self.env._("Prodej bezkupónového nástroje v reálné hodnotě zatím není podporovaný: %s.", self.name))
+            basis = self.day_count or "act365"
+            for trade in trades:
+                quantity = engine.dec(trade.quantity)
+                cost = quantity * engine.dec(trade.price)
+                flows = [(f.date, engine.dec(f.amount) * quantity) for f in self.cashflow_ids.filtered(lambda f: f.date > trade.trade_date)]
+                if not flows:
+                    continue
+                paid = sum((a for d, a in flows if d <= day), engine.ZERO)
+                earned += engine.amortised_cost([(trade.trade_date, -cost), *flows], day, basis=basis) + paid - cost
+        bought = sum((engine.dec(t._signed_accrued_interest()) for t in trades), engine.ZERO)
+        received = sum((engine.dec(r.interest_amount) for r in self.env["investra.instrument.repayment"].sudo().search([
+            ("fund_id", "=", fund.id), ("instrument_id", "=", self.id), ("portfolio_id", "=", portfolio.id),
+            ("state", "=", "posted"), ("date", "<=", day),
+        ])), engine.ZERO)
+        earned = engine.money(earned)
+        return earned, engine.money(earned + bought - received)
 
 
 class InvestraInstrumentRepayment(models.Model):
@@ -626,6 +719,15 @@ class InvestraInstrumentRepaymentDraftsWizard(models.TransientModel):
 
 class InvestraTrade(models.Model):
     _inherit = "investra.trade"
+
+    @api.onchange("instrument_id", "trade_date", "quantity")
+    def _onchange_accrued_interest(self):
+        """Dluhopis: naběhlý kupón k datu sjednání podle kalendáře (kusy × úrok na jednotku); jde přepsat."""
+        for trade in self:
+            if trade.event_id or trade.instrument_id.type_id.kind != "bond" or not trade.trade_date:
+                continue
+            unit = trade.instrument_id._origin._accrued_coupon_unit(trade.trade_date)
+            trade.accrued_interest = float(engine.money(abs(engine.dec(trade.quantity)) * unit))
 
     @api.model
     def _holdings(self, fund, day):

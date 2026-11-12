@@ -52,7 +52,7 @@
                         <field name="commitment_amount"/><field name="order_ref"/>
                     </group>
                     <group string="Úročení" invisible="type_group not in ('debt', 'money_market', 'loan')">
-                        <field name="maturity_date"/><field name="coupon_rate"/><field name="day_count"/>
+                        <field name="maturity_date"/><field name="coupon_rate"/><field name="day_count"/><field name="price_excludes_accrued"/>
                         <field name="accrual_method"/>
                         <field name="accrual_note" invisible="accrual_method != 'linear'" required="accrual_method == 'linear'"/>
                     </group>
@@ -82,7 +82,7 @@
             <list>
                 <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
                 <field name="ifrs9_category" optional="show"/><field name="trade_date"/><field name="settlement_date"/>
-                <field name="quantity"/><field name="price"/><field name="fx_rate"/><field name="state" widget="badge"/>
+                <field name="quantity"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/><field name="state" widget="badge"/>
             </list>
         </field>
     </record>
@@ -128,6 +128,8 @@
                             <field name="ifrs9_category"/>
                             <field name="quantity" readonly="event_id or state == 'settled'"/>
                             <field name="price" readonly="event_id or state == 'settled'"/>
+                            <field name="instrument_kind" invisible="1"/>
+                            <field name="accrued_interest" invisible="instrument_kind != 'bond'" readonly="event_id or state == 'settled'"/>
                         </group>
                         <group>
                             <field name="trade_date" readonly="event_id or state == 'settled'"/>

@@ -329,6 +329,7 @@ class InvestraValuation(models.Model):
         several = len(self.fund_id.portfolio_ids) > 1
         rows, lines = [], []
         positions = Trade._holdings(self.fund_id, self.date)
+        previous = self._find_previous()
         # Splacená nebo prodaná pozice bez kusů, která má na účtu nástroje zůstatek, se doúčtuje na nulu
         # (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“: splátka jistiny snižuje kusy).
         for key in self._closed_positions(positions):
@@ -345,6 +346,15 @@ class InvestraValuation(models.Model):
             role = classification.role_id.code
             instrument_account = Role.account_for(self.company_id, role)
             fx = self._fx(instrument.currency_id)
+            # Úrok v RH zvlášť (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“): vydělaný úrok od minulého
+            # ocenění do úrokových výnosů, naběhlý úrok v hodnotě dluhopisu; přecenění až ze zbytku.
+            interest_ccy, accrued_ccy = Decimal(0), Decimal(0)
+            if not amortised:
+                current = instrument._fair_value_interest(self.fund_id, portfolio, self.date)
+                if current:
+                    before = previous and instrument._fair_value_interest(self.fund_id, portfolio, previous.date)
+                    interest_ccy = current[0] - (before[0] if before else 0)
+                    accrued_ccy = current[1]
             if not quantity:
                 value_ccy, unit_price, price_source, price_values = Decimal(0), 0.0, self.env._("Splaceno"), {}
             elif amortised:
@@ -354,6 +364,8 @@ class InvestraValuation(models.Model):
             else:
                 price = self._approved_price(instrument)
                 value_ccy = d(quantity) * d(price.price)
+                if instrument.price_excludes_accrued:
+                    value_ccy += accrued_ccy
                 unit_price, price_source = price.price, price.source
                 price_values = {"price_id": price.id, "price_date": price.date}
             value = engine.money(value_ccy * fx)
@@ -368,23 +380,43 @@ class InvestraValuation(models.Model):
             foreign_raw = line_model._read_group(self._line_domain(*domain), aggregates=["amount_currency:sum"])[0][0]
             foreign = d(foreign_raw)
             foreign_currency = instrument.currency_id != self.fund_id.currency_id
+            interest = engine.money(interest_ccy * fx)
             if foreign_currency:
-                price_effect = engine.money((value_ccy - foreign) * fx)
-                fx_effect = value - carrying - price_effect
+                price_effect = engine.money((value_ccy - foreign - interest_ccy) * fx)
+                fx_effect = value - carrying - interest - price_effect
             else:
-                price_effect, fx_effect = value - carrying, Decimal(0)
+                price_effect, fx_effect = value - carrying - interest, Decimal(0)
+            realised = Decimal(0)
+            if not amortised:
+                realised = engine.money(self._realised_ccy(
+                    instrument, portfolio, previous, Role.account_for(self.company_id, role), foreign_currency,
+                ) * fx)
             movement = "accrued_interest" if amortised else "price_revaluation"
             extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
             currency_values = {"currency_id": instrument.currency_id.id} if foreign_currency else {}
+            if interest:
+                lines.append({
+                    "role": role, "amount": interest, "movement_type": "accrued_interest", "extra": extra,
+                    "name": self.env._("Naběhlý úrok %s", instrument.name),
+                    **({**currency_values, "amount_currency": str(interest_ccy)} if foreign_currency else {}),
+                })
+                lines.append({"role": "income_interest", "amount": -interest, "movement_type": "accrued_interest", "extra": extra})
             if price_effect:
                 lines.append({
                     "role": role, "amount": price_effect, "movement_type": movement, "extra": extra,
-                    **({**currency_values, "amount_currency": str(value_ccy - foreign)} if foreign_currency else {}),
+                    **({**currency_values, "amount_currency": str(value_ccy - foreign - interest_ccy)} if foreign_currency else {}),
                 })
-                lines.append({
-                    "role": "income_interest" if amortised else "gain_fair_value" if price_effect > 0 else "loss_fair_value",
-                    "amount": -price_effect, "movement_type": movement, "extra": extra,
-                })
+            if amortised and price_effect:
+                lines.append({"role": "income_interest", "amount": -price_effect, "movement_type": movement, "extra": extra})
+            elif price_effect or realised:
+                # Realizovaný výsledek prodaných a splacených jednotek zvlášť, zbytek je nerealizované přecenění.
+                unrealised = price_effect - realised
+                for part, gain, loss in ((realised, "gain_realised", "loss_realised"),
+                                         (unrealised, "gain_fair_value", "loss_fair_value")):
+                    if part:
+                        label = {"name": self.env._("Realizace %s", instrument.name)} if gain == "gain_realised" else {}
+                        lines.append({"role": gain if part > 0 else loss, "amount": -part, "movement_type": movement,
+                                      "extra": extra, **label})
             if fx_effect:
                 lines.append({
                     "role": role, "amount": fx_effect, "movement_type": "fx_revaluation", "extra": extra,
@@ -396,7 +428,7 @@ class InvestraValuation(models.Model):
                 })
             if not quantity or (amortised and not value):
                 continue
-            trades = Trade._recognised(self.fund_id, self.date, instrument, portfolio)
+            cost_ccy, cost = self._average_cost(instrument, portfolio)
             rows.append({
                 "valuation_id": self.id,
                 "kind": instrument.type_id.kind,
@@ -411,8 +443,10 @@ class InvestraValuation(models.Model):
                 "price": unit_price,
                 "price_source": price_source,
                 **price_values,
-                "cost_currency": sum(t.quantity * t.price for t in trades),
-                "cost": sum(t.quantity * t.price * t._booked_fx() for t in trades),
+                "cost_currency": float(cost_ccy),
+                "cost": float(cost),
+                "accrued_interest_currency": float(accrued_ccy if not amortised else 0),
+                "realised": float(realised),
                 "fair_value_currency": float(value_ccy),
                 "fx_rate": float(fx),
                 "fx_source": self._rate_source() if foreign_currency else False,
@@ -420,6 +454,64 @@ class InvestraValuation(models.Model):
             })
         self._add_event("portfolio", "Přecenění portfolia", lines)
         self.env["investra.valuation.portfolio"].sudo().create(rows)
+
+    # --- realizovaný výsledek a průměrná pořizovací cena (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“) --
+
+    def _position_events(self, instrument, portfolio, start, end):
+        """Obchody a zaúčtované splátky jistiny pozice v období (start, end] po datech:
+        [(datum, kusy se znaménkem, částka bez úroku v měně nástroje, kurz zaúčtování, uzavírá pozici)]."""
+        Trade = self.env["investra.trade"].sudo()
+        trades = Trade._recognised(self.fund_id, end, instrument, portfolio)
+        if start:
+            trades -= Trade._recognised(self.fund_id, start, instrument, portfolio)
+        events = [(t._recognition_date(), d(t.quantity), d(t.quantity) * d(t.price), d(t._booked_fx()), False) for t in trades]
+        domain = [("fund_id", "=", self.fund_id.id), ("instrument_id", "=", instrument.id), ("portfolio_id", "=", portfolio.id),
+                  ("state", "=", "posted"), ("date", "<=", end)]
+        if start:
+            domain.append(("date", ">", start))
+        ppu = d(instrument._principal_per_unit())
+        for repayment in self.env["investra.instrument.repayment"].sudo().search(domain):
+            principal = d(repayment.principal_amount)
+            events.append((repayment.date, -principal / ppu, -principal, d(repayment.fx_rate), repayment.closes_position))
+        # Nákupy téhož dne před prodeji a splátkami.
+        return sorted(events, key=lambda e: (e[0], e[1] < 0))
+
+    def _average_cost(self, instrument, portfolio):
+        """Pořizovací cena zbývajících kusů průměrem (pravidlo „Částečný prodej“), v měně nástroje a ve funkční měně;
+        bez naběhlého úroku zaplaceného u nákupu."""
+        units = cost_ccy = cost = Decimal(0)
+        for _day, quantity, amount, fx, closes in self._position_events(instrument, portfolio, None, self.date):
+            if quantity > 0:
+                units, cost_ccy, cost = units + quantity, cost_ccy + amount, cost + amount * fx
+            elif units > 0:
+                share = Decimal(1) if closes else min(-quantity / units, Decimal(1))
+                units, cost_ccy, cost = units * (1 - share), cost_ccy * (1 - share), cost * (1 - share)
+        return engine.money(cost_ccy), engine.money(cost)
+
+    def _realised_ccy(self, instrument, portfolio, previous, account, foreign_currency):
+        """Realizovaný výsledek pozice od minulého ocenění v měně nástroje: výnos prodaných a splacených jednotek
+        (bez úroku) − jejich poměrná účetní hodnota průměrem. Účetní hodnota k minulému ocenění = zůstatek účtu nástroje
+        bez naběhlého úroku; dříve zaúčtované přecenění zůstává (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“)."""
+        units = carrying = Decimal(0)
+        if previous:
+            units = d(self.env["investra.trade"].sudo()._holdings(self.fund_id, previous.date).get((instrument, portfolio), 0))
+            field = "amount_currency" if foreign_currency else "balance"
+            total = self.env["account.move.line"].sudo()._read_group([
+                ("company_id", "=", self.company_id.id), ("date", "<=", previous.date), ("parent_state", "=", "posted"),
+                ("investra_instrument_id", "=", instrument.id), ("account_id", "=", account.id),
+                ("investra_classification_id.portfolio_id", "=", portfolio.id),
+            ], aggregates=[f"{field}:sum"])[0][0]
+            accrued = instrument._fair_value_interest(self.fund_id, portfolio, previous.date)
+            carrying = d(total) - (accrued[1] if accrued else 0)
+        realised = Decimal(0)
+        for _day, quantity, amount, _fx, closes in self._position_events(instrument, portfolio, previous.date if previous else None, self.date):
+            if quantity > 0:
+                units, carrying = units + quantity, carrying + amount
+            elif units > 0:
+                share = Decimal(1) if closes else min(-quantity / units, Decimal(1))
+                realised += -amount - carrying * share
+                units, carrying = units * (1 - share), carrying * (1 - share)
+        return realised
 
     def _compute_bank_fx(self):
         """FX přecenění bank v cizí měně a řádky bank v listu portfolio."""
@@ -1425,7 +1517,11 @@ class InvestraValuationPortfolio(models.Model):
     price_id = fields.Many2one("investra.instrument.price", ondelete="restrict", string="Použitá cena")
     price_date = fields.Date(string="Datum ceny")
     cost_currency = fields.Float(digits=(20, 2), string="Pořizovací hodnota v měně")
-    cost = fields.Float(digits=(20, 2), string="Pořizovací hodnota v měně fondu")
+    cost = fields.Float(digits=(20, 2), string="Pořizovací hodnota v měně fondu", help="Zbývající kusy průměrnou cenou, bez naběhlého úroku.")
+    accrued_interest_currency = fields.Float(digits=(20, 2), string="Naběhlý úrok v měně",
+                                             help="U nástrojů v RH: úrok vydělaný a dosud nepřijatý; u dluhopisů je v reálné hodnotě.")
+    realised = fields.Float(digits=(20, 2), string="Realizovaný výsledek v měně fondu",
+                            help="Prodej a splacení od minulého ocenění: výnos bez úroku − poměrná účetní hodnota.")
     fair_value_currency = fields.Float(digits=(20, 2), string="Reálná hodnota v měně")
     fx_rate = fields.Float(digits=(16, 8), string="Kurz")
     fx_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], string="Zdroj kurzu")

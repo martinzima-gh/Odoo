@@ -13,7 +13,7 @@ DAY_COUNT = [
 # Po prvním obchodu neměnná pole nástroje. Klasifikace, způsob ocenění a role jsou v zařazení (rozhodnutí 2026-11-11).
 LOCKED_AFTER_TRADE = {"type_id"}
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id"}
-BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate"}
+BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate", "accrued_interest"}
 SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
 # Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
 PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "currency_id", "source", "deviation_reason"}
@@ -79,6 +79,13 @@ class InvestraInstrument(models.Model):
     maturity_date = fields.Date(string="Splatnost")
     coupon_rate = fields.Float(digits=(16, 6), string="Sazba %")
     day_count = fields.Selection(DAY_COUNT, default="act365", string="Konvence dnů")
+    # Odchylka od návrhu etapy 2 (pole u typu): návrh se bere z druhu typu (dluhopis), aby se nemusela měnit data typů;
+    # u nástroje jde přepsat (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“).
+    price_excludes_accrued = fields.Boolean(
+        compute="_compute_price_excludes_accrued", store=True, readonly=False, string="Cena bez naběhlého úroku",
+        help="Zaškrtnuto (dluhopisy): reálná hodnota = kusy × cena + naběhlý úrok. Nezaškrtnuto (vklady, úvěry): úrok je "
+             "v ceně; naběhlý úrok jen rozdělí výsledek ocenění na úrok a přecenění.",
+    )
     commitment_amount = fields.Float(digits=(20, 2), string="Upisovací závazek", help="Celková částka v měně nástroje, 0 = bez závazku.")
     holding_kind = fields.Selection([("securities", "Cenné papíry"), ("shares", "Podíly")], string="Typ investice", tracking=True)
     fund_id = fields.Many2one("investra.fund", ondelete="restrict", string="Fond", help="Vyplněno: nástroj patří jen tomuto fondu.")
@@ -113,6 +120,11 @@ class InvestraInstrument(models.Model):
     def _onchange_type_id(self):
         if self.type_id:
             self.update(self._type_proposal(self.type_id))
+
+    @api.depends("type_id")
+    def _compute_price_excludes_accrued(self):
+        for instrument in self:
+            instrument.price_excludes_accrued = instrument.type_id.kind == "bond"
 
     @api.depends("type_id", "cnb_sheet")
     def _compute_deviates(self):
@@ -327,6 +339,12 @@ class InvestraTrade(models.Model):
     settlement_date = fields.Date(string="Datum vypořádání")
     quantity = fields.Float(required=True, digits=(20, 6), help="Kladně nákup, záporně prodej.", string="Množství")
     price = fields.Float(required=True, digits=(20, 8), string="Cena")
+    instrument_kind = fields.Selection(related="instrument_id.type_id.kind", string="Druh nástroje")
+    accrued_interest = fields.Float(
+        digits=(20, 2), string="Naběhlý úrok",
+        help="Jen u dluhopisů: naběhlý kupón zaplacený při nákupu nebo přijatý při prodeji, v měně nástroje, kladně. "
+             "Platba obchodu = kusy × cena + naběhlý úrok (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“).",
+    )
     fx_rate = fields.Float(default=1, digits=(16, 6), required=True, help="Funkční měna za jednotku měny nástroje.", string="Kurz")
     settlement_fx_rate = fields.Float(digits=(16, 6), help="Kurz platby; bez zadání platí kurz obchodu.", string="Kurz vypořádání")
     state = fields.Selection(
@@ -386,6 +404,19 @@ class InvestraTrade(models.Model):
                 "V obchodním modelu %(portfolio)s je k %(day)s jen %(held)s kusů %(name)s; prodej %(qty)s nejde zaúčtovat.",
                 portfolio=self.portfolio_id.name, day=self.trade_date, held=held, name=self.instrument_id.name, qty=-self.quantity,
             ))
+
+    @api.constrains("accrued_interest", "instrument_id")
+    def _check_accrued_interest(self):
+        for trade in self:
+            if trade.accrued_interest < 0:
+                raise ValidationError(self.env._("Naběhlý úrok obchodu se zadává kladně, i u prodeje."))
+            if trade.accrued_interest and trade.instrument_id.type_id.kind != "bond":
+                raise ValidationError(self.env._("Naběhlý úrok se u obchodu zadává jen u dluhopisů: %s.", trade.instrument_id.name))
+
+    def _signed_accrued_interest(self):
+        """Naběhlý úrok se znaménkem obchodu: nákup kladně, prodej záporně (v měně nástroje)."""
+        self.ensure_one()
+        return self.accrued_interest if self.quantity >= 0 else -self.accrued_interest
 
     @api.constrains("trade_date", "settlement_date")
     def _check_settlement_date(self):
@@ -448,18 +479,29 @@ class InvestraTrade(models.Model):
         return self.fx_rate
 
     def _event_lines(self, role, counter_role, fx):
-        """Dvojice řádků obchodu: role proti protiúčtu, v měně nástroje a ve funkční měně."""
-        amount = self.quantity * self.price * fx
+        """Řádky obchodu: role proti protiúčtu, v měně nástroje a ve funkční měně.
+
+        Naběhlý úrok dluhopisu je samostatný řádek role (stejný účet, popis „Naběhlý úrok“); protiúčet nese celou platbu.
+        """
+        round_ = self.company_id.currency_id.round
         foreign = self.quantity * self.price
+        interest_foreign = self._signed_accrued_interest()
+        amount = round_(foreign * fx)
+        interest = round_((foreign + interest_foreign) * fx) - amount
         extra = {"investra_instrument_id": self.instrument_id.id, "investra_classification_id": self._classification().id}
         currency_id = self.instrument_id.currency_id.id
         foreign_currency = self.instrument_id.currency_id != self.company_id.currency_id
-        debit = {"currency_id": currency_id, "amount_currency": foreign} if foreign_currency else {}
-        credit = {"currency_id": currency_id, "amount_currency": -foreign} if foreign_currency else {}
-        return [
-            {"role": role, "amount": amount, "movement_type": "transaction", "extra": extra, **debit},
-            {"role": counter_role, "amount": -amount, "movement_type": "transaction", **credit},
-        ]
+
+        def currency(value):
+            return {"currency_id": currency_id, "amount_currency": value} if foreign_currency else {}
+
+        lines = [{"role": role, "amount": amount, "movement_type": "transaction", "extra": extra, **currency(foreign)}]
+        if interest or interest_foreign:
+            lines.append({"role": role, "amount": interest, "movement_type": "transaction", "extra": extra,
+                          "name": self.env._("Naběhlý úrok %s", self.instrument_id.name), **currency(interest_foreign)})
+        lines.append({"role": counter_role, "amount": -(amount + interest), "movement_type": "transaction",
+                      **currency(-(foreign + interest_foreign))})
+        return lines
 
     def _post_trade_event(self, key, name, day, lines, event_type="trade"):
         event = self.env["investra.accounting.event"]._create_event(

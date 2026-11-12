@@ -44,7 +44,7 @@ class TestChart(TransactionCase):
             "instrument_debt": "383000", "other_holding": "385000", "participation_fv": "413100", "participation": "413200",
             "class_capital": "564000", "loss_fair_value": "615000", "loss_fx": "616000", "expense_management": "636100",
             "expense_other": "667000", "expense_bank_fee": "612000", "expense_tax": "681000", "income_interest": "711000", "income_dividend": "714000",
-            "gain_fair_value": "715000", "gain_fx": "716000", "income_other": "767000",
+            "gain_fair_value": "715000", "gain_realised": "715100", "loss_realised": "615100", "gain_fx": "716000", "income_other": "767000",
         }
         for role, code in expected.items():
             self.assertEqual(Role.with_company(self.company).account_for(self.company, role).with_company(self.company).code, code, role)

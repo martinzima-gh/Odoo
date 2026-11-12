@@ -178,3 +178,26 @@ EUR-Lex a výklad s auditorem; daňový dopad rozdělení realizovaný / nereali
 průměrná cena). Testy na čisté DB s předem spočítanými příklady: dluhopis koupený uprostřed kupónu, ocenění, výplata
 kupónu, částečný a úplný prodej, bezkupónový dluhopis, vklad v RH se splátkou, cizí měna, storno splátky. Upgrade
 `investra_test` se zálohou a souhlasem.
+
+## Provedení etapy 2 (12. 11. 2026)
+
+- Role `gain_realised` / `loss_realised`, účty 715100 / 615100 (analytika pod 715 a 615), ČNB VYFO20_11 ř. 30;
+  `investra_entity` 0.7.0, `investra_chart_fund` 0.7.0 (migrace doplní účty a mapování), `investra_cnb` 0.7.0.
+- `investra_instruments` 0.9.0: u nástroje pole **Cena bez naběhlého úroku**; u obchodu pole **Naběhlý úrok** (jen dluhopisy,
+  kladně; předvyplní se z kalendáře k datu sjednání). Obchod účtuje úrok samostatným řádkem na účet nástroje.
+- `investra_nav` 0.15.0: ocenění v RH účtuje úrok od minulého ocenění (MD nástroj / D úrokové výnosy, druh pohybu Naběhlý
+  úrok), u dluhopisu přičte naběhlý úrok k hodnotě. Přecenění ze zbytku rozdělí na realizovaný výsledek (prodeje a splátky
+  jistiny od minulého ocenění, průměrem) a nerealizované přecenění. Řádek portfolia má nově naběhlý úrok, realizovaný
+  výsledek a pořizovací cenu průměrem. U naběhlé hodnoty se naběhlý úrok zaplacený u nákupu dluhopisu přičte k pořizovací částce.
+- **Odchylky od návrhu:**
+  1. Konvence ceny je pole nástroje, výchozí hodnota se bere z druhu typu (dluhopis), ne nové pole typu. Data typů se proto
+     nemusí měnit.
+  2. Řádek naběhlého úroku u obchodu má druh pohybu Transakce, ne Naběhlý úrok: jde o platbu, ne o výnos. Úrok se počítá
+     ze zdrojových záznamů (obchody, splátky), ne z druhů pohybu.
+  3. Prodej bezkupónového nástroje v RH zatím končí chybou „zatím nepodporováno“. Kupón po mimořádné splátce se snižuje
+     koeficientem za celé běžné období.
+  4. Realizovaný výsledek v cizí měně se přepočte kurzem dne ocenění; kurzový rozdíl zůstává v kurzových účtech.
+- Ověřeno: čistá databáze, všechny vlastní moduly 472 testů, 0 chyb (7 nových v `test_fair_value_interest.py`). Změněná
+  očekávaná hodnota v `test_same_deposit_in_two_models_values_separately` je důsledek rozhodnutí: diskont vkladu v RH
+  24,47 jde do úroku, ne do přecenění. Kopie `investra_test`: předvaha před a po upgradu shodná, všech 5 fondových knih
+  má nové účty. SELECTy v `docs/sql/17-urok-rh-realizace.sql`.

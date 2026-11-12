@@ -206,6 +206,7 @@ Názvy účtů se nemění, sloupec Název je pracovní popis.
 | ifa_428000 | retained_result | 571000 | 571000 | Výsledek minulých let | beze změny (572 ztráta – jedna role) |
 | ifa_431000 | (nerozdělený výsledek Odoo) | 590000 | 590000 | Výsledek běžného období | beze změny |
 | ifa_511000 | loss_fair_value | 613000 | 615000 | Ztráta z přecenění na reálnou hodnotu | 615 Náklady na operace s CP (613 je leasing) |
+| ifa_511100 (nový 2026-11-12) | loss_realised (nová) | – | **615100** | Realizovaná ztráta z nástrojů | 615; prodej a splacení v RH (rozhodnutí „Úrok v RH a realizovaný výsledek“); ČNB VYFO20_11 ř. 30 |
 | ifa_563000 | loss_fx | 614000 | 616000 | Kurzové ztráty | 616 Náklady na devizové operace |
 | ifa_518100 | expense_management | 631100 | 636100 | Úplata za obhospodařování | 636 Nakupované výkony – z pohledu fondu služby (**R**); 631 jsou náklady na zaměstnance |
 | ifa_518300 | expense_depositary | 631300 | 636300 | Úplata depozitáři | 636 (**R**) |
@@ -220,6 +221,7 @@ Názvy účtů se nemění, sloupec Název je pracovní popis.
 | ifa_662000 | income_interest | 711000 | 711000 | Úrokové výnosy | **R:** 711 (banky); úroky z dluhopisů by patřily na 714 = nová role |
 | ifa_665000 | income_dividend | 712000 | 714000 | Dividendové výnosy | 714 Výnosy z držených CP (712 jsou operace s klienty) |
 | ifa_611000 | gain_fair_value | 713000 | 715000 | Zisk z přecenění na reálnou hodnotu | 715 Výnosy z operací s CP (713 je leasing) |
+| ifa_611100 (nový 2026-11-12) | gain_realised (nová) | – | **715100** | Realizovaný zisk z nástrojů | 715; jako výše |
 | ifa_663000 | gain_fx | 714000 | 716000 | Kurzové zisky | 716 Výnosy z devizových operací |
 | ifa_668000 | income_other | 761000 | 767000 | Ostatní výnosy | 767 Jiné provozní výnosy (761 jsou odepsané pohledávky) |
 | ifa_668100 | rounding_gain | 761100 | 767100 | Rozdíly ze zaokrouhlení úpisů a odkupů – výnos | 767 |

@@ -44,6 +44,9 @@ ROLE_ACCOUNTS = {
     "income_other": "ifa_668000",
     "rounding_gain": "ifa_668100",
     "loss_fair_value": "ifa_511000",
+    # Realizovaný výsledek v RH: analytika pod 615/715 (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“).
+    "gain_realised": "ifa_611100",
+    "loss_realised": "ifa_511100",
     "loss_fx": "ifa_563000",
     "expense_management": "ifa_518100",
     "expense_administration": "ifa_518200",

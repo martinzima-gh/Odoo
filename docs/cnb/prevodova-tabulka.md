@@ -57,6 +57,8 @@ Sloupec Znaménko: 1 je zůstatek jak je, -1 obrácený. Součtové řádky jsou
 | 23 | Náklady na poplatky a provize | Výkonnostní odměna | všechny | od začátku roku | -1 | -1 | 37, 56, 58 |
 | 30 | Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty | Zisk z přecenění na RH | všechny | od začátku roku | -1 | 1 | 37, 56, 58 |
 | 30 | Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty | Ztráta z přecenění na RH | všechny | od začátku roku | -1 | 1 | 37, 56, 58 |
+| 30 | Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty | Realizovaný zisk z nástrojů | všechny | od začátku roku | -1 | 1 | 37, 56, 58 |
+| 30 | Zisk nebo (-) ztráta z finančních aktiv neurčených k obchodování povinně v RH vykázané do zisku nebo ztráty | Realizovaná ztráta z nástrojů | všechny | od začátku roku | -1 | 1 | 37, 56, 58 |
 | 33 | Kurzové rozdíly - zisk nebo (-) ztráta | Kurzový zisk | všechny | od začátku roku | -1 | 1 | 37, 56, 58 |
 | 33 | Kurzové rozdíly - zisk nebo (-) ztráta | Kurzová ztráta | všechny | od začátku roku | -1 | 1 | 37, 56, 58 |
 | 35 | Ostatní provozní výnosy | Ostatní výnosy | všechny | od začátku roku | -1 | 1 | 37, 56, 58 |
