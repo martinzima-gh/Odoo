@@ -11,6 +11,7 @@ MOVEMENT_TYPES = [
     ("transaction", "Transakce"),
     ("price_revaluation", "Přecenění cenou"),
     ("fx_revaluation", "Přecenění kurzem"),
+    ("fx_realised", "Realizovaný kurzový rozdíl"),
     ("accrued_interest", "Naběhlý úrok"),
     ("subscription", "Úpis"),
     ("redemption", "Odkup"),

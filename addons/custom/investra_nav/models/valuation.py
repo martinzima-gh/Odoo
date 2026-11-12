@@ -381,16 +381,21 @@ class InvestraValuation(models.Model):
             foreign = d(foreign_raw)
             foreign_currency = instrument.currency_id != self.fund_id.currency_id
             interest = engine.money(interest_ccy * fx)
-            if foreign_currency:
-                price_effect = engine.money((value_ccy - foreign - interest_ccy) * fx)
-                fx_effect = value - carrying - interest - price_effect
-            else:
-                price_effect, fx_effect = value - carrying - interest, Decimal(0)
-            realised = Decimal(0)
+            cost_ccy, cost, realised_fx = self._cost_walk(instrument, portfolio, previous)
+            realised_ccy = realised = Decimal(0)
             if not amortised:
-                realised = engine.money(self._realised_ccy(
+                realised_ccy, realised_rated = self._realised_ccy(
                     instrument, portfolio, previous, Role.account_for(self.company_id, role), foreign_currency,
-                ) * fx)
+                )
+                realised = engine.money(realised_rated if foreign_currency else realised_ccy)
+            if foreign_currency:
+                # Realizace kurzem prodeje či splátky, zbytek ceny kurzem ocenění (rozhodnutí 2026-11-12
+                # „Realizovaný kurzový rozdíl“); kurzový rozdíl ze zbytku, z něj realizovaný proti pořizovací ceně.
+                price_effect = engine.money((value_ccy - foreign - interest_ccy - realised_ccy) * fx) + realised
+                fx_effect = value - carrying - interest - price_effect
+                realised_fx = engine.money(realised_fx) if not amortised else Decimal(0)
+            else:
+                price_effect, fx_effect, realised_fx = value - carrying - interest, Decimal(0), Decimal(0)
             movement = "accrued_interest" if amortised else "price_revaluation"
             extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
             currency_values = {"currency_id": instrument.currency_id.id} if foreign_currency else {}
@@ -417,18 +422,22 @@ class InvestraValuation(models.Model):
                         label = {"name": self.env._("Realizace %s", instrument.name)} if gain == "gain_realised" else {}
                         lines.append({"role": gain if part > 0 else loss, "amount": -part, "movement_type": movement,
                                       "extra": extra, **label})
-            if fx_effect:
+            # Realizovaný kurzový rozdíl prodaných a splacených jednotek zvlášť (stejné účty, vlastní druh pohybu),
+            # zbytek je nerealizovaný kurzový rozdíl.
+            for part, fx_movement in ((realised_fx, "fx_realised"), (fx_effect - realised_fx, "fx_revaluation")):
+                if not part:
+                    continue
+                label = {"name": self.env._("Realizovaný kurz %s", instrument.name)} if fx_movement == "fx_realised" else {}
                 lines.append({
-                    "role": role, "amount": fx_effect, "movement_type": "fx_revaluation", "extra": extra,
+                    "role": role, "amount": part, "movement_type": fx_movement, "extra": extra, **label,
                     **({**currency_values, "amount_currency": "0"} if foreign_currency else {}),
                 })
                 lines.append({
-                    "role": "gain_fx" if fx_effect > 0 else "loss_fx",
-                    "amount": -fx_effect, "movement_type": "fx_revaluation", "extra": extra,
+                    "role": "gain_fx" if part > 0 else "loss_fx",
+                    "amount": -part, "movement_type": fx_movement, "extra": extra, **label,
                 })
             if not quantity or (amortised and not value):
                 continue
-            cost_ccy, cost = self._average_cost(instrument, portfolio)
             rows.append({
                 "valuation_id": self.id,
                 "kind": instrument.type_id.kind,
@@ -476,22 +485,31 @@ class InvestraValuation(models.Model):
         # Nákupy téhož dne před prodeji a splátkami.
         return sorted(events, key=lambda e: (e[0], e[1] < 0))
 
-    def _average_cost(self, instrument, portfolio):
-        """Pořizovací cena zbývajících kusů průměrem (pravidlo „Částečný prodej“), v měně nástroje a ve funkční měně;
-        bez naběhlého úroku zaplaceného u nákupu."""
-        units = cost_ccy = cost = Decimal(0)
-        for _day, quantity, amount, fx, closes in self._position_events(instrument, portfolio, None, self.date):
+    def _cost_walk(self, instrument, portfolio, previous):
+        """Pořizovací cena zbývajících kusů průměrem (pravidlo „Částečný prodej“), v měně nástroje a ve funkční měně,
+        bez naběhlého úroku zaplaceného u nákupu; a realizovaný kurzový rozdíl prodejů a splátek jistiny od minulého
+        ocenění ve funkční měně.
+
+        Realizovaný kurz = průměrná pořizovací cena prodaných jednotek v měně nástroje × (kurz prodeje − průměrný kurz
+        nákupu), tj. proti pořizovací ceně, ne proti minulému přecenění (rozhodnutí 2026-11-12 „Realizovaný kurzový
+        rozdíl“). Výsledek: (pořizovací cena v měně nástroje, ve funkční měně, realizovaný kurz nezaokrouhleně)."""
+        since = previous.date if previous else None
+        units = cost_ccy = cost = realised_fx = Decimal(0)
+        for day, quantity, amount, fx, closes in self._position_events(instrument, portfolio, None, self.date):
             if quantity > 0:
                 units, cost_ccy, cost = units + quantity, cost_ccy + amount, cost + amount * fx
             elif units > 0:
                 share = Decimal(1) if closes else min(-quantity / units, Decimal(1))
+                if since is None or day > since:
+                    realised_fx += share * (cost_ccy * fx - cost)
                 units, cost_ccy, cost = units * (1 - share), cost_ccy * (1 - share), cost * (1 - share)
-        return engine.money(cost_ccy), engine.money(cost)
+        return engine.money(cost_ccy), engine.money(cost), realised_fx
 
     def _realised_ccy(self, instrument, portfolio, previous, account, foreign_currency):
         """Realizovaný výsledek pozice od minulého ocenění v měně nástroje: výnos prodaných a splacených jednotek
         (bez úroku) − jejich poměrná účetní hodnota průměrem. Účetní hodnota k minulému ocenění = zůstatek účtu nástroje
-        bez naběhlého úroku; dříve zaúčtované přecenění zůstává (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“)."""
+        bez naběhlého úroku; dříve zaúčtované přecenění zůstává (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“).
+        Výsledek: (realizace v měně nástroje, realizace přepočtená kurzem zaúčtování prodeje či splátky)."""
         units = carrying = Decimal(0)
         if previous:
             units = d(self.env["investra.trade"].sudo()._holdings(self.fund_id, previous.date).get((instrument, portfolio), 0))
@@ -503,15 +521,16 @@ class InvestraValuation(models.Model):
             ], aggregates=[f"{field}:sum"])[0][0]
             accrued = instrument._fair_value_interest(self.fund_id, portfolio, previous.date)
             carrying = d(total) - (accrued[1] if accrued else 0)
-        realised = Decimal(0)
-        for _day, quantity, amount, _fx, closes in self._position_events(instrument, portfolio, previous.date if previous else None, self.date):
+        realised = rated = Decimal(0)
+        for _day, quantity, amount, fx, closes in self._position_events(instrument, portfolio, previous.date if previous else None, self.date):
             if quantity > 0:
                 units, carrying = units + quantity, carrying + amount
             elif units > 0:
                 share = Decimal(1) if closes else min(-quantity / units, Decimal(1))
-                realised += -amount - carrying * share
+                part = -amount - carrying * share
+                realised, rated = realised + part, rated + part * fx
                 units, carrying = units * (1 - share), carrying * (1 - share)
-        return realised
+        return realised, rated
 
     def _compute_bank_fx(self):
         """FX přecenění bank v cizí měně a řádky bank v listu portfolio."""

@@ -174,6 +174,83 @@ class TestFairValueInterest(NavCase):
         self.assertEqual(line.realised, 1040)
         self.assertEqual(self.balance("gain_realised"), -1040)
         self.assertEqual(self.balance("gain_fair_value"), -4060)
+        # Kurz proti pořizovací ceně: realizovaný 4 × 100 × (26 − 25) = 400, nerealizovaný zbytek 1100 − 400 = 700.
+        self.assertEqual(self.fx_balance("fx_realised"), -400)
+        self.assertEqual(self.fx_balance("fx_revaluation"), -700)
+
+    # --- realizovaný kurzový rozdíl (rozhodnutí 2026-11-12 „Realizovaný kurzový rozdíl“) ---------------------
+
+    def fx_balance(self, movement):
+        """Zůstatek kurzových účtů (zisk i ztráta) s daným druhem pohybu, jen řádky nástrojů (bez přecenění banky)."""
+        Role = self.env["investra.account.role"]
+        accounts = Role.accounts_for(self.fund.company_id, "gain_fx") | Role.accounts_for(self.fund.company_id, "loss_fx")
+        lines = self.env["account.move.line"].sudo().search([
+            ("account_id", "in", accounts.ids), ("parent_state", "=", "posted"), ("investra_movement_type", "=", movement),
+            ("investra_instrument_id", "!=", False),
+        ])
+        return Decimal(str(round(sum(lines.mapped("balance")), 2)))
+
+    def test_realised_fx_uses_sale_rate_not_valuation_rate(self):
+        self.rate("2029-02-01", 25)
+        self.rate("2029-03-01", 27)
+        equity = self.instrument("equity", currency=self.eur)
+        self.trade(equity, "2029-01-01", 10, 100, fx_rate=25)
+        self.value(equity, "2029-02-01", 110)
+        self.trade(equity, "2029-02-15", -4, 120, fx_rate=26)
+        _valuation, line = self.value(equity, "2029-03-01", 120)
+        # Realizace 40 EUR kurzem prodeje 26 = 1040; realizovaný kurz 4 × 100 × (26 − 25) = 400;
+        # nerealizovaná cena 60 EUR × 27 = 1620; celkem 720 × 27 − 15020 = 4420, nerealizovaný kurz 4420 − 3060 = 1360.
+        self.assertEqual(line.realised, 1040)
+        self.assertEqual(self.balance("gain_realised"), -1040)
+        self.assertEqual(self.balance("gain_fair_value"), -(2500 + 1620))
+        self.assertEqual(self.fx_balance("fx_realised"), -400)
+        self.assertEqual(self.fx_balance("fx_revaluation"), -1360)
+        self.assertEqual(self.balance(line.classification_id.role_id.code), 19440)
+
+    def test_realised_fx_loss_on_full_sale(self):
+        self.rate("2029-03-01", 24)
+        equity = self.instrument("equity", currency=self.eur)
+        trade = self.trade(equity, "2029-01-01", 10, 100, fx_rate=25)
+        self.trade(equity, "2029-03-01", -10, 100, fx_rate=24)
+        self.value(equity, "2029-03-01", 100)
+        self.assertEqual(self.fx_balance("fx_realised"), 1000)
+        self.assertEqual(self.fx_balance("fx_revaluation"), 0)
+        self.assertEqual(self.balance("gain_realised") + self.balance("loss_realised"), 0)
+        self.assertEqual(self.balance(trade._classification().role_id.code), 0)
+
+    def test_realised_fx_against_average_cost_after_unrealised_fx_and_purchase(self):
+        self.rate("2029-02-01", 26)
+        self.rate("2029-03-01", 28)
+        equity = self.instrument("equity", currency=self.eur)
+        self.trade(equity, "2029-01-01", 10, 100, fx_rate=25)
+        self.value(equity, "2029-02-01", 100)
+        self.assertEqual(self.fx_balance("fx_revaluation"), -1000)
+        self.trade(equity, "2029-02-15", 10, 100, fx_rate=27)
+        self.trade(equity, "2029-02-20", -5, 100, fx_rate=28)
+        _valuation, line = self.value(equity, "2029-03-01", 100)
+        # Průměrný kurz nákupu 52000 / 2000 = 26: realizovaný kurz 5 × 100 × (28 − 26) = 1000, ne proti kurzu
+        # minulého ocenění. Celkem 42000 − 39000 = 3000, nerealizovaný 2000 (kumulativně 3000 = 15 × 100 × (28 − 26)).
+        self.assertEqual(self.fx_balance("fx_realised"), -1000)
+        self.assertEqual(self.fx_balance("fx_revaluation"), -3000)
+        self.assertEqual(line.realised, 0)
+        self.assertEqual((line.cost_currency, line.cost), (1500, 39000))
+
+    def test_realised_fx_on_principal_repayment(self):
+        self.rate("2029-06-30", 27)
+        deposit = self.instrument("deposit", currency=self.eur)
+        deposit.cashflow_ids = [(0, 0, {"date": "2029-06-01", "amount": 1, "flow_type": "principal"})]
+        self.trade(deposit, "2029-01-01", 1000, 1, fx_rate=25)
+        repayment = self.env["investra.instrument.repayment"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": deposit.id,
+            "date": "2029-06-01", "principal_amount": 1000, "fx_rate": 27,
+        })
+        repayment.with_user(self.preparer).action_book()
+        self.value(deposit, "2029-06-30", 1)
+        # Splátka jistiny = prodej za nominál: realizovaný kurz 1000 × (27 − 25) = 2000, cena ani úrok nic.
+        self.assertEqual(self.fx_balance("fx_realised"), -2000)
+        self.assertEqual(self.fx_balance("fx_revaluation"), 0)
+        self.assertEqual(self.balance("gain_realised") + self.balance("loss_realised"), 0)
+        self.assertEqual(self.balance("deposit"), 0)
 
     # --- kontroly zadání (2026-11-12, zkouška v UI) ---------------------------------------------------------
 

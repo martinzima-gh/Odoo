@@ -197,6 +197,8 @@ kupónu, částečný a úplný prodej, bezkupónový dluhopis, vklad v RH se sp
   3. Prodej bezkupónového nástroje v RH zatím končí chybou „zatím nepodporováno“. Kupón po mimořádné splátce se snižuje
      koeficientem za celé běžné období.
   4. Realizovaný výsledek v cizí měně se přepočte kurzem dne ocenění; kurzový rozdíl zůstává v kurzových účtech.
+     **Zrušeno 12. 11.** (rozhodnutí „Realizovaný kurzový rozdíl“): realizace se přepočte kurzem prodeje či splátky,
+     realizovaný kurz proti pořizovací ceně jde zvlášť druhem pohybu Realizovaný kurzový rozdíl.
 - Ověřeno: čistá databáze, všechny vlastní moduly 472 testů, 0 chyb (7 nových v `test_fair_value_interest.py`). Změněná
   očekávaná hodnota v `test_same_deposit_in_two_models_values_separately` je důsledek rozhodnutí: diskont vkladu v RH
   24,47 jde do úroku, ne do přecenění. Kopie `investra_test`: předvaha před a po upgradu shodná, všech 5 fondových knih
