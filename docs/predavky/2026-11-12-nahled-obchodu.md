@@ -14,17 +14,14 @@ předvaha a počet dokladů shodné), web 8071 (`investra-test-web`) restartová
 - Testy: čistá DB 494 testů, 0 chyb.
 - Vypořádání obchodů přes peníze na cestě odloženo do pořízení Enterprise (otevřené body).
 
-**Zjištěno na datech (neopraveno, testovací data uživatele):** dluhopis Beta (id 466) má kalendář s jistinou
-100 000 na kus, úrokem Ve splatnosti a úročením od 1. 1. 2019, nákupy jsou ale za 10 000 a 10 060 za kus.
-Návrh prodeje 5348 (200 ks za 1 060) proto předvyplnil naběhlý úrok 7 868 493,15 a náhled ukazuje ztrátu −1 686 191,78.
-Kalendář ovlivní i příští ocenění Bety (úrok pozice).
+**Data:** dluhopis Beta a návrh prodeje 5348 jsou zkusmo zadaná uživatelem naslepo – neřešit.
 
-**Zbývá – první krok:** s uživatelem opravit kalendář a cenu dluhopisu Beta před zaúčtováním prodeje 5348 a před dalším oceněním.
+**Zbývá – první krok:** vybrat s uživatelem další otevřený bod.
 
 **Otevřené body (výběr dalšího):** nový kalendář s EIR; pohyblivá sazba a PIK; poplatek placený fondu;
 přehled operací ke zpracování.
 
-**Otevřené otázky:** jistina na kus a výplata úroku dluhopisu Beta (rozhodne uživatel).
+**Otevřené otázky:** žádné nové.
 
 **Přečíst:**
 1. `CLAUDE.md`
