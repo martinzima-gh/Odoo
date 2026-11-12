@@ -13,10 +13,12 @@
   `investra_nav` 229, 0 chyb. Migrace ověřena na kopii `investra_ci_migrace` (předvaha a doklady shodné).
 - Záloha `zalohy/investra_test-2026-11-12-pred-splatkami-jistiny.dump` (10:11). Deník, otevřené body, Doc rev 313.
 
-**Zbývá – první krok:** se souhlasem uživatele upgrade `investra_test`
-(`ALLOW_UPGRADE=1 tools/run_tests.sh investra_entity,investra_chart_fund,investra_cnb,investra_nav`), porovnat
-předvahu před/po, restart webu 8071, zkouška splátky v UI. Pak smazat pomocné DB `investra_ci_jistina`,
-`investra_ci_migrace` (se souhlasem). Etapa 2: naběhlý úrok u úročených nástrojů v RH v ocenění, realizovaný výsledek.
+**Provedeno po předávce (souhlas uživatele):** nová záloha `zalohy/investra_test-2026-11-12-pred-splatkami-jistiny.dump`
+(10:15); upgrade `investra_test` (entity, chart_fund, cnb 0.6.0, nav 0.10.0) – předvaha a doklady shodné, změnilo se jen
+mapování 119100 na roli Inkasa na cestě; web 8071 restartován; smazány DB a přílohy `investra_ci_jistina`, `investra_ci_migrace`.
+
+**Zbývá – první krok:** zkouška splátky v UI na 8071 (fond Delta, vklad: splátky 239, 240, 242 jsou stornované).
+Pak etapa 2: naběhlý úrok u úročených nástrojů v RH v ocenění a realizovaný výsledek při splacení/prodeji v RH.
 
 **Otevřené otázky:** mimořádná splátka v naběhlé hodnotě (auditor); vypořádání obchodů přes peníze na cestě.
 
