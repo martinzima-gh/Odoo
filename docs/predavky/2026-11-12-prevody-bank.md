@@ -20,10 +20,11 @@
 
 **Zbývá – první krok:** uživatel zaúčtuje v UI fondu 244 interní doklad (MISC, 2027-03-03): 119000 MD / 131100 D a 131102 MD /
 119000 D; pak ověřit `docs/sql/15-prevody-bank.sql` (119000 nulový, položky v Community nespárované).
-Dál: smazat pomocné databáze `investra_test_kopie`, `investra_test_cista` (+ filestore) – jen po souhlasu; `investra_dev`
-aktualizovat `investra_entity` 0.5.0 (po souhlasu); s Enterprise ověřit párování výpisů přes model Internal Transfers.
+Dál: s Enterprise ověřit párování výpisů přes model Internal Transfers. Hotovo po předávce: pomocné databáze smazány,
+matice opravena (řádek 82 zpět, nový řádek 83 od 13. 11.), `investra_dev` na `investra_entity` 0.5.0 (deník 2026-11-12).
 
-**Otevřené otázky:** řádky matice 81/82 v `investra_test` – záměr uživatele? (testy schvalování nad touto databází selhávají);
+**Otevřené otázky:** ocenění 9572 (Delta) schválené 12. 11. bez druhé osoby zůstává v historii; složka příloh
+`investra_dev_kopie` bez databáze (z dřívější relace) – smazat?
 poplatky 612 vs. 611 (pokladní a mezibankovní operace) – rozhodnuto 612; pokladna (deník typu cash) zatím bez role.
 
 **Přečíst (nejvýš 5):**
