@@ -17,6 +17,22 @@ class InvestraInstrument(models.Model):
     )
     start_date = fields.Date(string="Začátek úročení")
 
+    @api.constrains("start_date", "maturity_date")
+    def _check_cashflow_dates(self):
+        """Tok kalendáře musí být po začátku úročení a nejpozději v den splatnosti (2026-11-12, zkouška v UI)."""
+        for instrument in self:
+            for flow in instrument.cashflow_ids:
+                if instrument.start_date and flow.date <= instrument.start_date:
+                    raise ValidationError(self.env._(
+                        "Tok kalendáře %(day)s není po začátku úročení %(start)s: %(name)s.",
+                        day=flow.date, start=instrument.start_date, name=instrument.name,
+                    ))
+                if instrument.maturity_date and flow.date > instrument.maturity_date:
+                    raise ValidationError(self.env._(
+                        "Tok kalendáře %(day)s je po splatnosti %(end)s: %(name)s.",
+                        day=flow.date, end=instrument.maturity_date, name=instrument.name,
+                    ))
+
     def action_generate_schedule(self):
         """Vklad s jednou splátkou: jistina a úrok k splatnosti podle sazby a konvence dnů."""
         for instrument in self:
@@ -172,6 +188,14 @@ class InvestraInstrument(models.Model):
         ])), engine.ZERO)
         earned = engine.money(earned)
         return earned, engine.money(earned + bought - received)
+
+
+class InvestraInstrumentCashflow(models.Model):
+    _inherit = "investra.instrument.cashflow"
+
+    @api.constrains("date", "instrument_id")
+    def _check_date(self):
+        self.instrument_id._check_cashflow_dates()
 
 
 class InvestraInstrumentRepayment(models.Model):
@@ -720,14 +744,30 @@ class InvestraInstrumentRepaymentDraftsWizard(models.TransientModel):
 class InvestraTrade(models.Model):
     _inherit = "investra.trade"
 
-    @api.onchange("instrument_id", "trade_date", "quantity")
+    def _calendar_accrued_interest(self):
+        """Naběhlý kupón dluhopisu k datu sjednání podle kalendáře: kusy × úrok na jednotku (nákup i prodej)."""
+        self.ensure_one()
+        unit = self.instrument_id._origin._accrued_coupon_unit(self.trade_date)
+        return float(engine.money(abs(engine.dec(self.units or self.quantity)) * unit))
+
+    @api.onchange("instrument_id", "trade_date", "quantity", "units", "side")
     def _onchange_accrued_interest(self):
-        """Dluhopis: naběhlý kupón k datu sjednání podle kalendáře (kusy × úrok na jednotku); jde přepsat."""
+        """Dluhopis: naběhlý kupón se předvyplní z kalendáře; jde přepsat."""
         for trade in self:
             if trade.event_id or trade.instrument_id.type_id.kind != "bond" or not trade.trade_date:
                 continue
-            unit = trade.instrument_id._origin._accrued_coupon_unit(trade.trade_date)
-            trade.accrued_interest = float(engine.money(abs(engine.dec(trade.quantity)) * unit))
+            trade.accrued_interest = trade._calendar_accrued_interest()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Obchod s dluhopisem bez zadaného naběhlého úroku (import, API) dostane úrok z kalendáře."""
+        trades = super().create(vals_list)
+        for trade, vals in zip(trades, vals_list):
+            if "accrued_interest" not in vals and trade.instrument_id.type_id.kind == "bond" and not trade.event_id:
+                interest = trade._calendar_accrued_interest()
+                if interest:
+                    trade.accrued_interest = interest
+        return trades
 
     @api.model
     def _holdings(self, fund, day):

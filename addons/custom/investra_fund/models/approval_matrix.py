@@ -171,10 +171,17 @@ class InvestraApprovalMatrix(models.Model):
         for row in self:
             row.company_id = row.fund_id.company_id or row.manager_id.company_id
 
-    @api.depends("step_ids")
+    @api.depends("step_ids", "second_person")
     def _compute_persons(self):
         for row in self:
-            row.persons = 1 + len(row.step_ids)
+            row.persons = 1 if row.second_person == "no" else 1 + len(row.step_ids)
+
+    @api.onchange("second_person")
+    def _onchange_second_person(self):
+        """Bez druhé osoby nemá řádek schvalovatele: volba Ne je smaže (2026-11-12, zkouška v UI)."""
+        for row in self:
+            if row.second_person == "no" and row.step_ids:
+                row.step_ids = [(5,)]
 
     @api.depends("activity", "manager_id", "fund_id", "valid_from")
     def _compute_display_name(self):

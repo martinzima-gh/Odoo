@@ -82,7 +82,7 @@
             <list>
                 <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
                 <field name="ifrs9_category" optional="show"/><field name="trade_date"/><field name="settlement_date"/>
-                <field name="quantity"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/><field name="state" widget="badge"/>
+                <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/><field name="state" widget="badge"/>
             </list>
         </field>
     </record>
@@ -123,10 +123,15 @@
                         <group>
                             <field name="fund_id" readonly="event_id or state == 'settled'"/>
                             <field name="portfolio_id" readonly="event_id or state == 'settled'" options="{'no_create': True}"/>
-                            <field name="instrument_id" readonly="event_id or state == 'settled'"/>
+                            <field name="side" widget="radio" options="{'horizontal': true}" readonly="event_id or state == 'settled'"/>
+                            <field name="held_instrument_ids" invisible="1"/>
+                            <field name="instrument_id" readonly="event_id or state == 'settled'"
+                                   domain="side == 'sell' and [('id', 'in', held_instrument_ids)] or []"/>
                             <field name="classification_id"/>
                             <field name="ifrs9_category"/>
-                            <field name="quantity" readonly="event_id or state == 'settled'"/>
+                            <field name="held_quantity" invisible="side != 'sell' or state != 'draft'"/>
+                            <field name="units" readonly="event_id or state == 'settled'"/>
+                            <field name="quantity" invisible="1" force_save="1"/>
                             <field name="price" readonly="event_id or state == 'settled'"/>
                             <field name="instrument_kind" invisible="1"/>
                             <field name="accrued_interest" invisible="instrument_kind != 'bond'" readonly="event_id or state == 'settled'"/>

@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import Form, tagged
 
 from .common import NavCase
@@ -71,8 +71,9 @@ class TestFairValueInterest(NavCase):
         with Form(self.env["investra.trade"]) as form:
             form.fund_id = self.fund
             form.instrument_id = bond
+            form.portfolio_id = self.portfolio(self.fund)
             form.trade_date = date(2029, 3, 1)
-            form.quantity = 10
+            form.units = 10
             form.price = 990
             # 60 dní z 180: 10 kusů × 30 × 60 / 180 = 100.
             self.assertEqual(form.accrued_interest, 100)
@@ -173,3 +174,54 @@ class TestFairValueInterest(NavCase):
         self.assertEqual(line.realised, 1040)
         self.assertEqual(self.balance("gain_realised"), -1040)
         self.assertEqual(self.balance("gain_fair_value"), -4060)
+
+    # --- kontroly zadání (2026-11-12, zkouška v UI) ---------------------------------------------------------
+
+    def test_cashflow_must_follow_interest_start(self):
+        bond = self.bond()
+        with self.assertRaises(ValidationError):
+            bond.cashflow_ids = [(0, 0, {"date": "2029-01-01", "amount": 30, "flow_type": "interest"})]
+        with self.assertRaises(ValidationError):
+            bond.maturity_date = "2029-12-31"
+        bond.maturity_date = "2030-01-01"
+
+    def test_sale_offers_only_held_instruments_and_prefills_interest(self):
+        bond = self.bond()
+        other = self.bond()
+        self.trade(bond, "2029-03-01", 10, 990, accrued_interest=100)
+        with Form(self.env["investra.trade"]) as form:
+            form.fund_id = self.fund
+            form.trade_date = date(2029, 8, 1)
+            form.side = "sell"
+            self.assertIn(bond, form.held_instrument_ids)
+            self.assertNotIn(other, form.held_instrument_ids)
+            form.instrument_id = bond
+            form.units = 4
+            form.price = 1010
+            self.assertEqual(form.held_quantity, 10)
+            # 30 dní z 180 po kupónu 1. 7.: 4 × 30 × 30 / 180 = 20.
+            self.assertEqual(form.accrued_interest, 20)
+        sale = form.record
+        self.assertEqual((sale.quantity, sale.side, sale.portfolio_id), (-4, "sell", self.portfolio(self.fund)))
+
+    def test_sale_above_holdings_is_refused_on_save(self):
+        equity = self.instrument("equity")
+        self.trade(equity, "2029-01-01", 10, 100)
+        with self.assertRaises(UserError):
+            self.env["investra.trade"].create({
+                "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": equity.id,
+                "trade_date": "2029-02-01", "side": "sell", "quantity": 11, "price": 100,
+            })
+        sale = self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": equity.id,
+            "trade_date": "2029-02-01", "side": "sell", "quantity": 4, "price": 100,
+        })
+        self.assertEqual(sale.quantity, -4)
+
+    def test_bond_trade_without_interest_gets_it_from_calendar(self):
+        bond = self.bond()
+        trade = self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": bond.id,
+            "trade_date": "2029-03-01", "quantity": 10, "price": 990,
+        })
+        self.assertEqual(trade.accrued_interest, 100)

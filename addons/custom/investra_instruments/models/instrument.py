@@ -13,7 +13,7 @@ DAY_COUNT = [
 # Po prvním obchodu neměnná pole nástroje. Klasifikace, způsob ocenění a role jsou v zařazení (rozhodnutí 2026-11-11).
 LOCKED_AFTER_TRADE = {"type_id"}
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id"}
-BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "price", "fx_rate", "accrued_interest"}
+BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest"}
 SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
 # Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
 PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "currency_id", "source", "deviation_reason"}
@@ -338,6 +338,14 @@ class InvestraTrade(models.Model):
     trade_date = fields.Date(required=True, string="Datum sjednání")
     settlement_date = fields.Date(string="Datum vypořádání")
     quantity = fields.Float(required=True, digits=(20, 6), help="Kladně nákup, záporně prodej.", string="Množství")
+    # Nákup a prodej zvlášť, kusy kladně; množství se znaménkem zůstává pro výpočty a importy (2026-11-12, zkouška v UI).
+    side = fields.Selection([("buy", "Nákup"), ("sell", "Prodej")], compute="_compute_side", store=True, readonly=False,
+                            string="Směr")
+    units = fields.Float(compute="_compute_units", inverse="_inverse_units", digits=(20, 6), string="Kusy",
+                         help="Kladně; u prodeje nejvýš kusy, které fond k datu sjednání v obchodním modelu drží.")
+    held_instrument_ids = fields.Many2many("investra.instrument", compute="_compute_held", string="Držené nástroje")
+    held_quantity = fields.Float(compute="_compute_held", digits=(20, 6), string="Drženo k datu",
+                                 help="Kusy nástroje v obchodním modelu k datu sjednání, bez tohoto obchodu.")
     price = fields.Float(required=True, digits=(20, 8), string="Cena")
     instrument_kind = fields.Selection(related="instrument_id.type_id.kind", string="Druh nástroje")
     accrued_interest = fields.Float(
@@ -353,6 +361,72 @@ class InvestraTrade(models.Model):
     )
     event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
     settlement_event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Událost vypořádání")
+
+    @api.depends("quantity")
+    def _compute_side(self):
+        for trade in self:
+            if trade.quantity < 0:
+                trade.side = "sell"
+            elif trade.quantity > 0 or not trade.side:
+                trade.side = "buy"
+
+    @api.depends("quantity")
+    def _compute_units(self):
+        for trade in self:
+            trade.units = abs(trade.quantity)
+
+    def _inverse_units(self):
+        for trade in self:
+            quantity = -trade.units if trade.side == "sell" else trade.units
+            if trade.quantity != quantity:
+                trade.quantity = quantity
+
+    @api.onchange("side", "units")
+    def _onchange_side_units(self):
+        for trade in self:
+            trade.quantity = -trade.units if trade.side == "sell" else trade.units
+
+    def _holdings_without_self(self):
+        """Pozice fondu k datu sjednání bez tohoto obchodu (ve formuláři i před uložením)."""
+        self.ensure_one()
+        fund = self.fund_id._origin
+        if not fund:
+            return {}
+        day = self.trade_date or fields.Date.context_today(self)
+        holdings = dict(self.sudo()._holdings(fund.sudo(), day))
+        origin = self._origin
+        if origin.id and origin._recognition_date() <= day:
+            key = (origin.instrument_id, origin.portfolio_id)
+            holdings[key] = holdings.get(key, 0.0) - origin.quantity
+        return {key: qty for key, qty in holdings.items() if qty > 1e-9}
+
+    @api.depends("fund_id", "trade_date", "instrument_id", "portfolio_id")
+    def _compute_held(self):
+        for trade in self:
+            holdings = trade._holdings_without_self()
+            trade.held_instrument_ids = [(6, 0, list({instrument.id for instrument, _p in holdings}))]
+            trade.held_quantity = holdings.get((trade.instrument_id._origin, trade.portfolio_id._origin), 0.0)
+
+    @api.onchange("instrument_id", "side")
+    def _onchange_sale_portfolio(self):
+        """Prodej: obchodní model z držené pozice; volí se jen u nástroje drženého ve dvou modelech."""
+        for trade in self:
+            if trade.side != "sell" or not trade.instrument_id:
+                continue
+            portfolios = [p for i, p in trade._holdings_without_self() if i == trade.instrument_id._origin]
+            if len(portfolios) == 1:
+                trade.portfolio_id = portfolios[0]
+
+    @api.constrains("quantity", "side")
+    def _check_side(self):
+        for trade in self:
+            if (trade.side == "sell") != (trade.quantity < 0):
+                raise ValidationError(self.env._("Směr obchodu nesouhlasí se znaménkem množství: %s.", trade.instrument_id.name))
+
+    @api.constrains("quantity", "trade_date", "instrument_id", "portfolio_id")
+    def _check_sale_on_save(self):
+        for trade in self:
+            trade._check_sale()
 
     @api.constrains("quantity")
     def _check_quantity(self):
@@ -429,6 +503,9 @@ class InvestraTrade(models.Model):
         if not self.env.su and any(SYSTEM_TRADE_FIELDS & set(vals) for vals in vals_list):
             raise UserError(self.env._("Stav obchodu mění jen zaúčtování."))
         for vals in vals_list:
+            # Import se směrem a kladnými kusy: znaménko množství podle směru.
+            if vals.get("side") and vals.get("quantity"):
+                vals["quantity"] = -abs(vals["quantity"]) if vals["side"] == "sell" else abs(vals["quantity"])
             # Fond s jediným portfoliem: obchod ho dostane sám (rozhodnutí 2026-11-11, portfolio „Hlavní“).
             if not vals.get("portfolio_id") and vals.get("fund_id"):
                 vals["portfolio_id"] = self.env["investra.fund"].browse(vals["fund_id"])._default_portfolio().id
@@ -442,6 +519,8 @@ class InvestraTrade(models.Model):
                 raise UserError(self.env._("Stav obchodu mění jen zaúčtování."))
             if self.filtered(lambda t: t.state == "settled") or (self.filtered("event_id") and BOOKED_TRADE_FIELDS & set(vals)):
                 raise UserError(self.env._("Zaúčtovaný obchod nejde změnit."))
+        if vals.get("side") and vals.get("quantity"):
+            vals = dict(vals, quantity=-abs(vals["quantity"]) if vals["side"] == "sell" else abs(vals["quantity"]))
         return super().write(vals)
 
     def action_book(self):

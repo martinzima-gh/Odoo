@@ -1,7 +1,7 @@
 from datetime import date
 
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from .common import NavCase
 
@@ -43,6 +43,17 @@ class TestApprovalMatrix(NavCase):
         return valuation
 
     # --- schválení ocenění ----------------------------------------------------------------------
+
+    def test_choosing_no_second_person_clears_approvers(self):
+        """Volba „Ne – stačí jeden člověk“ smaže kroky schvalovatelů a počet osob je 1 (2026-11-12, zkouška v UI)."""
+        form = Form(self.Matrix)
+        form.activity = "valuation_approve"
+        form.second_person = "yes"
+        with form.step_ids.new() as step:
+            step.name = "Schválení"
+        self.assertEqual(form.persons, 2)
+        form.second_person = "no"
+        self.assertEqual((len(form.step_ids), form.persons), (0, 1))
 
     def test_default_matrix_keeps_second_person(self):
         valuation = self.valuation(self.fund, self.day)
