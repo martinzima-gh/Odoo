@@ -90,7 +90,8 @@ class InvestraValuation(models.Model):
         record = self.sudo()
         record.ensure_one()
         output = io.BytesIO()
-        book = xlsxwriter.Workbook(output, {"in_memory": True})
+        # Text z knihy (názvy fondů, tříd, nástrojů) se nesmí v Excelu spustit jako vzorec.
+        book = xlsxwriter.Workbook(output, {"in_memory": True, "strings_to_formulas": False})
         bold = book.add_format({"bold": True, "bottom": 1})
         amount = book.add_format({"num_format": "# ##0.00"})
         ratio = book.add_format({"num_format": "0.00%"})

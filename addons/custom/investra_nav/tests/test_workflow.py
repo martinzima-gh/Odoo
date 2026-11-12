@@ -232,6 +232,16 @@ class TestWorkflow(NavCase):
         for label in ("Reálná hodnota v měně fondu", "Pořizovací hodnota v měně", "Zdroj kurzu", "Bankovní účty CZK"):
             self.assertIn(label, strings)
 
+    def test_package_writes_text_starting_with_equals_as_text(self):
+        self.fund.sudo().name = "=1+1 Fond"
+        valuation = self.run_to_posted(self.valuation(self.fund, self.day))
+        data = zipfile.ZipFile(io.BytesIO(valuation.action_build_package().raw))
+        sheets = [name for name in data.namelist() if name.startswith("xl/worksheets/sheet")]
+        self.assertTrue(sheets)
+        for name in sheets:
+            self.assertNotIn("<f>", data.read(name).decode())
+        self.assertIn("=1+1 Fond", data.read("xl/sharedStrings.xml").decode())
+
     def test_price_rounding_per_class(self):
         # 1 000 / 3 kusy = 333,3333…; 2 000 / 3 = 666,6666…
         fund = self.make_fund(classes=[
