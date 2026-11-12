@@ -16,11 +16,13 @@
 - Deník rozhodnutí, otevřené body, Claude Doc rev 310 a export, SELECTy `docs/sql/16-splatky.sql`
   (spuštěny jen na prázdné databázi).
 
-**Zbývá – první krok:** se souhlasem uživatele záloha a upgrade `investra_test` na `investra_fund` 0.4.0 a
-`investra_nav` 0.9.0 (v `investra_test` 0 splátek, migrace nic nemění), restart webu 8071, zkouška storna v UI.
-`investra_dev` se netýká (`investra_nav` tam není).
+**Provedeno po předávce (souhlas uživatele):** záloha `zalohy/investra_test-2026-11-12-pred-storno-splatky.dump`;
+`investra_nav` 0.9.0 už v `investra_test` byl (8:56 ho s `-u` aktualizoval běh `tools/run_tests.sh investra_instruments`
+z jiné relace, splátek 0), doplněn `investra_fund` 0.4.0 (řádek matice 101 `repayment_reverse`). Doklady, řádky
+a předvaha shodné. Web 8071 restartován. Smazána databáze `investra_ci_splatky` a složky příloh
+`investra_ci_splatky`, `investra_dev_kopie`.
 
-**Otevřené otázky:** smazat pomocnou databázi `investra_ci_splatky`? Složka příloh `investra_dev_kopie` (z dřívějška)?
+**Zbývá – první krok:** zkouška storna a opravy splátky v UI na portu 8071 (nástroj v naběhlé hodnotě).
 Koncept ručního dokladu MISC 119000 v `investra_test` zahodí uživatel v UI.
 
 **Přečíst (nejvýš 5):**
