@@ -39,7 +39,7 @@ class TestAccrual(NavCase):
     def repayment(self, instrument, day, amount):
         return self.env["investra.instrument.repayment"].create({
             "fund_id": self.fund.id, "portfolio_id": self.held_in(instrument).id, "instrument_id": instrument.id,
-            "date": day, "amount": amount,
+            "date": day, "principal_amount": amount,
         })
 
     def test_eir_is_fund_default(self):
@@ -105,7 +105,9 @@ class TestAccrual(NavCase):
         self.run_to_posted(valuation)
         self.assertEqual(self.balance("deposit"), 0)
         self.assertEqual(self.balance("income_interest"), -50)
-        self.assertEqual(self.balance("bank"), 2000 - 950 + 1000)
+        # Splátka jde na inkasa na cestě, banku vyrovná až výpis (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“).
+        self.assertEqual(self.balance("bank"), 2000 - 950)
+        self.assertEqual(self.balance("cash_in_transit_receipt"), 1000)
         self.assertFalse(valuation.portfolio_line_ids.filtered("instrument_id"))
 
     def test_repayment_event_has_own_type_and_source(self):
@@ -129,13 +131,13 @@ class TestAccrual(NavCase):
     def test_draft_repayment_can_be_changed(self):
         self.deposit_position()
         repayment = self.repayment(self.deposit, "2030-01-01", 1000)
-        repayment.with_user(self.preparer).write({"amount": 999})
+        repayment.with_user(self.preparer).write({"principal_amount": 999})
         self.assertEqual((repayment.amount, repayment.state), (999, "draft"))
 
     def test_posted_repayment_cannot_be_changed_or_deleted(self):
         repayment = self.booked_repayment()
         self.assertEqual(repayment.state, "posted")
-        for vals in ({"amount": 900}, {"fx_rate": 2}, {"date": "2030-01-02"}):
+        for vals in ({"principal_amount": 900}, {"fx_rate": 2}, {"date": "2030-01-02"}):
             with self.assertRaises(UserError):
                 repayment.with_user(self.preparer).write(vals)
         with self.assertRaises(UserError):
@@ -147,7 +149,7 @@ class TestAccrual(NavCase):
         with self.assertRaises(UserError):
             self.env["investra.instrument.repayment"].with_user(self.preparer).create({
                 "fund_id": self.fund.id, "portfolio_id": self.held_in(self.deposit).id, "instrument_id": self.deposit.id,
-                "date": "2030-01-01", "amount": 1000, "state": "posted",
+                "date": "2030-01-01", "principal_amount": 1000, "state": "posted",
             })
         repayment = self.repayment(self.deposit, "2030-01-01", 1000)
         for vals in ({"state": "posted"}, {"event_id": False}, {"reversal_reason": "x"}):
@@ -156,7 +158,7 @@ class TestAccrual(NavCase):
 
     def test_reverse_reopens_position_and_unlocks_schedule(self):
         self.deposit_position()
-        before = (self.balance("deposit"), self.balance("bank"))
+        before = (self.balance("deposit"), self.balance("cash_in_transit_receipt"))
         repayment = self.repayment(self.deposit, "2030-01-01", 1000)
         repayment.with_user(self.preparer).action_book()
         self.assertEqual(self.balance("deposit"), before[0] - 1000)
@@ -168,7 +170,7 @@ class TestAccrual(NavCase):
         event = repayment.event_id.sudo()
         self.assertEqual(event.state, "reversed")
         self.assertEqual(event.reversal_move_id.date, date(2030, 1, 1))
-        self.assertEqual((self.balance("deposit"), self.balance("bank")), before)
+        self.assertEqual((self.balance("deposit"), self.balance("cash_in_transit_receipt")), before)
         # Storno doklad nese nástroj, pozice nástroje je zase otevřená.
         lines = self.env["account.move.line"].sudo().search([
             ("investra_instrument_id", "=", self.deposit.id), ("parent_state", "=", "posted"),
@@ -185,16 +187,16 @@ class TestAccrual(NavCase):
 
     def test_correct_makes_linked_draft_and_books_new_amount(self):
         repayment = self.booked_repayment(amount=990)
-        bank = self.balance("bank")
+        bank = self.balance("cash_in_transit_receipt")
         correction = repayment.with_user(self.preparer).action_correct("Banka připsala 1 000")
         self.assertNotEqual(correction, repayment)
         self.assertEqual((correction.state, correction.replaced_id, correction.amount), ("draft", repayment, 990))
         self.assertFalse(correction.event_id)
         self.assertEqual(repayment.state, "reversed")
-        correction.with_user(self.preparer).write({"amount": 1000})
+        correction.with_user(self.preparer).write({"principal_amount": 1000})
         correction.with_user(self.preparer).action_book()
         self.assertEqual(correction.state, "posted")
-        self.assertEqual(self.balance("bank"), bank - 990 + 1000)
+        self.assertEqual(self.balance("cash_in_transit_receipt"), bank - 990 + 1000)
         self.assertEqual(self.balance("deposit"), 950 - 1000)
 
     def test_reverse_with_second_person_goes_through_request(self):
@@ -259,10 +261,105 @@ class TestAccrual(NavCase):
         self.trade(deposit, 950)
         self.assertEqual(deposit._accrued_value(self.fund, date(2029, 7, 1)), Decimal("974.79"))
 
-    def test_repayment_only_for_amortised(self):
+    # --- splátky jistiny (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“) ------------------------------
+
+    def loan(self):
+        """Úvěr v reálné hodnotě bez kalendáře: kusy = jistina (1 000 ks × 1,00)."""
+        self.purchase.unlink()
+        self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 2000, 20)
+        loan = self.instrument("bond", principal=1)
+        self.trade(loan, 1, quantity=1000)._book()
+        return loan
+
+    def approve_price(self, instrument, day, price):
+        record = self.env["investra.instrument.price"].with_user(self.preparer).create({
+            "fund_id": self.fund.id, "instrument_id": instrument.id, "date": day, "price": price, "source": "Test",
+        })
+        record.with_user(self.approver).action_approve()
+
+    def test_repayment_needs_held_position(self):
         bond = self.instrument("bond")
         with self.assertRaises(ValidationError):
             self.repayment(bond, "2030-01-01", 1000)
+
+    def test_repayment_books_to_receipts_with_principal_and_interest(self):
+        loan = self.loan()
+        repayment = self.repayment(loan, "2029-03-01", 400)
+        repayment.interest_amount = 15
+        self.assertEqual(repayment.amount, 415)
+        repayment.with_user(self.preparer).action_book()
+        lines = repayment.event_id.move_id.line_ids
+        receipt = self.env["investra.account.role"].account_for(self.fund.company_id, "cash_in_transit_receipt")
+        self.assertEqual(lines.filtered(lambda l: l.account_id == receipt).balance, 415)
+        self.assertEqual(sorted(lines.filtered("investra_instrument_id").mapped("balance")), [-400, -15])
+        self.assertEqual(self.balance("bank"), 2000 - 1000)
+
+    def test_principal_reduces_units_and_overpayment_is_refused(self):
+        loan = self.loan()
+        first = self.repayment(loan, "2029-03-01", 400)
+        self.assertEqual((first.remaining_before, first.remaining_after), (1000, 600))
+        first._book()
+        Trade = self.env["investra.trade"]
+        self.assertEqual(Trade._holdings(self.fund, date(2029, 3, 1))[(loan, self.held_in(loan))], 600)
+        self.assertEqual(Trade._holdings(self.fund, date(2029, 2, 28))[(loan, self.held_in(loan))], 1000)
+        with self.assertRaises(ValidationError):
+            self.repayment(loan, "2029-04-01", 601)
+        last = self.repayment(loan, "2029-04-01", 600)
+        self.assertEqual(last.remaining_after, 0)
+        last._book()
+        self.assertNotIn((loan, self.held_in(loan)), Trade._holdings(self.fund, date(2029, 4, 1)))
+        # Storno vrací kusy.
+        last.with_user(self.preparer).action_reverse("Zkouška")
+        self.assertEqual(Trade._holdings(self.fund, date(2029, 4, 1))[(loan, self.held_in(loan))], 600)
+
+    def test_fair_value_partial_repayment_values_only_remaining_units(self):
+        loan = self.loan()
+        self.repayment(loan, "2029-03-01", 400)._book()
+        day = date(2029, 3, 31)
+        self.approve_price(loan, day, 1.02)
+        valuation = self.valuation(self.fund, day)
+        self.run_to_posted(valuation)
+        line = valuation.portfolio_line_ids.filtered("instrument_id")
+        self.assertEqual((line.quantity, line.fair_value), (600, 612))
+        self.assertEqual(self.position_balance(loan), Decimal("612"))
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "positions_ledger").status, "ok")
+
+    def test_fully_repaid_fair_value_position_is_trued_up_to_zero(self):
+        loan = self.loan()
+        day = date(2029, 2, 28)
+        self.approve_price(loan, day, 1.05)
+        self.run_to_posted(self.valuation(self.fund, day))
+        self.repayment(loan, "2029-03-01", 1000)._book()
+        valuation = self.valuation(self.fund, date(2029, 3, 31))
+        self.run_to_posted(valuation)
+        self.assertEqual(self.position_balance(loan), 0)
+        self.assertFalse(valuation.portfolio_line_ids.filtered("instrument_id"))
+
+    def position_balance(self, instrument):
+        """Zůstatek účtu nástroje podle role jeho zařazení ve fondu."""
+        role = instrument.classification_ids.filtered(lambda c: c.fund_id == self.fund)[:1].role_id.code
+        account = self.env["investra.account.role"].account_for(self.fund.company_id, role)
+        lines = self.env["account.move.line"].sudo().search([
+            ("investra_instrument_id", "=", instrument.id), ("parent_state", "=", "posted"), ("account_id", "=", account.id),
+        ])
+        return Decimal(str(round(sum(lines.mapped("balance")), 2)))
+
+    def test_amortised_allows_only_scheduled_principal(self):
+        self.deposit_position()
+        with self.assertRaises(ValidationError):
+            self.repayment(self.deposit, "2029-06-30", 500)
+        self.assertTrue(self.repayment(self.deposit, "2030-01-01", 1000))
+
+    def test_form_offers_held_instruments_and_prefills_from_schedule(self):
+        self.deposit_position()
+        self.instrument("bond")  # zařazený, ale nedržený
+        form = self.env["investra.instrument.repayment"].new({"fund_id": self.fund.id, "date": "2030-01-05"})
+        self.assertEqual(form.allowed_instrument_ids._origin, self.deposit)
+        form.instrument_id = self.deposit
+        form._onchange_position()
+        self.assertEqual(form.portfolio_id, self.held_in(self.deposit))
+        self.assertEqual((form.principal_amount, form.interest_amount), (1000, 0))
+        self.assertEqual((form.remaining_before, form.remaining_after), (1000, 0))
 
     def test_bond_books_to_own_role_and_position_check_holds(self):
         self.purchase.unlink()

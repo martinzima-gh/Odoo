@@ -2,6 +2,7 @@
 <odoo noupdate="1">
     <record id="role_bank" model="investra.account.role"><field name="code">bank</field><field name="name">Bankovní účet</field><field name="category">asset</field></record>
     <record id="role_cash_in_transit" model="investra.account.role"><field name="code">cash_in_transit</field><field name="name">Peníze na cestě</field><field name="category">asset</field></record>
+    <record id="role_cash_in_transit_receipt" model="investra.account.role"><field name="code">cash_in_transit_receipt</field><field name="name">Inkasa na cestě</field><field name="category">asset</field></record>
     <record id="role_instrument" model="investra.account.role"><field name="code">instrument</field><field name="name">Investiční nástroje</field><field name="category">asset</field></record>
     <record id="role_instrument_debt" model="investra.account.role"><field name="code">instrument_debt</field><field name="name">Dluhové cenné papíry</field><field name="category">asset</field></record>
     <record id="role_deposit" model="investra.account.role"><field name="code">deposit</field><field name="name">Termínované vklady</field><field name="category">asset</field></record>

@@ -74,8 +74,15 @@ class TestCompanyAccess(NavCase):
     def test_repayment_stays_in_book(self):
         deposit = self.instrument(type_id=self.env.ref("investra_instruments.type_deposit").id)
         held = self.classify(self.own, deposit, "hold_to_collect").portfolio_id
+        # Splátka jen k držené pozici a v naběhlé hodnotě podle kalendáře (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“).
+        deposit.cashflow_ids = [(0, 0, {"date": "2037-01-15", "amount": 1})]
+        self.env["investra.trade"].create({
+            "fund_id": self.own.id, "portfolio_id": held.id, "instrument_id": deposit.id,
+            "trade_date": "2036-12-01", "quantity": 1, "price": 1,
+        })
         self.assert_stays_in_book("investra.instrument.repayment", {
-            "fund_id": self.own.id, "portfolio_id": held.id, "instrument_id": deposit.id, "date": "2037-01-15", "amount": 1,
+            "fund_id": self.own.id, "portfolio_id": held.id, "instrument_id": deposit.id, "date": "2037-01-15",
+            "principal_amount": 1,
         }, "fund_id", self.fund)
 
     def test_valuation_stays_in_book(self):

@@ -7,7 +7,10 @@ from .. import engine
 class InvestraInstrument(models.Model):
     _inherit = "investra.instrument"
 
-    principal = fields.Float(digits=(20, 2), string="Jistina na jednotku")
+    principal = fields.Float(
+        digits=(20, 2), string="Jistina na jednotku",
+        help="Pro kalendář vkladu a pro splátky bez kalendáře. Doporučeno 1: kusy obchodu = jistina, cena na jednotku jistiny.",
+    )
     start_date = fields.Date(string="Začátek úročení")
 
     def action_generate_schedule(self):
@@ -27,6 +30,13 @@ class InvestraInstrument(models.Model):
                 "date": instrument.maturity_date, "amount": float(principal), "flow_type": "principal",
             }), (0, 0, {"date": instrument.maturity_date, "amount": float(interest), "flow_type": "interest"})]
         return True
+
+    def _principal_per_unit(self):
+        """Jistina na jednotku: součet jistiny v kalendáři, bez kalendáře pole Jistina na jednotku, jinak 1
+        (kusy = jistina; rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“)."""
+        self.ensure_one()
+        flows = self.cashflow_ids.filtered(lambda f: f.flow_type == "principal")
+        return sum(flows.mapped("amount")) or self.principal or 1.0
 
     def _accrued_value(self, fund, day, portfolio=None):
         """Naběhlá hodnota pozice v měně nástroje; každý nákup má vlastní efektivní úrokovou míru.
@@ -63,10 +73,11 @@ class InvestraInstrument(models.Model):
 
 
 class InvestraInstrumentRepayment(models.Model):
-    """Skutečná splátka nástroje v naběhlé hodnotě; rozdíl proti naběhlé hodnotě doúčtuje ocenění.
+    """Splátka nástroje (jistina a úrok) v naběhlé i reálné hodnotě.
 
-    Zaúčtovaná splátka je zamčená; chybu opraví storno nebo oprava (storno a nová splátka v návrhu), stejně jako
-    u úpisu a odkupu (rozhodnutí 2026-11-12 „Zámek a storno splátky“).
+    Splátka účtuje MD inkasa na cestě / D nástroj; výpis pak inkaso vynuluje. Jistina snižuje kusy pozice, rozdíl proti
+    požadované hodnotě doúčtuje ocenění (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“). Zaúčtovaná splátka je
+    zamčená; chybu opraví storno nebo oprava (rozhodnutí 2026-11-12 „Zámek a storno splátky“).
     """
 
     _name = "investra.instrument.repayment"
@@ -78,12 +89,23 @@ class InvestraInstrumentRepayment(models.Model):
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", string="Nástroj")
-    portfolio_id = fields.Many2one(
-        "investra.fund.portfolio", required=True, ondelete="restrict", string="Obchodní model", domain="[('fund_id', '=', fund_id)]",
+    date = fields.Date(required=True, default=fields.Date.context_today, string="Datum")
+    instrument_id = fields.Many2one(
+        "investra.instrument", required=True, ondelete="restrict", string="Nástroj",
+        domain="[('id', 'in', allowed_instrument_ids)]",
     )
-    date = fields.Date(required=True, string="Datum")
-    amount = fields.Float(required=True, digits=(20, 2), string="Částka v měně nástroje")
+    portfolio_id = fields.Many2one(
+        "investra.fund.portfolio", required=True, ondelete="restrict", string="Obchodní model",
+        domain="[('id', 'in', allowed_portfolio_ids)]", help="Doplní se z nákupu; volí se jen u nástroje drženého ve dvou modelech.",
+    )
+    allowed_instrument_ids = fields.Many2many("investra.instrument", compute="_compute_allowed", string="Držené nástroje")
+    allowed_portfolio_ids = fields.Many2many("investra.fund.portfolio", compute="_compute_allowed", string="Modely nástroje")
+    portfolio_choice = fields.Boolean(compute="_compute_allowed")
+    principal_amount = fields.Float(digits=(20, 2), string="Jistina")
+    interest_amount = fields.Float(digits=(20, 2), string="Úrok")
+    amount = fields.Float(compute="_compute_amount", store=True, digits=(20, 2), string="Částka v měně nástroje")
+    remaining_before = fields.Float(compute="_compute_remaining", digits=(20, 2), string="Zbývající jistina před splátkou")
+    remaining_after = fields.Float(compute="_compute_remaining", digits=(20, 2), string="Zbývající jistina po splátce")
     fx_rate = fields.Float(required=True, default=1, digits=(16, 6), string="Kurz")
     state = fields.Selection(
         [("draft", "Návrh"), ("posted", "Zaúčtováno"), ("reversed", "Stornováno")],
@@ -97,9 +119,6 @@ class InvestraInstrumentRepayment(models.Model):
     def create(self, vals_list):
         if not self.env.su and any(set(vals) & self._system_fields for vals in vals_list):
             raise UserError(self.env._("Stav, účetní událost a důvod storna nastavuje jen zaúčtování a storno."))
-        for vals in vals_list:
-            if not vals.get("portfolio_id") and vals.get("fund_id"):
-                vals["portfolio_id"] = self.env["investra.fund"].browse(vals["fund_id"])._default_portfolio().id
         records = super().create(vals_list)
         for repayment in records:
             repayment._check_valuation_lock(self.env._("Zadání splátky"))
@@ -143,17 +162,148 @@ class InvestraInstrumentRepayment(models.Model):
 
     def _classification(self):
         self.ensure_one()
-        return self.env["investra.portfolio.classification"]._valid(self.portfolio_id, self.instrument_id, self.date)
+        return self.env["investra.portfolio.classification"]._valid(self.portfolio_id._origin, self.instrument_id._origin, self.date)
 
-    @api.constrains("amount", "instrument_id", "portfolio_id", "fund_id")
+    # --- pozice, zbývající jistina a kalendář ------------------------------------------------------
+
+    def _held_positions(self):
+        """Pozice fondu (nástroj, obchodní model) k datu splátky, po zaúčtovaných splátkách."""
+        self.ensure_one()
+        if not self.fund_id:
+            return {}
+        # Ve formuláři (onchange) jsou vazby nové záznamy; hledá se podle původních (_origin).
+        return self.env["investra.trade"].sudo()._holdings(self.fund_id._origin.sudo(), self.date or fields.Date.context_today(self))
+
+    def _trades(self):
+        self.ensure_one()
+        return self.env["investra.trade"].sudo()._recognised(
+            self.fund_id._origin.sudo(), self.date, self.instrument_id._origin, self.portfolio_id._origin
+        )
+
+    def _other_repaid(self):
+        """Jistina ostatních zaúčtovaných splátek téže pozice do data splátky."""
+        self.ensure_one()
+        others = self.sudo().search([
+            ("fund_id", "=", self.fund_id._origin.id), ("instrument_id", "=", self.instrument_id._origin.id),
+            ("portfolio_id", "=", self.portfolio_id._origin.id), ("state", "=", "posted"), ("date", "<=", self.date),
+            ("id", "!=", self._origin.id or 0),
+        ])
+        return engine.money(sum(engine.dec(r.principal_amount) for r in others))
+
+    def _position_principal(self):
+        """Jistina pozice z obchodů k datu (kusy × jistina na jednotku), bez splátek."""
+        ppu = engine.dec(self.instrument_id._principal_per_unit())
+        return engine.money(sum(engine.dec(t.quantity) for t in self._trades()) * ppu)
+
+    def _schedule(self):
+        """Toky kalendáře pozice po datech: {datum: (jistina, úrok)} v měně nástroje, podle kusů obchodů."""
+        schedule = {}
+        for trade in self._trades():
+            quantity = engine.dec(trade.quantity)
+            for flow in self.instrument_id.cashflow_ids.filtered(lambda f: f.date > trade.trade_date):
+                principal, interest = schedule.get(flow.date, (engine.ZERO, engine.ZERO))
+                amount = engine.dec(flow.amount) * quantity
+                if flow.flow_type == "principal":
+                    principal += amount
+                else:
+                    interest += amount
+                schedule[flow.date] = (principal, interest)
+        return dict(sorted(schedule.items()))
+
+    def _ready(self):
+        return bool(self.fund_id and self.instrument_id and self.portfolio_id and self.date)
+
+    @api.depends("fund_id", "date", "instrument_id")
+    def _compute_allowed(self):
+        for repayment in self:
+            keys = list(repayment._held_positions())
+            repayment.allowed_instrument_ids = [(6, 0, list({i.id for i, _p in keys}))]
+            portfolios = [p.id for i, p in keys if i == repayment.instrument_id._origin]
+            repayment.allowed_portfolio_ids = [(6, 0, portfolios)]
+            repayment.portfolio_choice = len(portfolios) > 1
+
+    @api.depends("principal_amount", "interest_amount")
+    def _compute_amount(self):
+        for repayment in self:
+            repayment.amount = float(engine.money(engine.dec(repayment.principal_amount) + engine.dec(repayment.interest_amount)))
+
+    @api.depends("fund_id", "date", "instrument_id", "portfolio_id", "principal_amount")
+    def _compute_remaining(self):
+        for repayment in self:
+            if not repayment._ready():
+                repayment.remaining_before = repayment.remaining_after = 0.0
+                continue
+            before = repayment._position_principal() - repayment._other_repaid()
+            repayment.remaining_before = float(before)
+            repayment.remaining_after = float(before - engine.money(engine.dec(repayment.principal_amount)))
+
+    @api.onchange("fund_id", "date", "instrument_id")
+    def _onchange_position(self):
+        """Model z nákupu a předvyplnění jistiny a úroku podle kalendáře (bez kalendáře celá zbývající jistina)."""
+        if self.state != "draft":
+            return
+        if self.instrument_id and self.instrument_id._origin not in self.allowed_instrument_ids._origin:
+            self.instrument_id = False
+        allowed = self.allowed_portfolio_ids._origin
+        if self.portfolio_id._origin not in allowed:
+            self.portfolio_id = allowed if len(allowed) == 1 else False
+        if not self._ready():
+            return
+        principal, interest = self._expected()
+        self.principal_amount, self.interest_amount = float(principal), float(interest)
+
+    def _expected(self):
+        """Očekávaná splátka: nejbližší tok kalendáře, jehož jistina ještě není splacená."""
+        remaining = self._position_principal() - self._other_repaid()
+        schedule = self._schedule()
+        if not schedule:
+            return max(remaining, engine.ZERO), engine.ZERO
+        repaid, due = self._other_repaid(), engine.ZERO
+        for day, (principal, interest) in schedule.items():
+            due += principal
+            if engine.money(due) > repaid:
+                return engine.money(min(due - repaid, remaining)), engine.money(interest)
+        return max(remaining, engine.ZERO), engine.ZERO
+
+    # --- kontroly --------------------------------------------------------------------------------
+
+    @api.constrains("principal_amount", "interest_amount", "instrument_id", "portfolio_id", "fund_id", "date")
     def _check_repayment(self):
         for repayment in self:
-            if repayment.amount <= 0:
-                raise ValidationError(self.env._("Splátka musí být kladná."))
-            if repayment.portfolio_id.fund_id != repayment.fund_id:
-                raise ValidationError(self.env._("Obchodní model nepatří fondu splátky."))
-            if repayment._classification().valuation_method != "amortised":
-                raise ValidationError(self.env._("Splátka je jen u nástroje v naběhlé hodnotě."))
+            repayment._validate()
+
+    def _validate(self):
+        self.ensure_one()
+        principal, interest = engine.money(engine.dec(self.principal_amount)), engine.money(engine.dec(self.interest_amount))
+        if principal < 0 or interest < 0 or not principal + interest:
+            raise ValidationError(self.env._("Jistina a úrok nesmí být záporné a splátka musí mít částku."))
+        if self.portfolio_id.fund_id != self.fund_id:
+            raise ValidationError(self.env._("Obchodní model nepatří fondu splátky."))
+        if not self._classification():
+            raise ValidationError(self.env._(
+                "Nástroj %(name)s nemá v modelu %(portfolio)s k %(day)s zařazení.",
+                name=self.instrument_id.name, portfolio=self.portfolio_id.name, day=self.date,
+            ))
+        if self.state == "reversed":
+            return
+        remaining = self._position_principal() - self._other_repaid()
+        if remaining <= 0:
+            raise ValidationError(self.env._(
+                "Fond k %(day)s nedrží nástroj %(name)s v modelu %(portfolio)s.",
+                day=self.date, name=self.instrument_id.name, portfolio=self.portfolio_id.name,
+            ))
+        if principal > remaining:
+            raise ValidationError(self.env._(
+                "Jistina %(principal)s je vyšší než zbývající jistina %(remaining)s.", principal=principal, remaining=remaining,
+            ))
+        if self._classification().valuation_method == "amortised":
+            due = sum((p for day, (p, _i) in self._schedule().items() if day <= self.date), engine.ZERO)
+            if self._other_repaid() + principal > engine.money(due):
+                # Rozhodnutí 2026-11-12 (bod 4): přepočet naběhlé hodnoty po mimořádné splátce se zatím neřeší.
+                raise ValidationError(self.env._(
+                    "U nástroje v naběhlé hodnotě lze zatím splatit jen jistinu splatnou podle kalendáře do %(day)s "
+                    "(%(due)s); mimořádná splátka zatím není podporovaná.", day=self.date, due=engine.money(due),
+                ))
 
     def _require_preparer(self):
         if not self.env.user.has_group("investra_entity.group_valuation_preparer"):
@@ -167,21 +317,32 @@ class InvestraInstrumentRepayment(models.Model):
 
     def _book(self):
         for repayment in self.filtered(lambda r: r.state == "draft" and not r.event_id):
+            # Mezitím mohla být zaúčtována jiná splátka téže pozice; kontrola znovu.
+            repayment._validate()
             instrument = repayment.instrument_id
             company = repayment.company_id
-            amount = repayment.amount * repayment.fx_rate
+            classification = repayment._classification()
             foreign = instrument.currency_id != company.currency_id
-            debit = {"currency_id": instrument.currency_id.id, "amount_currency": repayment.amount} if foreign else {}
-            credit = {"currency_id": instrument.currency_id.id, "amount_currency": -repayment.amount} if foreign else {}
+            round_ = company.currency_id.round
+            total = round_(repayment.amount * repayment.fx_rate)
+            principal = round_(repayment.principal_amount * repayment.fx_rate)
+            extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
+
+            def currency(amount_ccy):
+                return {"currency_id": instrument.currency_id.id, "amount_currency": amount_ccy} if foreign else {}
+
+            lines = [{"role": "cash_in_transit_receipt", "amount": total, "movement_type": "transaction",
+                      **currency(repayment.amount)}]
+            for amount, amount_ccy, label in (
+                (principal, repayment.principal_amount, self.env._("Jistina")),
+                (total - principal, repayment.interest_amount, self.env._("Úrok")),
+            ):
+                if amount or amount_ccy:
+                    lines.append({"role": classification.role_id.code, "amount": -amount, "movement_type": "transaction",
+                                  "name": f"{label} {instrument.name}", "extra": extra, **currency(-amount_ccy)})
             event = self.env["investra.accounting.event"]._create_event(
                 company, f"repayment:{repayment.id}", f"Splátka {instrument.name}", repayment.date, "repayment",
-                [
-                    {"role": "bank", "amount": amount, "movement_type": "transaction", **debit},
-                    {"role": repayment._classification().role_id.code, "amount": -amount, "movement_type": "transaction",
-                     "extra": {"investra_instrument_id": instrument.id, "investra_classification_id": repayment._classification().id},
-                     **credit},
-                ],
-                source=repayment,
+                lines, source=repayment,
             )
             event._lock_events()
             event._post_events()
@@ -257,3 +418,33 @@ class InvestraInstrumentRepaymentReverseWizard(models.TransientModel):
             return result._action_open()
         return {"type": "ir.actions.act_window", "res_model": result._name, "res_id": result.id,
                 "view_mode": "form", "target": "current"}
+
+
+class InvestraTrade(models.Model):
+    _inherit = "investra.trade"
+
+    @api.model
+    def _holdings(self, fund, day):
+        """Kusy pozic po zaúčtovaných splátkách jistiny: splátka sníží kusy o jistinu / jistinu na jednotku
+        (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“)."""
+        quantities = super()._holdings(fund, day)
+        repayments = self.env["investra.instrument.repayment"].sudo().search([
+            ("fund_id", "=", fund.id), ("state", "=", "posted"), ("date", "<=", day),
+        ])
+        if not repayments:
+            return quantities
+        repaid = {}
+        for repayment in repayments:
+            key = (repayment.instrument_id, repayment.portfolio_id)
+            repaid[key] = repaid.get(key, engine.ZERO) + engine.dec(repayment.principal_amount)
+        result = dict(quantities)
+        for key, principal in repaid.items():
+            if key not in result:
+                continue
+            ppu = engine.dec(key[0]._principal_per_unit())
+            remaining = engine.money(engine.dec(result[key]) * ppu - principal)
+            if remaining > 0:
+                result[key] = float(remaining / ppu)
+            else:
+                del result[key]
+        return result

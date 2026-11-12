@@ -461,7 +461,7 @@ if isinstance(result, dict):
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
+            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
         </field>
     </record>
     <record id="view_repayment_search" model="ir.ui.view">
@@ -500,16 +500,27 @@ if isinstance(result, dict):
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
                 </header>
                 <sheet>
+                    <field name="allowed_instrument_ids" invisible="1"/>
+                    <field name="allowed_portfolio_ids" invisible="1"/>
+                    <field name="portfolio_choice" invisible="1"/>
                     <group>
-                        <field name="fund_id" readonly="state != 'draft'"/>
-                        <field name="portfolio_id" options="{'no_create': True}" readonly="state != 'draft'"/>
-                        <field name="instrument_id" readonly="state != 'draft'"/>
-                        <field name="date" readonly="state != 'draft'"/>
-                        <field name="amount" readonly="state != 'draft'"/>
-                        <field name="fx_rate" readonly="state != 'draft'"/>
-                        <field name="replaced_id" invisible="not replaced_id"/>
-                        <field name="event_id"/>
-                        <field name="reversal_reason" invisible="state != 'reversed'"/>
+                        <group string="Pozice">
+                            <field name="fund_id" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="instrument_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="portfolio_id" options="{'no_create': True}" readonly="state != 'draft' or not portfolio_choice"/>
+                            <field name="remaining_before"/>
+                            <field name="remaining_after"/>
+                        </group>
+                        <group string="Splátka">
+                            <field name="principal_amount" readonly="state != 'draft'"/>
+                            <field name="interest_amount" readonly="state != 'draft'"/>
+                            <field name="amount"/>
+                            <field name="fx_rate" readonly="state != 'draft'"/>
+                            <field name="replaced_id" invisible="not replaced_id"/>
+                            <field name="event_id"/>
+                            <field name="reversal_reason" invisible="state != 'reversed'"/>
+                        </group>
                     </group>
                 </sheet>
             </form>
@@ -540,7 +551,7 @@ if isinstance(result, dict):
         <field name="search_view_id" ref="view_repayment_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Zatím tu není žádná splátka</p>
-            <p>Skutečné splátky nástrojů oceňovaných naběhlou hodnotou, například úvěru nebo termínovaného vkladu. Splátka vytvoří účetní událost; rozdíl proti očekávané splátce doúčtuje ocenění.</p>
+            <p>Splátky jistiny a úroku držených nástrojů, například úvěru nebo termínovaného vkladu, v naběhlé i reálné hodnotě. Splátka účtuje na inkasa na cestě, která vynuluje bankovní výpis; jistina snižuje zbývající jistinu pozice a rozdíl proti očekávání doúčtuje ocenění.</p>
         </field>
     </record>
     <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="30"/>

@@ -37,7 +37,7 @@ class TestChart(TransactionCase):
         """Syntetické účty rámce 501 (docs/osnova-501-syntetika.md, převodová tabulka v docs/osnova-fondu.md)."""
         Role = self.env["investra.account.role"]
         expected = {
-            "bank": "131100", "cash_in_transit": "119000", "unidentified_payment": "229000", "deposit": "132000",
+            "bank": "131100", "cash_in_transit": "119000", "cash_in_transit_receipt": "119100", "unidentified_payment": "229000", "deposit": "132000",
             "repo": "133000", "repo_client": "214000", "loan_given": "218000", "derivative": "313000",
             "internal_clearing": "341900", "fee_payable": "342300", "tax_payable": "347000", "accrual": "354000",
             "unsettled_payable": "371200", "subscription_payable": "376100", "instrument": "384000",
@@ -70,8 +70,9 @@ class TestChart(TransactionCase):
         self.assertEqual(bank.suspense_account_id, unidentified)
 
     def test_outstanding_accounts_are_cash_in_transit(self):
-        """Platby na cestě (Outstanding Receipts/Payments) jsou 119100/119200, ne mezi bankami 1311, a patří k roli
-        peněz na cestě jako další účty (rozhodnutí 2026-11-12 „Role s více účty“)."""
+        """Platby na cestě (Outstanding Receipts/Payments) jsou 119100/119200, ne mezi bankami 1311. Platby na cestě
+        patří k roli peněz na cestě jako další účet (rozhodnutí 2026-11-12 „Role s více účty“), inkasa na cestě mají
+        vlastní roli, na kterou účtují splátky nástrojů (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“)."""
         Role = self.env["investra.account.role"]
         chart = self.env["account.chart.template"].with_company(self.company)
         receipts = chart.ref("account_journal_payment_debit_account_id")
@@ -81,7 +82,8 @@ class TestChart(TransactionCase):
         self.assertEqual(receipts, chart.ref("ifa_119100"))
         self.assertTrue(receipts.reconcile and payments.reconcile)
         transit = Role.accounts_for(self.company, "cash_in_transit")
-        self.assertEqual(transit, Role.account_for(self.company, "cash_in_transit") | receipts | payments)
+        self.assertEqual(transit, Role.account_for(self.company, "cash_in_transit") | payments)
+        self.assertEqual(Role.accounts_for(self.company, "cash_in_transit_receipt"), receipts)
 
     def test_bank_journals_belong_to_bank_role(self):
         """Účet každého bankovního deníku (i později založeného) patří k roli bank; účtuje se na hlavní účet role."""

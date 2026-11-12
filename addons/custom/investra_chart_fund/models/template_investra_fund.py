@@ -5,6 +5,8 @@ from odoo.addons.account.models.chart_template import template
 ROLE_ACCOUNTS = {
     "bank": "ifa_221100",
     "cash_in_transit": "ifa_261000",
+    # Splátky nástrojů účtují na inkasa na cestě, výpis je vynuluje (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“).
+    "cash_in_transit_receipt": "ifa_119100",
     "unidentified_payment": "ifa_229000",
     "instrument": "ifa_251000",
     "instrument_debt": "ifa_252000",
@@ -62,7 +64,8 @@ OUTSTANDING_ACCOUNTS = {
     "account_journal_payment_credit_account_id": "ifa_119200",
 }
 # Další účty rolí: role → účty šablony, které se k ní přidají jako další účty (hlavní účet je v ROLE_ACCOUNTS).
-EXTRA_ROLE_ACCOUNTS = {"cash_in_transit": tuple(OUTSTANDING_ACCOUNTS.values())}
+# Inkasa na cestě (119100) mají od 2026-11-12 vlastní roli cash_in_transit_receipt (hlavní účet).
+EXTRA_ROLE_ACCOUNTS = {"cash_in_transit": ("ifa_119200",)}
 
 
 class AccountChartTemplate(models.AbstractModel):

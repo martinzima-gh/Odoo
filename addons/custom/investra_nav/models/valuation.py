@@ -305,6 +305,22 @@ class InvestraValuation(models.Model):
         latest = prices.filtered(lambda p: p.date == prices[0].date)
         return latest.filtered("fund_id")[:1] or latest[:1]
 
+    def _closed_positions(self, positions):
+        """Pozice (nástroj, obchodní model) bez kusů, jejichž účet nástroje má k datu zůstatek."""
+        Role = self.env["investra.account.role"]
+        groups = self.env["account.move.line"].sudo()._read_group(
+            self._line_domain(("investra_instrument_id", "!=", False), ("investra_classification_id", "!=", False)),
+            groupby=["investra_instrument_id", "investra_classification_id", "account_id"], aggregates=["balance:sum"],
+        )
+        closed = set()
+        for instrument, classification, account, balance in groups:
+            key = (instrument, classification.portfolio_id)
+            if key in positions or not d(balance).quantize(engine.CENT, rounding=ROUND_HALF_UP):
+                continue
+            if account == Role.account_for(self.company_id, classification.role_id.code):
+                closed.add(key)
+        return closed
+
     def _compute_portfolio(self):
         """Přecení nástroje a založí řádky listu portfolio; změna ceny a kurzu jde zvlášť."""
         Trade = self.env["investra.trade"].sudo()
@@ -312,7 +328,12 @@ class InvestraValuation(models.Model):
         Classification = self.env["investra.portfolio.classification"]
         several = len(self.fund_id.portfolio_ids) > 1
         rows, lines = [], []
-        for (instrument, portfolio), quantity in Trade._holdings(self.fund_id, self.date).items():
+        positions = Trade._holdings(self.fund_id, self.date)
+        # Splacená nebo prodaná pozice bez kusů, která má na účtu nástroje zůstatek, se doúčtuje na nulu
+        # (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“: splátka jistiny snižuje kusy).
+        for key in self._closed_positions(positions):
+            positions[key] = 0.0
+        for (instrument, portfolio), quantity in positions.items():
             # Klasifikace podle obchodního modelu fondu k datu ocenění (rozhodnutí 2026-11-11).
             classification = Classification._valid(portfolio, instrument, self.date)
             if not classification:
@@ -324,7 +345,9 @@ class InvestraValuation(models.Model):
             role = classification.role_id.code
             instrument_account = Role.account_for(self.company_id, role)
             fx = self._fx(instrument.currency_id)
-            if amortised:
+            if not quantity:
+                value_ccy, unit_price, price_source, price_values = Decimal(0), 0.0, self.env._("Splaceno"), {}
+            elif amortised:
                 value_ccy = instrument._accrued_value(self.fund_id, self.date, portfolio)
                 unit_price, price_source = float(value_ccy / d(quantity)), self.env._("Naběhlá hodnota")
                 price_values = {}
@@ -371,7 +394,7 @@ class InvestraValuation(models.Model):
                     "role": "gain_fx" if fx_effect > 0 else "loss_fx",
                     "amount": -fx_effect, "movement_type": "fx_revaluation", "extra": extra,
                 })
-            if amortised and not value:
+            if not quantity or (amortised and not value):
                 continue
             trades = Trade._recognised(self.fund_id, self.date, instrument, portfolio)
             rows.append({
@@ -924,8 +947,13 @@ class InvestraValuation(models.Model):
             "classification_proposal", "Zařazení pozic odpovídá návrhu (způsob ocenění, role účtu)", not deviating,
             ", ".join(deviating.mapped("display_name")), severity="warning",
         )
+        # Inkasa na cestě (splátky nástrojů čekající na výpis) mají od 2026-11-12 vlastní roli; kniha bez ní se nesčítá.
         transit = self._role_balance("cash_in_transit")
-        self._check("transit_zero", "Peníze na cestě jsou nulové", transit == 0, transit, severity="warning")
+        if self.env["investra.role.account"].sudo().search_count(
+            [("company_id", "=", self.company_id.id), ("role_id.code", "=", "cash_in_transit_receipt")], limit=1
+        ):
+            transit += self._role_balance("cash_in_transit_receipt")
+        self._check("transit_zero", "Peníze a inkasa na cestě jsou nulové", transit == 0, transit, severity="warning")
         unassigned = self._accounts_without_role()
         self._check("accounts_role", "Účty se zůstatkem mají roli (jinak chybí ve výkazech ČNB)", not unassigned,
                     ", ".join(a.display_name for a in unassigned), severity="warning")

@@ -175,7 +175,7 @@ Názvy účtů se nemění, sloupec Název je pracovní popis.
 | (prefix) | – | 1111 | 1111 | Pokladna | beze změny |
 | ifa_261000 | cash_in_transit | 322000 | **119000** | Peníze na cestě | 119 Jiné pokladní hodnoty; nově i převodový účet Odoo (převody mezi bankami), párovatelný; prefix převodů 1191 |
 | ifa_229000 (nový) | unidentified_payment (nová) | – | **229000** | Neidentifikované platby | 229 Ostatní krátkodobé závazky vůči klientům; účet nevyjasněných položek bankovních výpisů; ČNB pasiva ROFO10_21 ř. 26, RIS30_03 ř. 8 |
-| ifa_119100 (nový 2026-11-12) | cash_in_transit (další účet) | 131102 | **119100** | Inkasa na cestě | Odoo Outstanding Receipts; přijaté platby čekající na spárování s výpisem |
+| ifa_119100 (nový 2026-11-12) | cash_in_transit_receipt (od 2026-11-12 vlastní role; dříve další účet cash_in_transit) | 131102 | **119100** | Inkasa na cestě | Odoo Outstanding Receipts; přijaté platby čekající na spárování s výpisem |
 | ifa_119200 (nový 2026-11-12) | cash_in_transit (další účet) | 131103 | **119200** | Platby na cestě | Odoo Outstanding Payments; odeslané platby čekající na spárování s výpisem |
 | ifa_253000 | deposit | 133000 | 132000 | Termínované vklady | 132 Termínové vklady u jiných bank |
 | ifa_254000 | repo | 134000 | 133000 | Reverzní repo | 133 Poskytnuté úvěry jiným bankám. **R:** repo s ČNB by patřilo na 123 (nová role, až bude potřeba) |

@@ -112,3 +112,21 @@ přecenění a kurzového rozdílu; u FVTPL realizovaný výsledek. Ocenění pa
 1. Splátka: výběr nástroje, předvyplnění a zbývající jistina, rozpad jistina/úrok, protiúčet 119100 (role), snížení kusů,
    kontroly, migrace B1; naběhlá hodnota jen podle kalendáře.
 2. Naběhlý úrok u úročených nástrojů v reálné hodnotě v ocenění (bod 3 rozhodnutí) a odúčtování části pozice v RH (bod E).
+
+## Provedení etapy 1 (12. 11. 2026)
+
+- Bod 5 rozhodnut bez migrace obchodů: jistina na jednotku se bere z kalendáře (součet toků Jistina), bez kalendáře
+  z pole Jistina na jednotku, jinak 1. Vzorec funguje pro 1 ks × 5 000 000 i pro 5 000 000 ks × 1, takže stávající
+  vklad se nepřevádí a obchody ani kalendáře se nemění. Pro nové nástroje je doporučeno kusy = jistina (nápověda pole).
+- Kusy pozice po splátkách počítá `investra.trade._holdings` (rozšíření v `investra_nav`): zaúčtovaná jistina se odečte
+  v penězích, kusy = zbývající jistina / jistina na jednotku; splacená pozice z pozic zmizí.
+- Ocenění doúčtuje na nulu i pozici bez kusů, která má na účtu nástroje zůstatek (dřív ji držely nezměněné kusy).
+  Totéž nově platí pro úplně prodanou pozici v RH; realizovaný výsledek zvlášť je etapa 2 (bod E).
+- Nová role `cash_in_transit_receipt` (Inkasa na cestě, 119100); migrace `investra_chart_fund` 0.6.0 přesune 119100
+  z dalších účtů role `cash_in_transit`, ČNB má pro novou roli stejné řádky (ROFO10_11 ř. 24, RIS30_01 ř. 18).
+  Kontrola ocenění „Peníze a inkasa na cestě jsou nulové“ sčítá obě role.
+- Migrace `investra_nav` 0.10.0: dosavadní splátky mají celou částku jako jistinu, úrok 0; doklady beze změny.
+- Ověřeno: čistá databáze (všechny vlastní moduly 455 testů, po opravě `investra_nav` 229 testů 0 chyb); kopie
+  `investra_test` – předvaha a doklady před a po upgradu shodné, mapování rolí podle plánu, zkouška splátky vkladu
+  ve fondu Delta (nabídka, předvyplnění 5 000 000 + 45 500, MD 119100 / D 132000, odmítnuté přeplacení).
+
