@@ -165,17 +165,30 @@ class InvestraValuation(models.Model):
         )
 
     def _role_balance(self, role, *extra):
-        account = self.env["investra.account.role"].account_for(self.company_id, role)
-        return self._sum(("account_id", "=", account.id), *extra)
+        # Hlavní i další účty role (rozhodnutí 2026-11-12 „Role s více účty“); chybějící role je chyba jako dosud.
+        Role = self.env["investra.account.role"]
+        Role.account_for(self.company_id, role)
+        return self._sum(("account_id", "in", Role.accounts_for(self.company_id, role).ids), *extra)
+
+    def _accounts_without_role(self):
+        """Účty se zůstatkem k datu, které nemají v knize roli (výkazy ČNB je nevidí). Výsledek běžného období
+        (equity_unaffected) se vykazuje zvlášť."""
+        mappings = self.env["investra.role.account"].sudo().search([("company_id", "=", self.company_id.id)])
+        covered = mappings.account_id | mappings.extra_account_ids
+        groups = self.env["account.move.line"].sudo()._read_group(
+            self._line_domain(("account_id", "not in", covered.ids), ("account_id.account_type", "!=", "equity_unaffected")),
+            groupby=["account_id"], aggregates=["balance:sum"],
+        )
+        return [account for account, balance in groups if d(balance).quantize(engine.CENT) != 0]
 
     def _position_balance(self):
         """Zůstatek všech účtů, na kterých jsou nástroje, podle rolí typů a zařazení fondu."""
         roles = self.env["investra.instrument.type"].sudo().search([]).role_id
         roles |= self.env["investra.portfolio.classification"].sudo().search([("fund_id", "=", self.fund_id.id)]).role_id
-        accounts = self.env["investra.role.account"].sudo().search(
+        mappings = self.env["investra.role.account"].sudo().search(
             [("company_id", "=", self.company_id.id), ("role_id", "in", roles.ids)]
-        ).account_id
-        return self._sum(("account_id", "in", accounts.ids))
+        )
+        return self._sum(("account_id", "in", (mappings.account_id | mappings.extra_account_ids).ids))
 
     # --- výpočet -------------------------------------------------------------------------------
 
@@ -387,23 +400,35 @@ class InvestraValuation(models.Model):
 
     def _compute_bank_fx(self):
         """FX přecenění bank v cizí měně a řádky bank v listu portfolio."""
-        account = self.env["investra.account.role"].account_for(self.company_id, "bank")
+        Role = self.env["investra.account.role"]
+        main = Role.account_for(self.company_id, "bank")
         Line = self.env["account.move.line"].sudo()
+        # Každý bankovní účet role se přeceňuje zvlášť, aby přecenění sedělo s výpisem (rozhodnutí 2026-11-12
+        # „Role s více účty“). U hlavního účtu se řádek nemění, takže otisk dřívějších ocenění zůstává.
         groups = Line._read_group(
-            self._line_domain(("account_id", "=", account.id)),
-            groupby=["currency_id"],
+            self._line_domain(("account_id", "in", Role.accounts_for(self.company_id, "bank").ids)),
+            groupby=["account_id", "currency_id"],
             aggregates=["amount_currency:sum", "balance:sum"],
         )
+        totals = {}
         lines, rows = [], []
-        for currency, amount, balance in groups:
+        for account, currency, amount, balance in groups:
             fx = self._fx(currency)
-            value = engine.money(d(amount) * fx)
-            difference = value - engine.money(balance)
+            difference = engine.money(d(amount) * fx) - engine.money(balance)
+            total = totals.setdefault(currency, [d(0), d(0)])
+            total[0] += d(amount)
+            total[1] += d(balance)
             if currency != self.fund_id.currency_id and difference:
-                lines.append({"role": "bank", "amount": difference, "movement_type": "fx_revaluation",
-                              "currency_id": currency.id, "amount_currency": "0"})
+                line = {"role": "bank", "amount": difference, "movement_type": "fx_revaluation",
+                        "currency_id": currency.id, "amount_currency": "0"}
+                if account != main:
+                    line["extra"] = {"account_id": account.id}
+                lines.append(line)
                 lines.append({"role": "gain_fx" if difference > 0 else "loss_fx", "amount": -difference,
                               "movement_type": "fx_revaluation"})
+        for currency, (amount, balance) in totals.items():
+            fx = self._fx(currency)
+            value = engine.money(amount * fx)
             rows.append({
                 "valuation_id": self.id,
                 "kind": "bank",
@@ -901,6 +926,9 @@ class InvestraValuation(models.Model):
         )
         transit = self._role_balance("cash_in_transit")
         self._check("transit_zero", "Peníze na cestě jsou nulové", transit == 0, transit, severity="warning")
+        unassigned = self._accounts_without_role()
+        self._check("accounts_role", "Účty se zůstatkem mají roli (jinak chybí ve výkazech ČNB)", not unassigned,
+                    ", ".join(a.display_name for a in unassigned), severity="warning")
         pending = self.env["account.move"].sudo().search_count([
             ("company_id", "=", self.company_id.id), ("state", "=", "draft"), ("date", "<=", self.date),
             ("id", "not in", self.event_ids.move_id.ids),

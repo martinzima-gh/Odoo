@@ -45,4 +45,6 @@
     <record id="role_repo_client" model="investra.account.role"><field name="code">repo_client</field><field name="name">Reverzní repo s nebankovní protistranou</field><field name="category">asset</field></record>
     <record id="role_participation_fv" model="investra.account.role"><field name="code">participation_fv</field><field name="name">Účasti v reálné hodnotě do výsledku</field><field name="category">asset</field></record>
     <record id="role_unidentified_payment" model="investra.account.role"><field name="code">unidentified_payment</field><field name="name">Neidentifikované platby</field><field name="category">liability</field></record>
+    <!-- Bankovní poplatky na 612 (rozhodnutí 2026-11-12), ČNB VYFO20_11 ř. 23 Náklady na poplatky a provize -->
+    <record id="role_expense_bank_fee" model="investra.account.role"><field name="code">expense_bank_fee</field><field name="name">Bankovní poplatky</field><field name="category">expense</field></record>
 </odoo>

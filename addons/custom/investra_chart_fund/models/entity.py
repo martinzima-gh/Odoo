@@ -3,7 +3,7 @@ from pathlib import Path
 
 from odoo import api, models
 
-from .template_investra_fund import ROLE_ACCOUNTS
+from .template_investra_fund import EXTRA_ROLE_ACCOUNTS, ROLE_ACCOUNTS
 
 TEMPLATE_CSV = Path(__file__).parent.parent / "data" / "template" / "account.account-investra_fund.csv"
 
@@ -57,3 +57,22 @@ class InvestraEntity(models.Model):
             }
             for role in roles
         ])
+        self._assign_extra_accounts()
+
+    def _assign_extra_accounts(self):
+        """Další účty rolí: platby na cestě k roli cash_in_transit, účty bankovních deníků k roli bank.
+
+        Opakovatelné; účet, který už v knize nějakou roli má, se nemění (rozhodnutí 2026-11-12 „Role s více účty“).
+        """
+        self.ensure_one()
+        company = self.company_id
+        chart = self.env["account.chart.template"].sudo().with_company(company)
+        Role = self.env["investra.account.role"].sudo()
+        for code, ifas in EXTRA_ROLE_ACCOUNTS.items():
+            for ifa in ifas:
+                account = chart.ref(ifa, raise_if_not_found=False)
+                if account:
+                    Role.add_extra_account(company, code, account)
+        journals = self.env["account.journal"].sudo().search([("company_id", "=", company.id), ("type", "=", "bank")])
+        for account in journals.default_account_id:
+            Role.add_extra_account(company, "bank", account)

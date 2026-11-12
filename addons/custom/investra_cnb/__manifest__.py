@@ -1,7 +1,7 @@
 {
     "name": "Investra CNB",
     "summary": "Převodová tabulka rolí účtů na řádky výkazů ČNB s platností",
-    "version": "20.0.0.4.0",
+    "version": "20.0.0.5.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

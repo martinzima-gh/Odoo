@@ -43,7 +43,7 @@ class TestChart(TransactionCase):
             "unsettled_payable": "371200", "subscription_payable": "376100", "instrument": "384000",
             "instrument_debt": "383000", "other_holding": "385000", "participation_fv": "413100", "participation": "413200",
             "class_capital": "564000", "loss_fair_value": "615000", "loss_fx": "616000", "expense_management": "636100",
-            "expense_other": "667000", "expense_tax": "681000", "income_interest": "711000", "income_dividend": "714000",
+            "expense_other": "667000", "expense_bank_fee": "612000", "expense_tax": "681000", "income_interest": "711000", "income_dividend": "714000",
             "gain_fair_value": "715000", "gain_fx": "716000", "income_other": "767000",
         }
         for role, code in expected.items():
@@ -68,3 +68,50 @@ class TestChart(TransactionCase):
             "name": "Banka testu", "code": "BTST", "type": "bank", "company_id": self.company.id,
         })
         self.assertEqual(bank.suspense_account_id, unidentified)
+
+    def test_outstanding_accounts_are_cash_in_transit(self):
+        """Platby na cestě (Outstanding Receipts/Payments) jsou 119100/119200, ne mezi bankami 1311, a patří k roli
+        peněz na cestě jako další účty (rozhodnutí 2026-11-12 „Role s více účty“)."""
+        Role = self.env["investra.account.role"]
+        chart = self.env["account.chart.template"].with_company(self.company)
+        receipts = chart.ref("account_journal_payment_debit_account_id")
+        payments = chart.ref("account_journal_payment_credit_account_id")
+        self.assertEqual(receipts.with_company(self.company).code, "119100")
+        self.assertEqual(payments.with_company(self.company).code, "119200")
+        self.assertEqual(receipts, chart.ref("ifa_119100"))
+        self.assertTrue(receipts.reconcile and payments.reconcile)
+        transit = Role.accounts_for(self.company, "cash_in_transit")
+        self.assertEqual(transit, Role.account_for(self.company, "cash_in_transit") | receipts | payments)
+
+    def test_bank_journals_belong_to_bank_role(self):
+        """Účet každého bankovního deníku (i později založeného) patří k roli bank; účtuje se na hlavní účet role."""
+        Role = self.env["investra.account.role"]
+        journals = self.env["account.journal"].search([("company_id", "=", self.company.id), ("type", "=", "bank")])
+        self.assertTrue(journals)
+        bank = self.env["account.journal"].create({
+            "name": "Druhá banka", "code": "BNK9", "type": "bank", "company_id": self.company.id,
+        })
+        accounts = Role.accounts_for(self.company, "bank")
+        self.assertLessEqual(journals.default_account_id | bank.default_account_id, accounts)
+        self.assertTrue(bank.default_account_id.with_company(self.company).code.startswith("1311"))
+        self.assertEqual(Role.account_for(self.company, "bank").with_company(self.company).code, "131100")
+
+    def test_reconcile_models(self):
+        """Internal Transfers na převodový účet (peníze na cestě), Bank Fees na 612000 Bankovní poplatky."""
+        chart = self.env["account.chart.template"].with_company(self.company)
+        transfer = chart.ref("internal_transfer_reco")
+        fees = chart.ref("bank_fees_reco")
+        self.assertEqual(transfer.line_ids.account_id, self.company.transfer_account_id)
+        self.assertEqual(fees.line_ids.account_id, chart.ref("ifa_612000"))
+        self.assertEqual(fees.line_ids.account_id.with_company(self.company).code, "612000")
+
+    def test_account_in_one_role_only(self):
+        """Účet nesmí být ve dvou rolích, jinak by se ve výkazu započetl dvakrát."""
+        from odoo.exceptions import ValidationError
+        Role = self.env["investra.account.role"]
+        mapping = self.env["investra.role.account"].search([
+            ("company_id", "=", self.company.id), ("role_id.code", "=", "deposit"),
+        ])
+        with self.assertRaises(ValidationError):
+            mapping.extra_account_ids = [(4, Role.account_for(self.company, "bank").id)]
+        self.assertFalse(Role.add_extra_account(self.company, "deposit", Role.account_for(self.company, "bank")))

@@ -49,10 +49,11 @@ class InvestraCnbMap(models.Model):
             return self._sum([
                 *domain, ("date", ">=", start), ("account_id.account_type", "in", ("income", "income_other", "expense", "expense_depreciation", "expense_direct_cost")),
             ])
-        mapping = self.env["investra.role.account"].sudo().search([("company_id", "=", company.id), ("role_id", "=", self.role_id.id)])
-        if not mapping:
+        # Hlavní i další účty role (rozhodnutí 2026-11-12 „Role s více účty“).
+        accounts = self.env["investra.account.role"].accounts_for(company, self.role_id.code)
+        if not accounts:
             return Decimal(0)
-        domain.append(("account_id", "=", mapping.account_id.id))
+        domain.append(("account_id", "in", accounts.ids))
         if self.period == "ytd":
             domain.append(("date", ">=", start))
         if self.ifrs9_category:
@@ -78,6 +79,19 @@ class InvestraCnbMap(models.Model):
         mappings = self.env["investra.role.account"].sudo().search([("company_id", "=", company.id)])
         missing = self.env["investra.account.role"]
         for mapping in mappings.filtered(lambda m: m.role_id not in covered.role_id):
-            if self._sum([*self._line_domain(company, day), ("account_id", "=", mapping.account_id.id)]):
+            accounts = mapping.account_id | mapping.extra_account_ids
+            if self._sum([*self._line_domain(company, day), ("account_id", "in", accounts.ids)]):
                 missing |= mapping.role_id
         return missing
+
+    def _accounts_without_role(self, company, day):
+        """Účty s nenulovým zůstatkem, které nemají v knize roli; ve výkazu by chyběly. Výsledek běžného období
+        (equity_unaffected) se do výkazu bere zvlášť (zdroj „result“)."""
+        mappings = self.env["investra.role.account"].sudo().search([("company_id", "=", company.id)])
+        covered = mappings.account_id | mappings.extra_account_ids
+        groups = self.env["account.move.line"].sudo()._read_group(
+            [*self._line_domain(company, day), ("account_id", "not in", covered.ids),
+             ("account_id.account_type", "!=", "equity_unaffected")],
+            groupby=["account_id"], aggregates=["balance:sum"],
+        )
+        return self.env["account.account"].union(*(account for account, balance in groups if round(balance or 0, 2)))

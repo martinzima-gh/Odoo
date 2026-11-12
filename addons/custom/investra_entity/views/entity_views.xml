@@ -44,6 +44,7 @@
                 <field name="company_id" string="Kniha" options="{'no_create': True, 'no_open': True}"/>
                 <field name="role_id" string="Role" options="{'no_create': True, 'no_open': True}"/>
                 <field name="account_id" string="Účet" options="{'no_create': True, 'no_open': True}"/>
+                <field name="extra_account_ids" string="Další účty" widget="many2many_tags" options="{'no_create': True}"/>
             </list>
         </field>
     </record>

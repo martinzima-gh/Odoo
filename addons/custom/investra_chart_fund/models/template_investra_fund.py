@@ -48,9 +48,21 @@ ROLE_ACCOUNTS = {
     "expense_depositary": "ifa_518300",
     "expense_performance": "ifa_518400",
     "expense_other": "ifa_548000",
+    "expense_bank_fee": "ifa_612000",
     "rounding_loss": "ifa_548100",
     "expense_tax": "ifa_591000",
 }
+
+
+# Účty Odoo pro platby čekající na spárování s výpisem (Outstanding Receipts/Payments). Odoo je zakládá s prefixem
+# bankovních účtů (1311), tedy mezi banky; ve fondu jsou to peníze na cestě (119) a patří k roli cash_in_transit
+# jako další účty (rozhodnutí 2026-11-12 „Role s více účty“).
+OUTSTANDING_ACCOUNTS = {
+    "account_journal_payment_debit_account_id": "ifa_119100",
+    "account_journal_payment_credit_account_id": "ifa_119200",
+}
+# Další účty rolí: role → účty šablony, které se k ní přidají jako další účty (hlavní účet je v ROLE_ACCOUNTS).
+EXTRA_ROLE_ACCOUNTS = {"cash_in_transit": tuple(OUTSTANDING_ACCOUNTS.values())}
 
 
 class AccountChartTemplate(models.AbstractModel):
@@ -86,3 +98,23 @@ class AccountChartTemplate(models.AbstractModel):
                 "account_journal_early_pay_discount_loss_account_id": "ifa_661902",
             },
         }
+
+    def _create_outstanding_accounts(self, company, bank_prefix, code_digits):
+        """Ve fondu jsou účty plateb na cestě účty šablony (119100, 119200); Odoo je jen převezme pod svým xmlid."""
+        if company.chart_template != "investra_fund":
+            return super()._create_outstanding_accounts(company, bank_prefix, code_digits)
+        Data = self.env["ir.model.data"].sudo()
+        for field, ifa in OUTSTANDING_ACCOUNTS.items():
+            name = f"{company.id}_{field}"
+            if not Data.search_count([("module", "=", "account"), ("name", "=", name)]):
+                Data.create({
+                    "module": "account", "name": name, "model": "account.account",
+                    "res_id": self.with_company(company).ref(ifa).id, "noupdate": True,
+                })
+        return None
+
+    def _get_bank_fees_reco_account(self, company):
+        """Model párování Bank Fees: bankovní poplatky na 612 (rozhodnutí 2026-11-12), ne první nákladový účet."""
+        if company.chart_template == "investra_fund":
+            return self.with_company(company).ref("ifa_612000")
+        return super()._get_bank_fees_reco_account(company)

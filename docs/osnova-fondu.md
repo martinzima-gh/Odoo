@@ -175,6 +175,8 @@ Názvy účtů se nemění, sloupec Název je pracovní popis.
 | (prefix) | – | 1111 | 1111 | Pokladna | beze změny |
 | ifa_261000 | cash_in_transit | 322000 | **119000** | Peníze na cestě | 119 Jiné pokladní hodnoty; nově i převodový účet Odoo (převody mezi bankami), párovatelný; prefix převodů 1191 |
 | ifa_229000 (nový) | unidentified_payment (nová) | – | **229000** | Neidentifikované platby | 229 Ostatní krátkodobé závazky vůči klientům; účet nevyjasněných položek bankovních výpisů; ČNB pasiva ROFO10_21 ř. 26, RIS30_03 ř. 8 |
+| ifa_119100 (nový 2026-11-12) | cash_in_transit (další účet) | 131102 | **119100** | Inkasa na cestě | Odoo Outstanding Receipts; přijaté platby čekající na spárování s výpisem |
+| ifa_119200 (nový 2026-11-12) | cash_in_transit (další účet) | 131103 | **119200** | Platby na cestě | Odoo Outstanding Payments; odeslané platby čekající na spárování s výpisem |
 | ifa_253000 | deposit | 133000 | 132000 | Termínované vklady | 132 Termínové vklady u jiných bank |
 | ifa_254000 | repo | 134000 | 133000 | Reverzní repo | 133 Poskytnuté úvěry jiným bankám. **R:** repo s ČNB by patřilo na 123 (nová role, až bude potřeba) |
 | ifa_212000 | repo_client | 212000 | 214000 | Reverzní repo s nebankovní protistranou | 214 Krátkodobé úvěry (**R**) |
@@ -209,6 +211,7 @@ Názvy účtů se nemění, sloupec Název je pracovní popis.
 | ifa_518300 | expense_depositary | 631300 | 636300 | Úplata depozitáři | 636 (**R**) |
 | ifa_518400 | expense_performance | 631400 | 636400 | Výkonnostní odměna | 636 (**R**) |
 | ifa_518200 | expense_administration | 631200 | 636200 | Úplata za administraci | 636 Nakupované výkony (ČNB VYFO20 ř. 40 Ostatní správní náklady) |
+| ifa_612000 (nový 2026-11-12) | expense_bank_fee (nová) | – | **612000** | Bankovní poplatky | 612 (rozhodnutí uživatele); model párování Bank Fees; ČNB VYFO20_11 ř. 23 Náklady na poplatky a provize |
 | ifa_548000 | expense_other | 661000 | 667000 | Ostatní náklady | 667 Jiné provozní náklady (661 jsou odepsané pohledávky) |
 | ifa_548100 | rounding_loss | 661100 | 667100 | Rozdíly ze zaokrouhlení úpisů a odkupů – náklad | 667 |
 | ifa_661901 | (pokladní rozdíly Odoo) | 661901 | 667901 | Pokladní rozdíly – náklad | 667 |
@@ -234,5 +237,8 @@ Technické poznámky k migraci:
   (`investra_dev`), nevznikl duplicitní účet.
 - Kontrola ocenění „Peníze na cestě jsou nulové“ zůstává upozorněním a po rozdělení neidentifikované platby nezahrnuje.
 - Pojistka jako 2026-11-11: ocenění Ke schválení nebo Schváleno migraci zastaví (otisk obsahuje čísla účtů).
+- Doplněno 2026-11-12 (migrace 0.5.0, rozhodnutí „Role s více účty“ a „Převody mezi bankami a bankovní poplatky“):
+  role má hlavní účet a další účty (bankovní deníky k roli bank, 119100/119200 k roli cash_in_transit); modely párování
+  Internal Transfers → 119000, Bank Fees → 612000.
 - Pravidlo: v logice žádné číslo účtu, jen role (výjimkou je test šablony, který čísla hlídá); knihy rámce 500
   (Investra Services) se nemění.
