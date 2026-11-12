@@ -59,7 +59,7 @@ class InvestraTradePreview(models.Model):
 
     @api.depends("state", "fund_id", "portfolio_id", "instrument_id", "trade_date", "settlement_date", "side",
                  "units", "quantity", "price", "accrued_interest", "fx_rate", "settlement_fx_rate", "classification_id",
-                 "event_id", "settlement_event_id", "event_id.state", "settlement_event_id.state")
+                 "event_id", "settlement_event_id", "event_id.state", "settlement_event_id.state", "reversal_reason")
     def _compute_posting_preview(self):
         for trade in self:
             trade.posting_preview = trade._posting_preview_html()
@@ -146,13 +146,19 @@ class InvestraTradePreview(models.Model):
         """Skutečně zaúčtované doklady obchodu (obchod a vypořádání) ve stejném tvaru jako náhled.
 
         Přání uživatele 2026-11-12: u zaúčtovaného obchodu vidět obě nohy. Rozvaha ke dni vypořádání má jednu událost.
+        Po stornu vypořádání (rozhodnutí 2026-11-12 „Storno a oprava obchodu“) ukazuje i stornované události,
+        dohledané podle zdroje.
         """
         self.ensure_one()
         documents = []
-        events = [(self.env._("Obchod"), self.event_id)]
-        if self.settlement_event_id != self.event_id:
-            events.append((self.env._("Vypořádání"), self.settlement_event_id))
-        for caption, event in events:
+        captions = {"trade": self.env._("Obchod"), "trade_settlement": self.env._("Vypořádání")}
+        events = self.env["investra.accounting.event"]
+        if self._origin.id:
+            events = events.sudo().search([
+                ("res_model", "=", self._name), ("res_id", "=", self._origin.id), ("move_id", "!=", False),
+            ], order="date, id")
+        for event in events:
+            caption = captions.get(event.event_type, event.name)
             move = event.move_id
             if not move:
                 continue

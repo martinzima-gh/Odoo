@@ -20,6 +20,9 @@ Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a 
   vysvětlovat vazby v Odoo.
 - Kroky v UI dávat ověřené na skutečné instalaci, ne odhadnuté.
 - U každé akce s účetním dopadem říct, co se stane; odlišit návrh od zaúčtovaného dokladu.
+- Každá operace s účetním dopadem má ve formuláři **náhled zaúčtování** před zaúčtováním (ze stejné funkce,
+  která účtuje) a po zaúčtování záložku se skutečnými doklady včetně storen; vzor je obchod (`investra_nav/models/trade_preview.py`).
+  Platí pro nové operace automaticky (rozhodnutí 2026-11-12); doplnění u stávajících je v otevřených bodech.
 - Rozhodnutí navrhovat s variantami a doporučením; rozhoduje uživatel.
 
 ## Role agentů

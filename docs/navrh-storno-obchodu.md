@@ -1,6 +1,6 @@
 # Návrh: storno a oprava obchodu, pojistka kurzu vypořádání
 
-Stav: **návrh ke schválení** (2026-11-12, provede další relace). Zóna: červená (účtování, pozice, NAV), provádí Claude.
+Stav: **schváleno a provedeno** 2026-11-12 (deník „Storno a oprava obchodu, pojistka kurzu“). Zóna: červená (účtování, pozice, NAV), provádí Claude.
 
 ## Proč
 

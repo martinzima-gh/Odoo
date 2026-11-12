@@ -97,7 +97,7 @@ class InvestraInstrument(models.Model):
         Pozice je v jednom obchodním modelu fondu; bez něj se sečtou všechny modely.
         """
         self.ensure_one()
-        domain = [("fund_id", "=", fund.id), ("instrument_id", "=", self.id), ("trade_date", "<=", day)]
+        domain = [("fund_id", "=", fund.id), ("instrument_id", "=", self.id), ("trade_date", "<=", day), ("state", "!=", "reversed")]
         if portfolio:
             domain.append(("portfolio_id", "=", portfolio.id))
         trades = self.env["investra.trade"].sudo().search(domain)
@@ -146,7 +146,7 @@ class InvestraInstrument(models.Model):
         if not amounts:
             return []
         start = self.start_date or self.env["investra.trade"].sudo().search(
-            [("instrument_id", "=", self.id)], order="trade_date", limit=1).trade_date or min(amounts)
+            [("instrument_id", "=", self.id), ("state", "!=", "reversed")], order="trade_date", limit=1).trade_date or min(amounts)
         periods = []
         for end in sorted(amounts):
             if end > start:

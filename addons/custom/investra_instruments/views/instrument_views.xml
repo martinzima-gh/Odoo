@@ -87,7 +87,7 @@
             <list>
                 <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
                 <field name="ifrs9_category" optional="show"/><field name="trade_date"/><field name="settlement_date"/>
-                <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/><field name="state" widget="badge"/>
+                <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/><field name="state" widget="badge" decoration-muted="state == 'reversed'"/>
             </list>
         </field>
     </record>
@@ -102,6 +102,7 @@
                 <filter name="filter_draft" string="Návrh" domain="[('state', '=', 'draft')]"/>
                 <filter name="filter_unsettled" string="Sjednáno, nevypořádáno" domain="[('state', '=', 'unsettled')]"/>
                 <filter name="filter_settled" string="Vypořádáno" domain="[('state', '=', 'settled')]"/>
+                <filter name="filter_reversed" string="Stornováno" domain="[('state', '=', 'reversed')]"/>
                 <separator/>
                 <filter name="filter_trade_date" date="trade_date" string="Datum obchodu"/>
                 <group>
@@ -121,32 +122,41 @@
                 <header>
                     <button name="action_book" type="object" string="Zaúčtovat" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_settle" type="object" string="Vypořádat" class="btn-primary" invisible="state != 'unsettled'"/>
-                    <field name="state" widget="statusbar"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,unsettled,settled"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'reversed'">
+                        Obchod je stornovaný a nepočítá se do pozic. Důvod: <field name="reversal_reason" readonly="1" class="d-inline"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not settlement_fx_note">
+                        <field name="settlement_fx_note" readonly="1"/>
+                    </div>
                     <group>
                         <group>
-                            <field name="fund_id" readonly="event_id or state == 'settled'"/>
-                            <field name="portfolio_id" readonly="event_id or state == 'settled'" options="{'no_create': True}"/>
-                            <field name="side" widget="radio" options="{'horizontal': true}" readonly="event_id or state == 'settled'"/>
+                            <field name="fund_id" readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="portfolio_id" readonly="event_id or state in ('settled', 'reversed')" options="{'no_create': True}"/>
+                            <field name="side" widget="radio" options="{'horizontal': true}" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="held_instrument_ids" invisible="1"/>
-                            <field name="instrument_id" readonly="event_id or state == 'settled'"
+                            <field name="instrument_id" readonly="event_id or state in ('settled', 'reversed')"
                                    domain="side == 'sell' and [('id', 'in', held_instrument_ids)] or []"/>
                             <field name="classification_id"/>
                             <field name="ifrs9_category"/>
                             <field name="held_quantity" invisible="side != 'sell' or state != 'draft'"/>
-                            <field name="units" readonly="event_id or state == 'settled'"/>
+                            <field name="units" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="quantity" invisible="1" force_save="1"/>
-                            <field name="price" readonly="event_id or state == 'settled'"/>
+                            <field name="price" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="instrument_kind" invisible="1"/>
-                            <field name="accrued_interest" invisible="instrument_kind != 'bond'" readonly="event_id or state == 'settled'"/>
+                            <field name="accrued_interest" invisible="instrument_kind != 'bond'" readonly="event_id or state in ('settled', 'reversed')"/>
                         </group>
                         <group>
-                            <field name="trade_date" readonly="event_id or state == 'settled'"/>
-                            <field name="settlement_date" readonly="state == 'settled'"/>
-                            <field name="fx_rate" readonly="event_id or state == 'settled'"/>
-                            <field name="settlement_fx_rate" readonly="state == 'settled'"/>
+                            <field name="trade_date" readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="settlement_date" readonly="state in ('settled', 'reversed')"/>
+                            <field name="foreign_currency" invisible="1"/>
+                            <field name="fx_rate" invisible="not foreign_currency and fx_rate == 1" readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="settlement_fx_rate" invisible="not foreign_currency and settlement_fx_rate in (0, 1)" readonly="state in ('settled', 'reversed')"/>
                             <field name="event_id"/><field name="settlement_event_id"/>
+                            <field name="replaced_id" invisible="not replaced_id"/>
+                            <field name="settlement_reversal_reason" invisible="not settlement_reversal_reason"/>
                         </group>
                     </group>
                 </sheet>

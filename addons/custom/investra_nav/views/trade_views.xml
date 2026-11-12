@@ -1,11 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Náhled zaúčtování obchodu a upozornění na kalendář dluhopisu (rozhodnutí 2026-11-12 „Náhled zaúčtování obchodu“). -->
+    <!-- Storno vypořádání, storno a oprava obchodu (rozhodnutí 2026-11-12 „Storno a oprava obchodu“). -->
+    <record id="action_trade_reverse_wizard" model="ir.actions.act_window">
+        <field name="name">Storno nebo oprava obchodu</field>
+        <field name="res_model">investra.trade.reverse.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <record id="view_trade_reverse_wizard_form" model="ir.ui.view">
+        <field name="name">investra.trade.reverse.wizard.form</field>
+        <field name="model">investra.trade.reverse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Storno nebo oprava obchodu">
+                <group>
+                    <field name="trade_id" readonly="1"/>
+                    <field name="mode" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert"><field name="effect" readonly="1"/></div>
+                <group>
+                    <field name="reason" placeholder="Proč se obchod nebo vypořádání stornuje (uloží se k obchodu)"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Potvrdit" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
+            </form>
+        </field>
+    </record>
     <record id="view_trade_form_preview" model="ir.ui.view">
         <field name="name">investra.trade.form.preview</field>
         <field name="model">investra.trade</field>
         <field name="inherit_id" ref="investra_instruments.view_trade_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='state']" position="before">
+                <button name="%(action_trade_reverse_wizard)d" type="action" string="Stornovat vypořádání"
+                        context="{'default_trade_id': id, 'default_mode': 'settlement'}"
+                        groups="investra_entity.group_valuation_preparer" invisible="state != 'settled' or not settlement_event_id"/>
+                <button name="%(action_trade_reverse_wizard)d" type="action" string="Opravit"
+                        context="{'default_trade_id': id, 'default_mode': 'correct'}"
+                        groups="investra_entity.group_valuation_preparer" invisible="state not in ('unsettled', 'settled')"/>
+                <button name="%(action_trade_reverse_wizard)d" type="action" string="Stornovat"
+                        context="{'default_trade_id': id, 'default_mode': 'reverse'}"
+                        groups="investra_entity.group_valuation_preparer" invisible="state not in ('unsettled', 'settled')"/>
+            </xpath>
             <xpath expr="//sheet/group" position="before">
                 <div class="alert alert-warning" role="alert" invisible="not calendar_note">
                     <field name="calendar_note" readonly="1"/>

@@ -35,6 +35,7 @@ ACTIVITIES = [
     ("subscription_manual", "Ruční zadání úpisu a odkupu"),
     ("classification_override", "Ruční přepsání kategorie IFRS 9"),
     ("repayment_reverse", "Storno a oprava splátky nástroje"),
+    ("trade_reverse", "Storno a oprava obchodu"),
 ]
 SECOND_PERSON = [("no", "Ne – stačí jeden člověk"), ("yes", "Ano – čtyři oči"), ("steps", "Kroky")]
 
@@ -50,6 +51,8 @@ BUILTIN = {
     "classification_override": ("preparer", []),
     # Výchozí bez druhé osoby (rozhodnutí uživatele 2026-11-12 „Zámek a storno splátky“).
     "repayment_reverse": ("preparer", []),
+    # Storno vypořádání, storno a oprava obchodu: výchozí jako storno splátky (rozhodnutí uživatele 2026-11-12).
+    "trade_reverse": ("preparer", []),
 }
 DEFAULT_STEP = "Kontrola druhou osobou"
 

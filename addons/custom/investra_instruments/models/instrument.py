@@ -12,7 +12,10 @@ DAY_COUNT = [
 ]
 # Po prvním obchodu neměnná pole nástroje. Klasifikace, způsob ocenění a role jsou v zařazení (rozhodnutí 2026-11-11).
 LOCKED_AFTER_TRADE = {"type_id"}
-SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id"}
+# Stav, události a důvody storna zapisuje jen zaúčtování a storno (rozhodnutí 2026-11-12 „Storno a oprava obchodu“).
+SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id", "reversal_reason", "settlement_reversal_reason"}
+# Odchylka kurzu vypořádání od kurzu obchodu, od které formulář upozorní (rozhodnutí 2026-11-12).
+SETTLEMENT_FX_WARNING = 0.10
 BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest"}
 SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
 # Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
@@ -362,11 +365,56 @@ class InvestraTrade(models.Model):
     fx_rate = fields.Float(default=1, digits=(16, 6), required=True, help="Funkční měna za jednotku měny nástroje.", string="Kurz")
     settlement_fx_rate = fields.Float(digits=(16, 6), help="Kurz platby; bez zadání platí kurz obchodu.", string="Kurz vypořádání")
     state = fields.Selection(
-        [("draft", "Návrh"), ("unsettled", "Sjednáno, nevypořádáno"), ("settled", "Vypořádáno")],
-        required=True, default="draft", readonly=True, string="Stav",
+        [("draft", "Návrh"), ("unsettled", "Sjednáno, nevypořádáno"), ("settled", "Vypořádáno"), ("reversed", "Stornováno")],
+        required=True, default="draft", readonly=True, index=True, string="Stav",
     )
-    event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
-    settlement_event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Událost vypořádání")
+    event_id = fields.Many2one("investra.accounting.event", readonly=True, copy=False, string="Účetní událost")
+    settlement_event_id = fields.Many2one("investra.accounting.event", readonly=True, copy=False, string="Událost vypořádání")
+    reversal_reason = fields.Text(readonly=True, copy=False, string="Důvod storna")
+    settlement_reversal_reason = fields.Text(
+        readonly=True, copy=False, string="Důvod storna vypořádání",
+        help="Poslední storno vypořádání; obchod se po něm vrátil do stavu Sjednáno, nevypořádáno.",
+    )
+    replaced_id = fields.Many2one("investra.trade", readonly=True, copy=False, ondelete="restrict", string="Opravuje obchod")
+    foreign_currency = fields.Boolean(compute="_compute_foreign_currency", string="Nástroj v cizí měně")
+    settlement_fx_note = fields.Char(compute="_compute_settlement_fx_note", string="Upozornění ke kurzu vypořádání")
+
+    @api.depends("instrument_id", "fund_id")
+    def _compute_foreign_currency(self):
+        for trade in self:
+            company_currency = trade.fund_id.company_id.currency_id
+            trade.foreign_currency = bool(trade.instrument_id and company_currency and trade.instrument_id.currency_id != company_currency)
+
+    @api.depends("foreign_currency", "fx_rate", "settlement_fx_rate")
+    def _compute_settlement_fx_note(self):
+        """Cizí měna: kurz vypořádání daleko od kurzu obchodu je spíš překlep (podnět: obchod se zadanou cenou místo kurzu)."""
+        for trade in self:
+            note = False
+            if trade.foreign_currency and trade.fx_rate and trade.settlement_fx_rate:
+                deviation = abs(trade.settlement_fx_rate / trade.fx_rate - 1)
+                if deviation > SETTLEMENT_FX_WARNING:
+                    note = self.env._(
+                        "Kurz vypořádání %(settle)s se liší od kurzu obchodu %(trade)s o %(pct)s %%. Zkontrolujte ho.",
+                        settle=trade.settlement_fx_rate, trade=trade.fx_rate, pct=round(deviation * 100, 1),
+                    )
+            trade.settlement_fx_note = note
+
+    @api.onchange("instrument_id", "fund_id")
+    def _onchange_home_currency_rate(self):
+        """Nástroj v měně fondu: kurzy jsou skryté a musí být 1."""
+        for trade in self:
+            if trade.instrument_id and trade.fund_id and not trade.foreign_currency:
+                trade.fx_rate = 1
+                trade.settlement_fx_rate = 0
+
+    @api.constrains("instrument_id", "fund_id", "fx_rate", "settlement_fx_rate")
+    def _check_home_currency_rate(self):
+        for trade in self:
+            if trade.foreign_currency:
+                continue
+            if trade.fx_rate != 1 or trade.settlement_fx_rate not in (0, 1):
+                raise ValidationError(self.env._(
+                    "Nástroj %s je v měně fondu: kurz obchodu i kurz vypořádání musí být 1.", trade.instrument_id.name))
 
     @api.depends("quantity")
     def _compute_side(self):
@@ -401,7 +449,7 @@ class InvestraTrade(models.Model):
         day = self.trade_date or fields.Date.context_today(self)
         holdings = dict(self.sudo()._holdings(fund.sudo(), day))
         origin = self._origin
-        if origin.id and origin._recognition_date() <= day:
+        if origin.id and origin.state != "reversed" and origin._recognition_date() <= day:
             key = (origin.instrument_id, origin.portfolio_id)
             holdings[key] = holdings.get(key, 0.0) - origin.quantity
         return {key: qty for key, qty in holdings.items() if qty > 1e-9}
@@ -478,6 +526,7 @@ class InvestraTrade(models.Model):
         held = sum(self.sudo().search([
             ("fund_id", "=", self.fund_id.id), ("portfolio_id", "=", self.portfolio_id.id),
             ("instrument_id", "=", self.instrument_id.id), ("trade_date", "<=", self.trade_date), ("id", "!=", self.id),
+            ("state", "!=", "reversed"),
         ]).mapped("quantity"))
         if held + self.quantity < -1e-9:
             raise UserError(self.env._(
@@ -523,11 +572,26 @@ class InvestraTrade(models.Model):
         if not self.env.su:
             if SYSTEM_TRADE_FIELDS & set(vals):
                 raise UserError(self.env._("Stav obchodu mění jen zaúčtování."))
+            if self.filtered(lambda t: t.state == "reversed"):
+                raise UserError(self.env._("Stornovaný obchod nejde změnit."))
             if self.filtered(lambda t: t.state == "settled") or (self.filtered("event_id") and BOOKED_TRADE_FIELDS & set(vals)):
-                raise UserError(self.env._("Zaúčtovaný obchod nejde změnit."))
+                raise UserError(self.env._("Zaúčtovaný obchod nejde změnit; opravte ho stornem vypořádání nebo opravou obchodu."))
         if vals.get("side") and vals.get("quantity"):
             vals = dict(vals, quantity=-abs(vals["quantity"]) if vals["side"] == "sell" else abs(vals["quantity"]))
         return super().write(vals)
+
+    def unlink(self):
+        if self.filtered(lambda t: t.state != "draft" or t.event_id):
+            raise UserError(self.env._("Zaúčtovaný nebo stornovaný obchod nejde smazat; opravte ho stornem."))
+        return super().unlink()
+
+    def copy_data(self, default=None):
+        # Stav, události a důvody storna nastavuje jen zaúčtování a storno; kopie začíná v návrhu.
+        vals_list = super().copy_data(default)
+        for vals in vals_list:
+            for name in SYSTEM_TRADE_FIELDS:
+                vals.pop(name, None)
+        return vals_list
 
     def action_book(self):
         self._require_preparer()
@@ -663,7 +727,8 @@ class InvestraTrade(models.Model):
     @api.model
     def _recognised(self, fund, day, instrument=None, portfolio=None):
         """Obchody, které jsou k datu v pozici fondu podle jeho nastavení."""
-        domain = [("fund_id", "=", fund.id), ("trade_date", "<=", day)]
+        # Stornovaný obchod není v pozici (rozhodnutí 2026-11-12 „Storno a oprava obchodu“); návrhy ano.
+        domain = [("fund_id", "=", fund.id), ("trade_date", "<=", day), ("state", "!=", "reversed")]
         if instrument:
             domain.append(("instrument_id", "=", instrument.id))
         if portfolio:

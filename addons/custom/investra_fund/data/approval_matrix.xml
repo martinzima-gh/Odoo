@@ -76,4 +76,12 @@
         <field name="note">Výchozí – bez druhé osoby (rozhodnutí 2026-11-12)</field>
         <field name="builtin" eval="True"/>
     </record>
+    <record id="matrix_default_trade_reverse" model="investra.approval.matrix">
+        <field name="activity">trade_reverse</field>
+        <field name="valid_from">2000-01-01</field>
+        <field name="performer_role">preparer</field>
+        <field name="second_person">no</field>
+        <field name="note">Výchozí – bez druhé osoby (rozhodnutí 2026-11-12)</field>
+        <field name="builtin" eval="True"/>
+    </record>
 </odoo>
