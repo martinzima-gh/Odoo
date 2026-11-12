@@ -21,8 +21,8 @@ předvaha a počet dokladů shodné), web 8071 restartován. Claude Doc rev 323.
 (zelená zóna, může Antigravity přes zadání v `docs/ukoly/`).
 
 **Otevřené body (výběr dalšího):** vypořádání obchodů přes peníze na cestě; nový kalendář s EIR; pohyblivá
-sazba a PIK; poplatek placený fondu; přehled operací ke zpracování. Testovací dluhopis ve fondu Beta (tok 1. 1. 2029)
-uživatel podle vlastních slov ověřil v UI.
+sazba a PIK; poplatek placený fondu; přehled operací ke zpracování. Testovací dluhopis ve fondu Beta (chybný tok 1. 1. 2029):
+zda je opravený, v této relaci neověřeno.
 
 **Otevřené otázky:** žádné nové.
 
