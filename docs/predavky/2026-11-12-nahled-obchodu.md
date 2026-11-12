@@ -16,7 +16,9 @@ předvaha a počet dokladů shodné), web 8071 (`investra-test-web`) restartová
 
 **Data:** dluhopis Beta a návrh prodeje 5348 jsou zkusmo zadaná uživatelem naslepo – neřešit.
 
-**Zbývá – první krok:** vybrat s uživatelem další otevřený bod.
+**Zbývá – první krok:** projít s uživatelem otázky v `docs/navrh-storno-obchodu.md` (storno a oprava obchodu,
+pojistka kurzu vypořádání), po schválení provést. Podnět: obchod 5348 vypořádán s kurzem 10 070 (CZK) – neobnovovat,
+opravit až stornem vypořádání.
 
 **Otevřené body (výběr dalšího):** nový kalendář s EIR; pohyblivá sazba a PIK; poplatek placený fondu;
 přehled operací ke zpracování.
@@ -26,5 +28,6 @@ přehled operací ke zpracování.
 **Přečíst:**
 1. `CLAUDE.md`
 2. tato předávka
-3. `docs/navrh-nahled-obchodu.md`
-4. `addons/custom/investra_nav/models/trade_preview.py`
+3. `docs/navrh-storno-obchodu.md`
+4. `addons/custom/investra_instruments/models/instrument.py` (`InvestraTrade`: `write`, `_book`, `_settle`, `_planned_postings`)
+5. `addons/custom/investra_nav/models/instrument_accrual.py` (storno splátky: `action_reverse`, `_do_reverse`, okno)
