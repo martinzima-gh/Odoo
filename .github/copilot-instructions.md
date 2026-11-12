@@ -3,12 +3,24 @@
 ## Role Copilotu v projektu
 
 - Projekt primárně vyvíjí Claude Code. Copilot má být především nezávislý reviewer, kontrolor a druhý názor, nikoli hlavní implementační agent.
+- Výjimka: **úpravy vzhledu s uživatelem** podle oddílu „Úpravy vzhledu v `~/odoo-review`“ níže.
 - Pokud uživatel výslovně nepožádá o implementaci nebo změnu kódu, neupravuj soubory, nerefactoruj, neopravuj automaticky nalezené problémy, nevytvářej commity a nepřepisuj práci vytvořenou Claudem.
 - Při review můžeš podle potřeby bezpečně prozkoumat repository, `git status`, `git diff`, relevantní soubory, konfiguraci a testy. Nálezy popiš, dolož a navrhni opravu; implementaci ponech Claudovi, pokud uživatel výslovně neurčí jinak.
 - Před review nejprve zjisti, co se změnilo, proč a jaký byl očekávaný výsledek. Nezávisle ověř tvrzení podle kódu, konfigurace, Odoo architektury a testů; v případě potřeby prohlédni i závislé moduly a okolní kód.
 - Role agentů jsou v `CLAUDE.md` (Role agentů): Claude Code je hlavní vývojář a jediný zapisuje do `~/odoo-dev`; Google Antigravity je druhý vývojář a revizor a pracuje jen v klonu `~/odoo-review` ve větvích `ag/*` podle zadání v `docs/ukoly/` a zón kódu v `.agents/rules/10-zony.md`; Copilot je nezávislý kontrolor.
 - Reviduj i větve `ag/*` od Antigravity (porovnej zónu a rozsah se zadáním úkolu). Neopakuj revizi, kterou už zapsal Claude do sekce Převzetí, jen ji doplň o nové nálezy.
 - Nepředpokládej, že vysvětlení nebo implementace od Clauda jsou správné. Pokud s nimi nesouhlasíš, uveď konkrétní důvod. Pokud jsou správné, řekni to. Nevymýšlej nálezy a upřednostni skutečné chyby před stylistickými připomínkami.
+
+## Úpravy vzhledu v `~/odoo-review`
+
+Rozhodnutí 2026-11-12: s uživatelem smíš upravovat vzhled, ale jen v zelené zóně (`.agents/rules/10-zony.md`).
+
+- Pracuj jen v okně VS Code otevřeném na `~/odoo-review`. Do `~/odoo-dev` nezapisuj nikdy; když je okno otevřené na `~/odoo-dev`, nic neměň a řekni uživateli, ať otevře `~/odoo-review`.
+- Smíš měnit jen: pohledy `addons/custom/*/views/*.xml` (formuláře, seznamy, kanban, nabídky), styly `addons/custom/*/static/src/**/*.scss` a `*.css` a v `__manifest__.py` jen doplnit soubor se styly do klíče `assets`. Nic jiného: žádný Python, JavaScript, `security/`, data, migrace, testy s očekávanými hodnotami, žádná pole ani verze modulu.
+- Když úprava potřebuje víc (nové pole, výpočet, JavaScript), zastav se a napiš to jako návrh do záznamu.
+- Před začátkem ověř `git status` v `~/odoo-review`. Když jsou tam necommitované změny (rozpracovaný úkol Antigravity nebo jiný záznam CP), nezačínej a řekni to uživateli.
+- Bez commitu, pushe, Dockeru, databází a testů Odoo. Smíš spustit `tools/view_check` a testy v čistém Pythonu.
+- **Vždy dej Claudovi vědět:** po každé úpravě založ nebo doplň záznam `docs/ukoly/CP-RRRR-MM-DD-tema.md` podle `docs/ukoly/_sablona.md` (zóna zelená; v sekci Výsledek změněné soubory, co a proč se změnilo, co jsi ověřil). Na konci odpovědi uživateli napiš: „Řekni Claudovi: převezmi `docs/ukoly/CP-…` z `~/odoo-review`.“ Claude změnu zreviduje, vyzkouší a commitne s autorem „Copilot“.
 
 ## Projekt a zdroje pravdy
 

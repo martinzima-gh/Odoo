@@ -11,6 +11,7 @@ Zóna se určuje podle cest, které změna mění. Když úkol zasáhne více z�
 
 - `addons/custom/*/views/*.xml`: formuláře, seznamy, nabídky, akce, vyhledávání
 - `addons/custom/*/i18n/`: překlady
+- vzhled: styly `addons/custom/*/static/src/**/*.scss` a `*.css` a v `__manifest__.py` jen doplnění souboru se styly do klíče `assets` (bez změny verze, závislostí a `data`); JavaScript a šablony OWL zelené nejsou
 - **nové** testy v `addons/custom/*/tests/` (bez změny očekávaných hodnot existujících testů)
 - dokumentace v `docs/` kromě zakázaných souborů níže; `docs/sql/*.sql` jen `SELECT`
 - běžné opravy, které nesahají do oranžové ani červené zóny
