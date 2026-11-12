@@ -14,9 +14,9 @@ Přenést firemní identitu Investra (Brand manuál 1.0) do vzhledu Odoo; vzhled
 - Písmo Montserrat (rozhodl uživatel; Investra Sans z šablony Wordu ne), základ Regular 400, `tabular-nums`, bez CDN.
 
 ## Zbývá
-1. Hotovo: modul `investra_theme` 20.0.0.1.0 nainstalován v `investra_test`, 3 testy OK (zkompilované CSS má Petroleum, Lagoon a Montserrat z modulu `web`, bez CDN). Vizuálně zkontroluje uživatel (http://127.0.0.1:8071; lišta tam zůstává červená kvůli `investra_env_banner`).
-2. Instalace do `investra_dev` jen na pokyn uživatele.
-3. Logo až po dodání vektoru od Investry.
+1. Hotovo: `investra_theme` 20.0.0.2.0 podle schváleného vzoru `docs/vzhled/nahled-investra.html` (commit 11cc869), v `investra_test`, 3 testy OK; vizuálně v Odoo zatím neověřeno.
+2. Copilot dolaďuje s uživatelem v `~/odoo-review`, větev `cp/vzhled`; převzetí podle záznamu `docs/ukoly/CP-…`.
+3. Instalace do `investra_dev` jen na pokyn uživatele. Logo až po dodání vektoru.
 
 ## Otevřené otázky
 - Rozpor manuál (Montserrat) × šablona Wordu 02 (Investra Sans) – pro Odoo platí manuál; sjednocení je věc Investry.
