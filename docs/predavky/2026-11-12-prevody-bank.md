@@ -18,10 +18,11 @@
 - `investra_test` aktualizována (záloha `zalohy/investra_test-2026-11-12-pred-prevody-bank.dump`), web 8071 restartován,
   ve fondu 244 deník BNK2 (131102). SELECTy `docs/sql/15-prevody-bank.sql`.
 
-**Zbývá – první krok:** uživatel zaúčtuje v UI fondu 244 interní doklad (MISC, 2027-03-03): 119000 MD / 131100 D a 131102 MD /
-119000 D; pak ověřit `docs/sql/15-prevody-bank.sql` (119000 nulový, položky v Community nespárované).
-Dál: s Enterprise ověřit párování výpisů přes model Internal Transfers. Hotovo po předávce: pomocné databáze smazány,
-matice opravena (řádek 82 zpět, nový řádek 83 od 13. 11.), `investra_dev` na `investra_entity` 0.5.0 (deník 2026-11-12).
+**Zbývá – první krok:** ruční převod v Community UI nejde (ruční záznam nenabízí bankovní účty). Cesta přes 119000
+ověřena simulací na kopii (deník 2026-11-12 „Převod mezi bankami – ověření simulací“). Další krok: test v UI až s Enterprise.
+V `investra_test` je nezaúčtovaný koncept ručního dokladu z 12. 11. (MISC, 119000) z pokusu uživatele – zahodit v UI.
+Hotovo po předávce: pomocné databáze smazány, matice opravena (řádek 82 zpět, řádek 83 od 13. 11.),
+`investra_dev` na `investra_entity` 0.5.0.
 
 **Otevřené otázky:** ocenění 9572 (Delta) schválené 12. 11. bez druhé osoby zůstává v historii; složka příloh
 `investra_dev_kopie` bez databáze (z dřívější relace) – smazat?

@@ -56,6 +56,8 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Rozpad ostatních položek třídy | Přemostění tříd (schváleno 2026-11-10) ukazuje ostatní položky třídy jedním číslem; měnové zajištění, dohady a položky specifické pro třídu nejsou rozepsané | Rozhodnout teď, nebo až podle prvního fondu, který takové položky bude mít (rozpad podle rolí účtů) |
 | Body podkladu UX bez plánu | Poznámky uživatele z 2026-11-10 (podklad mimo repozitář, shrnutí v `docs/predavka-2026-11-10-ux.md`): 3 přehled fondů jako tabulka a snímek; 5.3 výpočetní protokol; 14 termínované vklady; 16 pravidla úplat proti sešitům (body 9, 10 a 15 hotové 2026-11-11; bod 8 má schválený plán `docs/navrh-upisy-odkupy.md` včetně zámku ocenění, provádí se v pořadí F, G, A–E) | Plán ke každému bodu zvlášť (oranžová a červená zóna). Doporučené pořadí: 8 (provádí se), 14, 16, 5.3, 3 |
 | Maximální stáří ceny pro typy nástrojů | Pole je hotové (2026-11-11), ale všude je 0: ocenění upozorní na každou cenu starší než datum ocenění | Uživatel nastaví výchozí počet dní u typů nástrojů podle Pravidel oceňování |
+| Převod mezi bankami v Enterprise | V Community nejde převod zadat v UI (ruční záznam nenabízí bankovní účty, výpis jde vždy na 229000, párování výpisů a model Internal Transfers jsou jen v Enterprise); cesta přes 119000 ověřena jen simulací v kódu (2026-11-12) | Po pořízení Enterprise zkusit v UI: řádky výpisu BNK1 a BNK2 spárovat modelem Internal Transfers, 119000 spárovat |
+| Oprávnění admina v `investra_test` | Admin nemá skupinu „Zobrazit kompletní účetní funkcionality“, bankovní transakce nesmí založit | Při testech v UI přidat skupinu testovacímu účetnímu, ne adminovi |
 
 ## Chybějící podklady
 
