@@ -27,5 +27,7 @@ class TestTheme(TransactionCase):
         self.assertNotIn("css error message", css)
         self.assertIn("#112e3c", css)  # Petroleum
         self.assertIn("#0b5156", css)  # Lagoon
+        self.assertIn("#e8ebec", css)  # Petroleum 4 – pozadí aplikace
+        self.assertIn("#eb5b1f", css)  # Ember – akcent lišty
         self.assertIn("montserrat-semibold.ttf", css)
         self.assertNotIn("fonts.googleapis.com", css)

@@ -1,4 +1,5 @@
 // Doplňky firemní identity, které nejdou nastavit proměnnou.
+// Vzor: docs/vzhled/nahled-investra.html (schválil uživatel 2026-11-12).
 
 // Čísla ve formulářích se stejně širokými číslicemi (seznamy to v Odoo mají už samy).
 .o_field_monetary,
@@ -6,4 +7,92 @@
 .o_field_integer,
 .o_field_percentage {
     font-variant-numeric: tabular-nums;
+}
+
+// Horní lišta: Ember jen jako akcent – podtržení názvu aplikace.
+.o_main_navbar .o_menu_brand {
+    box-shadow: inset 0 -3px 0 $investra-ember;
+    font-weight: 600;
+}
+
+// Nadpisy, popisky a drobečková navigace v Petroleum.
+.o_web_client {
+    h1, h2, h3, .o_form_label {
+        color: $investra-petroleum;
+    }
+    .o_form_label {
+        font-weight: 600;
+    }
+    .o_breadcrumb .active {
+        color: $investra-petroleum;
+        font-weight: 600;
+    }
+}
+
+// Seznam: bílá hlavička (Odoo ji kreslí přechodem z pozadí aplikace), záhlaví Petroleum, řádek pod myší Lagoon 4.
+.o_list_renderer {
+    --ListRenderer-thead-bg-color: #{$o-view-background-color};
+    --ListRendererGrouped__th-bg-color: #{$investra-petroleum-4};
+
+    .o_list_table {
+        --#{$prefix}table-hover-bg: #{$investra-lagoon-4};
+
+        thead th {
+            color: $investra-petroleum;
+            font-weight: 600;
+        }
+    }
+}
+
+// Stavový řádek: aktuální krok plně v Lagoon s bílým textem (kontrast 9 : 1).
+.o_statusbar_status .o_arrow_button_current {
+    --#{$prefix}btn-disabled-bg: #{$investra-lagoon};
+    --#{$prefix}btn-disabled-border-color: #{$investra-lagoon};
+    --#{$prefix}btn-disabled-color: #ffffff;
+}
+
+// Štítky stavů: bílé, text Graphite, stav nese rámeček a tečka ve funkční barvě Odoo.
+// Funkční barvy mají na bílé kontrast pod 4,5 : 1, proto nejsou na textu.
+$investra-badge-states: (
+    "success": $o-success,
+    "warning": $o-warning,
+    "danger": $o-danger,
+    "info": $o-info,
+    "300": $investra-petroleum-3,
+);
+.o_field_badge .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4em;
+    background: #ffffff !important;
+    color: $investra-graphite !important;
+    border: 1px solid $investra-petroleum-3;
+    font-weight: 500;
+
+    &::before {
+        content: "";
+        width: .5em;
+        height: .5em;
+        border-radius: 50%;
+        background: $investra-petroleum-3;
+    }
+}
+@each $state, $color in $investra-badge-states {
+    .o_field_badge .badge.text-bg-#{$state} {
+        border-color: $color;
+
+        &::before {
+            background: $color;
+        }
+    }
+}
+
+// Upozornění: bílé s proužkem vlevo ve funkční barvě, text Graphite (místo míchaných odstínů Odoo).
+@each $state, $color in ("success": $o-success, "warning": $o-warning, "danger": $o-danger, "info": $o-info) {
+    .o_web_client .alert-#{$state} {
+        --#{$prefix}alert-bg: #ffffff;
+        --#{$prefix}alert-color: #{$investra-graphite};
+        --#{$prefix}alert-border-color: #{$color};
+        border-left-width: 4px;
+    }
 }

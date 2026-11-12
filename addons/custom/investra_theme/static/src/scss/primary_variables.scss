@@ -29,6 +29,14 @@ $o-action: $investra-lagoon;
 $o-main-link-color: $investra-lagoon;   // kontrast na bílé 9,0 : 1
 $o-main-text-color: $investra-graphite;  // kontrast na bílé 14,5 : 1
 
+// Pozadí aplikace Petroleum 4, pohledy (seznam, list formuláře) bílé – vzor docs/vzhled/nahled-investra.html.
+$o-webclient-background-color: $investra-petroleum-4;
+$o-view-background-color: #ffffff;
+$o-border-color: $investra-petroleum-4;
+// Aktivní prvek (aktuální krok stavového řádku, vybraná položka): Odoo míchá mix(); přesné odstíny Lagoon.
+$o-component-active-bg: $investra-lagoon-4;
+$o-component-active-border: $investra-lagoon;
+
 // Horní lišta: místo průhledných odstínů Odoo přesné barvy.
 $o-navbar-entry-color: #ffffff;
 $o-navbar-entry-bg--hover: $investra-petroleum-0;
@@ -51,6 +59,23 @@ $o-btns-bs-override: (
         disabled-background: $investra-petroleum,
         disabled-border: $investra-petroleum,
         disabled-color: #ffffff,
+    ),
+    "secondary": (
+        background: $investra-graphite-4,
+        border: $investra-graphite-4,
+        color: $investra-graphite,
+
+        hover-background: $investra-petroleum-4,
+        hover-border: $investra-petroleum-4,
+        hover-color: $investra-petroleum,
+
+        active-background: $investra-petroleum-4,
+        active-border: $investra-petroleum-3,
+        active-color: $investra-petroleum,
+
+        disabled-background: $investra-graphite-4,
+        disabled-border: $investra-graphite-4,
+        disabled-color: $investra-graphite-2,
     ),
 );
 

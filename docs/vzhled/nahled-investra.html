@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investra – náhled vzhledu Odoo</title>
+<style>
+/* Písmo z lokálního testovacího Odoo (modul web), žádné CDN. */
+@font-face{font-family:Montserrat;font-weight:300;src:url(http://127.0.0.1:8071/web/static/fonts/google/Montserrat/Montserrat-Light.ttf)}
+@font-face{font-family:Montserrat;font-weight:400;src:url(http://127.0.0.1:8071/web/static/fonts/google/Montserrat/Montserrat-Regular.ttf)}
+@font-face{font-family:Montserrat;font-weight:500;src:url(http://127.0.0.1:8071/web/static/fonts/google/Montserrat/Montserrat-Medium.ttf)}
+@font-face{font-family:Montserrat;font-weight:600;src:url(http://127.0.0.1:8071/web/static/fonts/google/Montserrat/Montserrat-SemiBold.ttf)}
+@font-face{font-family:Montserrat;font-weight:700;src:url(http://127.0.0.1:8071/web/static/fonts/google/Montserrat/Montserrat-Bold.ttf)}
+
+/* Jen barvy z Brand manuálu 1.0 + funkční barvy stavů z Odoo. Žádná průhlednost, přechody ani stíny. */
+:root{
+  --petroleum-0:#0c2631; --petroleum:#112e3c; --petroleum-2:#596e78; --petroleum-3:#9daab0; --petroleum-4:#e8ebec;
+  --ember:#eb5b1f; --ember-4:#feeee9;
+  --lagoon:#0b5156; --lagoon-2:#55868a; --lagoon-4:#e8eeee;
+  --graphite:#2c2927; --graphite-2:#6a6967; --graphite-3:#a8a6a6; --graphite-4:#eceaea;
+  --success:#28a745; --warning:#ffac00; --danger:#dc3545; /* Odoo, jen pro stavy */
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Montserrat,Arial,sans-serif;font-weight:400;font-size:14px;color:var(--graphite);background:var(--petroleum-4)}
+.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+
+/* Horní lišta Odoo */
+.navbar{height:46px;background:var(--petroleum);color:#fff;display:flex;align-items:center;padding:0 12px;gap:4px}
+.navbar .app{font-weight:600;font-size:16px;padding:0 14px 0 4px}
+.navbar a{color:#fff;text-decoration:none;padding:0 12px;height:46px;display:flex;align-items:center;font-weight:500}
+.navbar a:hover{background:var(--petroleum-0)}
+.navbar a.active{box-shadow:inset 0 -3px 0 var(--ember)} /* Ember jen jako akcent značky */
+.navbar .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--lagoon);display:grid;place-items:center;font-weight:600;font-size:12px}
+
+/* Ovládací panel */
+.cp{background:#fff;border-bottom:1px solid var(--petroleum-4);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.crumb{font-size:18px;font-weight:600;color:var(--petroleum)}
+.crumb a{color:var(--lagoon);text-decoration:none;font-weight:500}
+.btn{font-family:inherit;font-size:13px;font-weight:600;border-radius:4px;padding:6px 12px;border:1px solid transparent;cursor:pointer}
+.btn-primary{background:var(--petroleum);color:#fff}
+.btn-primary:hover{background:var(--petroleum-0)}
+.btn-secondary{background:var(--graphite-4);color:var(--graphite)}
+.btn-secondary:hover{background:var(--petroleum-4)}
+.search{margin-left:auto;width:340px;border:1px solid var(--petroleum-3);border-radius:4px;padding:6px 10px;color:var(--graphite-2);background:#fff}
+
+main{padding:16px;display:grid;grid-template-columns:1.35fr .65fr;gap:16px;max-width:1400px}
+.card{background:#fff;border:1px solid var(--petroleum-4);border-radius:6px}
+.card h2{margin:0;padding:14px 16px;font-size:15px;font-weight:600;color:var(--petroleum);border-bottom:1px solid var(--petroleum-4);display:flex;justify-content:space-between;align-items:center}
+.body{padding:16px}
+
+/* Dlaždice nástěnky */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.tile{border:1px solid var(--petroleum-4);border-left:4px solid var(--petroleum);border-radius:4px;padding:12px 14px;background:#fff}
+.tile.accent{border-left-color:var(--ember)}
+.label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--graphite-2)}
+.value{font-size:24px;font-weight:600;color:var(--petroleum);margin-top:6px;font-variant-numeric:tabular-nums}
+.sub{font-size:12px;color:var(--graphite-2);margin-top:2px}
+.up{color:var(--lagoon);font-weight:600}
+
+/* Seznam Odoo */
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;font-weight:600;color:var(--petroleum);text-align:left;padding:8px;border-bottom:2px solid var(--petroleum-4);background:#fff}
+td{padding:8px;border-bottom:1px solid var(--petroleum-4)}
+tr:hover td{background:var(--lagoon-4)}
+td a{color:var(--lagoon);font-weight:500;text-decoration:none}
+tfoot td{font-weight:600;border-top:2px solid var(--petroleum-4);border-bottom:0}
+
+/* Štítky stavů: funkční barvy Odoo, text tmavý kvůli kontrastu */
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:500;border:1px solid;color:var(--graphite);background:#fff}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.b-ok{border-color:var(--success)} .b-ok::before{background:var(--success)}
+.b-warn{border-color:var(--warning)} .b-warn::before{background:var(--warning)}
+.b-err{border-color:var(--danger)} .b-err::before{background:var(--danger)}
+.b-draft{border-color:var(--petroleum-3)} .b-draft::before{background:var(--petroleum-3)}
+
+/* Formulář */
+.field{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:10px;margin-bottom:10px}
+.field label{font-weight:600;color:var(--petroleum)}
+.input{border:0;border-bottom:1px solid var(--petroleum-3);padding:4px 0;font:inherit;color:var(--graphite);width:100%;background:transparent}
+.input:focus,.input.focus{outline:0;border-bottom:2px solid var(--lagoon)}
+.statusbar{display:flex;gap:0;margin-bottom:14px}
+.statusbar span{padding:4px 12px;font-size:12px;font-weight:600;border:1px solid var(--petroleum-4);color:var(--graphite-2);background:#fff}
+.statusbar span.on{background:var(--lagoon);border-color:var(--lagoon);color:#fff}
+.alert{border:1px solid var(--warning);border-left:4px solid var(--warning);background:#fff;padding:8px 10px;border-radius:4px;font-size:13px;margin-bottom:12px}
+.note{font-size:12px;color:var(--graphite-2);padding:16px;max-width:1400px}
+@media(max-width:1000px){main{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <span class="app">Investra</span>
+  <a class="active" href="#">Portfolio</a><a href="#">Ocenění</a><a href="#">NAV</a><a href="#">Účetnictví</a><a href="#">Nastavení</a>
+  <span class="right">Fond Alfa SICAV <span class="avatar">MZ</span></span>
+</nav>
+
+<div class="cp">
+  <button class="btn btn-primary">Nový</button>
+  <span class="crumb"><a href="#">Portfolio</a> / Přehled portfolia</span>
+  <button class="btn btn-secondary">Import</button>
+  <span class="search">Hledat…</span>
+</div>
+
+<main>
+  <section class="card">
+    <h2>Přehled portfolia <span class="badge b-ok">Aktivní</span></h2>
+    <div class="body">
+      <div class="tiles">
+        <div class="tile"><div class="label">Celkový majetek</div><div class="value">12 460 000 €</div><div class="sub"><span class="up">+1,8 %</span> za měsíc</div></div>
+        <div class="tile"><div class="label">Investováno</div><div class="value">8 920 000 €</div><div class="sub"><span class="up">+0,9 %</span> za týden</div></div>
+        <div class="tile accent"><div class="label">NAV</div><div class="value">9 170 000 €</div><div class="sub"><span class="up">+2,4 %</span> za měsíc</div></div>
+      </div>
+      <table>
+        <thead><tr><th>Nástroj</th><th>Portfolio</th><th class="num">Hodnota (EUR)</th><th class="num">Výkon</th><th>Stav</th></tr></thead>
+        <tbody>
+          <tr><td><a href="#">Apex Equity</a></td><td>Core</td><td class="num">3 620 000,00</td><td class="num">+5,20 %</td><td><span class="badge b-ok">Oceněno</span></td></tr>
+          <tr><td><a href="#">Northwind Bond</a></td><td>Defensive</td><td class="num">2 140 000,00</td><td class="num">+2,10 %</td><td><span class="badge b-warn">Ke schválení</span></td></tr>
+          <tr><td><a href="#">Blue Harbor REIT</a></td><td>Income</td><td class="num">1 810 000,00</td><td class="num">+3,60 %</td><td><span class="badge b-draft">Návrh</span></td></tr>
+          <tr><td><a href="#">Crest Capital</a></td><td>Balanced</td><td class="num">1 420 000,00</td><td class="num">−0,70 %</td><td><span class="badge b-err">Chybí kurz</span></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="2">Celkem</td><td class="num">8 990 000,00</td><td></td><td></td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Obchod OB/2026/0042</h2>
+    <div class="body">
+      <div class="statusbar"><span>Návrh</span><span class="on">Sjednáno</span><span>Vypořádáno</span></div>
+      <div class="alert">Nástroj nemá kalendář toků – naběhlý úrok nejde předvyplnit.</div>
+      <div class="field"><label>Nástroj</label><input class="input focus" value="Apex Equity"></div>
+      <div class="field"><label>Směr</label><input class="input" value="Nákup"></div>
+      <div class="field"><label>Kusy</label><input class="input num" style="text-align:left" value="12 500"></div>
+      <div class="field"><label>Cena</label><input class="input num" style="text-align:left" value="289,60 €"></div>
+      <div class="field"><label>Datum sjednání</label><input class="input" value="12. 11. 2026"></div>
+      <div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-primary">Vypořádat</button><button class="btn btn-secondary">Storno</button></div>
+    </div>
+  </section>
+</main>
+<p class="note">Náhled, ne Odoo. Rozvržení odpovídá standardnímu Odoo (horní lišta, ovládací panel, seznam, formulář); vše je dosažitelné jen styly v modulu investra_theme. Data jsou smyšlená. Barvy: Petroleum (lišta, tlačítka, nadpisy), Lagoon (odkazy, aktivní stav, zaměřené pole), Ember jen akcent (podtržení aktivní nabídky, dlaždice NAV), stavy funkčními barvami Odoo. Písmo Montserrat z lokálního Odoo; když testovací Odoo neběží, zobrazí se Arial.</p>
+</body>
+</html>
