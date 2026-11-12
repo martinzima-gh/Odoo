@@ -67,12 +67,14 @@ a obecné komentáře. Obchodní význam, který není v kódu nebo v tomto zad�
 
 ## Výsledek
 
-Doplní Copilot.
-
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `docs/sql/22-kurzove-rozdily.sql`.
+- **Ověřeno (příkaz a výsledek):** Každý dotaz byl samostatně spuštěn přes `docker exec -i odoo-investra-db-1 psql -U odoo -d investra_test` v transakci `BEGIN TRANSACTION READ ONLY` a následně `ROLLBACK`; všechny proběhly bez chyby.
+  - Dotaz 1 vrátil 2 řádky; v knize 244 je realizovaný kurzový rozdíl 0 a nerealizovaný nenulový.
+  - Dotaz 2 vrátil 2 řádky.
+  - Dotaz 3 vrátil 4 řádky; pro knihy 244 a 410 se součet řádků obou kurzových druhů shoduje s celkovým zůstatkem rolí, rozdíl je 0.
+  - Dotazy započítávají hlavní i další účty rolí; soubor obsahuje pouze `WITH ... SELECT`.
+- **Neověřeno:** Nenulový realizovaný kurzový rozdíl; v `investra_test` nejsou odpovídající řádky. Ověření s prodejem v cizí měně je součástí převzetí Claudem podle zadání.
+- **Otevřené otázky a návrhy mimo rozsah:** Žádné.
 
 ## Převzetí
 
