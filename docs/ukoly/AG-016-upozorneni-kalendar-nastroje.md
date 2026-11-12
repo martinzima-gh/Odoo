@@ -55,4 +55,9 @@ Nic neblokuje, uložit jde vždy.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-12, převzal Claude.
+- **Revize:** jen pole `calendar_missing` ve třídě `InvestraInstrument`, pruh ve formuláři nástroje a test; mimo rozsah nic.
+  Nálezy žádné.
+- **Testy Odoo:** čistá databáze `investra_ci_ag016` (všechny vlastní moduly) 494 testů, 0 chyb; databáze smazána.
+- **Sloučení:** 2026-11-12 do `feature/nav-prototyp` (f6a8747). `investra_test` povýšena spolu s náhledem obchodu
+  (`investra_instruments` 0.11.0, `investra_nav` 0.19.0).
