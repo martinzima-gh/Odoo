@@ -3,7 +3,8 @@
 **Cíl:** jeden mechanismus splátky pro naběhlou i reálnou hodnotu, mimořádná splátka a kalendářní splátky bez ručního zadání.
 
 **Stav:** větev `feature/nav-prototyp`, poslední commit s kódem a dokumentací viz `git log -1`; `investra_test` má
-`investra_entity`, `investra_chart_fund`, `investra_cnb` 0.7.0, `investra_instruments` 0.9.0 a `investra_nav` 0.15.0 (záloha `pred-etapou-2`, předvaha shodná), web 8071 restartován.
+`investra_entity`, `investra_chart_fund`, `investra_cnb` 0.7.0, `investra_fund` 0.5.0, `investra_instruments` 0.10.0 a `investra_nav` 0.17.0 (poslední záloha
+`pred-kontrolami-a-kalendarem`, předvaha shodná), web 8071 restartován.
 
 **Hotovo (návrhy `docs/navrh-splatky-jistiny.md`, `docs/navrh-mimoradna-splatka.md`, deník 12. 11.):**
 - Splátka: jistina, úrok, poplatek (MD 612000); MD 119100 Inkasa na cestě (nová role) / D nástroj; výpis 119100 vynuluje.
@@ -22,12 +23,15 @@
 - Etapa 2 hotová v kódu (commit 41837de, `docs/navrh-splatky-jistiny.md` sekce Provedení etapy 2): úrok v RH
   (kupón lineárně, diskont EIR), realizovaný výsledek průměrem v ocenění, účty 715100/615100; 472 testů 0 chyb.
 
-**Zbývá – první krok:** zkouška etapy 2 v UI na 8071 (dluhopis s kupónem: nákup s naběhlým úrokem, ocenění,
-prodej části, další ocenění); investra_test je povýšená.
+- Po zkoušce v UI: Směr Nákup/Prodej, prodej jen z držené pozice, kontrola dat toků, úrok předvyplněn i u prodeje,
+  matice bez druhé osoby; generátor kupónového kalendáře (výplata Q/H/Y/M/ve splatnosti). 480 testů 0 chyb, Doc rev 322.
+
+**Zbývá – první krok:** uživatel zkouší v UI na 8071 generátor kalendáře a dluhopis (testovací „Zímův testovací
+dluhopis“ ve fondu Beta má chybný tok 1. 1. 2029 – opravit nebo přegenerovat a ocenění k 1. 8. přepočítat).
 
 **Otevřené body:** nový splátkový kalendář s uloženou EIR; ověřit citace IFRS 9 / IAS 1 a prezentaci zbytku při ukončení
 (auditor); poplatek placený fondu (výnos); vypořádání obchodů přes peníze na cestě; přehled operací ke zpracování
-(dashboard, zatím jen evidovat zdroje).
+(dashboard, zatím jen evidovat zdroje); pohyblivá sazba a kapitalizovaný úrok (PIK).
 
 **Přečíst:**
 1. `CLAUDE.md`
