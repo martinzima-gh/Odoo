@@ -12,8 +12,8 @@
                 </div>
             </xpath>
             <xpath expr="//sheet/group" position="after">
-                <notebook invisible="state != 'draft'">
-                    <page name="posting_preview" string="Očekávané zaúčtování">
+                <notebook invisible="not posting_preview">
+                    <page name="posting_preview" string="Zaúčtování">
                         <field name="posting_preview" nolabel="1" readonly="1"/>
                     </page>
                 </notebook>

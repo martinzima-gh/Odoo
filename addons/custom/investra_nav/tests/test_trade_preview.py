@@ -82,6 +82,27 @@ class TestTradePreview(NavCase):
         self.assertEqual(preview[0][2], self.move_rows(trade.event_id.move_id))
         self.assertEqual(preview[1][2], self.move_rows(trade.settlement_event_id.move_id))
 
+    def test_unsettled_trade_previews_only_settlement(self):
+        self.rate("2029-02-03", 26)
+        equity = self.instrument("equity", currency=self.eur)
+        trade = self.trade(equity, "2029-02-01", 10, 100, fx_rate=25, settlement_date="2029-02-03")
+        self.assertEqual(trade.state, "unsettled")
+        trade.settlement_fx_rate = 26
+        preview = self.preview_rows(trade)
+        self.assertEqual([p[1] for p in preview], [date(2029, 2, 3)])
+        html = str(trade.posting_preview)
+        self.assertIn("Vypořádat", html)
+        self.assertNotIn("Očekávaný výsledek prodeje", html)
+        trade._settle()
+        self.assertEqual(preview[0][2], self.move_rows(trade.settlement_event_id.move_id))
+        # Po vypořádání obě zaúčtované nohy, žádný náhled.
+        html = str(trade.posting_preview)
+        self.assertIn(trade.event_id.move_id.name, html)
+        self.assertIn(trade.settlement_event_id.move_id.name, html)
+        self.assertNotIn("Náhled", html)
+        booked = [sorted((acc, float(dr), float(cr)) for acc, dr, cr, _c in rows) for _cap, _day, rows in trade._booked_documents()]
+        self.assertEqual(booked, [self.move_rows(trade.event_id.move_id), self.move_rows(trade.settlement_event_id.move_id)])
+
     def test_preview_settlement_date_recognition_has_one_document(self):
         self.fund.trade_recognition = "settlement_date"
         equity = self.instrument("equity")
@@ -150,7 +171,9 @@ class TestTradePreview(NavCase):
         self.assertIsNone(trade._expected_result())
         self.assertNotIn("Očekávaný výsledek prodeje", str(trade.posting_preview))
         trade._book()
-        self.assertFalse(trade.posting_preview)
+        html = str(trade.posting_preview)
+        self.assertIn(trade.event_id.move_id.name, html)
+        self.assertNotIn("Jen náhled", html)
 
     # --- kalendář dluhopisu -------------------------------------------------------------------------------
 

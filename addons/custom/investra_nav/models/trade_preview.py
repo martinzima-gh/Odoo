@@ -25,8 +25,9 @@ class InvestraTradePreview(models.Model):
         help="Dluhopis bez kalendáře toků nebo obchod mimo kupónová období: naběhlý úrok se nepředvyplní.",
     )
     posting_preview = fields.Html(
-        compute="_compute_posting_preview", sanitize=False, string="Očekávané zaúčtování",
-        help="Doklady, které vzniknou při Zaúčtovat a Vypořádat, a u prodeje odhad výsledku, který zaúčtuje ocenění.",
+        compute="_compute_posting_preview", sanitize=False, string="Zaúčtování",
+        help="Zaúčtované doklady obchodu a vypořádání; u návrhu a nevypořádaného obchodu náhled dokladů, které vzniknou, "
+             "a u prodeje v návrhu odhad výsledku, který zaúčtuje ocenění.",
     )
 
     @api.depends("state", "instrument_id", "trade_date")
@@ -57,7 +58,8 @@ class InvestraTradePreview(models.Model):
         return False
 
     @api.depends("state", "fund_id", "portfolio_id", "instrument_id", "trade_date", "settlement_date", "side",
-                 "units", "quantity", "price", "accrued_interest", "fx_rate", "settlement_fx_rate", "classification_id")
+                 "units", "quantity", "price", "accrued_interest", "fx_rate", "settlement_fx_rate", "classification_id",
+                 "event_id", "settlement_event_id", "event_id.state", "settlement_event_id.state")
     def _compute_posting_preview(self):
         for trade in self:
             trade.posting_preview = trade._posting_preview_html()
@@ -65,7 +67,8 @@ class InvestraTradePreview(models.Model):
     # --- doklady ---------------------------------------------------------------------------------------------
 
     def _ready_for_preview(self):
-        return (self.state == "draft" and self.fund_id and self.portfolio_id and self.instrument_id
+        # Nevypořádaný obchod: náhled dokladu vypořádání před tlačítkem Vypořádat (přání uživatele 2026-11-12).
+        return (self.state in ("draft", "unsettled") and self.fund_id and self.portfolio_id and self.instrument_id
                 and self.trade_date and self.quantity and self.classification_id)
 
     def _preview_documents(self):
@@ -75,6 +78,8 @@ class InvestraTradePreview(models.Model):
         captions = {"book": self.env._("Při zaúčtování"), "settle": self.env._("Při vypořádání")}
         documents = []
         for step, _key, _name, day, lines, _event_type in self._planned_postings():
+            if self.state == "unsettled" and step != "settle":
+                continue  # Doklad obchodu už je zaúčtovaný.
             rows = []
             for line in lines:
                 account = Role.account_for(self.company_id, line["role"])
@@ -137,23 +142,36 @@ class InvestraTradePreview(models.Model):
 
     # --- HTML ------------------------------------------------------------------------------------------------
 
-    def _posting_preview_html(self):
+    def _booked_documents(self):
+        """Skutečně zaúčtované doklady obchodu (obchod a vypořádání) ve stejném tvaru jako náhled.
+
+        Přání uživatele 2026-11-12: u zaúčtovaného obchodu vidět obě nohy. Rozvaha ke dni vypořádání má jednu událost.
+        """
         self.ensure_one()
-        if not self._ready_for_preview():
-            return False
-        try:
-            documents = self._preview_documents()
-            result = self._expected_result()
-        except UserError as error:
-            return Markup('<div class="alert alert-warning" role="alert">%s</div>') % error.args[0]
-        money = lambda value: formatLang(self.env, float(value), digits=2) if value else ""
+        documents = []
+        events = [(self.env._("Obchod"), self.event_id)]
+        if self.settlement_event_id != self.event_id:
+            events.append((self.env._("Vypořádání"), self.settlement_event_id))
+        for caption, event in events:
+            move = event.move_id
+            if not move:
+                continue
+            rows = [(line.account_id.display_name + (f" ({line.name})" if line.name and line.name != event.name else ""),
+                     d(line.debit), d(line.credit), line.amount_currency)
+                    for line in move.line_ids]
+            label = f"{caption} {move.name}"
+            if event.state == "reversed":
+                label += " " + self.env._("(stornováno dokladem %s)", event.reversal_move_id.name)
+            documents.append((label, move.date, rows))
+        return documents
+
+    def _documents_html(self, documents, money):
         foreign = self.instrument_id.currency_id != self.company_id.currency_id
-        parts = [Markup('<p class="text-muted">%s</p>') % self.env._(
-            "Jen náhled: nic se neúčtuje. Doklady vzniknou tlačítky Zaúčtovat a Vypořádat.")]
         head = Markup("<th>%s</th><th class='text-end'>%s</th><th class='text-end'>%s</th>") % (
             self.env._("Účet"), self.env._("MD"), self.env._("D"))
         if foreign:
             head += Markup("<th class='text-end'>%s</th>") % self.env._("V měně %s", self.instrument_id.currency_id.name)
+        parts = []
         for caption, day, rows in documents:
             parts.append(Markup("<h5>%s – %s</h5>") % (caption, format_date(self.env, day) if day else "?"))
             body = Markup()
@@ -165,6 +183,30 @@ class InvestraTradePreview(models.Model):
                 body += Markup("<tr>%s</tr>") % cells
             parts.append(Markup('<table class="table table-sm o_investra_preview"><thead><tr>%s</tr></thead>'
                                 '<tbody>%s</tbody></table>') % (head, body))
+        return Markup().join(parts)
+
+    def _posting_preview_html(self):
+        self.ensure_one()
+        money = lambda value: formatLang(self.env, float(value), digits=2) if value else ""
+        parts = []
+        booked = self._booked_documents()
+        if booked:
+            parts.append(Markup('<p class="text-muted">%s</p>') % self.env._("Zaúčtované doklady obchodu."))
+            parts.append(self._documents_html(booked, money))
+        if not self._ready_for_preview():
+            return Markup().join(parts) if parts else False
+        try:
+            documents = self._preview_documents()
+            # Výsledek prodeje jen u návrhu; u nevypořádaného obchodu ho už počítá ocenění ze zaúčtovaného obchodu.
+            result = self._expected_result() if self.state == "draft" else None
+        except UserError as error:
+            parts.append(Markup('<div class="alert alert-warning" role="alert">%s</div>') % error.args[0])
+            return Markup().join(parts)
+        intro = (self.env._("Jen náhled: nic se neúčtuje. Doklady vzniknou tlačítky Zaúčtovat a Vypořádat.")
+                 if self.state == "draft" else
+                 self.env._("Náhled: doklad vypořádání vznikne tlačítkem Vypořádat. Zkontrolujte datum a kurz vypořádání."))
+        parts.append(Markup('<p class="text-muted">%s</p>') % intro)
+        parts.append(self._documents_html(documents, money))
         if self.quantity < 0 and self.classification_id.valuation_method == "amortised":
             parts.append(Markup('<p class="text-muted">%s</p>') % self.env._(
                 "Pozice v naběhlé hodnotě: výsledek prodeje dopočítá ocenění."))
