@@ -100,6 +100,7 @@ class InvestraInstrument(models.Model):
     )
     accrual_note = fields.Char(string="Zdůvodnění lineárního úročení")
     cashflow_ids = fields.One2many("investra.instrument.cashflow", "instrument_id", string="Smluvní peněžní toky")
+    calendar_missing = fields.Boolean(compute="_compute_calendar_missing", string="Chybí kalendář toků")
     classification_ids = fields.One2many(
         "investra.portfolio.classification", "instrument_id", string="Zařazení ve fondech",
         help="Kategorie IFRS 9, způsob ocenění a role účtu podle obchodního modelu fondu (rozhodnutí 2026-11-11).",
@@ -125,6 +126,11 @@ class InvestraInstrument(models.Model):
     def _compute_price_excludes_accrued(self):
         for instrument in self:
             instrument.price_excludes_accrued = instrument.type_id.kind == "bond"
+
+    @api.depends("type_id.kind", "cashflow_ids")
+    def _compute_calendar_missing(self):
+        for instrument in self:
+            instrument.calendar_missing = instrument.type_id.kind == "bond" and not instrument.cashflow_ids
 
     @api.depends("type_id", "cnb_sheet")
     def _compute_deviates(self):
