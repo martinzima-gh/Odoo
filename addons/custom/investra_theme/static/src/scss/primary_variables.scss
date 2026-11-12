@@ -1,0 +1,63 @@
+// Firemní identita Investra (Brand manuál 1.0, kap. 2 a 3); pravidla v .github/copilot-instructions.md.
+// Jen přesné barvy z manuálu. Funkční barvy stavů (success, warning, danger, info) a šedá
+// škála rozhraní zůstávají z Odoo – nesou význam, Ember stav neoznačuje.
+
+// Paleta (kap. 2.1, 2.2)
+$investra-petroleum-0: #0c2631;
+$investra-petroleum: #112e3c;
+$investra-petroleum-2: #596e78;
+$investra-petroleum-3: #9daab0;
+$investra-petroleum-4: #e8ebec;
+$investra-ember: #eb5b1f;
+$investra-ember-2: #f28d62;
+$investra-ember-3: #f8bea4;
+$investra-ember-4: #feeee9;
+$investra-lagoon: #0b5156;
+$investra-lagoon-2: #55868a;
+$investra-lagoon-3: #9dbbbe;
+$investra-lagoon-4: #e8eeee;
+$investra-graphite: #2c2927;
+$investra-graphite-2: #6a6967;
+$investra-graphite-3: #a8a6a6;
+$investra-graphite-4: #eceaea;
+
+// Značka: Petroleum hlavní barva (horní lišta, hlavní tlačítka), Lagoon sekundární akcent (odkazy, aktivní prvky).
+$o-community-color: $investra-petroleum;
+$o-brand-odoo: $investra-petroleum;
+$o-brand-primary: $investra-petroleum;
+$o-action: $investra-lagoon;
+$o-main-link-color: $investra-lagoon;   // kontrast na bílé 9,0 : 1
+$o-main-text-color: $investra-graphite;  // kontrast na bílé 14,5 : 1
+
+// Horní lišta: místo průhledných odstínů Odoo přesné barvy.
+$o-navbar-entry-color: #ffffff;
+$o-navbar-entry-bg--hover: $investra-petroleum-0;
+
+// Hlavní tlačítko: Odoo by stavy počítalo přes darken()/mix(); manuál dovoluje jen definované odstíny.
+$o-btns-bs-override: (
+    "primary": (
+        background: $investra-petroleum,
+        border: $investra-petroleum,
+        color: #ffffff,
+
+        hover-background: $investra-petroleum-0,
+        hover-border: $investra-petroleum-0,
+        hover-color: #ffffff,
+
+        active-background: $investra-petroleum-4,
+        active-border: $investra-petroleum,
+        active-color: $investra-petroleum,
+
+        disabled-background: $investra-petroleum,
+        disabled-border: $investra-petroleum,
+        disabled-color: #ffffff,
+    ),
+);
+
+// Písmo (kap. 3): Montserrat, náhradní Arial. Emoji písma ponechána kvůli ikonám v textu.
+$investra-font-stack: (Montserrat, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+$o-font-family-sans-serif: $investra-font-stack;
+$o-headings-font-family: $investra-font-stack;
+// Odoo je technická aplikace: základ Regular 400 (kap. 3.2), nadpisy SemiBold 600.
+$o-font-weight-normal: 400;
+$headings-font-weight: 600;

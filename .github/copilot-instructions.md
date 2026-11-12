@@ -42,13 +42,13 @@ Rozhodnutí 2026-11-12. Zdroj: Investra Brand manuál verze 1.0 (na úložišti 
 **Písmo (kap. 3):** Montserrat, náhradní Arial (`font-family: Montserrat, Arial, sans-serif`). Investra Sans v Odoo nepoužívej (rozhodnutí 2026-11-12).
 - Odoo je technická aplikace: základní text, formuláře a tabulky v **Regular 400**; Light 300 jen pro delší souvislý text (nápověda, popisy). Medium 500 zvýraznění a mezititulky, SemiBold 600 nadpisy, Bold 700 krátké výrazné titulky. Jen skutečné řezy, žádná umělá tučnost nebo kurzíva.
 - Částky a čísla v tabulkách s `font-variant-numeric: tabular-nums`, aby se sloupce zarovnaly.
-- Písmo se nikdy nenačítá z Google Fonts ani jiného CDN (přenos IP adres uživatelů třetí straně). Soubory písma do modulu přidává Claude (nejsou v zelené zóně); ty jen odkazuješ na hotovou `@font-face`.
+- Písmo se nikdy nenačítá z Google Fonts ani jiného CDN (přenos IP adres uživatelů třetí straně). `@font-face` je hotová v `investra_theme` (soubory Montserrat přibaluje modul `web` Odoo); nové soubory písma nepřidávej.
 
 **Logo (kap. 1):** zatím se do Odoo nevkládá, originální data dodá Investra později. Pak platí: jen originální data (vektor), bez změny proporcí, deformace, natočení a efektů; ochranná zóna bez dalších prvků; minimální velikost na obrazovce 70 px (logo s claimem 130 px); na světlém podkladu Petroleum, na tmavém negativní bílá.
 
 **Co se v Odoo nepoužívá:** vlastní ikonografie (kap. 4) a vzory N a VA (kap. 5); ikony zůstávají z Odoo.
 
-**Kde:** styly patří do jednoho modulu vzhledu (`investra_theme`, založí Claude; do té doby se vzhled globálně nemění). Nezasahuj do Odoo core ani standardních modulů. Když návrh vyžaduje změnu mimo zelenou zónu (modely, pole, security, data, migrace, JavaScript, NAV, FX, účtování), zastav se a napiš to jako návrh do záznamu CP.
+**Kde:** celkový vzhled je v modulu `investra_theme`: proměnné barev a písma v `static/src/scss/primary_variables.scss` (paleta jako `$investra-*`, jiné barvy nepoužívej), doplňky v `theme.scss`. Šedá škála rozhraní a funkční barvy stavů zůstávají z Odoo. Nezasahuj do Odoo core ani standardních modulů. Když návrh vyžaduje změnu mimo zelenou zónu (modely, pole, security, data, migrace, JavaScript, NAV, FX, účtování), zastav se a napiš to jako návrh do záznamu CP.
 
 ## Projekt a zdroje pravdy
 

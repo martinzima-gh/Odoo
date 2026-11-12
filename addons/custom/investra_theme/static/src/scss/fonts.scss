@@ -1,0 +1,27 @@
+// Montserrat z modulu web (Odoo jej přibaluje i s licencí SIL OFL v web/static/fonts/google/Montserrat).
+// Žádné načítání z Google Fonts ani jiného CDN. Jen řezy z manuálu (kap. 3.2): 300–700.
+$investra-montserrat-path: "/web/static/fonts/google/Montserrat/Montserrat-";
+$investra-montserrat-weights: (
+    "Light": 300,
+    "Regular": 400,
+    "Medium": 500,
+    "SemiBold": 600,
+    "Bold": 700,
+);
+
+@each $name, $weight in $investra-montserrat-weights {
+    @font-face {
+        font-family: "Montserrat";
+        font-style: normal;
+        font-weight: $weight;
+        font-display: swap;
+        src: url("#{$investra-montserrat-path}#{$name}.ttf") format("truetype");
+    }
+    @font-face {
+        font-family: "Montserrat";
+        font-style: italic;
+        font-weight: $weight;
+        font-display: swap;
+        src: url("#{$investra-montserrat-path}#{if($name == 'Regular', '', $name)}Italic.ttf") format("truetype");
+    }
+}

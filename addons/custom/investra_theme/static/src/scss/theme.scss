@@ -1,0 +1,9 @@
+// Doplňky firemní identity, které nejdou nastavit proměnnou.
+
+// Čísla ve formulářích se stejně širokými číslicemi (seznamy to v Odoo mají už samy).
+.o_field_monetary,
+.o_field_float,
+.o_field_integer,
+.o_field_percentage {
+    font-variant-numeric: tabular-nums;
+}
