@@ -34,12 +34,17 @@ class TestChart(TransactionCase):
         self.assertFalse(self.env["account.tax"].search_count([("company_id", "=", self.company.id)]))
 
     def test_codes_follow_decree_501(self):
-        """Čísla podle přílohy č. 4 vyhlášky 501/2002 Sb. (převodová tabulka v docs/osnova-fondu.md)."""
+        """Syntetické účty rámce 501 (docs/osnova-501-syntetika.md, převodová tabulka v docs/osnova-fondu.md)."""
         Role = self.env["investra.account.role"]
         expected = {
-            "bank": "131100", "repo": "134000", "repo_client": "212000", "participation": "411000",
-            "participation_fv": "384000", "instrument": "381000", "subscription_payable": "374100",
-            "class_capital": "562000", "expense_management": "631100", "gain_fair_value": "713000", "expense_tax": "681000",
+            "bank": "131100", "cash_in_transit": "119000", "unidentified_payment": "229000", "deposit": "132000",
+            "repo": "133000", "repo_client": "214000", "loan_given": "218000", "derivative": "313000",
+            "internal_clearing": "341900", "fee_payable": "342300", "tax_payable": "347000", "accrual": "354000",
+            "unsettled_payable": "371200", "subscription_payable": "376100", "instrument": "384000",
+            "instrument_debt": "383000", "other_holding": "385000", "participation_fv": "413100", "participation": "413200",
+            "class_capital": "564000", "loss_fair_value": "615000", "loss_fx": "616000", "expense_management": "636100",
+            "expense_other": "667000", "expense_tax": "681000", "income_interest": "711000", "income_dividend": "714000",
+            "gain_fair_value": "715000", "gain_fx": "716000", "income_other": "767000",
         }
         for role, code in expected.items():
             self.assertEqual(Role.with_company(self.company).account_for(self.company, role).with_company(self.company).code, code, role)
@@ -48,3 +53,18 @@ class TestChart(TransactionCase):
         self.assertFalse([code for code in codes if code.startswith("9")], "Třída 9 je podle vyhlášky 501 podrozvaha.")
         self.assertIn("590000", codes)
         self.assertEqual(self.company.bank_account_code_prefix, "1311")
+        self.assertFalse([code for code in codes if code.startswith(("999", "3221"))])
+
+    def test_transit_and_unidentified_payments_split(self):
+        """Převody mezi bankami jdou přes peníze na cestě, nevyjasněné položky výpisu na neidentifikované platby."""
+        Role = self.env["investra.account.role"]
+        transit = Role.account_for(self.company, "cash_in_transit")
+        unidentified = Role.account_for(self.company, "unidentified_payment")
+        self.assertEqual(self.company.transfer_account_id, transit)
+        self.assertTrue(transit.reconcile)
+        self.assertEqual(self.company.account_journal_suspense_account_id, unidentified)
+        self.assertEqual(unidentified.account_type, "liability_current")
+        bank = self.env["account.journal"].create({
+            "name": "Banka testu", "code": "BTST", "type": "bank", "company_id": self.company.id,
+        })
+        self.assertEqual(bank.suspense_account_id, unidentified)

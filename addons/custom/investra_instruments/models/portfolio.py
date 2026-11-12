@@ -261,8 +261,8 @@ class InvestraPortfolioClassification(models.Model):
 
     @api.model
     def _proposal_role(self, instrument, role, category, valid_from):
-        """Role podle osnovy vyhlášky 501: účast v reálné hodnotě do výsledku je ve skupině 38, ostatní účasti ve 41
-        (rozhodnutí 2026-11-11). Repo podle protistrany doplňuje modul protistran."""
+        """Účast v reálné hodnotě do výsledku má vlastní roli (účet 413100), ostatní účasti roli participation (413200)
+        (rozhodnutí 2026-11-11 a 2026-11-12). Repo podle protistrany doplňuje modul protistran."""
         if role == self.env.ref("investra_entity.role_participation") and category == "fvtpl":
             return self.env.ref("investra_entity.role_participation_fv")
         return role

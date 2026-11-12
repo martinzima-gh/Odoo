@@ -12,11 +12,13 @@ from odoo.exceptions import UserError
 from odoo.addons.investra_chart_fund.models.entity import TEMPLATE_CSV
 
 # Pomocné účty, které založilo Odoo (xmlid account.<kniha>_<pole společnosti>), dostanou kód z šablony.
+# Kód se čte z CSV (ne natvrdo), aby databáze, kde 0.3.0 a 0.4.0 proběhnou najednou, nedostala duplicitní účet
+# (úprava 2026-11-12 spolu se syntetickými účty; v databázích po 0.3.0 se nic nemění).
 UTILITY = {
-    "default_cash_difference_income_account_id": "761901",
-    "default_cash_difference_expense_account_id": "661901",
-    "account_journal_early_pay_discount_gain_account_id": "761902",
-    "account_journal_early_pay_discount_loss_account_id": "661902",
+    "default_cash_difference_income_account_id": "ifa_761901",
+    "default_cash_difference_expense_account_id": "ifa_661901",
+    "account_journal_early_pay_discount_gain_account_id": "ifa_761902",
+    "account_journal_early_pay_discount_loss_account_id": "ifa_661902",
 }
 # Účty založené podle prefixu (bankovní, pokladní, převodové): prefix starý → nový, zbytek kódu zůstává.
 PREFIXES = {"2211": "1311", "2111": "1111", "2611": "3221"}
@@ -64,10 +66,11 @@ def migrate(cr, version):
             if account:
                 _rename(account, company, row["code"], row["name"] if row["id"] == "ifa_256000" else None)
         # 2. Pomocné účty Odoo (999xxx) do skupin 76 a 66.
-        for field, code in UTILITY.items():
+        codes = {row["id"]: row["code"] for row in template}
+        for field, ifa in UTILITY.items():
             account = env.ref(f"account.{company.id}_{field}", raise_if_not_found=False)
             if account:
-                _rename(account, company, code)
+                _rename(account, company, codes[ifa])
         # 3. Bankovní, pokladní a převodové účty podle prefixu.
         Account = env["account.account"].with_company(company)
         for account in Account.search([("company_ids", "in", company.id)]):
@@ -90,5 +93,5 @@ def migrate(cr, version):
         if mapping and mapping.account_id == chart.ref("ifa_256000"):
             mapping.account_id = chart.ref("ifa_411000")
         entity._map_fund_roles()
-        defaults = {field: chart.ref(f"ifa_{code}") for field, code in UTILITY.items()}
+        defaults = {field: chart.ref(ifa) for field, ifa in UTILITY.items()}
         company.write({field: account.id for field, account in defaults.items() if not company[field]})

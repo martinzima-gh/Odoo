@@ -27,6 +27,22 @@ class TestWorkflow(NavCase):
     def moves(self, valuation):
         return valuation.sudo().event_ids.move_id
 
+    def test_transit_check_warns_only_for_cash_in_transit(self):
+        """Neidentifikované platby (229) jsou k datu ocenění běžné; upozornění jen na peníze na cestě (rozhodnutí 2026-11-12)."""
+        def transit(valuation):
+            valuation.action_compute()
+            return valuation.sudo().check_ids.filtered(lambda c: c.code == "transit_zero").status
+
+        self.book(self.fund, "u1", "2027-01-20", [
+            {"role": "bank", "amount": "50"}, {"role": "unidentified_payment", "amount": "-50"},
+        ])
+        valuation = self.valuation(self.fund, self.day)
+        self.assertEqual(transit(valuation), "ok")
+        self.book(self.fund, "t1", "2027-01-21", [
+            {"role": "cash_in_transit", "amount": "30"}, {"role": "bank", "amount": "-30"},
+        ])
+        self.assertEqual(transit(valuation), "warning")
+
     def test_display_name_shows_fund_date_and_version(self):
         first = self.valuation(self.fund, self.day)
         second = self.valuation(self.fund, self.day, version=2)

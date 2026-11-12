@@ -160,13 +160,14 @@ Volitelně (samostatný plán): otisk ocenění převést z čísla účtu na ro
   FK konceptů 2027-02-28 shodné s výpočtem před opravou (Ukázkový 100 222 767,69, Alfa 31 111 205,69), Beta k 2026-10-31
   10 042 000 (= vrácená verze), kontrola zařazení bez upozornění; SELECT 8 v `docs/sql/11-klasifikace.sql`.
 
-## Návrh 2026-11-12: syntetické účty podle vnitřního standardu 501 (čeká na schválení)
+## Syntetické účty podle vnitřního standardu 501 (schváleno 2026-11-12)
 
 Podklad: `docs/osnova-501-syntetika.md` (seznam od uživatele, skupina 25 vynechána). Přečíslování z 2026-11-11 převzalo
 jen skupinu; syntetika (3. číslice) byla naše a u většiny účtů znamená v seznamu něco jiného. Platí stejné zásady:
 mění se jen `code`, id účtu, doklady, role a výpočty zůstávají; mapování ČNB jde přes role, takže se nemění.
 Současně se provede rozdělení peněz na cestě a neidentifikovaných plateb (rozhodnutí uživatele 2026-11-12).
-**R** = k rozhodnutí uživatele, ve sloupci Nový účet je doporučení.
+Body označené **R** rozhodl uživatel 2026-11-12 (zjednodušení u úvěrů a účastí přijato; úplaty jako služby na 636).
+Názvy účtů se nemění, sloupec Název je pracovní popis.
 
 | Identifikátor | Role | Dnes | Nový účet | Název | Poznámka |
 |---|---|---|---|---|---|
@@ -176,7 +177,7 @@ Současně se provede rozdělení peněz na cestě a neidentifikovaných plateb 
 | ifa_229000 (nový) | unidentified_payment (nová) | – | **229000** | Neidentifikované platby | 229 Ostatní krátkodobé závazky vůči klientům; účet nevyjasněných položek bankovních výpisů; ČNB pasiva ROFO10_21 ř. 26, RIS30_03 ř. 8 |
 | ifa_253000 | deposit | 133000 | 132000 | Termínované vklady | 132 Termínové vklady u jiných bank |
 | ifa_254000 | repo | 134000 | 133000 | Reverzní repo | 133 Poskytnuté úvěry jiným bankám. **R:** repo s ČNB by patřilo na 123 (nová role, až bude potřeba) |
-| ifa_212000 | repo_client | 212000 | 214100 | Reverzní repo s nebankovní protistranou | 214 Krátkodobé úvěry. **R:** alternativa 212 Ostatní pohledávky za klienty |
+| ifa_212000 | repo_client | 212000 | 214000 | Reverzní repo s nebankovní protistranou | 214 Krátkodobé úvěry (**R**) |
 | ifa_255000 | loan_given | 211000 | 218000 | Poskytnuté úvěry | 211 v seznamu není. **R:** 218 Dlouhodobé úvěry; dělení 214/216/218 podle splatnosti = dvě nové role |
 | ifa_257000 | derivative | 312000 | 313000 | Deriváty | 312 v seznamu není. **R:** 313 měnové (zajištění měny je u fondů nejčastější); dělení podle podkladu (311/313/315/317, opce 39) až s deriváty |
 | ifa_311000 | (pohledávky Odoo) | 341100 | 341100 | Pohledávky z obchodního styku | 341 Různí dlužníci, beze změny |
@@ -204,9 +205,9 @@ Současně se provede rozdělení peněz na cestě a neidentifikovaných plateb 
 | ifa_431000 | (nerozdělený výsledek Odoo) | 590000 | 590000 | Výsledek běžného období | beze změny |
 | ifa_511000 | loss_fair_value | 613000 | 615000 | Ztráta z přecenění na reálnou hodnotu | 615 Náklady na operace s CP (613 je leasing) |
 | ifa_563000 | loss_fx | 614000 | 616000 | Kurzové ztráty | 616 Náklady na devizové operace |
-| ifa_518100 | expense_management | 631100 | 617100 | Úplata za obhospodařování | 631 jsou náklady na zaměstnance. **R:** 617 (poplatky a provize, ČNB VYFO20 ř. 23); alternativa 636 |
-| ifa_518300 | expense_depositary | 631300 | 617300 | Úplata depozitáři | **R:** 617 |
-| ifa_518400 | expense_performance | 631400 | 617400 | Výkonnostní odměna | **R:** 617 |
+| ifa_518100 | expense_management | 631100 | 636100 | Úplata za obhospodařování | 636 Nakupované výkony – z pohledu fondu služby (**R**); 631 jsou náklady na zaměstnance |
+| ifa_518300 | expense_depositary | 631300 | 636300 | Úplata depozitáři | 636 (**R**) |
+| ifa_518400 | expense_performance | 631400 | 636400 | Výkonnostní odměna | 636 (**R**) |
 | ifa_518200 | expense_administration | 631200 | 636200 | Úplata za administraci | 636 Nakupované výkony (ČNB VYFO20 ř. 40 Ostatní správní náklady) |
 | ifa_548000 | expense_other | 661000 | 667000 | Ostatní náklady | 667 Jiné provozní náklady (661 jsou odepsané pohledávky) |
 | ifa_548100 | rounding_loss | 661100 | 667100 | Rozdíly ze zaokrouhlení úpisů a odkupů – náklad | 667 |
@@ -225,7 +226,13 @@ Současně se provede rozdělení peněz na cestě a neidentifikovaných plateb 
 Technické poznámky k migraci:
 - Některé nové kódy dnes nese jiný účet (384000, 714000, 133000), proto migrace přečísluje ve dvou krocích přes dočasné kódy.
 - Účet nevyjasněných položek se přepne u společnosti i u všech bankovních deníků z 322000 na 229000; převodový účet
-  společnosti bude 119000; prázdné účty 3221xx se archivují (s doklady by se přečíslovaly na 1191xx).
+  společnosti bude 119000 (párovatelný); prázdné účty 3221xx se archivují. Účet 3221xx s doklady migraci zastaví:
+  po přečíslování by neměl roli a zmizel by z výkazů ČNB, zůstatek se převede ručně.
+- Odchylka od Odoo: formulář deníku nabízí jako účet nevyjasněných položek jen typ `asset_current`; 229000 je závazek
+  (role pasiv), proto ho nastavuje šablona a migrace. Server typ nekontroluje (ověřeno v kódu Odoo 20).
+- Migrace 0.3.0 upravena: pomocné účty Odoo bere kód z CSV šablony, aby v databázi, kde proběhne 0.3.0 i 0.4.0 najednou
+  (`investra_dev`), nevznikl duplicitní účet.
 - Kontrola ocenění „Peníze na cestě jsou nulové“ zůstává upozorněním a po rozdělení neidentifikované platby nezahrnuje.
 - Pojistka jako 2026-11-11: ocenění Ke schválení nebo Schváleno migraci zastaví (otisk obsahuje čísla účtů).
-- Pravidlo: v logice ani v testech žádné číslo účtu, jen role; knihy rámce 500 (Investra Services) se nemění.
+- Pravidlo: v logice žádné číslo účtu, jen role (výjimkou je test šablony, který čísla hlídá); knihy rámce 500
+  (Investra Services) se nemění.

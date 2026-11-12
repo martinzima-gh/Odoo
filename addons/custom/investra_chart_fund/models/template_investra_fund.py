@@ -5,14 +5,15 @@ from odoo.addons.account.models.chart_template import template
 ROLE_ACCOUNTS = {
     "bank": "ifa_221100",
     "cash_in_transit": "ifa_261000",
+    "unidentified_payment": "ifa_229000",
     "instrument": "ifa_251000",
     "instrument_debt": "ifa_252000",
     "deposit": "ifa_253000",
     "repo": "ifa_254000",
     "repo_client": "ifa_212000",
     "loan_given": "ifa_255000",
-    # Účet ifa_256000 (dříve „Účasti“) nese účasti v reálné hodnotě do výsledku, aby se zůstatky při rozdělení role
-    # nepřesouvaly; účasti ve skupině 41 mají nový účet ifa_411000 (převodová tabulka v docs/osnova-fondu.md).
+    # Účet ifa_256000 (dříve „Účasti“) nese účasti v reálné hodnotě do výsledku (413100), aby se zůstatky při rozdělení
+    # role nepřesouvaly; ostatní účasti mají účet ifa_411000 (413200). Převodová tabulka v docs/osnova-fondu.md.
     "participation": "ifa_411000",
     "participation_fv": "ifa_256000",
     "derivative": "ifa_257000",
@@ -26,8 +27,8 @@ ROLE_ACCOUNTS = {
     "redemption_payable": "ifa_325200",
     "fee_payable": "ifa_325300",
     "performance_payable": "ifa_325400",
-    # Interní identifikátory ifa_* jsou původní pracovní čísla; skutečné kódy podle přílohy č. 4 vyhlášky 501/2002 Sb.
-    # jsou v CSV šablony (rozhodnutí 2026-11-11 „Osnova fondů – převodová tabulka“).
+    # Interní identifikátory ifa_* jsou původní pracovní čísla; skutečné kódy (syntetické účty podle vnitřního standardu
+    # rámce 501, docs/osnova-501-syntetika.md) jsou v CSV šablony (rozhodnutí 2026-11-12 „Osnova fondů – syntetické účty“).
     "subscription_fee_payable": "ifa_325500",
     "investor_rounding_payable": "ifa_325600",
     "accrual": "ifa_389000",
@@ -66,10 +67,14 @@ class AccountChartTemplate(models.AbstractModel):
                 "account_fiscal_country_id": "base.cz",
                 "bank_account_code_prefix": "1311",
                 "cash_account_code_prefix": "1111",
-                "transfer_account_code_prefix": "3221",
+                # Převody mezi bankami jdou přes účet peněz na cestě (119), aby je viděla kontrola ocenění i výkaz ČNB.
+                "transfer_account_code_prefix": "1191",
+                "transfer_account_id": "ifa_261000",
                 "income_currency_exchange_account_id": "ifa_663000",
                 "expense_currency_exchange_account_id": "ifa_563000",
-                "account_journal_suspense_account_id": "ifa_261000",
+                # Neidentifikované platby jsou závazek (229); doména formuláře deníku nabízí jen asset_current,
+                # hodnotu proto nastavuje šablona (Odoo ji na serveru nekontroluje).
+                "account_journal_suspense_account_id": "ifa_229000",
                 "receivable_account_id": "ifa_311000",
                 "payable_account_id": "ifa_321000",
                 "income_account_id": "ifa_668000",

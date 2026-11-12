@@ -349,8 +349,8 @@ class TestTradeCompanyAccess(InstrumentCase):
 
 @tagged("post_install", "-at_install")
 class TestChartRoles(InstrumentCase):
-    def test_participation_at_fair_value_goes_to_group_38(self):
-        """Účast ve FVTPL má roli participation_fv (skupina 38), rozhodnutí 2026-11-11."""
+    def test_participation_at_fair_value_has_own_role(self):
+        """Účast ve FVTPL má roli participation_fv (účet 413100), rozhodnutí 2026-11-11 a 2026-11-12."""
         participation = self.env["investra.instrument"].create({
             "name": "Účast Y", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_participation").id,
         })

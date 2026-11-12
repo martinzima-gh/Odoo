@@ -40,6 +40,7 @@ Sloupec Znaménko: 1 je zůstatek jak je, -1 obrácený. Součtové řádky jsou
 | 26 | Ostatní závazky | Závazek z úplat | všechny | zůstatek | -1 | 1 | 1, 2 |
 | 26 | Ostatní závazky | Závazek z výkonnostní odměny | všechny | zůstatek | -1 | 1 | 1, 2 |
 | 26 | Ostatní závazky | Dohadné položky pasivní | všechny | zůstatek | -1 | 1 | 1, 2 |
+| 26 | Ostatní závazky | Neidentifikované platby | všechny | zůstatek | -1 | 1 | 1, 2 |
 | 26 | Ostatní závazky | Závazky z nevypořádaných obchodů | všechny | zůstatek | -1 | 1 | 1, 2 |
 | 32 | Ostatní vlastní kapitál / Ostatní fondový kapitál | Kapitál třídy | všechny | zůstatek | -1 | 1 | 1, 28 |
 | 42 | Nerozdělený zisk nebo neuhrazená ztráta z předchozích období/ Kumulovaný zisk nebo ztráta za předchozí období | Výsledek minulých let | všechny | zůstatek | -1 | 1 | 1, 28 |
@@ -94,5 +95,6 @@ Sloupec Znaménko: 1 je zůstatek jak je, -1 obrácený. Součtové řádky jsou
 | 8 | Ostatní pasiva | Závazek z úplat | všechny | zůstatek | -1 | 1 | 1 |
 | 8 | Ostatní pasiva | Závazek z výkonnostní odměny | všechny | zůstatek | -1 | 1 | 1 |
 | 8 | Ostatní pasiva | Dohadné položky pasivní | všechny | zůstatek | -1 | 1 | 1 |
+| 8 | Ostatní pasiva | Neidentifikované platby | všechny | zůstatek | -1 | 1 | 1 |
 | 8 | Ostatní pasiva | Závazky z nevypořádaných obchodů | všechny | zůstatek | -1 | 1 | 1 |
 | 8 | Ostatní pasiva | Odložená a splatná daň | všechny | zůstatek | -1 | 1 | 1 |
