@@ -361,13 +361,28 @@ class TestAccrual(NavCase):
         self.assertEqual(repayment.portfolio_id, self.held_in(self.deposit))
         self.assertEqual((repayment.principal_amount, repayment.interest_amount), (1000, 0))
 
+    def test_date_change_keeps_manual_amounts_instrument_change_prefills(self):
+        self.deposit_position()
+        form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))
+        form.fund_id = self.fund
+        form.date = date(2030, 1, 1)
+        form.instrument_id = self.deposit
+        self.assertEqual(form.principal_amount, 1000)
+        form.principal_amount = 600
+        form.interest_amount = 5
+        form.date = date(2030, 1, 2)
+        self.assertEqual((form.principal_amount, form.interest_amount), (600, 5))
+        form.instrument_id = self.env["investra.instrument"]
+        form.instrument_id = self.deposit
+        self.assertEqual((form.principal_amount, form.interest_amount), (1000, 0))
+
     def test_form_offers_held_instruments_and_prefills_from_schedule(self):
         self.deposit_position()
         self.instrument("bond")  # zařazený, ale nedržený
         form = self.env["investra.instrument.repayment"].new({"fund_id": self.fund.id, "date": "2030-01-05"})
         self.assertEqual(form.allowed_instrument_ids._origin, self.deposit)
         form.instrument_id = self.deposit
-        form._onchange_position()
+        form._onchange_instrument()
         self.assertEqual(form.portfolio_id, self.held_in(self.deposit))
         self.assertEqual((form.principal_amount, form.interest_amount), (1000, 0))
         self.assertEqual((form.remaining_before, form.remaining_after), (1000, 0))

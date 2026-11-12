@@ -237,9 +237,15 @@ class InvestraInstrumentRepayment(models.Model):
             repayment.remaining_before = float(before)
             repayment.remaining_after = float(before - engine.money(engine.dec(repayment.principal_amount)))
 
-    @api.onchange("fund_id", "date", "instrument_id")
-    def _onchange_position(self):
-        """Model z nákupu a předvyplnění jistiny a úroku podle kalendáře (bez kalendáře celá zbývající jistina)."""
+    @api.onchange("instrument_id")
+    def _onchange_instrument(self):
+        """Nový nástroj: model z nákupu a vždy nové předvyplnění (částky předchozího nástroje k němu nepatří)."""
+        self._onchange_position(force=True)
+
+    @api.onchange("fund_id", "date")
+    def _onchange_position(self, force=False):
+        """Model z nákupu a předvyplnění jistiny a úroku podle kalendáře (bez kalendáře celá zbývající jistina).
+        Při změně fondu nebo data se ručně zadané částky nepřepisují; předvyplní se jen prázdná splátka."""
         if self.state != "draft":
             return
         if self.instrument_id and self.instrument_id._origin not in self.allowed_instrument_ids._origin:
@@ -247,7 +253,7 @@ class InvestraInstrumentRepayment(models.Model):
         allowed = self.allowed_portfolio_ids._origin
         if self.portfolio_id._origin not in allowed:
             self.portfolio_id = allowed if len(allowed) == 1 else False
-        if not self._ready():
+        if not self._ready() or (not force and (self.principal_amount or self.interest_amount)):
             return
         principal, interest = self._expected()
         self.principal_amount, self.interest_amount = float(principal), float(interest)
