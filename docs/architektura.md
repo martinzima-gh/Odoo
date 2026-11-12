@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 309. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 310. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -162,6 +162,8 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Testovací databáze – oprava schvalovací matice | Dva řádky matice bez druhé osoby (schválení ocenění a cen) nebyly záměr. Nepoužitý řádek pro ceny vrácen na „s druhou osobou“; řádek pro ocenění zůstává, protože podle něj bylo schváleno jedno ukázkové ocenění, a druhou osobu vrací nový řádek od 13. 11. 2026. | 2026-11-12, rozhodl uživatel. Nic se nemazalo; jednoosobové schválení zůstává v historii. Matice dovoluje změnu jen novým řádkem. |
 | Vývojová databáze – aktualizace modulu knih | Modul knih aktualizován kvůli rolím s více účty (role 43 → 44). Mapování rolí ve vývojové databázi zatím není, takže se žádný účet nepřiřadil. | 2026-11-12, se souhlasem uživatele. Záloha a zkouška na kopii; předvaha podle id účtu, doklady a kurzy beze změny, úloha stahování kurzů zůstala zapnutá. |
 | Převod mezi bankami – ověření simulací | V Odoo Community převod mezi bankami v UI zadat nejde: ruční záznam bankovní účty nenabízí, bankovní transakce jde vždy na nevyjasněné položky a párování výpisů je jen v Enterprise. Cesta Enterprise přes peníze na cestě ověřena simulací na kopii testovací databáze: po odeslání je 100 000 na penězích na cestě, po připsání a spárování nula; banky ve výkazu ČNB zahrnují všechny bankovní účty, aktiva beze změny. | 2026-11-12, varianta zvolená uživatelem; účtování jen na kopii, kopie smazána. Test v UI až s Enterprise. |
+| Excel balíčku pro depozitáře – text jako text | Balíček XLSX pro depozitáře zapisuje text z knihy vždy jako text: název fondu, třídy nebo nástroje začínající „=“ se v Excelu nespustí jako vzorec. | 2026-11-12, uzavírá otevřený bod; jen kód a test, bez migrace. |
+| Zámek a storno splátky | Splátka nástroje má stav Návrh, Zaúčtováno, Stornováno. Zaúčtovanou splátku nejde změnit ani smazat. Chybu opraví storno k datu splátky (pozice nástroje se znovu otevře) nebo oprava (storno a nová splátka v návrhu s odkazem na opravovanou), stejně jako u úpisu a odkupu. Zadání, změna, smazání i storno s datem v uzamčeném ocenění skončí chybou. Nová činnost schvalovací matice „Storno a oprava splátky nástroje“, výchozí bez druhé osoby. | 2026-11-12, rozhodnutí uživatele; uzavírá otevřený bod „Zámek splátky po zaúčtování“. |
 
 ## Hranice systémů a vlastnictví dat
 
