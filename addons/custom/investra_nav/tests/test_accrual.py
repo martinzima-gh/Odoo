@@ -36,10 +36,10 @@ class TestAccrual(NavCase):
             "trade_date": day, "quantity": quantity, "price": price,
         })
 
-    def repayment(self, instrument, day, amount):
+    def repayment(self, instrument, day, amount, **vals):
         return self.env["investra.instrument.repayment"].create({
             "fund_id": self.fund.id, "portfolio_id": self.held_in(instrument).id, "instrument_id": instrument.id,
-            "date": day, "principal_amount": amount,
+            "date": day, "principal_amount": amount, **vals,
         })
 
     def test_eir_is_fund_default(self):
@@ -375,6 +375,53 @@ class TestAccrual(NavCase):
         form.instrument_id = self.env["investra.instrument"]
         form.instrument_id = self.deposit
         self.assertEqual((form.principal_amount, form.interest_amount), (1000, 0))
+
+    # --- mimořádná splátka (rozhodnutí 2026-11-12 „Mimořádná splátka nástroje“) ----------------------------
+
+    def test_early_termination_closes_position_fee_to_bank_fees_rest_to_interest(self):
+        self.deposit_position()
+        self.run_to_posted(self.valuation(self.fund, date(2029, 7, 1)))
+        repayment = self.repayment(self.deposit, "2029-10-01", 950, kind="early_termination", interest_amount=20, fee_amount=5)
+        self.assertEqual((repayment.amount, repayment.remaining_after), (965, 0))
+        repayment.with_user(self.preparer).action_book()
+        self.assertEqual(self.balance("cash_in_transit_receipt"), 965)
+        self.assertEqual(self.balance("expense_bank_fee"), 5)
+        self.assertNotIn((self.deposit, self.held_in(self.deposit)), self.env["investra.trade"]._holdings(self.fund, date(2029, 10, 1)))
+        self.run_to_posted(self.valuation(self.fund, date(2029, 10, 31)))
+        # Zbytek naběhlé hodnoty (974,47 − 970) jde zatím do úroků (rozhodnutí uživatele 12. 11. 2026).
+        self.assertEqual(self.balance("deposit"), 0)
+        self.assertEqual(self.balance("income_interest"), -20)
+
+    def test_prorata_scales_remaining_flows_and_prefills_reduced_rest(self):
+        self.deposit_position()
+        with self.assertRaises(ValidationError):
+            self.repayment(self.deposit, "2029-04-01", 400)
+        full = self.deposit._accrued_value(self.fund, date(2029, 7, 1))
+        self.repayment(self.deposit, "2029-04-01", 400, kind="prorata")._book()
+        reduced = self.deposit._accrued_value(self.fund, date(2029, 7, 1))
+        self.assertAlmostEqual(float(reduced), float(full) * 0.6, delta=0.01)
+        self.run_to_posted(self.valuation(self.fund, date(2029, 7, 1)))
+        form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))
+        form.fund_id = self.fund
+        form.date = date(2030, 1, 1)
+        form.instrument_id = self.deposit
+        self.assertEqual((form.principal_amount, form.remaining_before), (600, 600))
+        form.save()._book()
+        self.run_to_posted(self.valuation(self.fund, date(2030, 1, 31)))
+        self.assertEqual(self.balance("deposit"), 0)
+        self.assertEqual(self.balance("income_interest"), -50)
+
+    def test_scheduled_check_follows_prorata_reduction(self):
+        """Dva toky jistiny 500 + 500; mimořádně 200 (koeficient 0,8) → k prvnímu toku je splatných 400, ne 500."""
+        self.purchase.unlink()
+        self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 2000, 20)
+        loan = self.instrument("deposit")
+        loan.cashflow_ids = [(0, 0, {"date": "2029-07-01", "amount": 500}), (0, 0, {"date": "2030-01-01", "amount": 500})]
+        self.trade(loan, 1000)._book()
+        self.repayment(loan, "2029-03-01", 200, kind="prorata")._book()
+        with self.assertRaises(ValidationError):
+            self.repayment(loan, "2029-07-01", 401)
+        self.assertEqual(self.repayment(loan, "2029-07-01", 400).remaining_after, 400)
 
     def test_form_offers_held_instruments_and_prefills_from_schedule(self):
         self.deposit_position()

@@ -2,7 +2,8 @@
 -- Jen čtení. Kniha: dosaďte id společnosti (ukázka: 244 = Ukázkový fond, smyšlený).
 
 -- 1. Splátky se stavem, událostí a storno dokladem; oprava ukazuje na opravovanou splátku.
-select r.id, r.date, i.name as nastroj, r.principal_amount as jistina, r.interest_amount as urok, r.amount, r.fx_rate, r.state,
+select r.id, r.date, i.name as nastroj, r.kind as druh, r.principal_amount as jistina, r.interest_amount as urok,
+       r.fee_amount as poplatek, r.amount as vyplata, r.fx_rate, r.state,
        e.name as udalost, e.state as stav_udalosti, mv.name as doklad, rv.name as storno_doklad,
        r.replaced_id as opravuje, r.reversal_reason as duvod_storna
   from investra_instrument_repayment r

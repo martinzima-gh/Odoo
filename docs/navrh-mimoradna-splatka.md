@@ -1,6 +1,6 @@
 # Návrh: mimořádná splátka nástroje v naběhlé hodnotě
 
-Stav: **návrh k rozhodnutí** (12. 11. 2026). Zóna: červená (účtování, ocenění). Navazuje na `docs/navrh-splatky-jistiny.md`
+Stav: **druhy 1 a 2 schváleny a provedeny 12. 11. 2026** (`investra_nav` 0.11.0); druh 3 otevřený. Zóna: červená (účtování, ocenění). Navazuje na `docs/navrh-splatky-jistiny.md`
 (rozhodnutí 4: přepočet EIR zatím neřešit) a otevřený bod „Mimořádná splátka v naběhlé hodnotě“.
 
 **Citace IFRS a IAS nejsou ověřené** – EUR-Lex (nařízení (EU) 2023/1803) automatické čtení odmítl (12. 11. 2026).
@@ -60,3 +60,20 @@ z odúčtování aktiv v naběhlé hodnotě samostatně).
 1. Provést druhy 1 a 2 hned?
 2. Zbytek při předčasném ukončení do úrokových výnosů, nebo samostatný účet „zisk/ztráta z odúčtování“?
 3. Poplatek za předčasné splacení jako samostatná složka splátky?
+
+## Rozhodnutí uživatele 12. 11. 2026
+
+1. Druhy 1 (předčasné ukončení) a 2 (poměrné snížení) provést hned – provedeno.
+2. Zbytek při předčasném ukončení zatím do úrokových výnosů (samostatný řádek podle IAS 1 82(aa) ověřit s auditorem).
+3. Poplatek jako samostatná složka splátky mezi poplatky: náklad fondu na bankovní poplatky (612000), o který je výplata
+   na inkasa na cestě nižší. Poplatek, který by fondu platila protistrana (výnos), zatím nemá roli – otevřený bod.
+
+## Provedení
+
+- Splátka: pole Druh a Poplatek; výplata = jistina + úrok − poplatek. Zaúčtování MD 119100 výplata, MD 612000 poplatek,
+  D nástroj jistina a úrok.
+- Poměrné snížení: koeficient Π (zbývající jistina − splátka) / zbývající jistina násobí kusy obchodů v `_accrued_value`;
+  kontrola splátky podle kalendáře: po splátce musí zůstat koeficient × kalendářem nesplatná jistina; předvyplnění stejně.
+- Předčasné ukončení: pozice zmizí z `_holdings` bez ohledu na zadanou jistinu (diskont, krácený úrok); zbytek doúčtuje
+  ocenění jako u splacené pozice.
+- Testy: čistá DB, 460 testů (všechny moduly), nové testy splátek 38/38.

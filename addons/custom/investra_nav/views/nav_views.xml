@@ -461,7 +461,7 @@ if isinstance(result, dict):
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
+            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="kind" optional="show"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="fee_amount" optional="hide"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
         </field>
     </record>
     <record id="view_repayment_search" model="ir.ui.view">
@@ -513,8 +513,10 @@ if isinstance(result, dict):
                             <field name="remaining_after"/>
                         </group>
                         <group string="Splátka">
+                            <field name="kind" readonly="state != 'draft'"/>
                             <field name="principal_amount" readonly="state != 'draft'"/>
                             <field name="interest_amount" readonly="state != 'draft'"/>
+                            <field name="fee_amount" readonly="state != 'draft'"/>
                             <field name="amount"/>
                             <field name="fx_rate" readonly="state != 'draft'"/>
                             <field name="replaced_id" invisible="not replaced_id"/>
