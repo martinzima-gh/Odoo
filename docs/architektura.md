@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 308. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 309. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -161,6 +161,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | Převody mezi bankami a bankovní poplatky | Převod mezi bankami jde přes peníze na cestě 119000, na který vede i model párování Internal Transfers. Bankovní poplatky jsou na novém účtu 612000 s vlastní rolí, ve výkazu ČNB VYFO20\_11 ř. 23 Náklady na poplatky a provize; na něj vede model párování Bank Fees. Počítá se s Odoo Enterprise (párování výpisů). | 2026-11-12, rozhodl uživatel (poplatky na 612). Modely párování dosud vedly na archivovaný převodový účet a na ztrátu z přecenění. V Odoo Community jde převod v UI jen ručním interním dokladem. Zkouška na kopii: předvaha podle id účtu shodná, testy bez chyb. |
 | Testovací databáze – oprava schvalovací matice | Dva řádky matice bez druhé osoby (schválení ocenění a cen) nebyly záměr. Nepoužitý řádek pro ceny vrácen na „s druhou osobou“; řádek pro ocenění zůstává, protože podle něj bylo schváleno jedno ukázkové ocenění, a druhou osobu vrací nový řádek od 13. 11. 2026. | 2026-11-12, rozhodl uživatel. Nic se nemazalo; jednoosobové schválení zůstává v historii. Matice dovoluje změnu jen novým řádkem. |
 | Vývojová databáze – aktualizace modulu knih | Modul knih aktualizován kvůli rolím s více účty (role 43 → 44). Mapování rolí ve vývojové databázi zatím není, takže se žádný účet nepřiřadil. | 2026-11-12, se souhlasem uživatele. Záloha a zkouška na kopii; předvaha podle id účtu, doklady a kurzy beze změny, úloha stahování kurzů zůstala zapnutá. |
+| Převod mezi bankami – ověření simulací | V Odoo Community převod mezi bankami v UI zadat nejde: ruční záznam bankovní účty nenabízí, bankovní transakce jde vždy na nevyjasněné položky a párování výpisů je jen v Enterprise. Cesta Enterprise přes peníze na cestě ověřena simulací na kopii testovací databáze: po odeslání je 100 000 na penězích na cestě, po připsání a spárování nula; banky ve výkazu ČNB zahrnují všechny bankovní účty, aktiva beze změny. | 2026-11-12, varianta zvolená uživatelem; účtování jen na kopii, kopie smazána. Test v UI až s Enterprise. |
 
 ## Hranice systémů a vlastnictví dat
 
