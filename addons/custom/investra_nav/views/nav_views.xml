@@ -461,7 +461,7 @@ if isinstance(result, dict):
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="kind" optional="show"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="fee_amount" optional="hide"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
+            <list decoration-muted="state == 'reversed'"><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="kind" optional="show"/><field name="closes_position" optional="show"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="fee_amount" optional="hide"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
         </field>
     </record>
     <record id="view_repayment_search" model="ir.ui.view">
@@ -503,6 +503,11 @@ if isinstance(result, dict):
                     <field name="allowed_instrument_ids" invisible="1"/>
                     <field name="allowed_portfolio_ids" invisible="1"/>
                     <field name="portfolio_choice" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="not write_off_amount">
+                        Pozice se uzavře, ale jistina <field name="write_off_amount" class="oe_inline" readonly="1"/> zůstane
+                        neuhrazená: ocenění ji (s naběhlým úrokem) odúčtuje do výsledku. Jde-li o částečnou splátku, zrušte volbu
+                        Uzavírá pozici.
+                    </div>
                     <group>
                         <group string="Pozice">
                             <field name="fund_id" readonly="state != 'draft'"/>
@@ -514,6 +519,7 @@ if isinstance(result, dict):
                         </group>
                         <group string="Splátka">
                             <field name="kind" readonly="state != 'draft'"/>
+                            <field name="closes_position" readonly="state != 'draft'" invisible="kind != 'extraordinary'"/>
                             <field name="principal_amount" readonly="state != 'draft'"/>
                             <field name="interest_amount" readonly="state != 'draft'"/>
                             <field name="fee_amount" readonly="state != 'draft'"/>

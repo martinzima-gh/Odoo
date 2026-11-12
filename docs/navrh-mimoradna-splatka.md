@@ -77,3 +77,10 @@ z odúčtování aktiv v naběhlé hodnotě samostatně).
 - Předčasné ukončení: pozice zmizí z `_holdings` bez ohledu na zadanou jistinu (diskont, krácený úrok); zbytek doúčtuje
   ocenění jako u splacené pozice.
 - Testy: čistá DB, 460 testů (všechny moduly), nové testy splátek 38/38.
+
+## Úprava 12. 11. 2026: jeden druh Mimořádná
+
+Druhy „Mimořádná – poměrné snížení“ a „Předčasné ukončení“ sloučeny (rozhodl uživatel): druh **Mimořádná** se zaškrtávátkem
+**Uzavírá pozici**. Zaškrtne se samo, když jistina pokryje zbývající jistinu; při nižší jistině se zruší a splátka je
+poměrné snížení. Ručně se zaškrtne jen u diskontu nebo vyrovnání – formulář pak ukáže neuhrazenou jistinu, kterou ocenění
+odúčtuje do výsledku. Migrace `investra_nav` 0.12.0 převede staré druhy. Testy na čisté DB: `investra_nav` 237, 0 chyb.

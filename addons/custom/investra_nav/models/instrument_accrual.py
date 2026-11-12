@@ -107,10 +107,19 @@ class InvestraInstrumentRepayment(models.Model):
     allowed_portfolio_ids = fields.Many2many("investra.fund.portfolio", compute="_compute_allowed", string="Modely nástroje")
     portfolio_choice = fields.Boolean(compute="_compute_allowed")
     kind = fields.Selection(
-        [("scheduled", "Podle kalendáře"), ("prorata", "Mimořádná – poměrné snížení"), ("early_termination", "Předčasné ukončení")],
+        [("scheduled", "Podle kalendáře"), ("extraordinary", "Mimořádná")],
         required=True, default="scheduled", string="Druh",
-        help="Mimořádná splátka úměrně sníží zbylé toky kalendáře; předčasné ukončení uzavře celou pozici "
+        help="Mimořádná splátka úměrně sníží zbylé toky kalendáře, nebo s volbou Uzavírá pozici ukončí celou pozici "
              "(rozhodnutí 2026-11-12 „Mimořádná splátka nástroje“).",
+    )
+    closes_position = fields.Boolean(
+        string="Uzavírá pozici",
+        help="Zaškrtne se samo, když jistina pokryje zbývající jistinu. Ručně jen když protistrana zaplatí méně a pozice "
+             "přesto končí (diskont, vyrovnání): zbytek pak ocenění odúčtuje do výsledku.",
+    )
+    write_off_amount = fields.Float(
+        compute="_compute_remaining", digits=(20, 2), string="Neuhrazená jistina",
+        help="Zbývající jistina, kterou splátka s volbou Uzavírá pozici nepokryje; ocenění ji odúčtuje do výsledku.",
     )
     principal_amount = fields.Float(digits=(20, 2), string="Jistina")
     interest_amount = fields.Float(digits=(20, 2), string="Úrok")
@@ -237,7 +246,7 @@ class InvestraInstrumentRepayment(models.Model):
         factor, repaid = engine.dec(1), engine.ZERO
         for repayment in repayments:
             principal = engine.dec(repayment.principal_amount)
-            if repayment.kind == "prorata":
+            if repayment.kind == "extraordinary" and not repayment.closes_position:
                 before = repayment._position_principal() - repaid
                 if before > 0:
                     factor *= (before - principal) / before
@@ -263,16 +272,21 @@ class InvestraInstrumentRepayment(models.Model):
                 engine.dec(repayment.principal_amount) + engine.dec(repayment.interest_amount) - engine.dec(repayment.fee_amount)
             ))
 
-    @api.depends("fund_id", "date", "instrument_id", "portfolio_id", "principal_amount", "kind")
+    @api.depends("fund_id", "date", "instrument_id", "portfolio_id", "principal_amount", "kind", "closes_position")
     def _compute_remaining(self):
         for repayment in self:
+            repayment.write_off_amount = 0.0
             if not repayment._ready():
                 repayment.remaining_before = repayment.remaining_after = 0.0
                 continue
             before = repayment._position_principal() - repayment._other_repaid()
             repayment.remaining_before = float(before)
             after = before - engine.money(engine.dec(repayment.principal_amount))
-            repayment.remaining_after = 0.0 if repayment.kind == "early_termination" else float(after)
+            if repayment.closes_position:
+                repayment.remaining_after = 0.0
+                repayment.write_off_amount = float(max(after, engine.ZERO))
+            else:
+                repayment.remaining_after = float(after)
 
     @api.onchange("instrument_id")
     def _onchange_instrument(self):
@@ -300,7 +314,7 @@ class InvestraInstrumentRepayment(models.Model):
         s poměrným snížením toky sníží koeficient. Předčasné ukončení: celá zbývající jistina."""
         remaining = self._position_principal() - self._other_repaid()
         schedule = self._schedule()
-        if self.kind == "early_termination" or not schedule:
+        if self.kind == "extraordinary" or not schedule:
             return max(remaining, engine.ZERO), engine.ZERO
         factor = self._prorata_factor(self.fund_id._origin, self.instrument_id._origin, self.portfolio_id._origin, self.date)
         position, due = self._position_principal(), engine.ZERO
@@ -313,13 +327,27 @@ class InvestraInstrumentRepayment(models.Model):
 
     @api.onchange("kind")
     def _onchange_kind(self):
-        """Předčasné ukončení předvyplní celou zbývající jistinu; úrok a poplatek zadá uživatel podle výplaty."""
-        if self.state == "draft" and self._ready() and self.kind == "early_termination":
+        """Mimořádná splátka předvyplní celou zbývající jistinu (pozice se uzavře); nižší jistina = poměrné snížení."""
+        if self.state != "draft":
+            return
+        if self.kind == "scheduled":
+            self.closes_position = False
+        elif self._ready():
             self.principal_amount = float(max(self._position_principal() - self._other_repaid(), engine.ZERO))
+            self._onchange_principal()
+
+    @api.onchange("principal_amount")
+    def _onchange_principal(self):
+        """Uzavírá pozici: zaškrtne se, když jistina pokryje zbývající jistinu; při nižší jistině se zruší
+        (ručně ho lze zaškrtnout znovu)."""
+        if self.state == "draft" and self.kind == "extraordinary" and self._ready():
+            remaining = self._position_principal() - self._other_repaid()
+            self.closes_position = engine.money(engine.dec(self.principal_amount)) >= remaining
 
     # --- kontroly --------------------------------------------------------------------------------
 
-    @api.constrains("principal_amount", "interest_amount", "fee_amount", "kind", "instrument_id", "portfolio_id", "fund_id", "date")
+    @api.constrains("principal_amount", "interest_amount", "fee_amount", "kind", "closes_position", "instrument_id",
+                    "portfolio_id", "fund_id", "date")
     def _check_repayment(self):
         for repayment in self:
             repayment._validate()
@@ -330,6 +358,8 @@ class InvestraInstrumentRepayment(models.Model):
         fee = engine.money(engine.dec(self.fee_amount))
         if principal < 0 or interest < 0 or fee < 0 or not principal + interest:
             raise ValidationError(self.env._("Jistina, úrok a poplatek nesmí být záporné a splátka musí mít jistinu nebo úrok."))
+        if self.closes_position and self.kind != "extraordinary":
+            raise ValidationError(self.env._("Uzavřít pozici lze jen mimořádnou splátkou."))
         if fee > principal + interest:
             raise ValidationError(self.env._("Poplatek nesmí být vyšší než jistina a úrok."))
         if self.portfolio_id.fund_id != self.fund_id:
@@ -500,14 +530,14 @@ class InvestraTrade(models.Model):
         for repayment in repayments:
             key = (repayment.instrument_id, repayment.portfolio_id)
             repaid[key] = repaid.get(key, engine.ZERO) + engine.dec(repayment.principal_amount)
-            if repayment.kind == "early_termination":
+            if repayment.closes_position:
                 closed.add(key)
         result = dict(quantities)
         for key, principal in repaid.items():
             if key not in result:
                 continue
             if key in closed:
-                # Předčasné ukončení uzavře pozici bez ohledu na zadanou jistinu (diskont, krácený úrok).
+                # Mimořádná splátka s volbou Uzavírá pozici ukončí pozici bez ohledu na jistinu (diskont, vyrovnání).
                 del result[key]
                 continue
             ppu = engine.dec(key[0]._principal_per_unit())

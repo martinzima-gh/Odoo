@@ -381,8 +381,8 @@ class TestAccrual(NavCase):
     def test_early_termination_closes_position_fee_to_bank_fees_rest_to_interest(self):
         self.deposit_position()
         self.run_to_posted(self.valuation(self.fund, date(2029, 7, 1)))
-        repayment = self.repayment(self.deposit, "2029-10-01", 950, kind="early_termination", interest_amount=20, fee_amount=5)
-        self.assertEqual((repayment.amount, repayment.remaining_after), (965, 0))
+        repayment = self.repayment(self.deposit, "2029-10-01", 950, kind="extraordinary", closes_position=True, interest_amount=20, fee_amount=5)
+        self.assertEqual((repayment.amount, repayment.remaining_after, repayment.write_off_amount), (965, 0, 50))
         repayment.with_user(self.preparer).action_book()
         self.assertEqual(self.balance("cash_in_transit_receipt"), 965)
         self.assertEqual(self.balance("expense_bank_fee"), 5)
@@ -397,7 +397,7 @@ class TestAccrual(NavCase):
         with self.assertRaises(ValidationError):
             self.repayment(self.deposit, "2029-04-01", 400)
         full = self.deposit._accrued_value(self.fund, date(2029, 7, 1))
-        self.repayment(self.deposit, "2029-04-01", 400, kind="prorata")._book()
+        self.repayment(self.deposit, "2029-04-01", 400, kind="extraordinary")._book()
         reduced = self.deposit._accrued_value(self.fund, date(2029, 7, 1))
         self.assertAlmostEqual(float(reduced), float(full) * 0.6, delta=0.01)
         self.run_to_posted(self.valuation(self.fund, date(2029, 7, 1)))
@@ -411,6 +411,22 @@ class TestAccrual(NavCase):
         self.assertEqual(self.balance("deposit"), 0)
         self.assertEqual(self.balance("income_interest"), -50)
 
+    def test_extraordinary_closes_position_only_when_principal_covers_rest(self):
+        """Zaškrtávátko Uzavírá pozici se nastaví podle jistiny; nižší jistina = poměrné snížení (žádný odpis)."""
+        self.deposit_position()
+        form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))
+        form.fund_id = self.fund
+        form.date = date(2029, 4, 1)
+        form.instrument_id = self.deposit
+        form.kind = "extraordinary"
+        self.assertEqual((form.principal_amount, form.closes_position, form.write_off_amount), (1000, True, 0))
+        form.principal_amount = 400
+        self.assertEqual((form.closes_position, form.remaining_after, form.write_off_amount), (False, 600, 0))
+        form.closes_position = True
+        self.assertEqual((form.remaining_after, form.write_off_amount), (0, 600))
+        with self.assertRaises(ValidationError):
+            self.repayment(self.deposit, "2030-01-01", 1000, closes_position=True)
+
     def test_scheduled_check_follows_prorata_reduction(self):
         """Dva toky jistiny 500 + 500; mimořádně 200 (koeficient 0,8) → k prvnímu toku je splatných 400, ne 500."""
         self.purchase.unlink()
@@ -418,7 +434,7 @@ class TestAccrual(NavCase):
         loan = self.instrument("deposit")
         loan.cashflow_ids = [(0, 0, {"date": "2029-07-01", "amount": 500}), (0, 0, {"date": "2030-01-01", "amount": 500})]
         self.trade(loan, 1000)._book()
-        self.repayment(loan, "2029-03-01", 200, kind="prorata")._book()
+        self.repayment(loan, "2029-03-01", 200, kind="extraordinary")._book()
         with self.assertRaises(ValidationError):
             self.repayment(loan, "2029-07-01", 401)
         self.assertEqual(self.repayment(loan, "2029-07-01", 400).remaining_after, 400)
