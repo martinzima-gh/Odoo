@@ -57,6 +57,8 @@ Rozhodnutí 2026-11-09 (nahrazuje „jednu pracovní relaci“ z 2026-11-07):
   nevytvořilo nové prázdné svazky.
 - Kontejner Odoo 20 má navíc prázdný anonymní svazek `/mnt/extra-addons`. Vytváří ho oficiální obraz Odoo
   (deklaruje tuto cestu jako VOLUME); vlastní moduly jsou připojené jen přes `./addons/custom`.
+- Testy Odoo: `tools/run_tests.sh <modul[,modul]>` (pevně `investra_test`, celý log v `.test-logs/`);
+  log číst jen při neúspěchu, „0 testů“ ani ERROR v logu není úspěch. Testy Odoo spouští jen Claude.
 - Odoo 20: přístupová práva jsou v `security/ir.access.csv`
   (`id,name,model_id,group_id/id,operation,domain`), ne v `ir.model.access.csv`.
 
