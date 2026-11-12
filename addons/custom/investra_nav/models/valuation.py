@@ -473,7 +473,16 @@ class InvestraValuation(models.Model):
         trades = Trade._recognised(self.fund_id, end, instrument, portfolio)
         if start:
             trades -= Trade._recognised(self.fund_id, start, instrument, portfolio)
+        # Náhled obchodu (rozhodnutí 2026-11-12 „Náhled zaúčtování obchodu“): uložená verze obchodu se nahradí
+        # hodnotami z formuláře, nebo se vynechá; běžné ocenění kontext nemá.
+        preview = self.env.context.get("investra_trade_preview")
+        if preview:
+            trades = trades.filtered(lambda t: t.id != preview["exclude_id"])
         events = [(t._recognition_date(), d(t.quantity), d(t.quantity) * d(t.price), d(t._booked_fx()), False) for t in trades]
+        added = preview and preview.get("trade")
+        if added and (not start or added._recognition_date() > start) and added._recognition_date() <= end:
+            events.append((added._recognition_date(), d(added.quantity), d(added.quantity) * d(added.price),
+                           d(added._booked_fx()), False))
         domain = [("fund_id", "=", self.fund_id.id), ("instrument_id", "=", instrument.id), ("portfolio_id", "=", portfolio.id),
                   ("state", "=", "posted"), ("date", "<=", end)]
         if start:
@@ -1090,6 +1099,12 @@ class InvestraValuation(models.Model):
         self._check("manual_rate", "Ocenění používá jen vyhlášené kurzy", not manual, "; ".join(manual), severity="warning")
         stale = self._stale_prices()
         self._check("price_age", "Ceny nejsou starší než povolené stáří", not stale, "; ".join(stale), severity="warning")
+        # Dluhopis bez kalendáře: naběhlý úrok pozice se nepočítá (rozhodnutí 2026-11-12 „Náhled zaúčtování obchodu“).
+        no_calendar = self.portfolio_line_ids.instrument_id.filtered(
+            lambda i: i.type_id.kind == "bond" and not i.cashflow_ids
+        )
+        self._check("bond_calendar", "Dluhopisy v portfoliu mají kalendář toků (jinak se nepočítá naběhlý úrok)",
+                    not no_calendar, ", ".join(no_calendar.mapped("name")), severity="warning")
         exceptions = self._lock_exceptions_since_previous()
         self._check("lock_exception", "Uzamčené období nebylo otevřeno výjimkou", not exceptions,
                     "; ".join(exceptions), severity="warning")

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Náhled zaúčtování obchodu a upozornění na kalendář dluhopisu (rozhodnutí 2026-11-12 „Náhled zaúčtování obchodu“). -->
+    <record id="view_trade_form_preview" model="ir.ui.view">
+        <field name="name">investra.trade.form.preview</field>
+        <field name="model">investra.trade</field>
+        <field name="inherit_id" ref="investra_instruments.view_trade_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="before">
+                <div class="alert alert-warning" role="alert" invisible="not calendar_note">
+                    <field name="calendar_note" readonly="1"/>
+                </div>
+            </xpath>
+            <xpath expr="//sheet/group" position="after">
+                <notebook invisible="state != 'draft'">
+                    <page name="posting_preview" string="Očekávané zaúčtování">
+                        <field name="posting_preview" nolabel="1" readonly="1"/>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

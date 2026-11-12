@@ -590,21 +590,52 @@ class InvestraTrade(models.Model):
         event._post_events()
         return event
 
+    def _planned_postings(self):
+        """Doklady obchodu v pořadí, jak vzniknou: [(krok, klíč, název, datum, řádky, druh události)].
+
+        Krok „book“ vzniká tlačítkem Zaúčtovat, „settle“ tlačítkem Vypořádat. Používá zaúčtování i náhled
+        Očekávané zaúčtování (rozhodnutí 2026-11-12 „Náhled zaúčtování obchodu“), aby se nemohly rozejít.
+        """
+        self.ensure_one()
+        name = self.instrument_id.name
+        role = self._classification().role_id.code
+        # Nevypořádaný obchod má vypořádání i po pozdější úpravě data vypořádání (dříve _settle nezkoumal odklad).
+        deferred = self._is_deferred() or self.state == "unsettled"
+        settlement_fx = self.settlement_fx_rate or self.fx_rate
+        if not deferred:
+            return [("book", f"trade:{self.id}", f"Obchod {name}", self.trade_date,
+                     self._event_lines(role, "bank", self.fx_rate), "trade")]
+        if self.fund_id.trade_recognition == "settlement_date":
+            return [("settle", f"trade:{self.id}", f"Vypořádání {name}", self.settlement_date,
+                     self._event_lines(role, "bank", settlement_fx), "trade")]
+        unsettled = self._unsettled_role()
+        return [
+            ("book", f"trade:{self.id}", f"Obchod {name}", self.trade_date,
+             self._event_lines(role, unsettled, self.fx_rate), "trade"),
+            ("settle", f"trade-settle:{self.id}", f"Vypořádání {name}", self.settlement_date,
+             self._event_lines(unsettled, "bank", settlement_fx), "trade_settlement"),
+        ]
+
+    def _planned_step(self, step):
+        self.ensure_one()
+        return next((plan for plan in self._planned_postings() if plan[0] == step), None)
+
     def _book(self):
         """Zaúčtuje obchod podle nastavení fondu; v prototypu bez poplatků."""
         for trade in self.filtered(lambda t: t.state == "draft"):
             instrument = trade.instrument_id
             if instrument.type_group == "other_holding":
                 raise UserError(self.env._("Operace s ostatními podíly zatím nejsou napojené na účtování: %s.", instrument.name))
-            role = trade._classification().role_id.code
+            trade._classification()
             trade._check_sale()
             deferred = trade._is_deferred()
-            if deferred and trade.fund_id.trade_recognition == "settlement_date":
+            plan = trade._planned_step("book")
+            if not plan:
+                # Rozvaha ke dni vypořádání: do vypořádání se nic neúčtuje.
                 trade.sudo().state = "unsettled"
                 continue
-            counter = trade._unsettled_role() if deferred else "bank"
-            lines = trade._event_lines(role, counter, trade.fx_rate)
-            event = trade._post_trade_event(f"trade:{trade.id}", f"Obchod {instrument.name}", trade.trade_date, lines)
+            _step, key, name, day, lines, event_type = plan
+            event = trade._post_trade_event(key, name, day, lines, event_type)
             trade.sudo().write({"event_id": event.id, "state": "unsettled" if deferred else "settled"})
 
     def _unsettled_role(self):
@@ -616,18 +647,11 @@ class InvestraTrade(models.Model):
         for trade in self:
             if trade.state != "unsettled":
                 raise UserError(self.env._("Vypořádat jde jen sjednaný nevypořádaný obchod."))
-            instrument = trade.instrument_id
-            fx = trade.settlement_fx_rate or trade.fx_rate
-            name = f"Vypořádání {instrument.name}"
+            _step, key, name, day, lines, event_type = trade._planned_step("settle")
+            event = trade._post_trade_event(key, name, day, lines, event_type)
             if trade.fund_id.trade_recognition == "settlement_date":
-                lines = trade._event_lines(trade._classification().role_id.code, "bank", fx)
-                event = trade._post_trade_event(f"trade:{trade.id}", name, trade.settlement_date, lines)
                 trade.sudo().write({"event_id": event.id, "settlement_event_id": event.id, "state": "settled"})
             else:
-                lines = trade._event_lines(trade._unsettled_role(), "bank", fx)
-                event = trade._post_trade_event(
-                    f"trade-settle:{trade.id}", name, trade.settlement_date, lines, event_type="trade_settlement",
-                )
                 trade.sudo().write({"settlement_event_id": event.id, "state": "settled"})
 
     @api.model
