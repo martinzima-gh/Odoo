@@ -14,7 +14,7 @@ předvaha a počet dokladů shodné), web 8071 (`investra-test-web`) restartová
 - Testy: čistá DB 494 testů, 0 chyb.
 - Vypořádání obchodů přes peníze na cestě odloženo do pořízení Enterprise (otevřené body).
 - Záložka Zaúčtování (deník „Zaúčtování ve formuláři obchodu“): obě zaúčtované nohy a náhled vypořádání,
-  `investra_nav` 0.20.0 – v `investra_test` zatím 0.19.0, povýšení podle souhlasu uživatele. Čistá DB 495 testů, 0 chyb.
+  `investra_nav` 0.20.0, v `investra_test` povýšeno (záloha `zalohy/investra_test-2026-11-12-pred-zalozkou-zauctovani.dump`, předvaha shodná). Čistá DB 495 testů, 0 chyb.
 
 **Data:** dluhopis Beta a návrh prodeje 5348 jsou zkusmo zadaná uživatelem naslepo – neřešit.
 
