@@ -159,3 +159,73 @@ Volitelně (samostatný plán): otisk ocenění převést z čísla účtu na ro
   k 2026-10-31 (10 000, zadal `beta_priprava`, schválil `beta_schvaleni`). Ověření: součet 381+382 v každé knize beze změny,
   FK konceptů 2027-02-28 shodné s výpočtem před opravou (Ukázkový 100 222 767,69, Alfa 31 111 205,69), Beta k 2026-10-31
   10 042 000 (= vrácená verze), kontrola zařazení bez upozornění; SELECT 8 v `docs/sql/11-klasifikace.sql`.
+
+## Návrh 2026-11-12: syntetické účty podle vnitřního standardu 501 (čeká na schválení)
+
+Podklad: `docs/osnova-501-syntetika.md` (seznam od uživatele, skupina 25 vynechána). Přečíslování z 2026-11-11 převzalo
+jen skupinu; syntetika (3. číslice) byla naše a u většiny účtů znamená v seznamu něco jiného. Platí stejné zásady:
+mění se jen `code`, id účtu, doklady, role a výpočty zůstávají; mapování ČNB jde přes role, takže se nemění.
+Současně se provede rozdělení peněz na cestě a neidentifikovaných plateb (rozhodnutí uživatele 2026-11-12).
+**R** = k rozhodnutí uživatele, ve sloupci Nový účet je doporučení.
+
+| Identifikátor | Role | Dnes | Nový účet | Název | Poznámka |
+|---|---|---|---|---|---|
+| ifa_221100 | bank | 131100 | 131100 | Bankovní účty | beze změny; prefix bankovních účtů 1311 |
+| (prefix) | – | 1111 | 1111 | Pokladna | beze změny |
+| ifa_261000 | cash_in_transit | 322000 | **119000** | Peníze na cestě | 119 Jiné pokladní hodnoty; nově i převodový účet Odoo (převody mezi bankami), párovatelný; prefix převodů 1191 |
+| ifa_229000 (nový) | unidentified_payment (nová) | – | **229000** | Neidentifikované platby | 229 Ostatní krátkodobé závazky vůči klientům; účet nevyjasněných položek bankovních výpisů; ČNB pasiva ROFO10_21 ř. 26, RIS30_03 ř. 8 |
+| ifa_253000 | deposit | 133000 | 132000 | Termínované vklady | 132 Termínové vklady u jiných bank |
+| ifa_254000 | repo | 134000 | 133000 | Reverzní repo | 133 Poskytnuté úvěry jiným bankám. **R:** repo s ČNB by patřilo na 123 (nová role, až bude potřeba) |
+| ifa_212000 | repo_client | 212000 | 214100 | Reverzní repo s nebankovní protistranou | 214 Krátkodobé úvěry. **R:** alternativa 212 Ostatní pohledávky za klienty |
+| ifa_255000 | loan_given | 211000 | 218000 | Poskytnuté úvěry | 211 v seznamu není. **R:** 218 Dlouhodobé úvěry; dělení 214/216/218 podle splatnosti = dvě nové role |
+| ifa_257000 | derivative | 312000 | 313000 | Deriváty | 312 v seznamu není. **R:** 313 měnové (zajištění měny je u fondů nejčastější); dělení podle podkladu (311/313/315/317, opce 39) až s deriváty |
+| ifa_311000 | (pohledávky Odoo) | 341100 | 341100 | Pohledávky z obchodního styku | 341 Různí dlužníci, beze změny |
+| ifa_315000 | receivable_other | 341200 | 341200 | Ostatní pohledávky | beze změny |
+| ifa_395000 | internal_clearing | 349000 | 341900 | Vnitřní zúčtování tříd | 349 je opravná položka. **R:** 341 analyticky; za fond je zůstatek nulový |
+| ifa_321000 | (závazky Odoo) | 345100 | 342100 | Závazky z obchodního styku | 342 Různí věřitelé (345 jsou přijaté zálohy) |
+| ifa_325300 | fee_payable | 345300 | 342300 | Závazek z úplat | 342 |
+| ifa_325400 | performance_payable | 345400 | 342400 | Závazek z výkonnostní odměny | 342 |
+| ifa_325500 | subscription_fee_payable | 345500 | 342500 | Závazek z poplatků za úpis a odkup | 342 |
+| ifa_341000 | tax_payable | 346000 | 347000 | Daň z příjmů | 347 Zúčtování se státním rozpočtem (346 je sociální a zdravotní) |
+| ifa_389000 | accrual | 352000 | 354000 | Dohadné položky pasivní | 354 Dohadné účty pasivní (352 jsou příjmy příštích období) |
+| ifa_378100 | unsettled_receivable | 371000 | 371100 | Pohledávky z nevypořádaných obchodů | 371 Zúčtování s trhem CP |
+| ifa_379100 | unsettled_payable | 372000 | 371200 | Závazky z nevypořádaných obchodů | 371 (372 jsou upsané CP k umístění) |
+| ifa_378200 | unsettled_fair_value | 373000 | 371300 | Změna reálné hodnoty nevypořádaných obchodů | 371 (373 je zúčtování s příkazci) |
+| ifa_325100 | subscription_payable | 374100 | 376100 | Závazek z úpisu | **R:** 376 Závazky vůči akcionářům (podílníkům); alternativa 372 |
+| ifa_325200 | redemption_payable | 374200 | 376200 | Závazek z odkupu | **R:** 376 |
+| ifa_325600 | investor_rounding_payable | 374300 | 376300 | Závazek vůči investorům z rozdílů ze zaokrouhlení | **R:** 376 |
+| ifa_251000 | instrument | 381000 | 384000 | Akcie a ostatní nástroje v RH | 384 Akcie (381 jsou státní bezkuponové dluhopisy) |
+| ifa_252000 | instrument_debt | 382000 | 383000 | Dluhové cenné papíry | 383 Kuponové dluhopisy; bezkuponové (381/382/386) nová role později |
+| ifa_258000 | other_holding | 385000 | 385000 | Podílové listy a ostatní podíly | 385 Podílové listy, beze změny |
+| ifa_256000 | participation_fv | 384000 | 413100 | Účasti oceňované reálnou hodnotou do výsledku | **R:** skupina 41 (účast není CP k obchodování); 412 podstatný / 413 rozhodující vliv – dělení podle vlivu = nová role |
+| ifa_411000 | participation | 411000 | 413200 | Účasti – ostatní ocenění | 411 jsou směnky. **R:** jako výše |
+| ifa_413000 | class_capital | 562000 | 564000 | Kapitál tříd | 562 je závazek pobočky vůči centrále. **R:** 564 Ostatní kapitálové fondy; u SICAV případně 561 a 563 (nominál / ážio = nová role) |
+| ifa_428000 | retained_result | 571000 | 571000 | Výsledek minulých let | beze změny (572 ztráta – jedna role) |
+| ifa_431000 | (nerozdělený výsledek Odoo) | 590000 | 590000 | Výsledek běžného období | beze změny |
+| ifa_511000 | loss_fair_value | 613000 | 615000 | Ztráta z přecenění na reálnou hodnotu | 615 Náklady na operace s CP (613 je leasing) |
+| ifa_563000 | loss_fx | 614000 | 616000 | Kurzové ztráty | 616 Náklady na devizové operace |
+| ifa_518100 | expense_management | 631100 | 617100 | Úplata za obhospodařování | 631 jsou náklady na zaměstnance. **R:** 617 (poplatky a provize, ČNB VYFO20 ř. 23); alternativa 636 |
+| ifa_518300 | expense_depositary | 631300 | 617300 | Úplata depozitáři | **R:** 617 |
+| ifa_518400 | expense_performance | 631400 | 617400 | Výkonnostní odměna | **R:** 617 |
+| ifa_518200 | expense_administration | 631200 | 636200 | Úplata za administraci | 636 Nakupované výkony (ČNB VYFO20 ř. 40 Ostatní správní náklady) |
+| ifa_548000 | expense_other | 661000 | 667000 | Ostatní náklady | 667 Jiné provozní náklady (661 jsou odepsané pohledávky) |
+| ifa_548100 | rounding_loss | 661100 | 667100 | Rozdíly ze zaokrouhlení úpisů a odkupů – náklad | 667 |
+| ifa_661901 | (pokladní rozdíly Odoo) | 661901 | 667901 | Pokladní rozdíly – náklad | 667 |
+| ifa_661902 | (skonto Odoo) | 661902 | 667902 | Skonto – náklad | 667 |
+| ifa_591000 | expense_tax | 681000 | 681000 | Daň z příjmů | beze změny (682 odložená – nová role, až bude potřeba) |
+| ifa_662000 | income_interest | 711000 | 711000 | Úrokové výnosy | **R:** 711 (banky); úroky z dluhopisů by patřily na 714 = nová role |
+| ifa_665000 | income_dividend | 712000 | 714000 | Dividendové výnosy | 714 Výnosy z držených CP (712 jsou operace s klienty) |
+| ifa_611000 | gain_fair_value | 713000 | 715000 | Zisk z přecenění na reálnou hodnotu | 715 Výnosy z operací s CP (713 je leasing) |
+| ifa_663000 | gain_fx | 714000 | 716000 | Kurzové zisky | 716 Výnosy z devizových operací |
+| ifa_668000 | income_other | 761000 | 767000 | Ostatní výnosy | 767 Jiné provozní výnosy (761 jsou odepsané pohledávky) |
+| ifa_668100 | rounding_gain | 761100 | 767100 | Rozdíly ze zaokrouhlení úpisů a odkupů – výnos | 767 |
+| ifa_761901 | (pokladní rozdíly Odoo) | 761901 | 767901 | Pokladní rozdíly – výnos | 767 |
+| ifa_761902 | (skonto Odoo) | 761902 | 767902 | Skonto – výnos | 767 |
+
+Technické poznámky k migraci:
+- Některé nové kódy dnes nese jiný účet (384000, 714000, 133000), proto migrace přečísluje ve dvou krocích přes dočasné kódy.
+- Účet nevyjasněných položek se přepne u společnosti i u všech bankovních deníků z 322000 na 229000; převodový účet
+  společnosti bude 119000; prázdné účty 3221xx se archivují (s doklady by se přečíslovaly na 1191xx).
+- Kontrola ocenění „Peníze na cestě jsou nulové“ zůstává upozorněním a po rozdělení neidentifikované platby nezahrnuje.
+- Pojistka jako 2026-11-11: ocenění Ke schválení nebo Schváleno migraci zastaví (otisk obsahuje čísla účtů).
+- Pravidlo: v logice ani v testech žádné číslo účtu, jen role; knihy rámce 500 (Investra Services) se nemění.
