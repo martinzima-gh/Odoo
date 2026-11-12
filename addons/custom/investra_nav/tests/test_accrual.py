@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from odoo.exceptions import UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from .common import NavCase
 
@@ -349,6 +349,17 @@ class TestAccrual(NavCase):
         with self.assertRaises(ValidationError):
             self.repayment(self.deposit, "2029-06-30", 500)
         self.assertTrue(self.repayment(self.deposit, "2030-01-01", 1000))
+
+    def test_form_saves_prefilled_portfolio_like_web_client(self):
+        """Model doplněný do pole jen pro čtení se musí uložit (force_save); Form posílá hodnoty jako webový klient."""
+        self.deposit_position()
+        form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))
+        form.fund_id = self.fund
+        form.date = date(2030, 1, 1)
+        form.instrument_id = self.deposit
+        repayment = form.save()
+        self.assertEqual(repayment.portfolio_id, self.held_in(self.deposit))
+        self.assertEqual((repayment.principal_amount, repayment.interest_amount), (1000, 0))
 
     def test_form_offers_held_instruments_and_prefills_from_schedule(self):
         self.deposit_position()

@@ -508,7 +508,7 @@ if isinstance(result, dict):
                             <field name="fund_id" readonly="state != 'draft'"/>
                             <field name="date" readonly="state != 'draft'"/>
                             <field name="instrument_id" options="{'no_create': True}" readonly="state != 'draft'"/>
-                            <field name="portfolio_id" options="{'no_create': True}" readonly="state != 'draft' or not portfolio_choice"/>
+                            <field name="portfolio_id" options="{'no_create': True}" readonly="state != 'draft' or not portfolio_choice" force_save="1"/>
                             <field name="remaining_before"/>
                             <field name="remaining_after"/>
                         </group>
