@@ -225,3 +225,38 @@ class TestFairValueInterest(NavCase):
             "trade_date": "2029-03-01", "quantity": 10, "price": 990,
         })
         self.assertEqual(trade.accrued_interest, 100)
+
+    # --- generátor kupónového kalendáře (rozhodnutí 2026-11-12 „Generátor kupónového kalendáře“) --------------
+
+    def flows(self, instrument):
+        return [(f.date, f.flow_type, f.amount) for f in instrument.cashflow_ids.sorted(lambda f: (f.date, f.flow_type))]
+
+    def test_semiannual_schedule(self):
+        bond = self.instrument("bond", principal=1000, coupon_rate=6, day_count="thirty360_eu", coupon_frequency="semiannual",
+                               start_date="2029-01-01", maturity_date="2031-01-01")
+        bond.action_generate_schedule()
+        self.assertEqual(self.flows(bond), [
+            (date(2029, 7, 1), "interest", 30), (date(2030, 1, 1), "interest", 30), (date(2030, 7, 1), "interest", 30),
+            (date(2031, 1, 1), "interest", 30), (date(2031, 1, 1), "principal", 1000),
+        ])
+
+    def test_quarterly_schedule_has_short_first_period(self):
+        bond = self.instrument("bond", principal=1000, coupon_rate=4, day_count="thirty360_eu", coupon_frequency="quarterly",
+                               start_date="2029-02-15", maturity_date="2030-01-01")
+        bond.action_generate_schedule()
+        # 15. 2. – 1. 4. je 46 dní 30E/360: 1000 × 4 % × 46 / 360 = 5,11111111; další čtvrtletí 10.
+        self.assertEqual(self.flows(bond), [
+            (date(2029, 4, 1), "interest", 5.11111111), (date(2029, 7, 1), "interest", 10), (date(2029, 10, 1), "interest", 10),
+            (date(2030, 1, 1), "interest", 10), (date(2030, 1, 1), "principal", 1000),
+        ])
+
+    def test_annual_coupon_accrues_in_valuation(self):
+        bond = self.instrument("bond", principal=1000, coupon_rate=6, day_count="thirty360_eu", coupon_frequency="annual",
+                               start_date="2029-01-01", maturity_date="2031-01-01")
+        bond.action_generate_schedule()
+        self.trade(bond, "2029-01-01", 10, 1000)
+        # Půl roku ročního kupónu 60: 10 × 30 = 300 do úroku, hodnota 10 × 1000 + 300.
+        _valuation, line = self.value(bond, "2029-07-01", 1000)
+        self.assertEqual((line.accrued_interest_currency, line.fair_value), (300, 10300))
+        self.assertEqual(self.balance("income_interest"), -300)
+        self.assertEqual(self.balance("gain_fair_value"), 0)

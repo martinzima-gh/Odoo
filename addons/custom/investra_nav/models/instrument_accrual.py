@@ -1,9 +1,16 @@
 import logging
+from decimal import ROUND_HALF_UP, Decimal
+
+from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .. import engine
+
+COUPON_MONTHS = {"maturity": 0, "annual": 12, "semiannual": 6, "quarterly": 3, "monthly": 1}
+# Částka toku je na jednotku (u jistiny na jednotku 1 i zlomky haléře), proto 8 desetinných míst jako pole toku.
+UNIT_AMOUNT = Decimal("0.00000001")
 
 _logger = logging.getLogger(__name__)
 
@@ -16,6 +23,11 @@ class InvestraInstrument(models.Model):
         help="Pro kalendář vkladu a pro splátky bez kalendáře. Doporučeno 1: kusy obchodu = jistina, cena na jednotku jistiny.",
     )
     start_date = fields.Date(string="Začátek úročení")
+    coupon_frequency = fields.Selection(
+        [("maturity", "Ve splatnosti"), ("annual", "Ročně"), ("semiannual", "Pololetně"), ("quarterly", "Čtvrtletně"),
+         ("monthly", "Měsíčně")], default="maturity", string="Výplata úroku",
+        help="Pro generátor kalendáře: kupónová data se odpočítají od splatnosti, kratší první období je na začátku.",
+    )
 
     @api.constrains("start_date", "maturity_date")
     def _check_cashflow_dates(self):
@@ -34,21 +46,41 @@ class InvestraInstrument(models.Model):
                     ))
 
     def action_generate_schedule(self):
-        """Vklad s jednou splátkou: jistina a úrok k splatnosti podle sazby a konvence dnů."""
+        """Kalendář z jistiny na jednotku, sazby, výplaty úroku, konvence dnů, začátku úročení a splatnosti.
+
+        Kupónová data se odpočítávají od splatnosti (kratší první období je na začátku); kupón = jistina × sazba × část
+        roku podle konvence dnů; ve splatnosti poslední kupón a jistina (rozhodnutí 2026-11-12 „Generátor kupónového
+        kalendáře“). Výplata Ve splatnosti dává vklad s jednou splátkou jako dosud.
+        """
         for instrument in self:
             if not (instrument.principal and instrument.start_date and instrument.maturity_date):
                 raise UserError(self.env._("Vyplňte jistinu, začátek a splatnost: %s.", instrument.name))
+            if instrument.maturity_date <= instrument.start_date:
+                raise UserError(self.env._("Splatnost musí být po začátku úročení: %s.", instrument.name))
             # Stornovaná splátka kalendář neblokuje (rozhodnutí 2026-11-12 „Zámek a storno splátky“).
             if self.env["investra.instrument.repayment"].sudo().search_count(
                 [("instrument_id", "=", instrument.id), ("state", "!=", "reversed")], limit=1
             ):
                 raise UserError(self.env._("Kalendář po splacení nejde měnit: %s.", instrument.name))
-            fraction = engine.year_fraction(instrument.start_date, instrument.maturity_date, instrument.day_count or "act365")
             principal = engine.dec(instrument.principal)
-            interest = engine.money(principal * engine.dec(instrument.coupon_rate) / 100 * fraction)
-            instrument.cashflow_ids = [(5,), (0, 0, {
-                "date": instrument.maturity_date, "amount": float(principal), "flow_type": "principal",
-            }), (0, 0, {"date": instrument.maturity_date, "amount": float(interest), "flow_type": "interest"})]
+            rate = engine.dec(instrument.coupon_rate) / 100
+            basis = instrument.day_count or "act365"
+            months = COUPON_MONTHS[instrument.coupon_frequency or "maturity"]
+            days = [instrument.maturity_date]
+            if months:
+                step = 1
+                while (day := instrument.maturity_date - relativedelta(months=months * step)) > instrument.start_date:
+                    days.append(day)
+                    step += 1
+            days.sort()
+            commands, start = [(5,)], instrument.start_date
+            for day in days:
+                interest = (principal * rate * engine.year_fraction(start, day, basis)).quantize(UNIT_AMOUNT, rounding=ROUND_HALF_UP)
+                if interest:
+                    commands.append((0, 0, {"date": day, "amount": float(interest), "flow_type": "interest"}))
+                start = day
+            commands.append((0, 0, {"date": instrument.maturity_date, "amount": float(principal), "flow_type": "principal"}))
+            instrument.cashflow_ids = commands
         return True
 
     def _principal_per_unit(self):

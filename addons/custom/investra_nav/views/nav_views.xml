@@ -448,9 +448,9 @@ if isinstance(result, dict):
         <field name="name">investra.instrument.form.schedule</field><field name="model">investra.instrument</field>
         <field name="inherit_id" ref="investra_instruments.view_instrument_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='maturity_date']" position="before"><field name="principal"/><field name="start_date"/></xpath>
+            <xpath expr="//field[@name='maturity_date']" position="before"><field name="principal"/><field name="start_date"/><field name="coupon_frequency"/></xpath>
             <xpath expr="//sheet" position="before">
-                <header><button name="action_generate_schedule" type="object" string="Vygenerovat kalendář" invisible="type_group != 'money_market'"/></header>
+                <header><button name="action_generate_schedule" type="object" string="Vygenerovat kalendář" invisible="type_group not in ('money_market', 'debt', 'loan')"/></header>
             </xpath>
         </field>
     </record>
