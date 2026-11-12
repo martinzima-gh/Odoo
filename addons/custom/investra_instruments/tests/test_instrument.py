@@ -190,6 +190,15 @@ class TestInstrumentType(InstrumentCase):
             "name": code, "currency_id": self.czk.id, "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
         })
 
+    def test_calendar_missing_warning(self):
+        bond = self.make("bond")
+        self.assertTrue(bond.calendar_missing)
+        self.env["investra.instrument.cashflow"].create({
+            "instrument_id": bond.id, "date": "2027-01-01", "amount": 100, "flow_type": "principal",
+        })
+        self.assertFalse(bond.calendar_missing)
+        self.assertFalse(self.make("equity").calendar_missing)
+
     def test_type_prefills_proposal(self):
         deposit = self.make("deposit")
         self.assertEqual(deposit.cnb_sheet, deposit.type_id.cnb_sheet)

@@ -48,12 +48,10 @@ Nic neblokuje, uložit jde vždy.
 
 ## Výsledek
 
-Doplní Copilot.
-
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_instruments/models/instrument.py`, `addons/custom/investra_instruments/views/instrument_views.xml`, `addons/custom/investra_instruments/tests/test_instrument.py`.
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — zkontrolováno 15 souborů, chyb 0. Nový test ověřuje dluhopis bez toků, po přidání toku jistiny a akcii bez toků.
+- **Neověřeno:** Testy Odoo nebyly spuštěny podle zadání; provede je Claude při převzetí.
+- **Otevřené otázky a návrhy mimo rozsah:** Žádné.
 
 ## Převzetí
 
