@@ -239,7 +239,7 @@ class InvestraInstrumentRepayment(models.Model):
     """
 
     _name = "investra.instrument.repayment"
-    _inherit = ["investra.record.guard"]
+    _inherit = ["investra.record.guard", "investra.posting.preview"]
     _description = "Splátka nástroje"
     _order = "date desc, id desc"
     _book_fields = ("fund_id",)
@@ -643,43 +643,78 @@ class InvestraInstrumentRepayment(models.Model):
         self.sudo()._book()
         return True
 
+    def _book_lines(self):
+        """Řádky dokladu splátky; volá je zaúčtování i náhled (přesun 1:1 z `_book`, rozhodnutí 2026-11-13)."""
+        self.ensure_one()
+        repayment = self
+        instrument = repayment.instrument_id
+        company = repayment.company_id
+        classification = repayment._classification()
+        foreign = instrument.currency_id != company.currency_id
+        round_ = company.currency_id.round
+        principal = round_(repayment.principal_amount * repayment.fx_rate)
+        interest = round_((repayment.principal_amount + repayment.interest_amount) * repayment.fx_rate) - principal
+        fee = round_(repayment.fee_amount * repayment.fx_rate)
+        extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
+
+        def currency(amount_ccy):
+            return {"currency_id": instrument.currency_id.id, "amount_currency": amount_ccy} if foreign else {}
+
+        lines = [{"role": "cash_in_transit_receipt", "amount": principal + interest - fee, "movement_type": "transaction",
+                  **currency(repayment.amount)}]
+        if fee:
+            # Poplatek strhnutý protistranou je náklad na bankovní poplatky (rozhodnutí 2026-11-12).
+            lines.append({"role": "expense_bank_fee", "amount": fee, "movement_type": "fee",
+                          "name": self.env._("Poplatek %s", instrument.name), **currency(repayment.fee_amount)})
+        for amount, amount_ccy, label in (
+            (principal, repayment.principal_amount, self.env._("Jistina")),
+            (interest, repayment.interest_amount, self.env._("Úrok")),
+        ):
+            if amount or amount_ccy:
+                lines.append({"role": classification.role_id.code, "amount": -amount, "movement_type": "transaction",
+                              "name": f"{label} {instrument.name}", "extra": extra, **currency(-amount_ccy)})
+        return lines
+
     def _book(self):
         for repayment in self.filtered(lambda r: r.state == "draft" and not r.event_id):
             # Mezitím mohla být zaúčtována jiná splátka téže pozice; kontrola znovu.
             repayment._validate()
             instrument = repayment.instrument_id
-            company = repayment.company_id
-            classification = repayment._classification()
-            foreign = instrument.currency_id != company.currency_id
-            round_ = company.currency_id.round
-            principal = round_(repayment.principal_amount * repayment.fx_rate)
-            interest = round_((repayment.principal_amount + repayment.interest_amount) * repayment.fx_rate) - principal
-            fee = round_(repayment.fee_amount * repayment.fx_rate)
-            extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
-
-            def currency(amount_ccy):
-                return {"currency_id": instrument.currency_id.id, "amount_currency": amount_ccy} if foreign else {}
-
-            lines = [{"role": "cash_in_transit_receipt", "amount": principal + interest - fee, "movement_type": "transaction",
-                      **currency(repayment.amount)}]
-            if fee:
-                # Poplatek strhnutý protistranou je náklad na bankovní poplatky (rozhodnutí 2026-11-12).
-                lines.append({"role": "expense_bank_fee", "amount": fee, "movement_type": "fee",
-                              "name": self.env._("Poplatek %s", instrument.name), **currency(repayment.fee_amount)})
-            for amount, amount_ccy, label in (
-                (principal, repayment.principal_amount, self.env._("Jistina")),
-                (interest, repayment.interest_amount, self.env._("Úrok")),
-            ):
-                if amount or amount_ccy:
-                    lines.append({"role": classification.role_id.code, "amount": -amount, "movement_type": "transaction",
-                                  "name": f"{label} {instrument.name}", "extra": extra, **currency(-amount_ccy)})
             event = self.env["investra.accounting.event"]._create_event(
-                company, f"repayment:{repayment.id}", f"Splátka {instrument.name}", repayment.date, "repayment",
-                lines, source=repayment,
+                repayment.company_id, f"repayment:{repayment.id}", f"Splátka {instrument.name}", repayment.date, "repayment",
+                repayment._book_lines(), source=repayment,
             )
             event._lock_events()
             event._post_events()
             repayment.sudo().write({"event_id": event.id, "state": "posted"})
+
+    # --- náhled zaúčtování (rozhodnutí 2026-11-13) ----------------------------------------------
+
+    @api.depends("state", "fund_id", "instrument_id", "portfolio_id", "date", "kind", "closes_position",
+                 "principal_amount", "interest_amount", "fee_amount", "fx_rate", "event_id", "event_id.state")
+    def _compute_posting_preview(self):
+        for repayment in self:
+            repayment.posting_preview = repayment._posting_preview_html()
+
+    def _ready_for_preview(self):
+        return (self.state == "draft" and self.fund_id and self.instrument_id and self.portfolio_id and self.date
+                and (self.principal_amount or self.interest_amount))
+
+    def _preview_documents(self):
+        """Doklad, který vznikne tlačítkem Zaúčtovat; stejné kontroly a řádky jako `_book`."""
+        self.ensure_one()
+        self._validate()
+        return [(self.env._("Při zaúčtování"), self.date, self._preview_rows(self._book_lines()))]
+
+    def _preview_currency(self):
+        currency = self.instrument_id.currency_id
+        return currency if currency != self.company_id.currency_id else self.env["res.currency"]
+
+    def _booked_intro(self):
+        return self.env._("Zaúčtované doklady splátky.")
+
+    def _booked_caption(self, event):
+        return self.env._("Splátka")
 
     # --- storno a oprava -----------------------------------------------------------------------
 

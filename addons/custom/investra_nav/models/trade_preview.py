@@ -1,13 +1,13 @@
 """Náhled zaúčtování obchodu a upozornění na kalendář dluhopisu (rozhodnutí 2026-11-12 „Náhled zaúčtování obchodu“).
 
-Jen výpočet pro formulář obchodu v návrhu: nic se neúčtuje ani neukládá.
+Jen výpočet pro formulář obchodu v návrhu: nic se neúčtuje ani neukládá. Tabulka dokladů, skutečné doklady se storny
+a kostra záložky jsou ve společném modelu `investra.posting.preview` (rozhodnutí 2026-11-13, přesun 1:1).
 """
 from decimal import Decimal
 
 from markupsafe import Markup
 
 from odoo import api, fields, models
-from odoo.exceptions import UserError
 from odoo.tools import format_date, formatLang
 
 from .. import engine
@@ -18,7 +18,8 @@ def d(value):
 
 
 class InvestraTradePreview(models.Model):
-    _inherit = "investra.trade"
+    _name = "investra.trade"
+    _inherit = ["investra.trade", "investra.posting.preview"]
 
     calendar_note = fields.Char(
         compute="_compute_calendar_note", string="Upozornění ke kalendáři",
@@ -74,22 +75,41 @@ class InvestraTradePreview(models.Model):
     def _preview_documents(self):
         """[(nadpis, datum, [(účet, MD, D, částka v měně)])] z téže funkce, kterou účtuje Zaúčtovat a Vypořádat."""
         self.ensure_one()
-        Role = self.env["investra.account.role"]
         captions = {"book": self.env._("Při zaúčtování"), "settle": self.env._("Při vypořádání")}
         documents = []
         for step, _key, _name, day, lines, _event_type in self._planned_postings():
             if self.state == "unsettled" and step != "settle":
                 continue  # Doklad obchodu už je zaúčtovaný.
-            rows = []
-            for line in lines:
-                account = Role.account_for(self.company_id, line["role"])
-                amount = d(line["amount"])
-                label = line.get("name") or ""
-                rows.append((account.display_name + (f" ({label})" if label else ""),
-                             amount if amount > 0 else Decimal(0), -amount if amount < 0 else Decimal(0),
-                             line.get("amount_currency")))
-            documents.append((captions[step], day, rows))
+            documents.append((captions[step], day, self._preview_rows(lines)))
         return documents
+
+    def _preview_currency(self):
+        currency = self.instrument_id.currency_id
+        return currency if currency != self.company_id.currency_id else self.env["res.currency"]
+
+    def _preview_intro(self):
+        if self.state == "draft":
+            return self.env._("Jen náhled: nic se neúčtuje. Doklady vzniknou tlačítky Zaúčtovat a Vypořádat.")
+        return self.env._("Náhled: doklad vypořádání vznikne tlačítkem Vypořádat. Zkontrolujte datum a kurz vypořádání.")
+
+    def _booked_intro(self):
+        return self.env._("Zaúčtované doklady obchodu.")
+
+    def _booked_caption(self, event):
+        # Přání uživatele 2026-11-12: u zaúčtovaného obchodu vidět obě nohy; po stornu i stornované události.
+        captions = {"trade": self.env._("Obchod"), "trade_settlement": self.env._("Vypořádání")}
+        return captions.get(event.event_type, event.name)
+
+    def _preview_extra_html(self, money):
+        # Výsledek prodeje jen u návrhu; u nevypořádaného obchodu ho už počítá ocenění ze zaúčtovaného obchodu.
+        result = self._expected_result() if self.state == "draft" else None
+        parts = []
+        if self.quantity < 0 and self.classification_id.valuation_method == "amortised":
+            parts.append(Markup('<p class="text-muted">%s</p>') % self.env._(
+                "Pozice v naběhlé hodnotě: výsledek prodeje dopočítá ocenění."))
+        if result:
+            parts.append(self._result_html(result))
+        return Markup().join(parts)
 
     # --- očekávaný výsledek prodeje ------------------------------------------------------------------------
 
@@ -141,84 +161,6 @@ class InvestraTradePreview(models.Model):
         }
 
     # --- HTML ------------------------------------------------------------------------------------------------
-
-    def _booked_documents(self):
-        """Skutečně zaúčtované doklady obchodu (obchod a vypořádání) ve stejném tvaru jako náhled.
-
-        Přání uživatele 2026-11-12: u zaúčtovaného obchodu vidět obě nohy. Rozvaha ke dni vypořádání má jednu událost.
-        Po stornu vypořádání (rozhodnutí 2026-11-12 „Storno a oprava obchodu“) ukazuje i stornované události,
-        dohledané podle zdroje.
-        """
-        self.ensure_one()
-        documents = []
-        captions = {"trade": self.env._("Obchod"), "trade_settlement": self.env._("Vypořádání")}
-        events = self.env["investra.accounting.event"]
-        if self._origin.id:
-            events = events.sudo().search([
-                ("res_model", "=", self._name), ("res_id", "=", self._origin.id), ("move_id", "!=", False),
-            ], order="date, id")
-        for event in events:
-            caption = captions.get(event.event_type, event.name)
-            move = event.move_id
-            if not move:
-                continue
-            rows = [(line.account_id.display_name + (f" ({line.name})" if line.name and line.name != event.name else ""),
-                     d(line.debit), d(line.credit), line.amount_currency)
-                    for line in move.line_ids]
-            label = f"{caption} {move.name}"
-            if event.state == "reversed":
-                label += " " + self.env._("(stornováno dokladem %s)", event.reversal_move_id.name)
-            documents.append((label, move.date, rows))
-        return documents
-
-    def _documents_html(self, documents, money):
-        foreign = self.instrument_id.currency_id != self.company_id.currency_id
-        head = Markup("<th>%s</th><th class='text-end'>%s</th><th class='text-end'>%s</th>") % (
-            self.env._("Účet"), self.env._("MD"), self.env._("D"))
-        if foreign:
-            head += Markup("<th class='text-end'>%s</th>") % self.env._("V měně %s", self.instrument_id.currency_id.name)
-        parts = []
-        for caption, day, rows in documents:
-            parts.append(Markup("<h5>%s – %s</h5>") % (caption, format_date(self.env, day) if day else "?"))
-            body = Markup()
-            for account, debit, credit, amount_currency in rows:
-                cells = Markup("<td>%s</td><td class='text-end'>%s</td><td class='text-end'>%s</td>") % (
-                    account, money(debit), money(credit))
-                if foreign:
-                    cells += Markup("<td class='text-end'>%s</td>") % money(d(amount_currency))
-                body += Markup("<tr>%s</tr>") % cells
-            parts.append(Markup('<table class="table table-sm o_investra_preview"><thead><tr>%s</tr></thead>'
-                                '<tbody>%s</tbody></table>') % (head, body))
-        return Markup().join(parts)
-
-    def _posting_preview_html(self):
-        self.ensure_one()
-        money = lambda value: formatLang(self.env, float(value), digits=2) if value else ""
-        parts = []
-        booked = self._booked_documents()
-        if booked:
-            parts.append(Markup('<p class="text-muted">%s</p>') % self.env._("Zaúčtované doklady obchodu."))
-            parts.append(self._documents_html(booked, money))
-        if not self._ready_for_preview():
-            return Markup().join(parts) if parts else False
-        try:
-            documents = self._preview_documents()
-            # Výsledek prodeje jen u návrhu; u nevypořádaného obchodu ho už počítá ocenění ze zaúčtovaného obchodu.
-            result = self._expected_result() if self.state == "draft" else None
-        except UserError as error:
-            parts.append(Markup('<div class="alert alert-warning" role="alert">%s</div>') % error.args[0])
-            return Markup().join(parts)
-        intro = (self.env._("Jen náhled: nic se neúčtuje. Doklady vzniknou tlačítky Zaúčtovat a Vypořádat.")
-                 if self.state == "draft" else
-                 self.env._("Náhled: doklad vypořádání vznikne tlačítkem Vypořádat. Zkontrolujte datum a kurz vypořádání."))
-        parts.append(Markup('<p class="text-muted">%s</p>') % intro)
-        parts.append(self._documents_html(documents, money))
-        if self.quantity < 0 and self.classification_id.valuation_method == "amortised":
-            parts.append(Markup('<p class="text-muted">%s</p>') % self.env._(
-                "Pozice v naběhlé hodnotě: výsledek prodeje dopočítá ocenění."))
-        if result:
-            parts.append(self._result_html(result))
-        return Markup().join(parts)
 
     def _result_html(self, result):
         currency = self.company_id.currency_id.name

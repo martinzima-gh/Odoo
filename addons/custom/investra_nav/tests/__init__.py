@@ -2,3 +2,4 @@ from . import test_scenarios, test_workflow, test_fees, test_accrual, test_trade
 from . import test_fair_value_interest
 from . import test_trade_preview
 from . import test_trade_reverse
+from . import test_posting_preview

@@ -551,6 +551,11 @@ if isinstance(result, dict):
                             <field name="reversal_reason" invisible="state != 'reversed'"/>
                         </group>
                     </group>
+                    <notebook invisible="not posting_preview">
+                        <page name="posting_preview" string="Zaúčtování">
+                            <field name="posting_preview" nolabel="1" readonly="1"/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
