@@ -51,7 +51,7 @@ class InvestraClassMovement(models.Model):
     """Úpis nebo odkup ze závěrky IS. Do napojení IS se pořizuje ručně a v testech."""
 
     _name = "investra.class.movement"
-    _inherit = ["investra.record.guard", "mail.thread"]
+    _inherit = ["investra.record.guard", "mail.thread", "investra.posting.preview"]
     _description = "Pohyb kapitálu třídy"
     _order = "date, id"
     _book_fields = ("class_id",)
@@ -289,6 +289,17 @@ class InvestraClassMovement(models.Model):
     def _check_booking(self):
         """Kontroly B: kusy, cena a součet částek. Pohyb bez ceny se kontroluje jen ze součtu."""
         for movement in self:
+            valuation = movement._booking_valuation()
+            if valuation is not None:
+                movement.sudo().valuation_id = valuation
+
+    def _booking_valuation(self):
+        """Kontroly z `_check_booking` bez zápisu (volá je i náhled zaúčtování, rozhodnutí 2026-11-13).
+
+        Přesun 1:1; zápis vazby na ocenění zůstává v `_check_booking`. Vrací ocenění s cenou, u pohybu bez ceny None.
+        """
+        self.ensure_one()
+        for movement in self:
             name = movement.display_name
             residual = movement._residual_class()
             if abs(residual) > RESIDUAL_LIMIT:
@@ -299,7 +310,7 @@ class InvestraClassMovement(models.Model):
             if movement.fee_amount_class and not movement.fee_recipient:
                 raise UserError(self.env._("%s: poplatek musí mít příjemce.", name))
             if not movement.price:
-                continue
+                return None
             fund_class = movement.class_id
             digits = Decimal(1).scaleb(-fund_class.unit_digits)
             units = d(movement.units)
@@ -323,7 +334,7 @@ class InvestraClassMovement(models.Model):
                     "%(name)s: cena %(price)s se liší od zveřejněného kurzu třídy (%(published)s). Uveďte důvod odlišné ceny.",
                     name=name, price=movement.price, published=published if published is not None else self.env._("žádné zveřejněné ocenění"),
                 ))
-            movement.sudo().valuation_id = valuation
+            return valuation
 
     # --- zaúčtování ---------------------------------------------------------------------------------
 
@@ -404,6 +415,37 @@ class InvestraClassMovement(models.Model):
             event._lock_events()
             event._post_events()
             movement.sudo().write({"event_id": event.id, "state": "posted"})
+
+    # --- náhled zaúčtování (rozhodnutí 2026-11-13) ----------------------------------------------
+
+    @api.depends("state", "class_id", "movement_type", "date", "units", "price", "price_reason", "amount_class", "amount",
+                 "fx_rate", "fee_amount_class", "fee_recipient", "fee_partner_id", "rounding_amount_class", "rounding_owner",
+                 "event_id", "event_id.state")
+    def _compute_posting_preview(self):
+        for movement in self:
+            movement.posting_preview = movement._posting_preview_html()
+
+    def _ready_for_preview(self):
+        return (self.state == "draft" and self.class_id and self.movement_type and self.date and self.units
+                and (self.amount_class or self.amount))
+
+    def _preview_documents(self):
+        """Doklad, který vznikne tlačítkem Zaúčtovat; stejné kontroly a řádky jako `action_book` a `_book`."""
+        self.ensure_one()
+        if not self.price:
+            raise UserError(self.env._("%s: chybí cena za kus.", self.display_name))
+        self._booking_valuation()
+        return [(self.env._("Při zaúčtování"), self.date, self._preview_rows(self._book_lines()))]
+
+    def _preview_currency(self):
+        currency = self.currency_id
+        return currency if currency and currency != self.fund_id.currency_id else self.env["res.currency"]
+
+    def _booked_intro(self):
+        return self.env._("Zaúčtované doklady pohybu.")
+
+    def _booked_caption(self, event):
+        return {"subscription": self.env._("Úpis"), "redemption": self.env._("Odkup")}.get(self.movement_type, event.name)
 
     # --- storno a oprava -----------------------------------------------------------------------
 

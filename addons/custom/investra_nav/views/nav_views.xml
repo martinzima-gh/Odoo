@@ -372,6 +372,11 @@
                     <group>
                         <field name="event_id"/>
                     </group>
+                    <notebook invisible="not posting_preview">
+                        <page name="posting_preview" string="Zaúčtování">
+                            <field name="posting_preview" nolabel="1" readonly="1"/>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>

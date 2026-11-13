@@ -106,3 +106,81 @@ class TestRepaymentPreview(PreviewMixin, NavCase):
         form.principal_amount = 2000
         self.assertIn("alert-warning", form.posting_preview)
         self.assertIn("vyšší než zbývající jistina", form.posting_preview)
+
+
+@tagged("post_install", "-at_install")
+class TestMovementPreview(PreviewMixin, NavCase):
+    """Náhled zaúčtování úpisu a odkupu: stejné řádky jako Zaúčtovat (`_book_lines`), kontroly bez zápisu.
+
+    Rok 2027 jako v testech úpisů a odkupů, třída v EUR v roce 2033 jako v testech měny třídy.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.fund = self.make_fund(classes=[
+            {"code": "A"}, {"code": "F", "entry_fee_rate": 1, "exit_fee_rate": 2}, {"code": "E", "currency_id": self.eur.id},
+        ])
+        self.a, self.f, self.e = (self.cls(self.fund, code) for code in "AFE")
+
+    def move(self, fund_class, gross, units, price, kind="subscription", day="2027-01-05", **vals):
+        return self.env["investra.class.movement"].create({
+            "class_id": fund_class.id, "date": day, "movement_type": kind, "amount_class": gross, "units": units,
+            "price": price, "manual_reason": "Test", "price_reason": "Počáteční kurz", **vals,
+        })
+
+    def assert_preview_is_booked(self, movement, currency=False):
+        self.assertIn("Jen náhled", movement.posting_preview)
+        preview = movement._preview_documents()
+        movement.action_book()
+        movement.invalidate_recordset(["posting_preview"])
+        self.assertEqual(self.rows(preview, currency), self.rows(movement._booked_documents(), currency))
+        self.assertIn("Zaúčtované doklady pohybu", movement.posting_preview)
+        self.assertNotIn("Jen náhled", movement.posting_preview)
+        return preview
+
+    def test_subscription_with_fee(self):
+        preview = self.assert_preview_is_booked(self.move(self.f, 1010, 99.99, 10, fee_amount_class=10.10))
+        self.assertEqual(len(preview[0][2]), 3)  # banka, kapitál třídy, závazek z poplatku
+
+    def test_redemption_with_fee(self):
+        self.move(self.f, 1010, 99.99, 10, fee_amount_class=10.10).action_book()
+        self.assert_preview_is_booked(self.move(self.f, 1000, 100, 10, kind="redemption", day="2027-01-06", fee_amount_class=20))
+
+    def test_foreign_class_currency_column(self):
+        self.rate("2033-01-03", 25)
+        movement = self.move(self.e, 1000, 10, 100, day="2033-01-03")
+        self.assertIn("V měně EUR", movement.posting_preview)
+        preview = self.assert_preview_is_booked(movement, currency=True)
+        self.assertIn((25000.0, 0.0, 1000.0), [row[1:] for row in self.rows(preview, currency=True)[0][1]])
+
+    def test_correction_shows_reversal_and_new_draft(self):
+        movement = self.move(self.a, 1000, 100, 10)
+        movement.action_book()
+        correction = movement.with_user(self.preparer).action_correct("Chybné kusy")
+        movement.invalidate_recordset(["posting_preview"])
+        self.assertIn("stornováno dokladem", movement.posting_preview)
+        self.assertIn("Jen náhled", correction.posting_preview)
+
+    def test_checks_show_as_warning_without_writing(self):
+        movement = self.move(self.a, 1000, 100, 0)
+        self.assertIn("chybí cena za kus", movement.posting_preview)
+        movement.write({"price": 10, "price_reason": False})
+        self.assertIn("alert-warning", movement.posting_preview)
+        self.assertIn("zveřejněného kurzu", movement.posting_preview)
+        movement.price_reason = "Počáteční kurz"
+        self.assertIn("Jen náhled", movement.posting_preview)
+        # Kontroly v náhledu nic nezapisují; vazbu na ocenění nastaví až Zaúčtovat.
+        self.assertFalse(movement.valuation_id)
+
+    def test_form_preview_before_save(self):
+        form = Form(self.env["investra.class.movement"])
+        form.class_id = self.a
+        form.movement_type = "subscription"
+        form.date = "2027-01-05"
+        form.amount_class = 1234
+        form.units = 123.4
+        form.price = 10
+        form.manual_reason = "Test"
+        form.price_reason = "Počáteční kurz"
+        self.assertIn("Jen náhled", form.posting_preview)
+        self.assertRegex(str(form.posting_preview), r"1[ ,. ]?234[,.]00")

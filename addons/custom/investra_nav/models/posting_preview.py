@@ -87,8 +87,11 @@ class InvestraPostingPreview(models.AbstractModel):
             move = event.move_id
             if not move:
                 continue
+            # Odchylka od náhledu obchodu (2026-11-13): částka v měně jen u řádku v cizí měně. Řádek ve funkční měně
+            # má v Odoo amount_currency = zůstatek v CZK a sloupec „V měně EUR“ by ho ukázal jako eura.
             rows = [(line.account_id.display_name + (f" ({line.name})" if line.name and line.name != event.name else ""),
-                     d(line.debit), d(line.credit), line.amount_currency)
+                     d(line.debit), d(line.credit),
+                     line.amount_currency if line.currency_id != line.company_currency_id else None)
                     for line in move.line_ids]
             label = f"{caption} {move.name}"
             if event.state == "reversed":
