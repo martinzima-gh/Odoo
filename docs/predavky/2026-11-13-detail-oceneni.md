@@ -15,8 +15,7 @@
 - Testy na čisté DB 312, 0 chyb. Zálohy v `zalohy/` (investra_test a investra_vzhled před každým upgradem).
 
 **Zbývá – první krok:**
-1. Claude Doc (v relaci chyběl konektor Claude Docs): řádky deníku od „Firma nové účetní knihy“ po „Formát data v aplikaci“
-   (posledních 7) a otevřený bod „Účty poplatků za úpis a odkup ve prospěch fondu“; pak export do `docs/architektura.md`.
+1. ~~Claude Doc~~ hotovo 2026-11-13: 7 rozhodnutí a otevřený bod účtů poplatků v Doc (rev 333), export `5dd8990`.
 2. Copilot upravuje další obrazovky podle zásad; převzetí podle `docs/ukoly/CP-*`.
 
 **Otevřené otázky:** „Fond – kapitál“ u příjemce poplatku jen pokud by ho vyžadoval statut; pruh nezaškrtnuté knihy u obchodu.
