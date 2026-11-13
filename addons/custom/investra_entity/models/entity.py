@@ -15,7 +15,16 @@ class InvestraEntity(models.Model):
     _order = "name"
 
     name = fields.Char(related="company_id.name", store=True)
-    company_id = fields.Many2one("res.company", required=True, ondelete="restrict", string="Společnost")
+    # Výchozí je aktivní firma a nabízejí se jen firmy zaškrtnuté v přepínači: pravidlo
+    # „Knihy podle společnosti“ jinou firmu stejně nepustí (rozhodnutí 2026-11-13).
+    company_id = fields.Many2one(
+        "res.company",
+        required=True,
+        ondelete="restrict",
+        string="Společnost",
+        default=lambda self: self.env.company,
+        domain="[('id', 'in', allowed_company_ids)]",
+    )
     currency_id = fields.Many2one(related="company_id.currency_id", string="Funkční měna")
     entity_type = fields.Selection(
         [

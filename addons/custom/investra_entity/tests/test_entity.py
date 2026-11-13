@@ -63,3 +63,11 @@ class TestEntity(TransactionCase):
         }).action_post()
         with self.assertRaises(UserError):
             entity.framework = "ifrs"
+
+    def test_new_book_defaults_to_active_company(self):
+        other = self.env["res.company"].create({"name": "Fond výchozí firma"})
+        self.env.user.company_ids |= other
+        Entity = self.Entity.with_context(allowed_company_ids=[other.id, self.env.company.id])
+        self.assertEqual(Entity.default_get(["company_id"])["company_id"], other.id)
+        field = self.Entity._fields["company_id"]
+        self.assertEqual(field.domain, "[('id', 'in', allowed_company_ids)]")
