@@ -25,9 +25,10 @@ LEFT JOIN investra_account_role r ON r.id = ra.role_id
 ORDER BY m.id, l.id;
 
 -- 3. Parametry tříd pro úpisy a odkupy (převzaté z fondu, třída je smí přepsat)
+--    Příjemce: manager, distributor, fund (výnos fondu), class_income (výnos třídy), class_capital (kapitál třídy)
 SELECT rc.name AS fond, c.code AS trida, c.unit_digits AS mista_kusu, c.unit_rounding AS zaokrouhleni_kusu,
        c.rounding_owner AS rozdil_patri, c.entry_fee_rate AS vstupni_pct, c.exit_fee_rate AS vystupni_pct,
-       c.fee_recipient AS prijemce_poplatku
+       c.entry_fee_recipient AS prijemce_vstupniho, c.exit_fee_recipient AS prijemce_vystupniho
 FROM investra_fund_class c
 JOIN investra_fund f ON f.id = c.fund_id
 JOIN res_company rc ON rc.id = f.company_id

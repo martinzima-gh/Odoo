@@ -354,7 +354,6 @@
                             <field name="fee_amount_class" readonly="state != 'draft'"/>
                             <field name="fee_expected_class"/>
                             <field name="fee_recipient" readonly="state != 'draft'"/>
-                            <field name="fee_to_capital" readonly="state != 'draft'" invisible="fee_recipient != 'class'"/>
                             <field name="fee_partner_id" readonly="state != 'draft'"/>
                         </group>
                         <group string="Zaokrouhlení a výsledek">

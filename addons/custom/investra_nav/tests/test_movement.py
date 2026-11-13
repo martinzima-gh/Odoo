@@ -92,7 +92,7 @@ class TestMovement(NavCase):
 
     def test_fee_to_class_stays_in_that_class(self):
         self.move(self.a, 1000, 100, 10).action_book()
-        movement = self.move(self.f, 1010, 100, 10, fee_amount_class=10, fee_recipient="class")
+        movement = self.move(self.f, 1010, 100, 10, fee_amount_class=10, fee_recipient="class_income")
         movement.action_book()
         self.assertEqual(self.lines(movement), {"bank": 1010, "class_capital": -1000, "entry_fee_income": -10})
         self.assertEqual(movement.event_id.move_id.line_ids.filtered(lambda l: l.balance == -10).investra_class_id, self.f)
@@ -105,32 +105,37 @@ class TestMovement(NavCase):
         self.assertEqual({c.code: c.status for c in valuation.check_ids}["bridge_movements"], "ok")
 
     def test_exit_fee_to_class_capital(self):
-        movement = self.move(self.f, 1000, 100, 10, kind="redemption", fee_amount_class=20, fee_recipient="class",
-                             fee_to_capital=True)
+        movement = self.move(self.f, 1000, 100, 10, kind="redemption", fee_amount_class=20,
+                             fee_recipient="class_capital")
         self.assertAlmostEqual(movement.payout_class, 980, places=2)
         movement.action_book()
         self.assertEqual(self.lines(movement), {"bank": -980, "class_capital": 1000, "exit_fee_capital": -20})
         self.assertAlmostEqual(movement.signed_amount, -980, places=2)
 
-    def test_fund_fee_cannot_go_to_capital(self):
-        with self.assertRaisesRegex(ValidationError, "kapitálu"):
-            self.move(self.f, 1010, 100, 10, fee_amount_class=10, fee_recipient="fund", fee_to_capital=True)
-        with self.assertRaisesRegex(ValidationError, "kapitálu"):
-            self.fund.write({"exit_fee_recipient": "fund", "exit_fee_capital": True})
-        with self.assertRaisesRegex(ValidationError, "kapitálu"):
-            self.f.write({"entry_fee_recipient": "manager", "entry_fee_capital": True})
+    def test_entry_fee_to_class_capital(self):
+        movement = self.move(self.f, 1010, 100, 10, fee_amount_class=10, fee_recipient="class_capital")
+        movement.action_book()
+        self.assertEqual(self.lines(movement), {"bank": 1010, "class_capital": -1000, "entry_fee_capital": -10})
+        self.assertAlmostEqual(movement.capital_amount_class, 1010, places=2)
+
+    def test_fee_recipient_offers_same_choices_without_fund_capital(self):
+        """Příjemce je jeden výběr, stejný pro vstupní i výstupní poplatek; „Fond – kapitál“ v něm není."""
+        expected = ["manager", "distributor", "fund", "class_income", "class_capital"]
+        for model, field in (("investra.fund", "entry_fee_recipient"), ("investra.fund", "exit_fee_recipient"),
+                             ("investra.fund.class", "entry_fee_recipient"), ("investra.fund.class", "exit_fee_recipient"),
+                             ("investra.class.movement", "fee_recipient")):
+            self.assertEqual([key for key, _label in self.env[model]._fields[field].selection], expected, f"{model}.{field}")
 
     def test_entry_and_exit_fee_settings_are_separate(self):
-        self.fund.write({"exit_fee_recipient": "class", "exit_fee_capital": True})
+        self.fund.write({"exit_fee_recipient": "class_capital"})
         fund_class = self.env["investra.fund.class"].create({
             "fund_id": self.fund.id, "code": "G", "name": "G", "currency_id": self.czk.id, "exit_fee_rate": 2,
         })
-        self.assertEqual((fund_class.entry_fee_recipient, fund_class.exit_fee_recipient), ("manager", "class"))
-        self.assertTrue(fund_class.exit_fee_capital)
+        self.assertEqual((fund_class.entry_fee_recipient, fund_class.exit_fee_recipient), ("manager", "class_capital"))
         sub = self.move(fund_class, 1010, 100, 10, fee_amount_class=10)
-        self.assertEqual((sub.fee_recipient, sub.fee_to_capital), ("manager", False))
+        self.assertEqual(sub.fee_recipient, "manager")
         red = self.move(fund_class, 1000, 50, 20, kind="redemption", day="2027-01-06", fee_amount_class=20)
-        self.assertEqual((red.fee_recipient, red.fee_to_capital), ("class", True))
+        self.assertEqual(red.fee_recipient, "class_capital")
 
     def test_manual_entry_prefills_fee_from_rate(self):
         movement = self.Movement.new({"class_id": self.f.id, "movement_type": "subscription", "amount_class": 1010,

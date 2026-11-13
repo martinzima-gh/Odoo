@@ -21,7 +21,7 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from odoo.addons.investra_fund.models.fund import FEE_RECIPIENT, INTERNAL_RECIPIENTS, ROUNDING_OWNER
+from odoo.addons.investra_fund.models.fund import CLASS_RECIPIENTS, FEE_RECIPIENT, INTERNAL_RECIPIENTS, ROUNDING_OWNER
 
 PREPARER = "investra_entity.group_valuation_preparer"
 UNIT_ROUNDING = {"down": ROUND_DOWN, "half_up": ROUND_HALF_UP, "up": ROUND_UP}
@@ -96,9 +96,7 @@ class InvestraClassMovement(models.Model):
     # C. Poplatek
     fee_amount_class = fields.Float(digits=(20, 2), tracking=True, string="Poplatek")
     fee_recipient = fields.Selection(FEE_RECIPIENT, tracking=True, string="Příjemce poplatku", help="Bez zadání platí hodnota třídy.")
-    fee_to_capital = fields.Boolean(
-        tracking=True, string="Poplatek do kapitálu", help="Jen s příjemcem Třída: kapitál třídy místo výnosu. Bez zadání platí hodnota třídy.",
-    )
+    # Dřívější zaškrtávátko fee_to_capital převedla migrace investra_nav 20.0.0.27.0 do příjemce; sloupec Odoo při upgradu odstraní.
     fee_partner_id = fields.Many2one("res.partner", tracking=True, string="Příjemce (partner)")
     fee_expected_class = fields.Float(compute="_compute_amounts", digits=(20, 2), string="Poplatek podle sazby")
 
@@ -193,7 +191,7 @@ class InvestraClassMovement(models.Model):
             movement.capital_amount_class = float(movement._value_class() + sign * (kept + fee))
 
     def _fee_to_class(self):
-        return self.fee_recipient == "class"
+        return self.fee_recipient in CLASS_RECIPIENTS
 
     def _capital_functional(self, with_fee=True):
         """Úpis: kusy × cena + rozdíl, který zůstává ve fondu; odkup: kusy × cena − tento rozdíl.
@@ -237,7 +235,6 @@ class InvestraClassMovement(models.Model):
                 prefix = "entry" if kind == "subscription" else "exit"
                 if "fee_recipient" not in vals:
                     vals["fee_recipient"] = fund_class[f"{prefix}_fee_recipient"]
-                    vals.setdefault("fee_to_capital", fund_class[f"{prefix}_fee_capital"])
             if vals.get("amount_class"):
                 rate = vals.get("fx_rate") or float(fund_class.fund_id._fx_at(fund_class.currency_id, fields.Date.to_date(vals["date"])))
                 vals.update({"fx_rate": rate, "amount": fund_class.fund_id.currency_id.round(vals["amount_class"] * rate)})
@@ -289,13 +286,6 @@ class InvestraClassMovement(models.Model):
                 if movement.movement_type and not movement.fee_recipient:
                     prefix = "entry" if movement.movement_type == "subscription" else "exit"
                     movement.fee_recipient = movement.class_id[f"{prefix}_fee_recipient"]
-                    movement.fee_to_capital = movement.class_id[f"{prefix}_fee_capital"]
-
-    @api.constrains("fee_recipient", "fee_to_capital")
-    def _check_fee_capital(self):
-        for movement in self:
-            if movement.fee_to_capital and movement.fee_recipient != "class":
-                raise ValidationError(self.env._("Poplatek jde do kapitálu jen s příjemcem Třída; poplatek fondu je výnos."))
 
     @property
     def signed_amount(self):
@@ -427,7 +417,7 @@ class InvestraClassMovement(models.Model):
             return {"role": "subscription_fee_payable", "partner_id": self.fee_partner_id.id or None}
         if self.fee_recipient == "fund":
             return {"role": f"{prefix}_fee_income"}
-        role = f"{prefix}_fee_capital" if self.fee_to_capital else f"{prefix}_fee_income"
+        role = f"{prefix}_fee_capital" if self.fee_recipient == "class_capital" else f"{prefix}_fee_income"
         return {"role": role, "class_id": self.class_id.id}
 
     def _bank_currency(self):
@@ -457,7 +447,7 @@ class InvestraClassMovement(models.Model):
     # --- náhled zaúčtování (rozhodnutí 2026-11-13) ----------------------------------------------
 
     @api.depends("state", "class_id", "movement_type", "date", "units", "price", "price_reason", "amount_class", "amount",
-                 "fx_rate", "fee_amount_class", "fee_recipient", "fee_to_capital", "fee_partner_id", "rounding_amount_class",
+                 "fx_rate", "fee_amount_class", "fee_recipient", "fee_partner_id", "rounding_amount_class",
                  "rounding_owner", "event_id", "event_id.state")
     def _compute_posting_preview(self):
         for movement in self:

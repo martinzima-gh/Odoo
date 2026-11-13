@@ -6,23 +6,18 @@ PRICE_ROUNDING = [("down", "Dolů"), ("half_up", "Matematicky"), ("up", "Nahoru"
 # Úpisy a odkupy (rozhodnutí „Úpisy a odkupy (bod 8 UX)“, 2026-11-11): parametry fondu, třída je při založení převezme
 # a smí je přepsat – stejně jako desetinná místa kurzu.
 ROUNDING_OWNER = [("fund", "Zůstává ve fondu"), ("investor", "Vrací se investorovi")]
-# Příjemce poplatku (rozhodnutí 2026-11-13 „Příjemce vstupního a výstupního poplatku“): obhospodařovatel a distributor
-# = závazek, poplatek se platí ven; fond = výnos celého fondu, dělí se mezi třídy poměrem; třída = celý jen třídě pohybu,
-# jako výnos, nebo se zaškrtnutím „do kapitálu“ jako kapitál třídy. Fond do kapitálu nejde: kapitál je vždy kapitál třídy.
-FEE_RECIPIENT = [("manager", "Obhospodařovatel"), ("distributor", "Distributor"), ("fund", "Fond"), ("class", "Třída")]
-INTERNAL_RECIPIENTS = ("fund", "class")
-FEE_PARAMS = ("entry_fee_recipient", "exit_fee_recipient", "entry_fee_capital", "exit_fee_capital")
+# Příjemce poplatku (rozhodnutí 2026-11-13 „Příjemce vstupního a výstupního poplatku“, upřesněno 2026-11-13
+# „Příjemce poplatku jedním výběrem“): obhospodařovatel a distributor = závazek, poplatek se platí ven; fond = výnos
+# celého fondu, dělí se mezi třídy poměrem; třída = celý jen třídě pohybu, jako výnos, nebo jako kapitál třídy.
+# Fond do kapitálu nejde: kapitál je vždy kapitál třídy, poměrem se dělí jen výnosy a náklady.
+FEE_RECIPIENT = [
+    ("manager", "Obhospodařovatel"), ("distributor", "Distributor"), ("fund", "Fond"),
+    ("class_income", "Třída – výnos"), ("class_capital", "Třída – kapitál"),
+]
+CLASS_RECIPIENTS = ("class_income", "class_capital")
+INTERNAL_RECIPIENTS = ("fund",) + CLASS_RECIPIENTS
+FEE_PARAMS = ("entry_fee_recipient", "exit_fee_recipient")
 MOVEMENT_PARAMS = ("unit_digits", "unit_rounding", "rounding_owner", "entry_fee_rate", "exit_fee_rate") + FEE_PARAMS
-
-
-def check_fee_capital(records):
-    """Do kapitálu jde jen poplatek ve prospěch třídy."""
-    for record in records:
-        for kind, label in (("entry", "Vstupní"), ("exit", "Výstupní")):
-            if record[f"{kind}_fee_capital"] and record[f"{kind}_fee_recipient"] != "class":
-                raise ValidationError(record.env._(
-                    "%s poplatek jde do kapitálu jen s příjemcem Třída; poplatek fondu je výnos.", label,
-                ))
 
 
 class InvestraFund(models.Model):
@@ -59,15 +54,17 @@ class InvestraFund(models.Model):
     )
     entry_fee_rate = fields.Float(digits=(7, 4), default=0.0, string="Výchozí vstupní poplatek (%)", help="Sazba z hrubé platby úpisu.")
     exit_fee_rate = fields.Float(digits=(7, 4), default=0.0, string="Výchozí výstupní poplatek (%)", help="Sazba z hrubé částky odkupu (kusy × cena).")
-    # Dřívější společné pole fee_recipient převedla migrace investra_fund 20.0.0.7.0, sloupec zůstává jen pro historii.
-    entry_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce vstupního poplatku")
-    exit_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce výstupního poplatku")
-    entry_fee_capital = fields.Boolean(
-        string="Vstupní poplatek do kapitálu", help="Jen s příjemcem Třída: poplatek je kapitál třídy, ne výnos. Řídí se statutem.",
+    # Dřívější společné pole fee_recipient převedla migrace investra_fund 20.0.0.7.0 (sloupec Odoo při upgradu odstranil).
+    entry_fee_recipient = fields.Selection(
+        FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce vstupního poplatku",
+        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
     )
-    exit_fee_capital = fields.Boolean(
-        string="Výstupní poplatek do kapitálu", help="Jen s příjemcem Třída: poplatek je kapitál třídy, ne výnos. Řídí se statutem.",
+    exit_fee_recipient = fields.Selection(
+        FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce výstupního poplatku",
+        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
     )
+    # Dřívější zaškrtávátka entry/exit_fee_capital převedla migrace investra_fund 20.0.0.8.0 do příjemce
+    # (Třída – výnos / Třída – kapitál); sloupce Odoo při upgradu odstraní.
     trade_recognition = fields.Selection(
         [("trade_date", "Trade date accounting"), ("settlement_date", "Settlement date accounting")],
         required=True,
@@ -91,10 +88,6 @@ class InvestraFund(models.Model):
         for fund in self:
             if fund.accrual_method == "linear" and not fund.accrual_note:
                 raise ValidationError(self.env._("Lineární úročení fondu musí mít zdůvodnění."))
-
-    @api.constrains(*FEE_PARAMS)
-    def _check_fee_capital(self):
-        check_fee_capital(self)
 
     @api.constrains("manager_id")
     def _check_manager(self):
@@ -134,8 +127,6 @@ class InvestraFundClass(models.Model):
     exit_fee_rate = fields.Float(digits=(7, 4), string="Výstupní poplatek (%)", help="Bez zadání platí hodnota fondu.")
     entry_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, string="Příjemce vstupního poplatku", help="Bez zadání platí hodnota fondu.")
     exit_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, string="Příjemce výstupního poplatku", help="Bez zadání platí hodnota fondu.")
-    entry_fee_capital = fields.Boolean(string="Vstupní poplatek do kapitálu", help="Jen s příjemcem Třída. Bez zadání platí hodnota fondu.")
-    exit_fee_capital = fields.Boolean(string="Výstupní poplatek do kapitálu", help="Jen s příjemcem Třída. Bez zadání platí hodnota fondu.")
 
     _fund_code_uniq = models.Constraint("unique(fund_id, code)", "Kód třídy musí být ve fondu jedinečný.")
 
@@ -153,10 +144,6 @@ class InvestraFundClass(models.Model):
     def _compute_display_name(self):
         for record in self:
             record.display_name = f"{record.fund_id.name} / {record.code}"
-
-    @api.constrains(*FEE_PARAMS)
-    def _check_fee_capital(self):
-        check_fee_capital(self)
 
     @api.constrains("price_digits")
     def _check_digits(self):
