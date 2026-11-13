@@ -65,3 +65,13 @@ doúčtování do zůstatku po účtu, měně a partnerovi) ocenění nepoužív
 ## Migrace
 
 Stávající řádky: datum = datum ocenění, popis = důvod, měna = měna fondu, druh nákladu a rozdělení z pravidla.
+
+## Provedení
+
+- **Etapa 1 (2026-11-13, commit 31a5cf4):** `investra.fx.profile._foreign_balances` (společný výběr), ocenění přeceňuje
+  banky a účty profilů knihy bez účtů nevypořádaných obchodů, banky bez dělení podle partnera, profil fondu
+  (`fund_id`) při založení a migrací 20.0.0.28.0. Čistá DB: 343 testů nav + fx a 23 dashboard + cnb bez chyby.
+  `investra_test` povýšena (záloha `zalohy/investra_test-2026-11-13-pred-profilem-preceneni.dump`): 6 nových profilů,
+  počet a součet řádků dokladů beze změny; 3 známé chyby matice (ruční řádky matice v `investra_test`).
+  Ruční profil „TEST“ (119100, 119200 bez role) zůstává a ocenění ho používá.
+- **Otevřené:** zakázat samostatný běh přecenění nad profilem fondu (dvojí přecenění)? Etapa 2 čeká na pokyn uživatele.
