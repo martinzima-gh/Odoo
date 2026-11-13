@@ -1,3 +1,10 @@
+// Barvy palety Investra; definuje je investra_theme. Záložní hodnoty pro instalaci bez tématu
+// (investra_nav na investra_theme nezávisí a bez nich by se nesestavily styly backendu).
+$investra-petroleum: #112e3c !default;
+$investra-petroleum-4: #e8ebec !default;
+$investra-graphite: #2c2927 !default;
+$investra-graphite-2: #6a6967 !default;
+
 .o_investra_class_price_chart {
     margin: 24px 0;
 
