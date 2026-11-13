@@ -15,10 +15,14 @@ bez migrace. Claude Doc rev 331, `docs/architektura.md` je jeho export.
 - Deník rozhodnutí, otevřené body (bod uzavřen, „Přehled operací“ doplněn), Claude Doc.
 - Mezitím relace vzhledu převzala CP-2026-11-13 (commit 5e15343, jen `investra_theme`); nic dalšího k převzetí.
 
-**Zbývá – první krok:** se souhlasem uživatele zálohovat a povýšit `investra_test` na 0.13.0/0.23.0
-(`ALLOW_UPGRADE=1 tools/run_tests.sh investra_instruments,investra_nav`). V `investra_test` není žádný nezaúčtovaný obchod
-(SELECT 2026-11-13: 12 vypořádaných, 3 stornované), součty dokladů se nemají změnit. Pak restart webu 8071.
-Další otevřený bod navrhnout s doporučením (např. „Přehled operací ke zpracování“ nebo „Sdílené nástroje bez pravidla společnosti“).
+- `investra_test` povýšena se souhlasem (záloha `zalohy/investra_test-2026-11-13-pred-navrhy-obchodu.dump`):
+  doklady 78, řádky 192, součty MD/D, obchody a stavy ocenění shodné před a po; testy 359, selhání jen známá
+  (5× „cannot approve“ ceny kvůli ručnímu řádku matice 82, 3× `TestApprovalMatrix` kvůli řádku 83). Web 8071 restartován,
+  přechodná chyba registru při startu (websocket), pak log čistý.
+
+**Zbývá – první krok:** navrhnout uživateli další otevřený bod z `docs/otevrene-body.md` s doporučením
+(např. „Sdílené nástroje bez pravidla společnosti“, „Oddělení uživatelů podle fondů“ nebo „Přehled operací ke zpracování“);
+zeptat se, pak plán. Případné nálezy uživatele z UI (záložka Zaúčtování, kontrola trades_booked) opravit jako první.
 
 **Rozhodnutí:** 2026-11-13 „Návrhy obchodů v pozicích“ (varianta B, stop).
 
