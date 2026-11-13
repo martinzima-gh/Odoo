@@ -213,7 +213,12 @@
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
                             <div class="alert alert-warning" role="alert">Výjimka: úplata spočtená mimo Odoo. Každý řádek potřebuje důvod a přílohu s výpočtem. Částka vstoupí do ocenění jako úplata a zaúčtuje se s oceněním po schválení.</div>
                             <field name="external_fee_ids"><list editable="bottom">
-                            <field name="rule_id"/><field name="class_id"/><field name="amount"/><field name="reason"/>
+                            <!-- Pravidlo a třída jen z fondu ocenění; nové pravidlo z výběru má fond a druh předvyplněné a zamčené
+                                 (uživatel 2026-11-13). -->
+                            <field name="rule_id" domain="[('kind', '=', 'external'), ('fund_id', '=', parent.fund_id)]"
+                                   context="{'default_fund_id': parent.fund_id, 'default_kind': 'external', 'investra_lock_fund': True}"/>
+                            <field name="class_id" domain="[('fund_id', '=', parent.fund_id)]" context="{'default_fund_id': parent.fund_id}"/>
+                            <field name="amount"/><field name="reason"/>
                             <field name="document_name" column_invisible="1"/>
                             <field name="document" filename="document_name"/>
                         </list></field></page>
@@ -304,7 +309,7 @@
         <field name="arch" type="xml">
             <form><sheet>
                 <group>
-                    <group><field name="fund_id"/><field name="name"/><field name="kind"/><field name="sequence"/><field name="statute_ref"/></group>
+                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="sequence"/><field name="statute_ref"/></group>
                     <group><field name="basis"/><field name="base_source"/><field name="base_mode"/><field name="expense_role"/><field name="crystallisation"/></group>
                 </group>
                 <group>

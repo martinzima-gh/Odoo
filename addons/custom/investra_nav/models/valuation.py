@@ -5,7 +5,7 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from odoo import api, fields, models
 from odoo.tools import format_date, html2plaintext
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from odoo.addons.investra_fund.models.approval_matrix import ROLES, check_user
 
@@ -1568,6 +1568,14 @@ class InvestraValuationExternal(models.Model):
     def _check_open(self):
         if not self.env.su and self.valuation_id.filtered(lambda v: v.state not in ("draft", "computed")):
             raise UserError(self.env._("Ručně doložené úplaty po odeslání ke schválení nejde měnit."))
+
+    @api.constrains("valuation_id", "rule_id", "class_id")
+    def _check_fund(self):
+        # Pravidlo i třída musí patřit fondu ocenění; formulář je nabízí jen z něj, kontrola chrání i import a API.
+        for row in self:
+            fund = row.valuation_id.fund_id
+            if row.rule_id.fund_id != fund or (row.class_id and row.class_id.fund_id != fund):
+                raise ValidationError(self.env._("Pravidlo i třída ručně doložené úplaty musí patřit fondu ocenění %s.", fund.display_name))
 
     @api.model_create_multi
     def create(self, vals_list):

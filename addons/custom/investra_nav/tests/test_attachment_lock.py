@@ -1,7 +1,7 @@
 import base64
 from datetime import date
 
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from .common import NavCase
@@ -82,3 +82,20 @@ class TestAttachmentLock(NavCase):
             "res_model": "investra.valuation", "res_id": valuation.id,
         })
         self.assertTrue(note.exists())
+
+    def test_external_rule_and_class_must_belong_to_valuation_fund(self):
+        """Ručně doložená úplata nesmí použít pravidlo ani třídu jiného fondu (uživatel 2026-11-13)."""
+        valuation = self.valuation(self.fund, self.day)
+        own_company = self.fund.company_id
+        # make_fund přepne testovací prostředí do firmy nového fondu; zápis do ocenění pak běží s oběma firmami.
+        other = self.make_fund(classes=[{"code": "B"}])
+        other_rule = self.env["investra.fee.rule"].create({
+            "fund_id": other.id, "name": "Cizí", "kind": "external", "expense_role": "expense_management",
+        })
+        valuation = valuation.with_context(allowed_company_ids=[own_company.id, other.company_id.id])
+        for vals in ({"rule_id": other_rule.id}, {"rule_id": self.rule.id, "class_id": self.cls(other, "B").id}):
+            with self.assertRaises(ValidationError):
+                valuation.write({"external_fee_ids": [(0, 0, dict(vals, amount=5, reason="x"))]})
+        valuation.write({"external_fee_ids": [(0, 0, {
+            "rule_id": self.rule.id, "class_id": self.cls(self.fund, "A").id, "amount": 5, "reason": "x"})]})
+        self.assertEqual(len(valuation.external_fee_ids), 1)
