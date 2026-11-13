@@ -1,7 +1,7 @@
 # Návrh: zjednodušené ručně zadané úplaty
 
-Stav: **návrh ke schválení** (červená zóna – výpočet ocenění a účtování). Rozhodnutí uživatele 2026-11-13,
-deník „Ručně zadané úplaty – zjednodušení“.
+Stav: **návrh ke schválení** (červená zóna – výpočet ocenění a účtování); pořadí ve výpočtu a varianta A přecenění
+odsouhlaseny 2026-11-13. Rozhodnutí uživatele 2026-11-13, deník „Ručně zadané úplaty – zjednodušení“.
 
 ## Dnes
 
@@ -30,9 +30,25 @@ která účtuje (vzor `investra.posting.preview`).
 
 1. K datu případu: MD náklad (role druhu) / D závazek z úplat (`fee_payable`), v cizí měně s částkou v měně
    a kurzem ČNB k datu případu. Podíl pro jiné třídy přesunem mezi třídami (`_transfer_lines`), FK fondu se nemění.
-2. K datu ocenění: přecenění závazku v cizí měně na kurz k datu ocenění, rozdíl `gain_fx` / `loss_fx`.
-   **Nové:** dnes se přeceňují jen banky (`_compute_bank_fx`); přecenění otevřených závazků z úplat v měně se doplní
-   obecně (i v dalších oceněních až do úhrady). Kurzový rozdíl při úhradě řeší párování výpisu (Enterprise, otevřený bod).
+2. K datu ocenění: závazek v cizí měně přecení společné přecenění ocenění (část B), ruční úplata žádné vlastní nemá.
+
+## Část B: ocenění přeceňuje podle profilu (varianta A, uživatel 2026-11-13)
+
+Dnes ocenění přeceňuje jen banky vlastním výpočtem (`_compute_bank_fx`); modul `investra_fx_revaluation` (profil účtů,
+doúčtování do zůstatku po účtu, měně a partnerovi) ocenění nepoužívá. Cíl: jedna logika pro Services i fondy.
+
+1. Výpočet rozdílů z `investra.fx.run.action_compute` se vyčlení do funkce profilu (účty, datum, kurz, doména řádků);
+   běh přecenění (Services) ji volá beze změny výsledku.
+2. Kniha fondu má profil přecenění; nová kniha ho dostane s účty rolí `bank` (včetně dalších účtů role) a `fee_payable`,
+   protiúčty `gain_fx` / `loss_fx`. Další účty (pohledávky, ostatní závazky) přidá uživatel do profilu.
+3. Ocenění volá funkci s kurzem fondu (`_fx`) a s řádky včetně vlastních nezaúčtovaných dokladů (`_line_domain`);
+   výsledek zaúčtuje jako událost ocenění (`fx_revaluation`), schvaluje se s oceněním čtyřma očima.
+   Řádky bank v listu portfolio zůstávají.
+4. Pořadí ve výpočtu: portfolio a nevypořádané obchody → ruční úplaty bez pravidla → **přecenění** → úplaty podle
+   pravidel (ruční úplaty s pravidlem v jeho pořadí; jejich závazek v měně přecení až další ocenění).
+5. Kompatibilita: u bank musí vyjít stejný doklad jako dnes (hlavní účet bez `account_id` v `extra`, aby otisk
+   dřívějších ocenění zůstal). Ověření na referenčních scénářích `tools/nav_reference`: stejné NAV a doklady.
+   Seskupení i podle partnera u bank nic nemění, bankovní řádky partnera nenesou – ověřit na datech.
 
 ## Chování
 
@@ -41,10 +57,10 @@ která účtuje (vzor `investra.posting.preview`).
   Spočítat (ruční úplata mění základ dalších úplat); Odeslat ke schválení jde až po novém výpočtu.
 - Po odeslání ke schválení řádky nejde měnit (beze změny). Kontrola fondu pravidla a tříd (2026-11-13) zůstává.
 
-## K rozhodnutí
+## Etapy
 
-- **Pořadí ve výpočtu:** řádek bez pravidla počítat před úplatami podle pravidel (sníží základ procentních úplat),
-  řádek s pravidlem v pořadí pravidla. Doporučení: ano.
+1. Část B (přecenění podle profilu) – bez změny výsledku u dnešních dat.
+2. Ruční úplaty: nová pole, migrace, výpočet a pořadí, výzva k přepočtu, náhled zaúčtování.
 
 ## Migrace
 
