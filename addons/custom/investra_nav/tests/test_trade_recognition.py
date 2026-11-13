@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -17,10 +18,10 @@ class TestTradeRecognition(NavCase):
         self.subscribe(self.cls(self.fund, "A"), "2031-03-01", 100000, 1000)
 
     def instrument(self, currency=None, code="bond", model="fair_value", **vals):
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"Nástroj {self.fund.id} {code}", "currency_id": (currency or self.czk).id,
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
-        })
+        }, self.fund))
         self.classify(self.fund, instrument, model)
         return instrument
 

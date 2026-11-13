@@ -2,6 +2,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -33,9 +34,9 @@ class TestCompanyAccess(NavCase):
             self.as_outsider(self.foreign).action_approve()
 
     def test_outsider_cannot_approve_price(self):
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Akcie", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_equity").id,
-        })
+        }))
         price = self.env["investra.instrument.price"].with_user(self.preparer).create({
             "fund_id": self.fund.id, "instrument_id": instrument.id, "date": "2037-01-31", "price": 1, "source": "Test",
         })
@@ -44,9 +45,9 @@ class TestCompanyAccess(NavCase):
         self.assertEqual(price.state, "draft")
 
     def instrument(self, **vals):
-        return self.env["investra.instrument"].create({
+        return self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Akcie", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_equity").id, **vals,
-        })
+        }))
 
     def assert_stays_in_book(self, model, vals, field, target):
         record = self.as_outsider(self.env[model]).create(vals)
@@ -72,7 +73,7 @@ class TestCompanyAccess(NavCase):
         }, "fund_id", self.fund)
 
     def test_repayment_stays_in_book(self):
-        deposit = self.instrument(type_id=self.env.ref("investra_instruments.type_deposit").id)
+        deposit = self.instrument(type_id=self.env.ref("investra_instruments.type_deposit").id, fund_id=self.own.id)
         held = self.classify(self.own, deposit, "hold_to_collect").portfolio_id
         # Splátka jen k držené pozici a v naběhlé hodnotě podle kalendáře (rozhodnutí 2026-11-12 „Splátky jistiny nástrojů“).
         deposit.cashflow_ids = [(0, 0, {"date": "2037-01-15", "amount": 1})]

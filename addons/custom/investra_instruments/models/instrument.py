@@ -11,7 +11,18 @@ DAY_COUNT = [
     ("act365", "ACT/365"), ("act360", "ACT/360"), ("act_act", "ACT/ACT ISDA"), ("thirty360_eu", "30E/360"), ("thirty360_us", "30/360 US"),
 ]
 # Po prvním obchodu neměnná pole nástroje. Klasifikace, způsob ocenění a role jsou v zařazení (rozhodnutí 2026-11-11).
-LOCKED_AFTER_TRADE = {"type_id"}
+# Měna od rozhodnutí 2026-11-13 „Sdílené nástroje a pravidlo knihy“: její změna by přepočetla pozice všech fondů.
+LOCKED_AFTER_TRADE = {"type_id", "currency_id"}
+# Nástroj bez ISIN se identifikuje druhem a hodnotou identifikátoru v rámci fondu (rozhodnutí 2026-11-13).
+IDENTIFIER_KINDS = [
+    ("contract", "Číslo smlouvy"), ("company", "IČO nebo LEI společnosti"), ("trade_ref", "Reference obchodu"), ("other", "Jiný"),
+]
+# Údaje nástroje, které mění NAV fondů; jejich změny se zapíší do historie nástroje a ukáže je kontrola ocenění
+# instrument_changes. Vlastní zápis (podtyp mt_instrument_change) vedle standardního sledování polí: kontrola tak čte
+# jen změny ovlivňující NAV a změny toků, ne např. přejmenování nebo list ČNB.
+NAV_INSTRUMENT_FIELDS = {
+    "currency_id", "maturity_date", "coupon_rate", "day_count", "accrual_method", "price_excludes_accrued", "max_price_age",
+}
 # Stav, události a důvody storna zapisuje jen zaúčtování a storno (rozhodnutí 2026-11-12 „Storno a oprava obchodu“).
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id", "reversal_reason", "settlement_reversal_reason"}
 # Odchylka kurzu vypořádání od kurzu obchodu, od které formulář upozorní (rozhodnutí 2026-11-12).
@@ -54,17 +65,34 @@ class InvestraInstrumentType(models.Model):
         help="Návrh pro nové nástroje tohoto typu. 0 = ocenění upozorní na každou cenu starší než datum ocenění.",
     )
 
+    isin_required = fields.Boolean(
+        string="Vyžaduje ISIN", help="Nástroj tohoto typu musí mít ISIN. Nástroj s ISIN je sdílený pro všechny fondy.",
+    )
+    code_prefix = fields.Char(default="NAS", required=True, string="Prefix kódu nástroje", help="Např. AKC → AKC-000123.")
+
     _code_uniq = models.Constraint("unique(code)", "Kód typu nástroje musí být jedinečný.")
 
 
 class InvestraInstrument(models.Model):
+    """Nástroj. S ISIN je sdílený pro všechny fondy a vede ho kniha investiční společnosti; bez ISIN patří jednomu
+    fondu a vede ho kniha fondu (rozhodnutí 2026-11-13 „Sdílené nástroje a pravidlo knihy“)."""
+
     _name = "investra.instrument"
-    _inherit = ["mail.thread"]
+    _inherit = ["investra.record.guard", "mail.thread"]
     _description = "Nástroj"
     _order = "name"
+    _book_fields = ("fund_id", "company_id")
+    _system_fields = frozenset({"code", "company_id"})
 
     name = fields.Char(required=True, string="Název")
+    code = fields.Char(readonly=True, copy=False, index=True, string="Kód", help="Přidělí systém při založení, nemění se.")
+    # Kniha nástroje: u nástroje fondu kniha fondu, u sdíleného kniha investiční společnosti. Do založení knihy
+    # investiční společnosti je u sdíleného prázdná (založit ho smí jen superuživatel, ostatním je jen ke čtení).
+    company_id = fields.Many2one("res.company", readonly=True, index=True, string="Kniha")
     isin = fields.Char(string="ISIN")
+    identifier_kind = fields.Selection(IDENTIFIER_KINDS, string="Druh identifikátoru")
+    identifier = fields.Char(string="Identifikátor", help="Nástroj bez ISIN: např. číslo smlouvy, IČO nebo LEI.")
+    isin_required = fields.Boolean(related="type_id.isin_required")
     currency_id = fields.Many2one("res.currency", required=True, string="Měna")
     type_id = fields.Many2one("investra.instrument.type", required=True, ondelete="restrict", string="Typ", tracking=True)
     type_group = fields.Selection(related="type_id.group", string="Skupina")
@@ -109,16 +137,67 @@ class InvestraInstrument(models.Model):
         help="Kategorie IFRS 9, způsob ocenění a role účtu podle obchodního modelu fondu (rozhodnutí 2026-11-11).",
     )
 
+    _isin_currency_uniq = models.UniqueIndex(
+        "(isin, currency_id) WHERE isin IS NOT NULL", "Nástroj s tímto ISIN a měnou už existuje; použijte ho.",
+    )
+    _identifier_uniq = models.UniqueIndex(
+        "(fund_id, identifier_kind, identifier) WHERE isin IS NULL AND identifier IS NOT NULL",
+        "Fond už má nástroj s tímto identifikátorem.",
+    )
+    _instrument_code_uniq = models.UniqueIndex("(code) WHERE code IS NOT NULL", "Kód nástroje musí být jedinečný.")
+
     def _type_proposal(self, kind):
         return {"cnb_sheet": kind.cnb_sheet, "max_price_age": kind.max_price_age}
 
+    @api.model
+    def _normalize_identifiers(self, vals):
+        """ISIN velkými písmeny bez mezer; prázdný identifikátor = nevyplněný."""
+        if "isin" in vals:
+            vals["isin"] = "".join((vals["isin"] or "").split()).upper() or False
+        if "identifier" in vals:
+            vals["identifier"] = (vals["identifier"] or "").strip() or False
+
+    @api.model
+    def _shared_company(self):
+        """Sdílené nástroje vede kniha investiční společnosti, stejně jako sdílené ceny (rozhodnutí 2026-11-13)."""
+        books = self.env["investra.entity"].sudo().search([("entity_type", "=", "manager")])
+        if len(books) == 1:
+            return books.company_id
+        if self.env.su:
+            # Skripty a testy před založením knihy investiční společnosti; její založení nástroj převezme.
+            return self.env["res.company"]
+        raise UserError(self.env._(
+            "Nástroj s ISIN je sdílený a vede ho kniha investiční společnosti, která zatím není založená (nebo jich je víc). "
+            "Nástroj bez ISIN založte jako nástroj fondu."
+        ))
+
     @api.model_create_multi
     def create(self, vals_list):
+        Sequence = self.env["ir.sequence"].sudo()
         for vals in vals_list:
             kind = self.env["investra.instrument.type"].browse(vals.get("type_id"))
             for field, value in self._type_proposal(kind).items():
                 vals.setdefault(field, value)
+            self._normalize_identifiers(vals)
+            fund = self.env["investra.fund"].browse(vals.get("fund_id")).sudo()
+            vals["company_id"] = fund.company_id.id if fund else self._shared_company().id
+            vals["code"] = f"{kind.code_prefix or 'NAS'}-{Sequence.next_by_code('investra.instrument')}"
         return super().create(vals_list)
+
+    @api.constrains("isin", "type_id", "fund_id", "identifier_kind", "identifier")
+    def _check_identifier(self):
+        for instrument in self:
+            if instrument.type_id.isin_required and not instrument.isin:
+                raise ValidationError(self.env._("Nástroj typu %(type)s musí mít ISIN: %(name)s.",
+                                                 type=instrument.type_id.name, name=instrument.name))
+            if instrument.isin and instrument.fund_id:
+                raise ValidationError(self.env._(
+                    "Nástroj s ISIN je sdílený pro všechny fondy, pole Fond nechte prázdné: %s.", instrument.name))
+            if not instrument.isin and not instrument.fund_id:
+                raise ValidationError(self.env._("Nástroj bez ISIN patří jednomu fondu, vyplňte Fond: %s.", instrument.name))
+            if not instrument.isin and not (instrument.identifier_kind and instrument.identifier):
+                raise ValidationError(self.env._(
+                    "Nástroj bez ISIN musí mít druh a hodnotu identifikátoru (např. číslo smlouvy): %s.", instrument.name))
 
     @api.onchange("type_id")
     def _onchange_type_id(self):
@@ -158,10 +237,42 @@ class InvestraInstrument(models.Model):
                 raise ValidationError(self.env._("Lineární úročení musí mít zdůvodnění: %s.", instrument.name))
 
     def write(self, vals):
+        if not self.env.su and "code" in vals:
+            raise UserError(self.env._("Kód nástroje přiděluje systém a nemění se."))
+        self._normalize_identifiers(vals)
         if not self.env.su and LOCKED_AFTER_TRADE & set(vals):
-            if self.env["investra.trade"].sudo().search_count([("instrument_id", "in", self.ids)], limit=1):
-                raise UserError(self.env._("Po prvním obchodu nejde měnit typ nástroje."))
-        return super().write(vals)
+            changed = self.filtered(lambda i: any(
+                (i[name].id if name.endswith("_id") else i[name]) != vals[name] for name in LOCKED_AFTER_TRADE & set(vals)
+            ))
+            if changed and self.env["investra.trade"].sudo().search_count([("instrument_id", "in", changed.ids)], limit=1):
+                raise UserError(self.env._("Po prvním obchodu nejde měnit typ ani měnu nástroje."))
+        watched = NAV_INSTRUMENT_FIELDS & set(vals)
+        before = {instrument: {name: instrument._change_text(name) for name in watched} for instrument in self} if watched else {}
+        result = super().write(vals)
+        for instrument, old in before.items():
+            changes = [
+                f"{instrument._fields[name].get_description(self.env)['string']}: {old[name]} → {instrument._change_text(name)}"
+                for name in sorted(watched) if instrument._change_text(name) != old[name]
+            ]
+            if changes:
+                instrument._log_cashflow_change(self.env._("Změna údajů: %s", "; ".join(changes)))
+        return result
+
+    def _change_text(self, name):
+        value = self[name]
+        if isinstance(value, models.BaseModel):
+            return value.display_name or "–"
+        if self._fields[name].type == "boolean":
+            return self.env._("ano") if value else self.env._("ne")
+        if self._fields[name].type == "selection":
+            return dict(self._fields[name]._description_selection(self.env)).get(value, "–")
+        return "–" if value is False or value is None else str(value)
+
+    def _log_cashflow_change(self, body):
+        """Změny údajů a smluvních toků do historie nástroje; kontrola ocenění instrument_changes je ukáže."""
+        subtype = self.env.ref("investra_instruments.mt_instrument_change")
+        for instrument in self:
+            instrument.sudo().message_post(body=body, subtype_id=subtype.id, author_id=self.env.user.partner_id.id)
 
     def _effective_accrual(self, fund):
         """Metoda úročení pro fond; volba na nástroji má přednost před fondem."""
@@ -170,16 +281,49 @@ class InvestraInstrument(models.Model):
 
 
 class InvestraInstrumentCashflow(models.Model):
-    """Smluvní tok na jednotku nástroje, bez pořízení; to se bere z obchodu."""
+    """Smluvní tok na jednotku nástroje, bez pořízení; to se bere z obchodu.
+
+    Každé založení, změna a smazání se zapíše do historie nástroje (rozhodnutí 2026-11-13).
+    """
 
     _name = "investra.instrument.cashflow"
     _description = "Smluvní peněžní tok nástroje"
     _order = "date, id"
 
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="cascade", index=True, string="Nástroj")
+    company_id = fields.Many2one(related="instrument_id.company_id", store=True, index=True)
     date = fields.Date(required=True, string="Datum")
     amount = fields.Float(required=True, digits=(20, 8), string="Částka na jednotku")
     flow_type = fields.Selection([("interest", "Úrok"), ("principal", "Jistina")], required=True, default="principal", string="Druh")
+
+    def _describe(self):
+        kinds = dict(self._fields["flow_type"]._description_selection(self.env))
+        return f"{self.date} {kinds.get(self.flow_type, '')} {self.amount:g}"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        flows = super().create(vals_list)
+        for flow in flows:
+            flow.instrument_id._log_cashflow_change(self.env._("Tok přidán: %s", flow._describe()))
+        return flows
+
+    def write(self, vals):
+        before = {flow: flow._describe() for flow in self}
+        if "instrument_id" in vals and not self.env.su and self.filtered(lambda f: f.instrument_id.id != vals["instrument_id"]):
+            raise UserError(self.env._("Tok nejde přesunout k jinému nástroji. Smažte ho a založte znovu."))
+        result = super().write(vals)
+        for flow, old in before.items():
+            if flow._describe() != old:
+                flow.instrument_id._log_cashflow_change(self.env._("Tok změněn: %(old)s → %(new)s", old=old, new=flow._describe()))
+        return result
+
+    def unlink(self):
+        removed = [(flow.instrument_id, flow._describe()) for flow in self]
+        result = super().unlink()
+        for instrument, text in removed:
+            if instrument.exists():
+                instrument._log_cashflow_change(self.env._("Tok smazán: %s", text))
+        return result
 
 
 class InvestraInstrumentPrice(models.Model):
@@ -242,7 +386,7 @@ class InvestraInstrumentPrice(models.Model):
 
     @api.model
     def _shared_price_company(self):
-        """Sdílené ceny vede kniha investiční společnosti (rozhodnutí 2026-11-11)."""
+        """Sdílené ceny vede kniha investiční společnosti (rozhodnutí 2026-11-11); stejně sdílené nástroje (2026-11-13)."""
         books = self.env["investra.entity"].sudo().search([("entity_type", "=", "manager")])
         if len(books) != 1:
             raise UserError(self.env._(
@@ -756,6 +900,32 @@ class InvestraTrade(models.Model):
         for (instrument, _portfolio), qty in self._holdings(fund, day).items():
             quantities[instrument] = quantities.get(instrument, 0.0) + qty
         return {instrument: qty for instrument, qty in quantities.items() if qty}
+
+
+class InvestraEntity(models.Model):
+    _inherit = "investra.entity"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        entities = super().create(vals_list)
+        if entities.filtered(lambda e: e.entity_type == "manager"):
+            entities._adopt_shared_instruments()
+        return entities
+
+    def write(self, vals):
+        result = super().write(vals)
+        if vals.get("entity_type") == "manager":
+            self._adopt_shared_instruments()
+        return result
+
+    def _adopt_shared_instruments(self):
+        """Sdílené nástroje založené před knihou investiční společnosti převezme tato kniha (rozhodnutí 2026-11-13)."""
+        books = self.sudo().search([("entity_type", "=", "manager")])
+        if len(books) == 1:
+            orphans = self.env["investra.instrument"].sudo().with_context(active_test=False).search(
+                [("fund_id", "=", False), ("company_id", "=", False)]
+            )
+            orphans.write({"company_id": books.company_id.id})
 
 
 class InvestraFund(models.Model):

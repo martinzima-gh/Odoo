@@ -5,6 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tests import Form, tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -21,10 +22,10 @@ class TestFairValueInterest(NavCase):
         self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 50000, 500)
 
     def instrument(self, code, currency=None, **vals):
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"{code} {self.fund.id}", "currency_id": (currency or self.czk).id,
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
-        })
+        }, self.fund))
         self.classify(self.fund, instrument)
         return instrument
 

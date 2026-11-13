@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -19,10 +20,10 @@ class TestAccrual(NavCase):
         self.purchase = self.trade(self.deposit, 950)
 
     def instrument(self, code, **vals):
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"{code} {self.fund.id}", "currency_id": self.czk.id,
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
-        })
+        }, self.fund))
         # Vklad a repo v modelu Držet pro inkaso (naběhlá hodnota), dluhopis v portfoliu Hlavní (FVTPL).
         self.classify(self.fund, instrument, "hold_to_collect" if code in ("deposit", "repo") else "fair_value")
         return instrument
@@ -559,9 +560,9 @@ class TestAccrual(NavCase):
         """Ruční přepsání kategorie se ukáže v kontrolách ocenění jako upozornění."""
         self.purchase.unlink()
         self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 2000, 20)
-        bond = self.env["investra.instrument"].create({
+        bond = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"Přepsaný {self.fund.id}", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_bond").id,
-        })
+        }))
         self.classify(self.fund, bond, category_override="fvoci", override_note="Test přepsání")
         self.env["investra.trade"].create({
             "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": bond.id,

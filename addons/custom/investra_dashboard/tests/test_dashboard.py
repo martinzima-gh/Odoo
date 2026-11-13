@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
 from odoo.addons.investra_nav.tests.common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -68,9 +69,9 @@ class TestDashboard(NavCase):
         self.assertEqual(self.deadline(3).source, "manual")
 
     def test_pending_price_warns(self):
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Akcie", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_equity").id,
-        })
+        }))
         self.env["investra.instrument.price"].with_user(self.preparer).create({
             "fund_id": self.fund.id, "instrument_id": instrument.id, "date": self.today, "price": 1, "source": "Test",
         })

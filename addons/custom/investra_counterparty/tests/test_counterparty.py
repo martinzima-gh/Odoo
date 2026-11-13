@@ -8,6 +8,7 @@ from odoo.tools import mute_logger
 
 from odoo.addons.investra_counterparty.models.counterparty import lei_is_valid
 from odoo.addons.investra_instruments.tests.test_instrument import InstrumentCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -54,17 +55,17 @@ class TestCounterparty(TransactionCase):
 
     def test_instrument_issuer_profile(self):
         profile = self.profile("2026-01-01", lei="5493001KJTIIGC8Y1R12")
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Dluhopis", "currency_id": self.env.ref("base.CZK").id,
             "type_id": self.env.ref("investra_instruments.type_bond").id, "issuer_id": self.partner.id,
-        })
+        }))
         self.assertEqual(instrument._issuer_profile(date(2026, 2, 1)), profile)
 
     def test_instrument_without_issuer_has_empty_profile(self):
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Dluhopis", "currency_id": self.env.ref("base.CZK").id,
             "type_id": self.env.ref("investra_instruments.type_bond").id,
-        })
+        }))
         self.assertFalse(instrument._issuer_profile(date(2026, 2, 1)))
 
 
@@ -78,10 +79,10 @@ class TestRepoRole(InstrumentCase):
             "partner_id": partner.id, "valid_from": "2000-01-01", "country_id": self.env.ref("base.cz").id,
             "sector_id": self.env["investra.esa.sector"].search([("code", "=", sector_code)]).id,
         })
-        instrument = self.env["investra.instrument"].create({
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"Repo {sector_code}", "currency_id": self.czk.id, "counterparty_id": partner.id,
             "type_id": self.env.ref("investra_instruments.type_repo").id,
-        })
+        }, self.fund))
         return self.classify(self.fund, instrument, "hold_to_collect")
 
     def test_bank_counterparty_keeps_repo(self):

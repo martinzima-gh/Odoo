@@ -35,9 +35,10 @@ def make_fund(name, prefix):
     return scoped, fund, preparer, approver
 
 
-def instrument(scoped, fund, name):
-    bond = scoped["investra.instrument"].create({
-        "name": name, "currency_id": czk.id, "type_id": env.ref("investra_instruments.type_bond").id, "fair_value_level": "2",
+def instrument(scoped, fund, name, isin):
+    # Dluhopis má povinný ISIN a je sdílený; opakované spuštění použije existující (rozhodnutí 2026-11-13).
+    bond = scoped["investra.instrument"].sudo().search([("isin", "=", isin), ("currency_id", "=", czk.id)]) or scoped["investra.instrument"].create({
+        "name": name, "isin": isin, "currency_id": czk.id, "type_id": env.ref("investra_instruments.type_bond").id, "fair_value_level": "2",
     })
     # Zařazení v portfoliu Hlavní (model Ostatní, FVTPL), rozhodnutí 2026-11-11.
     scoped["investra.portfolio.classification"].create({
@@ -61,7 +62,7 @@ def approved_price(scoped, fund, bond, day, value, preparer, approver):
 
 # Beta: zářijové ocenění zveřejněné, říjnové po termínu, obchod po termínu vypořádání, termín po lhůtě.
 scoped, fund, preparer, approver = make_fund(BETA, "beta")
-bond = instrument(scoped, fund, "Ukázkový dluhopis Beta")
+bond = instrument(scoped, fund, "Ukázkový dluhopis Beta", "CZ0000000002")
 scoped["investra.trade"].create({"fund_id": fund.id, "instrument_id": bond.id, "trade_date": "2026-09-10", "quantity": 500, "price": 10000})._book()
 september, october = date(2026, 9, 30), date(2026, 10, 31)
 scoped["investra.valuation.calendar"].create([
@@ -88,7 +89,7 @@ example(scoped, fund, "Příklad: roční výkaz", date(2026, 12, 31), "2027-04-
 
 # Gama: bez ocenění, cena čekající na schválení a blízký termín.
 scoped, fund, preparer, approver = make_fund(GAMA, "gama")
-bond = instrument(scoped, fund, "Ukázkový dluhopis Gama")
+bond = instrument(scoped, fund, "Ukázkový dluhopis Gama", "CZ0000000003")
 scoped["investra.instrument.price"].with_user(preparer).create({
     "fund_id": fund.id, "instrument_id": bond.id, "date": "2026-10-31", "price": 9950, "source": "Ukázkový zdroj",
 })

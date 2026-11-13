@@ -1,7 +1,7 @@
 # Návrh: sdílené nástroje a pravidlo knihy
 
 Stav 13. 11. 2026, připravil Claude k otevřenému bodu „Sdílené nástroje bez pravidla společnosti“.
-Uživatel 13. 11. 2026 zvolil směr varianty B. **Plán čeká na schválení a odpovědi na otázky; nic není naprogramované.**
+Uživatel 13. 11. 2026 zvolil variantu B a plán schválil (odpovědi níže). **Naprogramováno 13. 11. 2026** (`investra_instruments` 0.14.0, `investra_nav` 0.24.0); interní kód a identifikátor nástroje bez ISIN doplněny podle odpovědí.
 Červená zóna (pravidla přístupu, `record_guard`, údaje vstupující do NAV, migrace).
 
 ## Jak to funguje dnes (ověřeno v kódu a v `investra_test` 13. 11. 2026)
@@ -64,6 +64,33 @@ bez upozornění a bez stopy. Totéž platí pro nástroj, který patří jen fo
    protože splatnost a toky se legitimně mění (prodloužení, mimořádná splátka).
 5. **Závažnost kontroly `instrument_changes`:** **doporučuji upozornění.** Změna může být oprávněná a schvalovatel
    ji má vidět, ne být zablokován.
+
+## Odpovědi uživatele 13. 11. 2026
+
+1. Sdílený nástroj mění uživatel s knihou investiční společnosti. 2. V `investra_test` po záloze založit knihu
+investiční společnosti a sdílené nástroje převést na ni. 3. Nástroje jiných fondů skrýt i při čtení.
+4. Po prvním obchodu zamknout i měnu. 5. Kontrola `instrument_changes` je upozornění.
+Navíc: **hlídat jedinečnost ISIN + měna a obojí musí být vyplněné.**
+
+## Jedinečnost ISIN + měna (doplněno 13. 11. 2026)
+
+Zjištěno v `investra_test`: duplicity 29/45 („Ukázkový dluhopis“, CZ0000000001, CZK) a 30/46 („Ukázková akcie“,
+XS0000000001, EUR). Vznikly opakovaným spuštěním `tools/nav_demo` pro fondy 200 a 339 a každá kopie má obchody
+s doklady. Bez ISIN jsou nástroje 466, 467 (dluhopisy) a 1561 (termínovaný vklad). Nástroj 5710 má ISIN „ISIN TEST TEST“.
+Testovací ISINy nemají platnou kontrolní číslici. Typ „Ostatní podíl (fond bez ISIN)“ už v číselníku je.
+
+Návrh:
+- Typ nástroje dostane příznak „Vyžaduje ISIN“. Výchozí je zapnutý u akcií, dluhopisů a fondů, vypnutý u vkladů,
+  úvěrů, rep, derivátů, účastí a ostatních podílů. Měna je povinná už dnes.
+- ISIN se ukládá velkými písmeny bez mezer a kontroluje se formát a kontrolní číslice podle ISO 6166.
+- Jedinečnost (ISIN, měna) hlídá omezení v databázi.
+- **Nástroj s ISIN je vždy sdílený, nástroj bez ISIN musí mít fond.** Jinak by fondový nástroj s ISIN, který ostatní
+  fondy nevidí, zablokoval založení téhož titulu jako sdíleného.
+- Migrace data neopravuje sama. Když najde duplicitu, chybějící nebo neplatný ISIN, zastaví se se seznamem nástrojů.
+- `tools/nav_demo` nástroj podle ISIN a měny najde, a teprve když neexistuje, založí ho. Testy dostanou platné fiktivní ISINy.
+- Úprava `investra_test` před migrací (testovací data, se zálohou, přes ORM): 45 a 46 dostanou jiný platný fiktivní ISIN,
+  sloučení obchodů s doklady se nedělá. 466, 467 a 5710 dostanou platný fiktivní ISIN. 1561 se stane nástrojem fondu 2931,
+  jediného, který ho drží.
 
 ## Mimo rozsah
 

@@ -3,6 +3,7 @@ from odoo.tests import tagged
 from odoo.tools import mute_logger
 
 from .test_instrument import InstrumentCase
+from .common import manager_book, with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -12,7 +13,7 @@ class TestSharedPrice(InstrumentCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.manager_book = cls.env["investra.entity"].create_book("Investiční společnost", "manager", "cas501", cls.czk, "cz")
+        cls.manager_book = manager_book(cls.env, cls.czk)
         cls.manager_company = cls.manager_book.company_id
         cls.both = [cls.manager_company.id, cls.company.id]
         for user in (cls.preparer, cls.approver):
@@ -59,7 +60,7 @@ class TestSharedPrice(InstrumentCase):
     def test_fund_only_instrument_has_no_shared_price(self):
         own = self.env["investra.instrument"].create({
             "name": "Úvěr SPV", "currency_id": self.czk.id, "fund_id": self.fund.id,
-            "type_id": self.env.ref("investra_instruments.type_equity").id,
+            "type_id": self.env.ref("investra_instruments.type_loan").id, "identifier_kind": "contract", "identifier": "SPV-1",
         })
         with self.assertRaises(ValidationError):
             self.shared(instrument_id=own.id)
@@ -99,5 +100,5 @@ class TestSharedPrice(InstrumentCase):
     def test_max_price_age_comes_from_type(self):
         kind = self.env.ref("investra_instruments.type_equity")
         kind.max_price_age = 5
-        instrument = self.env["investra.instrument"].create({"name": "Akcie Y", "currency_id": self.eur.id, "type_id": kind.id})
+        instrument = self.env["investra.instrument"].create(with_ids(self.env, {"name": "Akcie Y", "currency_id": self.eur.id, "type_id": kind.id}, self.fund))
         self.assertEqual(instrument.max_price_age, 5)

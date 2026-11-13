@@ -3,6 +3,7 @@ from datetime import date
 from odoo.tests import tagged
 
 from odoo.addons.investra_nav.tests.common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 class CnbMapCase(NavCase):
@@ -15,9 +16,9 @@ class CnbMapCase(NavCase):
         self.day = date(2038, 1, 31)
         self.Map = self.env["investra.cnb.map"]
         self.subscribe(self.cls(self.fund, "A"), "2038-01-01", 100000, 1000)
-        self.bond = self.env["investra.instrument"].create({
+        self.bond = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Dluhopis", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_bond").id,
-        })
+        }))
         self.classify(self.fund, self.bond)
         self.env["investra.trade"].create({
             "fund_id": self.fund.id, "instrument_id": self.bond.id, "trade_date": "2038-01-05", "quantity": 400, "price": 100,

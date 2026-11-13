@@ -4,7 +4,7 @@ from datetime import date as date_type, timedelta
 from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from odoo import api, fields, models
-from odoo.tools import format_date
+from odoo.tools import format_date, html2plaintext
 from odoo.exceptions import AccessError, UserError
 
 from odoo.addons.investra_fund.models.approval_matrix import ROLES, check_user
@@ -1130,6 +1130,10 @@ class InvestraValuation(models.Model):
         changes = self._matrix_changes()
         self._check("matrix_change", "Schvalovací matice se od minulého ocenění nezměnila", not changes,
                     "; ".join(changes), severity="warning")
+        # Sdílené nástroje a pravidlo knihy (rozhodnutí 2026-11-13): změnu sdíleného i fondového nástroje musí vidět schvalovatel.
+        changed = self._instrument_changes()
+        self._check("instrument_changes", "Údaje nástrojů v portfoliu se od minulého ocenění nezměnily", not changed,
+                    "; ".join(changed), severity="warning")
 
     def _since_previous(self):
         """Okamžik kontrol předchozího ocenění: co se stalo potom (i jeho schválení), ukáže toto ocenění."""
@@ -1163,6 +1167,24 @@ class InvestraValuation(models.Model):
             "&", ("fund_id", "=", False), ("manager_id", "in", [False] + fund.manager_id.ids),
         ], order="id")
         return rows.mapped("display_name")
+
+    def _instrument_changes(self):
+        """Změny údajů a toků nástrojů, které fond držel k minulému ocenění, provedené po jeho kontrolách."""
+        since = self._since_previous()
+        if not since:
+            return []
+        held = self.env["investra.trade"].sudo()._positions(self.fund_id, self.previous_id.date)
+        if not held:
+            return []
+        messages = self.env["mail.message"].sudo().search([
+            ("model", "=", "investra.instrument"), ("res_id", "in", [instrument.id for instrument in held]),
+            ("subtype_id", "=", self.env.ref("investra_instruments.mt_instrument_change").id), ("date", ">=", since),
+        ], order="date, id")
+        names = {instrument.id: instrument.name for instrument in held}
+        return [
+            f"{names[m.res_id]}: {html2plaintext(m.body or '').strip()} ({m.author_id.name}, {fields.Datetime.to_string(m.date)})"
+            for m in messages
+        ]
 
     def _lock_exceptions_since_previous(self):
         """Výjimky z uzamčení knihy od zveřejnění předchozího ocenění (vrstva 2 zámku, rozhodnutí 2026-11-11)."""

@@ -5,6 +5,7 @@ from datetime import date
 from odoo.tests import tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 _logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class TestBenchmark(NavCase):
         kind = self.env.ref("investra_instruments.type_equity")
         day = date(2036, 1, 31)
         for index in range(instruments):
-            item = self.env["investra.instrument"].create({"name": f"N{fund.id}-{index}", "currency_id": self.czk.id, "type_id": kind.id})
+            item = self.env["investra.instrument"].create(with_ids(self.env, {"name": f"N{fund.id}-{index}", "currency_id": self.czk.id, "type_id": kind.id}, fund))
             self.classify(fund, item)
             self.env["investra.trade"].create({
                 "fund_id": fund.id, "instrument_id": item.id, "trade_date": "2036-01-05", "quantity": 1, "price": 100,

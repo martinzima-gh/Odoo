@@ -4,6 +4,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -205,10 +206,10 @@ class TestApprovalMatrix(NavCase):
     # --- záznamy se schválením: cena, výjimka, ruční kategorie --------------------------------------
 
     def instrument(self, kind="equity", currency=None):
-        return self.env["investra.instrument"].create({
+        return self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"Nástroj {kind}", "currency_id": (currency or self.czk).id,
             "type_id": self.env.ref(f"investra_instruments.type_{kind}").id,
-        })
+        }, self.fund))
 
     def test_price_one_person_is_logged(self):
         self.matrix("price_approve")

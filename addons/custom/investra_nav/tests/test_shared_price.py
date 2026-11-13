@@ -4,6 +4,7 @@ from odoo.exceptions import UserError
 from odoo.tests import tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import manager_book, with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -13,13 +14,13 @@ class TestSharedPriceValuation(NavCase):
 
     def setUp(self):
         super().setUp()
-        manager = self.env["investra.entity"].create_book("Investiční společnost", "manager", "cas501", self.czk, "cz")
+        manager = manager_book(self.env, self.czk)
         self.manager_company = manager.company_id
         for user in (self.preparer, self.approver, self.approver2):
             user.company_ids = [(4, self.manager_company.id)]
-        self.instrument = self.env["investra.instrument"].create({
+        self.instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Akcie", "currency_id": self.eur.id, "type_id": self.env.ref("investra_instruments.type_equity").id,
-        })
+        }))
         self.fund = self.new_fund()
         self.day = date(2032, 1, 31)
         self.rate("2032-01-29", 26)
@@ -111,3 +112,19 @@ class TestSharedPriceValuation(NavCase):
         self.price(110, day=date(2032, 1, 27))
         row = [r for r in self.compute()._package_rows_portfolio() if r["name"] == "Akcie"][0]
         self.assertEqual(row["price_date"], "2032-01-27")
+
+    def test_instrument_change_shown_in_next_valuation(self):
+        """Změnu sdíleného nástroje drženého fondem ukáže příští ocenění upozorněním (rozhodnutí 2026-11-13)."""
+        self.price(110)
+        previous = self.compute()
+        self.assertEqual(self.status(previous, "instrument_changes"), "ok")
+        self.run_to_posted(previous)
+        companies = [self.manager_company.id, self.fund.company_id.id]
+        self.instrument.with_user(self.preparer).with_context(allowed_company_ids=companies).write({"max_price_age": 40})
+        self.rate("2032-02-27", 26)
+        self.day = date(2032, 2, 29)
+        following = self.compute()
+        check = following.check_ids.filtered(lambda c: c.code == "instrument_changes")
+        self.assertEqual(check.status, "warning")
+        self.assertIn("Akcie: Změna údajů: Maximální stáří ceny (dny): 0 → 40", check.detail)
+        self.assertIn(self.preparer.name, check.detail)

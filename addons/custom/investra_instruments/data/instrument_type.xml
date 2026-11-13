@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <record id="type_equity" model="investra.instrument.type">
-        <field name="code">equity</field><field name="name">Akcie</field><field name="group">listed</field><field name="kind">equity</field>
+        <field name="code">equity</field><field name="code_prefix">AKC</field><field name="isin_required" eval="True"/><field name="name">Akcie</field><field name="group">listed</field><field name="kind">equity</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">price</field>
         <field name="role_id" ref="investra_entity.role_instrument"/><field name="cnb_sheet">DOFO31_11</field>
     </record>
     <record id="type_fund" model="investra.instrument.type">
-        <field name="code">fund</field><field name="name">Podílový list nebo ETF</field><field name="group">listed</field><field name="kind">fund</field>
+        <field name="code">fund</field><field name="code_prefix">PL</field><field name="isin_required" eval="True"/><field name="name">Podílový list nebo ETF</field><field name="group">listed</field><field name="kind">fund</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">price</field>
         <field name="role_id" ref="investra_entity.role_instrument"/><field name="cnb_sheet">DOFO31_11</field>
     </record>
     <record id="type_bond" model="investra.instrument.type">
-        <field name="code">bond</field><field name="name">Dluhopis</field><field name="group">debt</field><field name="kind">bond</field>
+        <field name="code">bond</field><field name="code_prefix">DLU</field><field name="isin_required" eval="True"/><field name="name">Dluhopis</field><field name="group">debt</field><field name="kind">bond</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">price</field>
         <field name="role_id" ref="investra_entity.role_instrument_debt"/><field name="cnb_sheet">DOFO31_12</field>
     </record>
     <record id="type_deposit" model="investra.instrument.type">
-        <field name="code">deposit</field><field name="name">Termínovaný vklad</field><field name="group">money_market</field><field name="kind">deposit</field>
+        <field name="code">deposit</field><field name="code_prefix">TV</field><field name="name">Termínovaný vklad</field><field name="group">money_market</field><field name="kind">deposit</field>
         <field name="ifrs9_category">amortised</field><field name="valuation_method">amortised</field>
         <field name="role_id" ref="investra_entity.role_deposit"/>
     </record>
     <record id="type_repo" model="investra.instrument.type">
-        <field name="code">repo</field><field name="name">Reverzní repo</field><field name="group">money_market</field><field name="kind">repo</field>
+        <field name="code">repo</field><field name="code_prefix">REPO</field><field name="name">Reverzní repo</field><field name="group">money_market</field><field name="kind">repo</field>
         <field name="ifrs9_category">amortised</field><field name="valuation_method">amortised</field>
         <field name="role_id" ref="investra_entity.role_repo"/>
     </record>
     <record id="type_loan" model="investra.instrument.type">
-        <field name="code">loan</field><field name="name">Poskytnutý úvěr</field><field name="group">loan</field><field name="kind">loan</field>
+        <field name="code">loan</field><field name="code_prefix">UVR</field><field name="name">Poskytnutý úvěr</field><field name="group">loan</field><field name="kind">loan</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">model</field>
         <field name="role_id" ref="investra_entity.role_loan_given"/><field name="cnb_sheet">RIS30_02</field>
     </record>
     <record id="type_participation" model="investra.instrument.type">
-        <field name="code">participation</field><field name="name">Účast</field><field name="group">loan</field><field name="kind">participation</field>
+        <field name="code">participation</field><field name="code_prefix">UCA</field><field name="name">Účast</field><field name="group">loan</field><field name="kind">participation</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">model</field>
         <field name="role_id" ref="investra_entity.role_participation"/><field name="cnb_sheet">RIS33_13</field>
     </record>
     <record id="type_derivative_listed" model="investra.instrument.type">
-        <field name="code">derivative_listed</field><field name="name">Burzovní derivát</field><field name="group">derivative</field><field name="kind">derivative</field>
+        <field name="code">derivative_listed</field><field name="code_prefix">DER</field><field name="name">Burzovní derivát</field><field name="group">derivative</field><field name="kind">derivative</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">price</field>
         <field name="role_id" ref="investra_entity.role_derivative"/><field name="cnb_sheet">DOFO31_21</field>
     </record>
     <record id="type_derivative_otc" model="investra.instrument.type">
-        <field name="code">derivative_otc</field><field name="name">Mimoburzovní derivát</field><field name="group">derivative</field><field name="kind">derivative</field>
+        <field name="code">derivative_otc</field><field name="code_prefix">OTC</field><field name="name">Mimoburzovní derivát</field><field name="group">derivative</field><field name="kind">derivative</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">contract</field>
         <field name="role_id" ref="investra_entity.role_derivative"/><field name="cnb_sheet">DOFO31_22</field>
     </record>
     <record id="type_other_holding" model="investra.instrument.type">
-        <field name="code">other_holding</field><field name="name">Ostatní podíl (fond bez ISIN)</field><field name="group">other_holding</field><field name="kind">other_holding</field>
+        <field name="code">other_holding</field><field name="code_prefix">POD</field><field name="name">Ostatní podíl (fond bez ISIN)</field><field name="group">other_holding</field><field name="kind">other_holding</field>
         <field name="ifrs9_category">fvtpl</field><field name="valuation_method">position</field>
         <field name="role_id" ref="investra_entity.role_other_holding"/><field name="cnb_sheet">RIS33_13</field>
     </record>

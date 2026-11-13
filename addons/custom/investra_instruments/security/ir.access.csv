@@ -21,3 +21,7 @@ access_classification_preparer,investra.portfolio.classification preparer,invest
 investra_classification_company_rule,Zařazení podle společnosti,investra.portfolio.classification,,crud,"[('company_id', 'in', company_ids)]"
 access_classification_override_wizard,investra.classification.override.wizard preparer,investra.classification.override.wizard,investra_entity.group_valuation_preparer,crud,
 access_classification_override_wizard_appr,investra.classification.override.wizard approver,investra.classification.override.wizard,investra_entity.group_valuation_approver,crud,
+investra_instrument_company_rule,Nástroje podle knihy,investra.instrument,,cud,"[('company_id', 'in', company_ids)]"
+investra_instrument_read_rule,Sdílené nástroje a nástroje vlastní knihy,investra.instrument,,r,"['|', ('fund_id', '=', False), ('company_id', 'in', company_ids)]"
+investra_cashflow_company_rule,Toky podle knihy nástroje,investra.instrument.cashflow,,cud,"[('company_id', 'in', company_ids)]"
+investra_cashflow_read_rule,Toky sdílených nástrojů a vlastní knihy,investra.instrument.cashflow,,r,"['|', ('instrument_id.fund_id', '=', False), ('company_id', 'in', company_ids)]"

@@ -2,6 +2,7 @@ from datetime import date
 
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 class InstrumentCase(TransactionCase):
@@ -15,9 +16,9 @@ class InstrumentCase(TransactionCase):
         cls.company = cls.book.company_id
         cls.env = cls.env(context=dict(cls.env.context, allowed_company_ids=[cls.company.id]))
         cls.fund = cls.env["investra.fund"].create({"entity_id": cls.book.id})
-        cls.instrument = cls.env["investra.instrument"].create(
-            {"name": "Akcie X", "currency_id": cls.eur.id, "type_id": cls.env.ref("investra_instruments.type_equity").id}
-        )
+        cls.instrument = cls.env["investra.instrument"].create(with_ids(
+            cls.env, {"name": "Akcie X", "currency_id": cls.eur.id, "type_id": cls.env.ref("investra_instruments.type_equity").id}
+        ))
         cls.classify(cls.fund, cls.instrument)
 
         def user(login, group):
@@ -188,9 +189,9 @@ class TestInstrumentType(InstrumentCase):
     """Typ navrhuje hodnoty, rozhoduje nástroj."""
 
     def make(self, code, **vals):
-        return self.env["investra.instrument"].create({
+        return self.env["investra.instrument"].create(with_ids(self.env, {
             "name": code, "currency_id": self.czk.id, "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
-        })
+        }, self.fund))
 
     def test_calendar_missing_warning(self):
         bond = self.make("bond")
@@ -242,6 +243,9 @@ class TestInstrumentType(InstrumentCase):
             form.name = "Vklad"
             form.currency_id = self.czk
             form.type_id = self.env.ref("investra_instruments.type_deposit")
+            form.fund_id = self.fund
+            form.identifier_kind = "contract"
+            form.identifier = "TV-FORM-1"
             self.assertEqual(form.cnb_sheet, self.env.ref("investra_instruments.type_deposit").cnb_sheet)
         deposit = self.make("deposit")
         with Form(self.env["investra.portfolio.classification"]) as form:
@@ -273,7 +277,9 @@ class TestInstrumentType(InstrumentCase):
             self.classify(self.fund, bond, day="2026-12-01")
         with self.assertRaises(UserError):
             self.fund.portfolio_ids.with_user(self.preparer).write({"business_model": "hold_to_collect"})
-        bond.with_user(self.preparer).write({"name": "Nový název"})
+        # Sdílený dluhopis (s ISIN) mění jen kniha investiční společnosti (rozhodnutí 2026-11-13).
+        with self.assertRaises(AccessError):
+            bond.with_user(self.preparer).write({"name": "Nový název"})
         classification.with_user(self.preparer).write({"note": "Doplněné zdůvodnění"})
 
     def test_linear_needs_note(self):
@@ -362,9 +368,9 @@ class TestTradeCompanyAccess(InstrumentCase):
 class TestChartRoles(InstrumentCase):
     def test_participation_at_fair_value_has_own_role(self):
         """Účast ve FVTPL má roli participation_fv (účet 413100), rozhodnutí 2026-11-11 a 2026-11-12."""
-        participation = self.env["investra.instrument"].create({
+        participation = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Účast Y", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_participation").id,
-        })
+        }, self.fund))
         classification = self.classify(self.fund, participation)
         self.assertEqual(classification.ifrs9_category, "fvtpl")
         self.assertEqual(classification.role_id, self.env.ref("investra_entity.role_participation_fv"))

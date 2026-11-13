@@ -1,6 +1,7 @@
 from odoo.tests import Form, tagged
 
 from .common import NavCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 class PreviewMixin:
@@ -32,10 +33,10 @@ class TestRepaymentPreview(PreviewMixin, NavCase):
         self.subscribe(self.cls(self.fund, "A"), "2029-01-01", 50000, 500)
 
     def deposit(self, currency=None, fx_rate=1):
-        deposit = self.env["investra.instrument"].create({
+        deposit = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"deposit {self.fund.id}", "currency_id": (currency or self.czk).id,
             "type_id": self.env.ref("investra_instruments.type_deposit").id,
-        })
+        }, self.fund))
         deposit.cashflow_ids = [(0, 0, {"date": "2029-06-01", "amount": 1, "flow_type": "principal"})]
         self.classify(self.fund, deposit)
         self.env["investra.trade"].create({

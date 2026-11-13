@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from .test_instrument import InstrumentCase
+from odoo.addons.investra_instruments.tests.common import with_ids
 
 
 @tagged("post_install", "-at_install")
@@ -11,9 +12,9 @@ class TestClassification(InstrumentCase):
     """Klasifikace podle obchodního modelu fondu (plán docs/navrh-klasifikace-ifrs9.md, rozhodnutí 2026-11-11)."""
 
     def bond(self):
-        return self.env["investra.instrument"].create({
+        return self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Dluhopis", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_bond").id,
-        })
+        }))
 
     def trade(self, instrument, quantity, day="2026-11-02", portfolio=None, fund=None):
         fund = fund or self.fund
@@ -90,7 +91,7 @@ class TestClassification(InstrumentCase):
         other = env["investra.fund"].create({"entity_id": other_book.id})
         holding = self.env["investra.instrument"].create({
             "name": "Podíl", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_other_holding").id,
-            "fund_id": self.fund.id, "holding_kind": "shares",
+            "fund_id": self.fund.id, "holding_kind": "shares", "identifier_kind": "contract", "identifier": "POD-1",
         })
         with self.assertRaises(ValidationError):
             env["investra.portfolio.classification"].create({
@@ -112,10 +113,10 @@ class TestClassificationRules(InstrumentCase):
     """Jen kombinace přípustné podle IFRS 9 (dodatek plánu 2026-11-11; body 1–5 ověřil uživatel vůči IFRS přijatým EU)."""
 
     def make(self, code, **vals):
-        return self.env["investra.instrument"].create({
+        return self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"{code} {self.id()[-12:]}", "currency_id": self.czk.id,
             "type_id": self.env.ref(f"investra_instruments.type_{code}").id, **vals,
-        })
+        }, self.fund))
 
     def test_debt_with_sppi_follows_business_model(self):
         """Mezera 1: dluh se splněným SPPI je povinně v naběhlé hodnotě / FVOCI, kategorie se nezadává."""

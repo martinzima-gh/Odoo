@@ -42,6 +42,8 @@ env["investra.counterparty.profile"].create({
 # Vklad: kalendář toků se vygeneruje z jistiny, sazby a konvence.
 deposit = scoped["investra.instrument"].create({
     "name": "Ukázkový termínovaný vklad", "currency_id": czk.id, "type_id": env.ref("investra_instruments.type_deposit").id,
+    # Vklad nemá ISIN: patří fondu a identifikuje ho číslo smlouvy (rozhodnutí 2026-11-13).
+    "fund_id": fund.id, "identifier_kind": "contract", "identifier": f"TV-UKAZKA-{fund.id}",
     "issuer_id": bank.id, "principal": 5000000, "start_date": "2026-09-15", "maturity_date": "2026-12-15",
     "coupon_rate": 3.6, "day_count": "act360",
 })
