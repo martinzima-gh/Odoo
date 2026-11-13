@@ -140,9 +140,13 @@ class TestTradeRecognition(NavCase):
     def test_settlement_mode_position_starts_at_settlement(self):
         self.settlement_mode()
         instrument = self.instrument()
-        self.trade(instrument)._book()
+        trade = self.trade(instrument)
+        trade._book()
         Trade = self.env["investra.trade"]
         self.assertEqual(Trade._positions(self.fund, date(2031, 3, 31)), {})
+        # Do pozice jde až s dokladem vypořádání (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“).
+        self.assertEqual(Trade._positions(self.fund, date(2031, 4, 5)), {})
+        trade._settle()
         self.assertEqual(Trade._positions(self.fund, date(2031, 4, 5)), {instrument: 10})
 
     def test_settlement_mode_fair_value_change_before_settlement(self):
@@ -239,3 +243,62 @@ class TestTradeRecognition(NavCase):
         trade = self.trade(self.instrument())
         with self.assertRaises(AccessError):
             trade.with_user(self.approver).action_book()
+
+    # --- rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“ (varianta B): pozice jen z obchodů s dokladem,
+    # ocenění se zastaví kontrolou trades_booked
+
+    def test_draft_trade_not_in_position(self):
+        trade = self.trade(self.instrument(), settle=False)
+        Trade = self.env["investra.trade"]
+        self.assertNotIn(trade.instrument_id, Trade._positions(self.fund, date(2031, 3, 31)))
+        trade._book()
+        self.assertEqual(Trade._positions(self.fund, date(2031, 3, 31))[trade.instrument_id], 10)
+
+    def test_draft_trade_stops_valuation(self):
+        trade = self.trade(self.instrument(), settle=False)
+        self.price(trade.instrument_id, date(2031, 3, 31), 100)
+        valuation = self.valuation(self.fund, date(2031, 3, 31))
+        valuation.with_user(self.preparer).action_compute()
+        check = valuation.check_ids.filtered(lambda c: c.code == "trades_booked")
+        self.assertEqual(check.status, "stop")
+        self.assertIn(trade.instrument_id.name, check.detail)
+        # Pozice bez návrhu souhlasí s knihou; ocenění zastaví jen nová kontrola.
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "positions_ledger").status, "ok")
+        with self.assertRaises(UserError):
+            valuation.with_user(self.preparer).action_submit()
+
+    def test_settlement_mode_unsettled_after_settlement_date_stops(self):
+        self.settlement_mode()
+        trade = self.trade(self.instrument(code="equity"))
+        trade._book()
+        self.price(trade.instrument_id, date(2031, 4, 30), 100)
+        valuation = self.valuation(self.fund, date(2031, 4, 30))
+        valuation.with_user(self.preparer).action_compute()
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "trades_booked").status, "stop")
+
+    def test_draft_after_valuation_date_passes(self):
+        self.trade(self.instrument(), trade_date="2031-04-10", settle=False)
+        valuation = self.valuation(self.fund, date(2031, 3, 31))
+        valuation.with_user(self.preparer).action_compute()
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "trades_booked").status, "ok")
+
+    def test_sale_needs_booked_purchase(self):
+        """Prodej proti návrhu nákupu nejde ani uložit (kontrola prodeje při uložení, rozhodnutí 2026-11-12)."""
+        instrument = self.instrument()
+        purchase = self.trade(instrument, settle=False)
+        with self.assertRaises(UserError):
+            self.trade(instrument, quantity=-5, trade_date="2031-03-10", settle=False)
+        purchase._book()
+        sale = self.trade(instrument, quantity=-5, trade_date="2031-03-10", settle=False)
+        self.assertEqual(sale.held_quantity, 10)
+        sale._book()
+        self.assertEqual(self.env["investra.trade"]._positions(self.fund, date(2031, 3, 31))[instrument], 5)
+
+    def test_settlement_mode_sale_against_unsettled_purchase(self):
+        """Kontrole prodeje stačí stisknuté Zaúčtovat; doklad nákupu vznikne až vypořádáním."""
+        self.settlement_mode()
+        instrument = self.instrument(code="equity")
+        self.trade(instrument)._book()
+        sale = self.trade(instrument, quantity=-5, trade_date="2031-03-10", settle="2031-04-10")
+        sale._book()
+        self.assertEqual(sale.state, "unsettled")

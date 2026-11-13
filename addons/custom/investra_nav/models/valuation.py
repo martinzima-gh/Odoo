@@ -1054,6 +1054,14 @@ class InvestraValuation(models.Model):
             ("fund_id", "=", self.fund_id.id), ("state", "=", "unsettled"), ("settlement_date", "<=", self.date),
         ])
         self._check("trades_settled", "Obchody po termínu vypořádání jsou vypořádané", not overdue, overdue, severity="warning")
+        # Pozice bere jen obchody s dokladem (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“, závažnost stop):
+        # obchod, který by k datu už byl v pozici, ale doklad nemá, je chybějící doklad, nebo neprovedený návrh ke smazání.
+        unbooked = self.env["investra.trade"].sudo().search([
+            ("fund_id", "=", self.fund_id.id), ("trade_date", "<=", self.date), ("state", "!=", "reversed"),
+            ("event_id", "=", False),
+        ]).filtered(lambda t: t._recognition_date() <= self.date)
+        self._check("trades_booked", "Obchody k datu jsou zaúčtované", not unbooked,
+                    ", ".join(f"{t.instrument_id.name} {t.trade_date}" for t in unbooked))
         # Ruční přepsání kategorie IFRS 9 je odchylka od rozhodovacího stromu; schvalovatel ji musí vidět (rozhodnutí 2026-11-11).
         overridden = self.portfolio_line_ids.classification_id.filtered("category_override")
         self._check(

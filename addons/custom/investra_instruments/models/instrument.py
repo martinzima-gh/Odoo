@@ -449,7 +449,7 @@ class InvestraTrade(models.Model):
         day = self.trade_date or fields.Date.context_today(self)
         holdings = dict(self.sudo()._holdings(fund.sudo(), day))
         origin = self._origin
-        if origin.id and origin.state != "reversed" and origin._recognition_date() <= day:
+        if origin.id and origin.state != "reversed" and origin.event_id and origin._recognition_date() <= day:
             key = (origin.instrument_id, origin.portfolio_id)
             holdings[key] = holdings.get(key, 0.0) - origin.quantity
         return {key: qty for key, qty in holdings.items() if qty > 1e-9}
@@ -526,7 +526,10 @@ class InvestraTrade(models.Model):
         held = sum(self.sudo().search([
             ("fund_id", "=", self.fund_id.id), ("portfolio_id", "=", self.portfolio_id.id),
             ("instrument_id", "=", self.instrument_id.id), ("trade_date", "<=", self.trade_date), ("id", "!=", self.id),
-            ("state", "!=", "reversed"),
+            # Jen zaúčtované obchody (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“). Na rozdíl od pozice stačí
+            # stisknuté Zaúčtovat: u fondu s pozicí od data vypořádání vzniká doklad nákupu až při vypořádání
+            # a prodej sjednaný před ním by jinak nešel zaúčtovat (kontrola prodeje pracuje s datem sjednání).
+            ("state", "not in", ("draft", "reversed")),
         ]).mapped("quantity"))
         if held + self.quantity < -1e-9:
             raise UserError(self.env._(
@@ -727,8 +730,10 @@ class InvestraTrade(models.Model):
     @api.model
     def _recognised(self, fund, day, instrument=None, portfolio=None):
         """Obchody, které jsou k datu v pozici fondu podle jeho nastavení."""
-        # Stornovaný obchod není v pozici (rozhodnutí 2026-11-12 „Storno a oprava obchodu“); návrhy ano.
-        domain = [("fund_id", "=", fund.id), ("trade_date", "<=", day), ("state", "!=", "reversed")]
+        # Stornovaný obchod není v pozici (rozhodnutí 2026-11-12 „Storno a oprava obchodu“). V pozici je jen obchod
+        # s dokladem (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“): návrh ani obchod fondu s pozicí od data
+        # vypořádání, který ještě není vypořádaný, pozici nemění; ocenění na ně upozorní kontrolou trades_booked.
+        domain = [("fund_id", "=", fund.id), ("trade_date", "<=", day), ("state", "!=", "reversed"), ("event_id", "!=", False)]
         if instrument:
             domain.append(("instrument_id", "=", instrument.id))
         if portfolio:

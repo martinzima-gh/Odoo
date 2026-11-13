@@ -152,16 +152,18 @@ class TestInstrument(InstrumentCase):
     def test_positions_net_sale_and_respect_date(self):
         Trade = self.env["investra.trade"]
         base = {"fund_id": self.fund.id, "instrument_id": self.instrument.id, "price": 1}
-        Trade.create({**base, "trade_date": "2026-11-02", "quantity": 10})
-        Trade.create({**base, "trade_date": "2026-11-20", "quantity": -4})
+        # V pozici jen obchody s dokladem (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“).
+        Trade.create({**base, "trade_date": "2026-11-02", "quantity": 10})._book()
+        Trade.create({**base, "trade_date": "2026-11-20", "quantity": -4})._book()
         self.assertEqual(Trade._positions(self.fund, date(2026, 11, 10))[self.instrument], 10)
         self.assertEqual(Trade._positions(self.fund, date(2026, 11, 30))[self.instrument], 6)
 
     def test_closed_position_disappears(self):
         Trade = self.env["investra.trade"]
         base = {"fund_id": self.fund.id, "instrument_id": self.instrument.id, "price": 1}
-        Trade.create({**base, "trade_date": "2026-11-02", "quantity": 10})
-        Trade.create({**base, "trade_date": "2026-11-20", "quantity": -10})
+        # V pozici jen obchody s dokladem (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“).
+        Trade.create({**base, "trade_date": "2026-11-02", "quantity": 10})._book()
+        Trade.create({**base, "trade_date": "2026-11-20", "quantity": -10})._book()
         self.assertFalse(Trade._positions(self.fund, date(2026, 11, 30)))
 
     def test_instrument_in_hash(self):

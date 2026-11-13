@@ -49,6 +49,8 @@ class TestClassification(InstrumentCase):
         second = self.trade(bond, 4, portfolio=held)
         self.assertEqual((first.classification_id, second.classification_id), (fair, amortised))
         self.assertEqual((first.ifrs9_category, second.ifrs9_category), ("fvtpl", "amortised"))
+        # V pozici jen obchody s dokladem (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“).
+        (first | second)._book()
         Trade = self.env["investra.trade"]
         self.assertEqual(Trade._holdings(self.fund, date(2026, 11, 30)), {(bond, main): 10, (bond, held): 4})
         self.assertEqual(Trade._positions(self.fund, date(2026, 11, 30)), {bond: 14})

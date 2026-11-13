@@ -79,7 +79,7 @@ class TestCompanyAccess(NavCase):
         self.env["investra.trade"].create({
             "fund_id": self.own.id, "portfolio_id": held.id, "instrument_id": deposit.id,
             "trade_date": "2036-12-01", "quantity": 1, "price": 1,
-        })
+        })._book()  # pozice jen z obchodů s dokladem (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“)
         self.assert_stays_in_book("investra.instrument.repayment", {
             "fund_id": self.own.id, "portfolio_id": held.id, "instrument_id": deposit.id, "date": "2037-01-15",
             "principal_amount": 1,
