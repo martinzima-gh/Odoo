@@ -1,1 +1,1 @@
-from . import posting_preview, fee_rule, movement, valuation, valuation_lock, lock_exception, package, instrument_accrual, trade_preview, trade_reverse, return_wizard, attachment, price_usage
+from . import posting_preview, fee_rule, movement, valuation, valuation_lock, lock_exception, package, instrument_accrual, trade_preview, trade_reverse, return_wizard, attachment, price_usage, valuation_price_history

@@ -43,3 +43,5 @@ access_movement_reverse_wizard,investra.class.movement.reverse.wizard prep,inves
 access_repayment_reverse_wizard,investra.instrument.repayment.reverse.wizard prep,investra.instrument.repayment.reverse.wizard,investra_entity.group_valuation_preparer,crud,
 access_repayment_drafts_wizard,investra.instrument.repayment.drafts.wizard prep,investra.instrument.repayment.drafts.wizard,investra_entity.group_valuation_preparer,crud,
 access_trade_reverse_wizard,investra.trade.reverse.wizard prep,investra.trade.reverse.wizard,investra_entity.group_valuation_preparer,crud,
+access_val_price_history_read,investra.valuation.price.history read,investra.valuation.price.history,account.group_account_readonly,r,
+investra_val_price_history_rule,investra.valuation.price.history company,investra.valuation.price.history,,r,"[('company_id', 'in', company_ids)]"

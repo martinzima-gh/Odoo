@@ -3,3 +3,4 @@ from . import test_fair_value_interest
 from . import test_trade_preview
 from . import test_trade_reverse
 from . import test_posting_preview
+from . import test_price_history
