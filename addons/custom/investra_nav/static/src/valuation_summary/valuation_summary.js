@@ -29,7 +29,8 @@ function toDate(value) {
 
 function formatDate(value) {
     const date = toDate(value);
-    return date && date.isValid ? date.toFormat("d. M. yyyy") : "";
+    // Jednotný formát data v Investře (uživatel 2026-11-13): 30.09.2026.
+    return date && date.isValid ? date.toFormat("dd.MM.yyyy") : "";
 }
 
 function sum(lines, field) {

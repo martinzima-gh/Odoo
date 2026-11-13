@@ -265,7 +265,13 @@
             </xpath>
             <xpath expr="//field[@name='class_line_ids']/list/field[@name='class_id']" position="replace">
                 <field name="class_id" column_invisible="1"/>
-                <field name="class_code"/>
+                <field name="class_code" width="70px"/>
+            </xpath>
+            <xpath expr="//field[@name='class_line_ids']/list/field[@name='currency_name']" position="attributes">
+                <attribute name="width">70px</attribute>
+            </xpath>
+            <xpath expr="//field[@name='class_line_ids']/list/field[@name='units']" position="attributes">
+                <attribute name="options">{'hide_trailing_zeros': true}</attribute>
             </xpath>
             <xpath expr="//field[@name='class_line_ids']/list/field[@name='price']" position="replace">
                 <field name="price_display" string="Kurz" class="text-end"/>
