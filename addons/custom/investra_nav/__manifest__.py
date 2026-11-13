@@ -1,7 +1,7 @@
 {
     "name": "Investra NAV",
     "summary": "Pravidla úplat, ocenění, NAV tříd, schvalování a balíček pro depozitáře",
-    "version": "20.0.0.27.0",
+    "version": "20.0.0.27.1",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",
@@ -12,6 +12,9 @@
             "investra_nav/static/src/class_price_chart/class_price_chart.js",
             "investra_nav/static/src/class_price_chart/class_price_chart.xml",
             "investra_nav/static/src/class_price_chart/class_price_chart.scss",
+            "investra_nav/static/src/valuation_summary/valuation_summary.js",
+            "investra_nav/static/src/valuation_summary/valuation_summary.xml",
+            "investra_nav/static/src/valuation_summary/valuation_summary.scss",
         ],
     },
     "installable": True,

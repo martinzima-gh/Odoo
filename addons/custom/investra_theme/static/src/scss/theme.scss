@@ -108,48 +108,48 @@
     }
 }
 
-// Stavový řádek ve všech formulářích (uživatel 2026-11-13): každý stav je samostatná zaoblená bublina místo šipky.
-// Odoo kreslí šipky výřezem clip-path a překrytím tlačítek; v mezerách výřezu prosvítal bílý podklad řádku
-// („bílé trojúhelníky“). Výřez, překrytí i rámeček podkladu proto rušíme: mezera mezi bublinami má barvu pozadí.
-// Pořadí, chování a rozbalovací nabídky stavů se nemění. !important jen tam, kde jádro používá silnější selektory
-// (.o_last:not(.o_first) apod.).
+// Stavový řádek ve všech formulářích (uživatel 2026-11-13): každý stav je samostatná zaoblená bublina místo šipky,
+// barvy podle firemní palety a náhledu: hotové kroky Lagoon, aktuální Petroleum, budoucí bílé s rámečkem Petroleum 4.
+// Odoo kreslí šipky výřezem clip-path a překrytím tlačítek; v mezerách výřezu prosvítal bílý podklad („bílé trojúhelníky“).
+// Výřez, překrytí i podklad rušíme, mezera má barvu pozadí. Pořadí, chování a rozbalovací nabídky stavů se nemění.
+// Odoo vkládá kroky do DOM obráceně (row-reverse), hotové kroky jsou proto v DOM za aktuálním.
+// !important, protože jádro nastavuje pozadí a rámeček silnějšími selektory (.o_last:not(.o_first), media query).
 .o_field_statusbar > .o_statusbar_status {
     gap: 4px;
 
     @include media-breakpoint-up(md) {
-        border: 0;
-        padding: 0;
-        background: transparent;
+        border: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
     }
 
     .o_arrow_button:not(.d-none) {
-        --#{$prefix}btn-bg: #ffffff;
-        --#{$prefix}btn-border-color: #{$investra-petroleum-4};
-        --#{$prefix}btn-hover-bg: #{$investra-petroleum-4};
-        --#{$prefix}btn-hover-border-color: #{$investra-petroleum-4};
-        --#{$prefix}btn-disabled-bg: #ffffff;
-        --#{$prefix}btn-disabled-border-color: #{$investra-petroleum-4};
-
         clip-path: none !important;
         margin-left: 0 !important;
-        border: 1px solid var(--#{$prefix}btn-border-color) !important;
+        border: 1px solid $investra-petroleum-4 !important;
         border-radius: 12px !important;
-        padding: var(--o-statusbar-button-padding-y) 12px !important;
+        padding: 4px 14px !important;
+        background-color: #ffffff !important;
+        color: $investra-graphite-2 !important;
         font-size: 12px;
         font-weight: 600;
+        opacity: 1 !important;
 
-        &:not(.o_arrow_button_current):disabled {
-            color: $investra-graphite-2;
+        &:hover:not(:disabled) {
+            border-color: $investra-petroleum !important;
+            color: $investra-petroleum !important;
         }
     }
 
-    // Aktuální krok plně v Lagoon s bílým textem (kontrast 9 : 1).
-    .o_arrow_button.o_arrow_button_current {
-        --#{$prefix}btn-disabled-bg: #{$investra-lagoon};
-        --#{$prefix}btn-disabled-border-color: #{$investra-lagoon};
-        --#{$prefix}btn-disabled-color: #ffffff;
-        --#{$prefix}btn-border-color: #{$investra-lagoon};
+    .o_arrow_button_wrap:has(> .o_arrow_button_current) ~ .o_arrow_button_wrap > .o_arrow_button:not(.d-none) {
         background-color: $investra-lagoon !important;
+        border-color: $investra-lagoon !important;
+        color: #ffffff !important;
+    }
+
+    .o_arrow_button.o_arrow_button_current:not(.d-none) {
+        background-color: $investra-petroleum !important;
+        border-color: $investra-petroleum !important;
         color: #ffffff !important;
     }
 }

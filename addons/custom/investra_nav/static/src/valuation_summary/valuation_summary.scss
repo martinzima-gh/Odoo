@@ -1,0 +1,113 @@
+// Detail ocenění podle náhledu docs/vzhled/nahled-investra.html (CP-2026-11-13, Claude).
+// Barvy palety Investra definuje investra_theme; záložní hodnoty pro instalaci bez tématu.
+$investra-petroleum: #112e3c !default;
+$investra-petroleum-4: #e8ebec !default;
+$investra-lagoon: #0b5156 !default;
+$investra-ember: #eb5b1f !default;
+$investra-graphite: #2c2927 !default;
+$investra-graphite-2: #6a6967 !default;
+
+// Široké tabulky ocenění (třídy, portfolio) potřebují víc místa než výchozích 1400 px listu.
+.o_form_view.o_investra_valuation_form .o_form_sheet_bg {
+    max-width: 2200px;
+}
+
+.o_investra_valuation_form {
+    .oe_title h1 {
+        margin-bottom: 0;
+    }
+
+    .o_investra_valuation_date {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+    }
+
+    .o_investra_valuation_subtitle {
+        color: $investra-graphite-2;
+        font-size: 15px;
+        margin: 2px 0 16px;
+    }
+
+    .o_investra_tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .o_investra_tile {
+        background: #ffffff;
+        border: 1px solid $investra-petroleum-4;
+        border-left: 4px solid $investra-petroleum;
+        border-radius: 4px;
+        padding: 14px 18px;
+
+        &.o_investra_tile_lagoon {
+            border-left-color: $investra-lagoon;
+        }
+    }
+
+    .o_investra_tile_label {
+        color: $investra-graphite-2;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .o_investra_tile_value {
+        color: $investra-petroleum;
+        font-size: 26px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        margin: 6px 0 4px;
+        white-space: nowrap;
+
+        &.o_investra_positive {
+            color: $investra-lagoon;
+        }
+
+        &.o_investra_negative {
+            color: $investra-ember;
+        }
+    }
+
+    .o_investra_tile_sub {
+        color: $investra-graphite-2;
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 12px;
+        gap: 10px;
+
+        strong {
+            color: $investra-lagoon;
+        }
+    }
+
+    .o_investra_valuation_top {
+        margin-bottom: 8px;
+
+        .o_investra_class_price_chart,
+        .o_investra_valuation_basics {
+            border: 1px solid $investra-petroleum-4;
+            border-radius: 4px;
+        }
+
+        .o_investra_class_price_chart {
+            margin: 0 0 12px;
+            padding: 16px 20px;
+        }
+    }
+
+    .o_investra_valuation_basics {
+        padding: 16px 20px;
+        margin-bottom: 12px;
+
+        h2 {
+            color: $investra-petroleum;
+            font-size: 19px;
+            font-weight: 600;
+        }
+    }
+}

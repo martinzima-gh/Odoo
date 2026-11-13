@@ -1449,6 +1449,8 @@ class InvestraValuationClass(models.Model):
     # Přemostění od minulého ocenění (plní výpočet, rozhodnutí 2026-11-10 „Přemostění kapitálu tříd“).
     # Částky ve funkční měně fondu, odkupy a dividendy kladně (odčítají se). Ocenění před zavedením mají 0.
     currency_name = fields.Char(related="class_id.currency_id.name", string="Měna")
+    # Jen pro zobrazení v tabulce tříd ocenění (zobrazovaný název třídy obsahuje i název fondu).
+    class_code = fields.Char(related="class_id.code", string="Třída")
     opening_capital = fields.Float(digits=(20, 2), string="FK (t−1)", help="Kapitál třídy z minulého ocenění.")
     opening_units = fields.Float(digits=(20, 6), string="Kusy (t−1)")
     opening_price = fields.Char(string="Kurz (t−1)")
