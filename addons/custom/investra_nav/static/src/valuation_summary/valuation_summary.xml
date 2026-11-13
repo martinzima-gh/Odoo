@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="investra_nav.ValuationSummary">
+        <div class="o_investra_valuation_summary">
+            <p t-if="this.subtitle" class="o_investra_valuation_subtitle" t-out="this.subtitle"/>
+            <div t-if="this.props.record.resId" class="o_investra_tiles">
+                <div class="o_investra_tile">
+                    <div class="o_investra_tile_label">FK fondu</div>
+                    <div class="o_investra_tile_value" t-out="this.capitalTile.value"/>
+                    <div class="o_investra_tile_sub">Celkový kapitál k datu ocenění</div>
+                </div>
+                <div class="o_investra_tile o_investra_tile_lagoon">
+                    <div class="o_investra_tile_label">Změna FK od minula</div>
+                    <div t-att-class="'o_investra_tile_value' + (this.changeTile.sign &lt; 0 ? ' o_investra_negative' : this.changeTile.sign &gt; 0 ? ' o_investra_positive' : '')"
+                         t-out="this.changeTile.value"/>
+                    <div class="o_investra_tile_sub">
+                        <strong t-if="this.changeTile.pct" t-out="this.changeTile.pct"/>
+                        <span>Změna kapitálu ≠ výkonnost</span>
+                    </div>
+                </div>
+                <t t-foreach="this.state.prices" t-as="price" t-key="price.key">
+                    <div class="o_investra_tile">
+                        <div class="o_investra_tile_label">Poslední zveřejněný kurz <t t-out="price.code"/></div>
+                        <div class="o_investra_tile_value" t-out="price.value"/>
+                        <div class="o_investra_tile_sub" t-out="price.sub"/>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

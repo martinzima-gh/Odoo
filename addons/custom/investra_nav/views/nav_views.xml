@@ -225,15 +225,53 @@
             </form>
         </field>
     </record>
+    <!-- Vzhled detailu ocenění podle náhledu docs/vzhled/nahled-investra.html (CP-2026-11-13, převzal a doplnil Claude):
+         širší list, nadpis fondu s datem ocenění, dlaždice souhrnu, graf kurzů vlevo a základní údaje vpravo.
+         Jen rozložení a zobrazení; pole, výpočty a akce beze změny. -->
     <record id="view_valuation_form_class_price_chart" model="ir.ui.view">
         <field name="name">investra.valuation.form.class.price.chart</field>
         <field name="model">investra.valuation</field>
         <field name="inherit_id" ref="view_valuation_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//sheet/notebook" position="before">
-                <div class="o_investra_valuation_class_price_chart">
-                    <widget name="investra_class_price_chart"/>
+            <xpath expr="/form" position="attributes">
+                <attribute name="class" add="o_investra_valuation_form" separator=" "/>
+            </xpath>
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="replace">
+                <div class="oe_title">
+                    <h1><field name="fund_id" readonly="state != 'draft'"/></h1>
+                    <div invisible="state != 'draft'" class="o_investra_valuation_date">
+                        <label for="date" string="Ocenění k"/>
+                        <field name="date"/>
+                    </div>
                 </div>
+                <widget name="investra_valuation_summary"/>
+            </xpath>
+            <xpath expr="//sheet/group" position="replace">
+                <div class="row o_investra_valuation_top">
+                    <div class="col-12 col-xl-8">
+                        <widget name="investra_class_price_chart"/>
+                    </div>
+                    <div class="col-12 col-xl-4">
+                        <div class="o_investra_valuation_basics">
+                        <h2>Základní údaje</h2>
+                        <group>
+                            <field name="version"/>
+                            <field name="previous_id"/>
+                            <field name="preparer_id" string="Zadal" help="Uživatel, který ocenění založil."/>
+                            <field name="fund_capital"/>
+                            <field name="neutral_capital"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="package_name" invisible="1"/>
+                            <field name="package_file" filename="package_name" readonly="1" invisible="not package_id"/>
+                            <field name="package_id" invisible="1"/>
+                        </group>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='class_line_ids']/list/field[@name='class_id']" position="replace">
+                <field name="class_id" column_invisible="1"/>
+                <field name="class_code"/>
             </xpath>
         </field>
     </record>

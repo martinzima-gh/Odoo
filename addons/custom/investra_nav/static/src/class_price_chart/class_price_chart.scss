@@ -35,10 +35,12 @@ $investra-graphite-2: #6a6967 !default;
         gap: 4px;
 
         .btn {
-            background: #ffffff;
+            background: $investra-petroleum-4;
             border: 1px solid $investra-petroleum-4;
             border-radius: 4px;
             color: $investra-graphite;
+            font-weight: 600;
+            min-width: 48px;
 
             &.active {
                 background: $investra-petroleum;

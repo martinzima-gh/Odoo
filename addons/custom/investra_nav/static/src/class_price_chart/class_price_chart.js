@@ -16,10 +16,12 @@ const { DateTime } = luxon;
 
 const LEFT_AXIS_COLORS = ["#112e3c", "#596e78", "#2c2927"];
 const RIGHT_AXIS_COLORS = ["#0b5156", "#eb5b1f", "#6a6967"];
+// Jedna měna (jedna osa): třídy co nejvíc odlišené barvami palety Petroleum, Lagoon, Ember, Graphite 2, Petroleum 2.
+const SINGLE_AXIS_COLORS = ["#112e3c", "#0b5156", "#eb5b1f", "#6a6967", "#596e78"];
 const GRID_COLOR = "#e8ebec";
 const TEXT_COLOR = "#2c2927";
 const MUTED_COLOR = "#6a6967";
-const FONT = { family: "Montserrat, Arial, sans-serif" };
+const FONT = { family: "Montserrat, Arial, sans-serif", size: 12 };
 const PERIOD_MONTHS = { "3m": 3, "6m": 6, "1y": 12, all: null };
 // Přehled kurzů ukládá kurz jako číslo na 8 desetinných míst (investra.valuation.price.history.price).
 const MAX_PRICE_DIGITS = 8;
@@ -157,7 +159,9 @@ export class InvestraClassPriceChart extends Component {
             .sort((a, b) => a.classCode.localeCompare(b.classCode) || a.currencyId - b.currencyId)
             .map((item) => {
                 const currencyIndex = currencies.findIndex((currency) => currency.id === item.currencyId);
-                const palette = currencies.length === 2 && currencyIndex === 1 ? RIGHT_AXIS_COLORS : LEFT_AXIS_COLORS;
+                const palette = currencies.length === 2
+                    ? (currencyIndex === 1 ? RIGHT_AXIS_COLORS : LEFT_AXIS_COLORS)
+                    : SINGLE_AXIS_COLORS;
                 const colorIndex = usedColors.get(item.currencyId) || 0;
                 usedColors.set(item.currencyId, colorIndex + 1);
                 return {
@@ -262,8 +266,10 @@ export class InvestraClassPriceChart extends Component {
                     backgroundColor: item.color,
                     pointBackgroundColor: item.color,
                     pointBorderColor: item.color,
-                    pointRadius: 3,
-                    borderWidth: 2,
+                    // Podle náhledu: čára bez bodů, zvýrazněný jen poslední zveřejněný kurz; body se ukážou při najetí.
+                    pointRadius: (context) => (context.dataIndex === dates.length - 1 ? 4 : 0),
+                    pointHoverRadius: 4,
+                    borderWidth: 2.5,
                     fill: false,
                     spanGaps: false,
                 })),
@@ -275,7 +281,10 @@ export class InvestraClassPriceChart extends Component {
                 interaction: { mode: "index", intersect: false },
                 scales,
                 plugins: {
-                    legend: { position: "bottom", labels: { color: TEXT_COLOR, font: FONT } },
+                    legend: {
+                        position: "bottom",
+                        labels: { color: TEXT_COLOR, font: FONT, usePointStyle: true, pointStyle: "line" },
+                    },
                     tooltip: {
                         backgroundColor: "#ffffff",
                         titleColor: TEXT_COLOR,
