@@ -1,6 +1,8 @@
-// Detail ocenění podle náhledu docs/vzhled/nahled-investra.html (CP-2026-11-13, Claude).
-// Barvy palety Investra definuje investra_theme; záložní hodnoty pro instalaci bez tématu.
+// Detail ocenění podle návrhu docs/vzhled/navrh-detail-oceneni.html (uživatel 2026-11-13).
+// Barvy Brand manuálu 1.0 (definuje investra_theme; tady záložní hodnoty pro instalaci bez tématu).
+// Bez stínů, přechodů a průhlednosti.
 $investra-petroleum: #112e3c !default;
+$investra-petroleum-2: #596e78 !default;
 $investra-petroleum-4: #e8ebec !default;
 $investra-lagoon: #0b5156 !default;
 $investra-ember: #eb5b1f !default;
@@ -13,101 +15,153 @@ $investra-graphite-2: #6a6967 !default;
 }
 
 .o_investra_valuation_form {
-    .oe_title h1 {
-        margin-bottom: 0;
-    }
+    .oe_title h1 { margin-bottom: 0; }
 
-    .o_investra_valuation_date {
+    .o_investra_valuation_date,
+    .o_investra_valuation_package {
+        align-items: baseline;
         display: flex;
         gap: 8px;
-        align-items: baseline;
     }
 
-    .o_investra_valuation_subtitle {
+    .o_investra_valuation_package {
         color: $investra-graphite-2;
-        font-size: 15px;
-        margin: 2px 0 16px;
+        font-size: 13px;
+        margin: -8px 0 16px;
     }
 
-    .o_investra_tiles {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
+    .o_investra_up { color: $investra-lagoon; }
+    .o_investra_down { color: $investra-ember; }
+
+    .o_investra_facts {
+        color: $investra-graphite-2;
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 13px;
+        gap: 6px 18px;
+        margin: 6px 0 22px;
+
+        b { color: $investra-graphite; font-weight: 500; margin-left: 4px; }
+        a { color: $investra-lagoon; margin-left: 4px; }
     }
 
-    .o_investra_tile {
-        background: #ffffff;
+    .o_investra_kpi {
         border: 1px solid $investra-petroleum-4;
-        border-left: 4px solid $investra-petroleum;
-        border-radius: 4px;
-        padding: 14px 18px;
+        border-radius: 6px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-bottom: 16px;
 
-        &.o_investra_tile_lagoon {
-            border-left-color: $investra-lagoon;
+        > div { padding: 16px 22px; }
+        > div + div { border-left: 1px solid $investra-petroleum-4; }
+
+        @media (max-width: 991px) {
+            grid-template-columns: 1fr;
+            > div + div { border-left: 0; border-top: 1px solid $investra-petroleum-4; }
         }
     }
 
-    .o_investra_tile_label {
+    .o_investra_label {
         color: $investra-graphite-2;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
     }
 
-    .o_investra_tile_value {
+    .o_investra_big {
         color: $investra-petroleum;
         font-size: 26px;
         font-variant-numeric: tabular-nums;
         font-weight: 600;
-        margin: 6px 0 4px;
+        margin: 6px 0 2px;
         white-space: nowrap;
 
-        &.o_investra_positive {
-            color: $investra-lagoon;
-        }
-
-        &.o_investra_negative {
-            color: $investra-ember;
-        }
+        &.o_investra_up { color: $investra-lagoon; }
+        &.o_investra_down { color: $investra-ember; }
     }
 
-    .o_investra_tile_sub {
+    .o_investra_note {
         color: $investra-graphite-2;
         display: flex;
         flex-wrap: wrap;
         font-size: 12px;
-        gap: 10px;
+        gap: 4px 10px;
 
-        strong {
-            color: $investra-lagoon;
-        }
+        b { color: $investra-lagoon; }
     }
 
-    .o_investra_valuation_top {
-        margin-bottom: 8px;
-
-        .o_investra_class_price_chart,
-        .o_investra_valuation_basics {
-            border: 1px solid $investra-petroleum-4;
-            border-radius: 4px;
-        }
-
-        .o_investra_class_price_chart {
-            margin: 0 0 12px;
-            padding: 16px 20px;
-        }
+    .o_investra_classes {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        margin-bottom: 24px;
     }
 
-    .o_investra_valuation_basics {
-        padding: 16px 20px;
-        margin-bottom: 12px;
-
-        h2 {
-            color: $investra-petroleum;
-            font-size: 19px;
-            font-weight: 600;
-        }
+    .o_investra_class_card {
+        border: 1px solid $investra-petroleum-4;
+        border-radius: 6px;
+        padding: 16px 20px 14px;
     }
+
+    .o_investra_class_head {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .o_investra_class_code { color: $investra-petroleum; font-weight: 600; }
+
+    .o_investra_currency {
+        border: 1px solid $investra-petroleum-4;
+        border-radius: 10px;
+        color: $investra-petroleum-2;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 1px 8px;
+    }
+
+    .o_investra_class_price {
+        color: $investra-petroleum;
+        font-size: 28px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        margin: 6px 0 2px;
+    }
+
+    .o_investra_class_change {
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        margin-bottom: 10px;
+
+        span { font-weight: 500; }
+        em { color: $investra-graphite-2; font-style: normal; font-weight: 400; margin-left: 4px; }
+    }
+
+    .o_investra_spark {
+        display: block;
+        height: 56px;
+        overflow: visible;
+        width: 100%;
+    }
+
+    .o_investra_spark_note,
+    .o_investra_class_meta {
+        color: $investra-graphite-2;
+        display: flex;
+        font-size: 11px;
+        justify-content: space-between;
+        margin-top: 4px;
+    }
+
+    .o_investra_class_meta {
+        border-top: 1px solid $investra-petroleum-4;
+        color: $investra-graphite;
+        font-size: 12px;
+        margin-top: 10px;
+        padding-top: 8px;
+    }
+
+    .o_investra_summary_hint { color: $investra-graphite-2; margin-bottom: 16px; }
 }

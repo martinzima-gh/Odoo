@@ -70,6 +70,9 @@ class TestBridge(NavCase):
             self.assertAlmostEqual(end, line.capital, places=2)
         expected_change = (Decimal("101.2774") / Decimal("102.0000") - 1) * 100
         self.assertAlmostEqual(a.price_change_pct, float(expected_change), places=4)
+        # Zobrazení v tabulce tříd (jazyk testu en_US): kód třídy, kurz z uloženého textu, změna se znaménkem.
+        self.assertEqual(a.class_code, "A")
+        self.assertEqual((a.price_display, a.price_change_display), ("101.2774", "−0.71 %"))
         self.assertBridgeChecksOk(valuation)
 
     def test_fee_and_performance_are_split_from_specific_change(self):
