@@ -12,8 +12,10 @@ zaúčtování) a přeceňovat cizoměnové položky ocenění podle profilu `in
 - Etapa 1: ocenění přeceňuje podle profilu, `investra_test` povýšena (viz Provedení v plánu).
 
 **Zbývá:**
-- Etapa 2 (ruční úplaty) – **čekat na pokyn uživatele**. První krok: nová pole `investra.valuation.external` a migrace.
-- Otázka: zakázat samostatný běh přecenění nad profilem fondu?
+- Část C plánu (jedno univerzální přecenění: běh přecenění volaný z ocenění, jeden návrh na profil, sjednotit kurz,
+  zaokrouhlení a účtování přes událost) – **čeká na schválení uživatelem**. První krok po schválení: rozbor rozdílu
+  zaokrouhlení běhu a ocenění na referenčních scénářích.
+- Ruční úplaty (etapa 3) – čekat na pokyn uživatele.
 - Export `docs/architektura.md` z Claude Doc (rev 334) s další větší změnou.
 - `investra_vzhled` (8072) dostane CSS opravu po sloučení do `cp/vzhled`, až Copilot uloží práci.
 

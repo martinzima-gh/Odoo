@@ -59,10 +59,33 @@ doúčtování do zůstatku po účtu, měně a partnerovi) ocenění nepoužív
   přecenění doplnit ruční úplaty → Spočítat znovu; každý výpočet zahodí návrhy předchozího a počítá od začátku.
 - Po odeslání ke schválení řádky nejde měnit (beze změny). Kontrola fondu pravidla a tříd (2026-11-13) zůstává.
 
+## Část C: jedno univerzální přecenění (uživatel 2026-11-13, **ke schválení**)
+
+Požadavek uživatele: FX přecenění je jedno a univerzální pro Services i fondy. Etapa 1 sdílí jen výběr zůstatků,
+zaúčtování je dvojí (událost ocenění a doklad běhu) – to se nahradí.
+
+1. **Jediné přecenění = běh přecenění** (`investra.fx.run`): doúčtování do potřebného zůstatku po účtu, měně a partnerovi
+   (u peněžních účtů bez partnera). Zaúčtované přecenění se nikdy nepřepočítává ani nestornuje, další přecenění k němu
+   doúčtuje jen rozdíl (doplňkové přecenění podle politiky).
+2. **Fond:** Spočítat v ocenění založí nebo přepočítá běh k datu ocenění nad profily knihy fondu (krok mezi ručními
+   úplatami bez pravidla a úplatami podle pravidel). Běh je svázaný s oceněním: návrh dokladu je v náhledu a v Doklady
+   ocenění, schvaluje se čtyřma očima s oceněním, zaúčtuje se s ním a při vrácení ocenění se stornuje. Do výpočtu jdou
+   i nezaúčtované doklady ocenění (závazek z ruční úplaty). Nové Spočítat zahodí návrh předchozího výpočtu a spočítá znovu.
+3. **Services:** beze změny postupu – účetní v Přecenění cizích měn vybere profil a datum, Spočítat, Vytvořit doklad,
+   zaúčtuje po kontrole (měsíčně a na žádost účetního).
+4. **Ruční běh nad profilem fondu** je tentýž běh; existuje-li k datu nezaúčtovaný, ocenění ho převezme. Pojistka:
+   na jeden profil smí být jen jeden nezaúčtovaný běh (návrh), ostatní řeší doúčtování (po zaúčtování vyjde nula).
+5. **Sjednotit:** (a) kurz a zaokrouhlení – jedno pravidlo pro běh i ocenění (dnes běh float a zdroj profilu, ocenění
+   Decimal a kurz fondu; rozdíl v haléřích), ověřit na referenčních scénářích; (b) zaúčtování běhu přes účetní událost
+   (`investra.accounting.event`: role, otisk, storno, náhled) místo přímého dokladu Odoo.
+6. Vlastní krok přecenění v ocenění (`_fx_revaluation_lines`, etapa 1) se odstraní; profily fondů a `_foreign_balances`
+   zůstávají. Červená zóna.
+
 ## Etapy
 
-1. Část B (přecenění podle profilu) – bez změny výsledku u dnešních dat.
-2. Ruční úplaty: nová pole, migrace, výpočet a pořadí, výzva k přepočtu, náhled zaúčtování.
+1. Část B (přecenění podle profilu) – hotovo, viz Provedení.
+2. Část C (jedno univerzální přecenění) – po schválení.
+3. Ruční úplaty: nová pole, migrace, výpočet a pořadí, výzva k přepočtu, náhled zaúčtování.
 
 ## Migrace
 
@@ -76,4 +99,5 @@ Stávající řádky: datum = datum ocenění, popis = důvod, měna = měna fon
   `investra_test` povýšena (záloha `zalohy/investra_test-2026-11-13-pred-profilem-preceneni.dump`): 6 nových profilů,
   počet a součet řádků dokladů beze změny; 3 známé chyby matice (ruční řádky matice v `investra_test`).
   Ruční profil „TEST“ (119100, 119200 bez role) zůstává a ocenění ho používá.
-- **Otevřené:** zakázat samostatný běh přecenění nad profilem fondu (dvojí přecenění)? Etapa 2 čeká na pokyn uživatele.
+- **Otevřené:** zákaz samostatného běhu nad profilem fondu uživatel odmítl (2026-11-13) – nahrazuje ho část C.
+  Část C čeká na schválení, ruční úplaty na pokyn uživatele.
