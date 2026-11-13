@@ -55,6 +55,8 @@ doúčtování do zůstatku po účtu, měně a partnerovi) ocenění nepoužív
 - Pravidlo „Mimo Odoo“ zůstává jako připomínka: chybí-li k němu řádek, Kontroly ukážou varování, výpočet se nezastaví.
 - Přidání, změna nebo smazání řádku ve stavu Spočteno vrátí ocenění do Návrhu a formulář vyzve ke spuštění
   Spočítat (ruční úplata mění základ dalších úplat); Odeslat ke schválení jde až po novém výpočtu.
+  Pruh s tlačítkem Spočítat, ne automatický přepočet (uživatel 2026-11-13). Běžný postup: Spočítat → podle
+  přecenění doplnit ruční úplaty → Spočítat znovu; každý výpočet zahodí návrhy předchozího a počítá od začátku.
 - Po odeslání ke schválení řádky nejde měnit (beze změny). Kontrola fondu pravidla a tříd (2026-11-13) zůstává.
 
 ## Etapy
