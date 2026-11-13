@@ -83,4 +83,19 @@ jiné moduly, výpočty. Nic se nepřepočítává mezi měnami, žádný index 
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- **Datum:** 2026-11-13, převzal Claude. Práce Copilota commitnuta v `~/odoo-review` (`a95d93e`), sloučena do
+  `feature/nav-prototyp` (`637a7d5`); opravy z revize v navazujícím commitu.
+- **Nálezy revize (opraveno Claudem):**
+  1. `useState` z `@odoo/owl` v Odoo 20 (OWL 3) neexistuje, stav je `proxy`; šablony v OWL 3 odkazují přes `this.`.
+  2. `import { DateTime } from "luxon"` – v Odoo 20 je luxon globální objekt (`const { DateTime } = luxon`), modul neexistuje.
+  3. Legenda brala zobrazovaný název třídy „Fond / A“; teď kód třídy („A · CZK“).
+  4. Neočekávaná data nebo chyba serveru vyhodily výjimku a zablokovaly formulář ocenění; teď karta ukáže
+     „Graf nelze zobrazit. Ocenění tím není dotčené.“
+  5. Historie se načítala při každé změně pole; teď jen při jiném záznamu nebo po uložení změny data, fondu či stavu.
+  6. Tooltip ukazuje kurz s desetinnými místy třídy (`price_digits`, nejvýš 8 – přesnost přehledu kurzů).
+  7. Styl grafu používal proměnné `investra_theme`, na kterém `investra_nav` nezávisí; doplněny záložní hodnoty `!default`.
+- **Změna zadání (uživatel 2026-11-13, varianta B):** tři a více měn už nekončí větou, ale samostatným grafem pro každou
+  měnu (výška 240 px, společná osa času, přepínač období platí pro všechny). Poznámka pod grafem se řídí počtem měn.
+- **Ověřeno:** čistá DB (`l10n_cz`, `investra_nav`, `investra_theme`) 312 testů, 0 chyb; sestavení `web.assets_backend`
+  (CSS i JS) bez chyb; syntaxe a logika komponenty v JavaScriptCore s atrapami Odoo (legenda, 1–3 měny, období 3M, tooltip).
+  Zobrazení v prohlížeči ověřuje uživatel na 8072.

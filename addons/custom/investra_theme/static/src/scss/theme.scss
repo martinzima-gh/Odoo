@@ -108,11 +108,50 @@
     }
 }
 
-// Stavový řádek: aktuální krok plně v Lagoon s bílým textem (kontrast 9 : 1).
-.o_statusbar_status .o_arrow_button_current {
-    background-color: $investra-lagoon !important;
-    border-color: $investra-lagoon !important;
-    color: #ffffff !important;
+// Stavový řádek ve všech formulářích (uživatel 2026-11-13): každý stav je samostatná zaoblená bublina místo šipky.
+// Odoo kreslí šipky výřezem clip-path a překrytím tlačítek; v mezerách výřezu prosvítal bílý podklad řádku
+// („bílé trojúhelníky“). Výřez, překrytí i rámeček podkladu proto rušíme: mezera mezi bublinami má barvu pozadí.
+// Pořadí, chování a rozbalovací nabídky stavů se nemění. !important jen tam, kde jádro používá silnější selektory
+// (.o_last:not(.o_first) apod.).
+.o_field_statusbar > .o_statusbar_status {
+    gap: 4px;
+
+    @include media-breakpoint-up(md) {
+        border: 0;
+        padding: 0;
+        background: transparent;
+    }
+
+    .o_arrow_button:not(.d-none) {
+        --#{$prefix}btn-bg: #ffffff;
+        --#{$prefix}btn-border-color: #{$investra-petroleum-4};
+        --#{$prefix}btn-hover-bg: #{$investra-petroleum-4};
+        --#{$prefix}btn-hover-border-color: #{$investra-petroleum-4};
+        --#{$prefix}btn-disabled-bg: #ffffff;
+        --#{$prefix}btn-disabled-border-color: #{$investra-petroleum-4};
+
+        clip-path: none !important;
+        margin-left: 0 !important;
+        border: 1px solid var(--#{$prefix}btn-border-color) !important;
+        border-radius: 12px !important;
+        padding: var(--o-statusbar-button-padding-y) 12px !important;
+        font-size: 12px;
+        font-weight: 600;
+
+        &:not(.o_arrow_button_current):disabled {
+            color: $investra-graphite-2;
+        }
+    }
+
+    // Aktuální krok plně v Lagoon s bílým textem (kontrast 9 : 1).
+    .o_arrow_button.o_arrow_button_current {
+        --#{$prefix}btn-disabled-bg: #{$investra-lagoon};
+        --#{$prefix}btn-disabled-border-color: #{$investra-lagoon};
+        --#{$prefix}btn-disabled-color: #ffffff;
+        --#{$prefix}btn-border-color: #{$investra-lagoon};
+        background-color: $investra-lagoon !important;
+        color: #ffffff !important;
+    }
 }
 
 // Štítky stavů: bílé, text Graphite, stav nese rámeček a tečka ve funkční barvě Odoo.
