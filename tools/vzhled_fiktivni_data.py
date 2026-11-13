@@ -4,6 +4,7 @@
 #   --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom -d investra_vzhled \
 #   --db-filter="^investra_vzhled$" --no-http --max-cron-threads=0 < tools/vzhled_fiktivni_data.py
 # Fondy zakládá znovu (nové společnosti); podruhé spouštět jen do čerstvé kopie investra_vzhled.
+import itertools
 import random
 from datetime import date
 
@@ -13,6 +14,7 @@ random.seed(20261113)
 MONTH_ENDS = ["2026-01-31", "2026-02-28", "2026-03-31", "2026-04-30", "2026-05-31", "2026-06-30",
               "2026-07-31", "2026-08-31", "2026-09-30", "2026-10-31"]
 czk = env.ref("base.CZK")
+ISIN_NUMBER = itertools.count(1)
 
 
 def user(login, name, group):
@@ -66,6 +68,8 @@ def make_fund(name, tail):
     for iname, kind, start, vol in INSTRUMENTS:
         inst = fenv["investra.instrument"].create({
             "name": f"{iname} – {name.split()[2]}", "currency_id": czk.id,
+            # Akcie a fondy vyžadují ISIN (investra_instruments 0.14.0); smyšlené, jedinečné v rámci skriptu.
+            "isin": f"CZ{100 + next(ISIN_NUMBER):010d}",
             "type_id": env.ref(f"investra_instruments.type_{kind}").id,
         })
         fenv["investra.portfolio.classification"].create({
