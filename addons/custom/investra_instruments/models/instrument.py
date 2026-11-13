@@ -28,6 +28,28 @@ SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id", "reversal_rea
 # Odchylka kurzu vypořádání od kurzu obchodu, od které formulář upozorní (rozhodnutí 2026-11-12).
 SETTLEMENT_FX_WARNING = 0.10
 BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest"}
+
+
+def check_book_active(env, books, record_label):
+    """Srozumitelná hláška místo obecné chyby více společností (rozhodnutí 2026-11-13 „Sdílené nástroje a pravidlo knihy“).
+
+    Pravidlo záznamů pustí založení a změnu jen v knize zaškrtnuté v přepínači firem. Tady se to ověří předem
+    a hláška řekne, kterou knihu zaškrtnout, nebo že ji uživatel nemá mezi povolenými společnostmi.
+    Pravidlo záznamů zůstává beze změny, tohle je jen dřívější a čitelnější kontrola.
+    """
+    if env.su:
+        return
+    book = (books - env.companies)[:1].sudo()
+    if not book:
+        return
+    if book in env.user.sudo().company_ids:
+        message = env._("%(what)s vede kniha %(book)s. Zaškrtněte ji v přepínači firem vpravo nahoře a akci opakujte.",
+                        what=record_label, book=book.name)
+    else:
+        message = env._("%(what)s vede kniha %(book)s, kterou nemáte mezi povolenými společnostmi. "
+                        "Požádejte správce o přidání (Nastavení → Uživatelé → Povolené společnosti).",
+                        what=record_label, book=book.name)
+    raise AccessError(message)
 SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
 # Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
 PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "currency_id", "source", "deviation_reason"}
@@ -181,6 +203,8 @@ class InvestraInstrument(models.Model):
             self._normalize_identifiers(vals)
             fund = self.env["investra.fund"].browse(vals.get("fund_id")).sudo()
             vals["company_id"] = fund.company_id.id if fund else self._shared_company().id
+            check_book_active(self.env, self.env["res.company"].browse(vals["company_id"]),
+                              self.env._("Nástroj fondu") if fund else self.env._("Sdílený nástroj (s ISIN)"))
             vals["code"] = f"{kind.code_prefix or 'NAS'}-{Sequence.next_by_code('investra.instrument')}"
         return super().create(vals_list)
 
@@ -239,6 +263,9 @@ class InvestraInstrument(models.Model):
     def write(self, vals):
         if not self.env.su and "code" in vals:
             raise UserError(self.env._("Kód nástroje přiděluje systém a nemění se."))
+        for instrument in self.sudo():
+            check_book_active(self.env, instrument.company_id,
+                              self.env._("Nástroj %s", instrument.display_name))
         self._normalize_identifiers(vals)
         if not self.env.su and LOCKED_AFTER_TRADE & set(vals):
             changed = self.filtered(lambda i: any(
@@ -402,11 +429,16 @@ class InvestraInstrumentPrice(models.Model):
         for vals in vals_list:
             fund = self.env["investra.fund"].browse(vals.get("fund_id", self.env.context.get("default_fund_id")))
             vals["company_id"] = fund.company_id.id if fund else self._shared_price_company().id
+            check_book_active(self.env, self.env["res.company"].browse(vals["company_id"]),
+                              self.env._("Cenu fondu") if fund else self.env._("Sdílenou tržní cenu"))
         return super().create(vals_list)
 
     def write(self, vals):
         if not self.env.su and SYSTEM_PRICE_FIELDS & set(vals):
             raise UserError(self.env._("Cenu schvaluje jen schvalovací krok."))
+        for price in self.sudo():
+            check_book_active(self.env, price.company_id,
+                              self.env._("Sdílenou tržní cenu") if not price.fund_id else self.env._("Cenu fondu"))
         approved = self.filtered(lambda p: p.state == "approved")
         if approved and set(vals) - {"state", "approved_by"}:
             if {"instrument_id", "fund_id", "date", "company_id"} & set(vals):

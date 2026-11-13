@@ -4,6 +4,8 @@ Nástroj s ISIN je sdílený a vede ho kniha investiční společnosti; nástroj
 ISIN + měna jsou jedinečné, kód nástroje přiděluje systém, změny údajů a toků jdou do historie nástroje.
 """
 
+import re
+
 from psycopg2 import IntegrityError
 
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -122,6 +124,21 @@ class TestSharedInstrumentBook(InstrumentCase):
         self.assertEqual(self.instrument.name, "Přejmenováno")
         # Sdílený nástroj vidí každý fond.
         self.assertEqual(self.instrument.with_user(self.preparer).read(["name"])[0]["name"], "Přejmenováno")
+
+    def test_book_not_active_gives_clear_message(self):
+        """Hláška řekne, kterou knihu zaškrtnout, nebo že ji uživatel nemá povolenou (místo chyby více společností)."""
+        vals = {"name": "Akcie", "isin": "XS0009876543", "currency_id": self.eur.id,
+                "type_id": self.env.ref("investra_instruments.type_equity").id}
+        Instrument = self.env["investra.instrument"]
+        # Kniha je povolená, ale není zaškrtnutá v přepínači.
+        with self.assertRaisesRegex(AccessError, "Zaškrtněte ji v přepínači"):
+            Instrument.with_user(self.admin_user).with_context(allowed_company_ids=[self.company.id]).create(vals)
+        # Kniha není mezi povolenými společnostmi.
+        with self.assertRaisesRegex(AccessError, "nemáte mezi povolenými"):
+            Instrument.with_user(self.preparer).create(vals)
+        with self.assertRaisesRegex(AccessError, re.escape(self.manager_company.name)):
+            self.instrument.with_user(self.preparer).write({"name": "Přejmenováno"})
+        self.assertTrue(self.as_admin(Instrument).create(vals).company_id == self.manager_company)
 
     def test_instrument_of_other_fund_is_hidden(self):
         foreign = self.env["investra.instrument"].create({
