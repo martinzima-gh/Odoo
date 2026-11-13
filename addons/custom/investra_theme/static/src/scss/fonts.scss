@@ -1,6 +1,8 @@
 // Montserrat z modulu web (Odoo jej přibaluje i s licencí SIL OFL v web/static/fonts/google/Montserrat).
 // Žádné načítání z Google Fonts ani jiného CDN. Jen řezy z manuálu (kap. 3.2): 300–700.
-$investra-montserrat-path: "/web/static/fonts/google/Montserrat/Montserrat-";
+// Relativně k tomuto souboru: Odoo při sestavení přidá před url() cestu stylu, absolutní "/web/..."
+// by skončila jako /investra_theme/static/src/scss//web/... (404). Opravil Copilot 2026-11-13.
+$investra-montserrat-path: "../../../../web/static/fonts/google/Montserrat/Montserrat-";
 $investra-montserrat-weights: (
     "Light": 300,
     "Regular": 400,

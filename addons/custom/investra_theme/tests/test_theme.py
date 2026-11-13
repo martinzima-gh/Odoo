@@ -1,3 +1,6 @@
+import posixpath
+import re
+
 from odoo.tests import TransactionCase, tagged
 
 
@@ -30,4 +33,9 @@ class TestTheme(TransactionCase):
         self.assertIn("#e8ebec", css)  # Petroleum 4 – pozadí aplikace
         self.assertIn("#eb5b1f", css)  # Ember – akcent lišty
         self.assertIn("montserrat-semibold.ttf", css)
+        # Adresa písma musí po normalizaci vést do /web/static (dříve vedla na 404).
+        urls = [u.strip("'\"") for u in re.findall(r"url\(([^)]*montserrat[^)]*)\)", css)]
+        self.assertTrue(urls)
+        for url in urls:
+            self.assertTrue(posixpath.normpath(url).startswith("/web/static/fonts/google/montserrat/"), url)
         self.assertNotIn("fonts.googleapis.com", css)

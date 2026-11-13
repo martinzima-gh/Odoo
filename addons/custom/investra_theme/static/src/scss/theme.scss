@@ -44,6 +44,13 @@
     }
 }
 
+// V ocenění nenechávej název třídy uříznout před jejím označením A/B.
+.o_form_view [name="class_line_ids"] .o_list_renderer .o_list_table {
+    td:first-child {
+        white-space: normal !important;
+    }
+}
+
 // Stavový řádek: aktuální krok plně v Lagoon s bílým textem (kontrast 9 : 1).
 .o_statusbar_status .o_arrow_button_current {
     --#{$prefix}btn-disabled-bg: #{$investra-lagoon};
