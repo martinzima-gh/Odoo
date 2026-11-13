@@ -19,6 +19,7 @@ Rozhodnutí 2026-11-12: s uživatelem smíš upravovat vzhled, ale jen v zelené
 - Smíš měnit jen: pohledy `addons/custom/*/views/*.xml` (formuláře, seznamy, kanban, nabídky), styly `addons/custom/*/static/src/**/*.scss` a `*.css` a v `__manifest__.py` jen doplnit soubor se styly do klíče `assets`. Nic jiného: žádný Python, JavaScript, `security/`, data, migrace, testy s očekávanými hodnotami, žádná pole ani verze modulu.
 - Když úprava potřebuje víc (nové pole, výpočet, JavaScript), zastav se a napiš to jako návrh do záznamu.
 - Před začátkem ověř `git status` v `~/odoo-review`. Když jsou tam necommitované změny (rozpracovaný úkol Antigravity nebo jiný záznam CP), nezačínej a řekni to uživateli.
+- Výsledek ukazuj na http://127.0.0.1:8072 (Odoo nad `~/odoo-review/addons/custom`, databáze `investra_vzhled` s fiktivními daty, jen pro vzhled; spouští a obnovuje ji Claude). Změna stávajícího `.scss` a pohledu `views/*.xml` se projeví po obnovení stránky; nový soubor v `__manifest__.py` až po upgradu modulu, ten udělá Claude.
 - Bez commitu, pushe, Dockeru, databází a testů Odoo. Smíš spustit `tools/view_check` a testy v čistém Pythonu.
 - **Vždy dej Claudovi vědět:** po každé úpravě založ nebo doplň záznam `docs/ukoly/CP-RRRR-MM-DD-tema.md` podle `docs/ukoly/_sablona.md` (zóna zelená; v sekci Výsledek změněné soubory, co a proč se změnilo, co jsi ověřil). Na konci odpovědi uživateli napiš: „Řekni Claudovi: převezmi `docs/ukoly/CP-…` z `~/odoo-review`.“ Claude změnu zreviduje, vyzkouší a commitne s autorem „Copilot“.
 

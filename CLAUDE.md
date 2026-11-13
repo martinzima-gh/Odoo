@@ -51,6 +51,7 @@ Rozhodnutí 2026-11-09 (nahrazuje „jednu pracovní relaci“ z 2026-11-07):
 | Instance | Účel | Adresa | Databáze |
 |---|---|---|---|
 | `docker-compose.investra.yml` (projekt `odoo-investra`) | vývoj, Odoo 20 Community, bez Odoo Mates | http://127.0.0.1:8070 | `investra_dev` |
+| kontejner `investra-vzhled-web` (`docker compose -f docker-compose.investra.yml run`, moduly z `~/odoo-review`, `--dev=xml`) | ladění vzhledu s Copilotem; data jsou kopie `investra_test` z 2026-11-13, jen pro vzhled | http://127.0.0.1:8072 | `investra_vzhled` |
 | `docker-compose.yml` | výuková instance, Odoo 19 + Odoo Mates | http://localhost:8069 | `odoo_cz` |
 
 - Obraz Odoo je připnutý (`odoo:20.0-20261102`); aktualizace jen řízeně.
