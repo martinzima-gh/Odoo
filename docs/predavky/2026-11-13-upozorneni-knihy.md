@@ -12,10 +12,12 @@ stránku a neuložený formulář zahodí (jádro Odoo). Proto formulář upozor
   Pomocné DB `investra_ci_kniha`, `investra_ci_kniha2` smazány.
 - Deník rozhodnutí: „Upozornění na nezaškrtnutou knihu ve formuláři“.
 
+- `investra_test`: záloha `zalohy/investra_test-2026-11-13-pred-upozornenim-knihy.dump`, upgrade na 0.14.1; doklady 78,
+  řádky 192, nástroje 8, ceny 13 beze změny. Testy: jen 5 známých selhání „nesmí schválit“ u cen (ruční řádek matice).
+  Pruh ověřen na datech (admin bez knihy investiční společnosti). Web 8071 restartován.
+
 **Zbývá – první krok:**
-1. Upgrade `investra_test` na `investra_instruments` 0.14.1 (po souhlasu, se zálohou). Pozor: `-u` povýší i `investra_nav`
-   a načte jeho pracovní kopii, kde měla relace `odoo-dev-29` necommitnutou historii cen (`valuation_price_history`).
-   Upgradovat až po jejím commitu. Pak restart webu 8071 a ověření pruhu v UI.
+1. Uživatel vyzkouší pruh v UI 8071 (nový nástroj s nezaškrtnutou knihou investiční společnosti).
 2. Claude Doc (konektor Claude Docs v relaci chyběl): doplnit řádky deníku „Firma nové účetní knihy“, „Příjemce vstupního
    a výstupního poplatku“, „Upozornění na nezaškrtnutou knihu ve formuláři“ a otevřený bod „Účty poplatků za úpis
    a odkup ve prospěch fondu“; pak přepsat `docs/architektura.md` exportem.
