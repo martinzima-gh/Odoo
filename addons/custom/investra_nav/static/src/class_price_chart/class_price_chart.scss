@@ -1,0 +1,61 @@
+.o_investra_class_price_chart {
+    margin: 24px 0;
+
+    .o_investra_class_price_chart_header {
+        align-items: flex-end;
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        margin-bottom: 12px;
+
+        h2 {
+            color: $investra-petroleum;
+            font-size: 19px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        p {
+            color: $investra-graphite-2;
+            font-size: 12px;
+            margin-bottom: 0;
+        }
+    }
+
+    .o_investra_class_price_chart_periods {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 4px;
+
+        .btn {
+            background: #ffffff;
+            border: 1px solid $investra-petroleum-4;
+            border-radius: 4px;
+            color: $investra-graphite;
+
+            &.active {
+                background: $investra-petroleum;
+                border-color: $investra-petroleum;
+                color: #ffffff;
+            }
+        }
+    }
+
+    .o_investra_class_price_chart_canvas {
+        height: 360px;
+        position: relative;
+    }
+
+    .o_investra_class_price_chart_note {
+        color: $investra-graphite-2;
+        font-size: 12px;
+        margin-top: 8px;
+    }
+
+    @media (max-width: 700px) {
+        .o_investra_class_price_chart_header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+}

@@ -49,13 +49,70 @@
     td:first-child {
         white-space: normal !important;
     }
+
+    thead th .text-truncate {
+        overflow: visible !important;
+        text-overflow: clip !important;
+        white-space: normal !important;
+    }
+}
+
+// V portfoliu zobraz celý název fondu nebo nástroje.
+.o_form_view [name="portfolio_line_ids"] .o_list_renderer .o_list_table {
+    td:nth-child(2) {
+        white-space: normal !important;
+    }
+}
+
+// Formulář: hierarchie sekcí a popisků podle vzoru.
+.o_form_view {
+    .o_horizontal_separator {
+        color: $investra-petroleum;
+        border-color: $investra-petroleum-4;
+        font-weight: 600 !important;
+    }
+
+    .o_form_label.o_form_label_readonly {
+        color: $investra-petroleum !important;
+        font-weight: 600 !important;
+        opacity: 1;
+    }
+
+    .o_notebook .nav-tabs .nav-link.active {
+        color: $investra-petroleum;
+        font-weight: 600;
+    }
+}
+
+// Nový záznam je primární akce; Odoo ho standardně vykresluje jen obrysově.
+.o_web_client .btn-primary,
+.o_web_client .btn-secondary {
+    font-weight: 600;
+}
+
+.o_web_client .o_form_button_create {
+    background-color: $investra-petroleum;
+    border-color: $investra-petroleum;
+    color: #ffffff;
+
+    &:hover {
+        background-color: $investra-petroleum-0;
+        border-color: $investra-petroleum-0;
+        color: #ffffff;
+    }
+
+    &:active {
+        background-color: $investra-petroleum-4;
+        border-color: $investra-petroleum;
+        color: $investra-petroleum;
+    }
 }
 
 // Stavový řádek: aktuální krok plně v Lagoon s bílým textem (kontrast 9 : 1).
 .o_statusbar_status .o_arrow_button_current {
-    --#{$prefix}btn-disabled-bg: #{$investra-lagoon};
-    --#{$prefix}btn-disabled-border-color: #{$investra-lagoon};
-    --#{$prefix}btn-disabled-color: #ffffff;
+    background-color: $investra-lagoon !important;
+    border-color: $investra-lagoon !important;
+    color: #ffffff !important;
 }
 
 // Štítky stavů: bílé, text Graphite, stav nese rámeček a tečka ve funkční barvě Odoo.

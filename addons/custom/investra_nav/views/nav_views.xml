@@ -160,7 +160,7 @@
                         <group string="Ocenění">
                             <field name="version"/>
                             <field name="previous_id"/>
-                            <field name="preparer_id" string="Zadal"/>
+                            <field name="preparer_id" string="Zadal" help="Uživatel, který ocenění založil."/>
                         </group>
                         <group string="Výsledek">
                             <field name="fund_capital"/>
@@ -223,6 +223,18 @@
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+    <record id="view_valuation_form_class_price_chart" model="ir.ui.view">
+        <field name="name">investra.valuation.form.class.price.chart</field>
+        <field name="model">investra.valuation</field>
+        <field name="inherit_id" ref="view_valuation_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook" position="before">
+                <div class="o_investra_valuation_class_price_chart">
+                    <widget name="investra_class_price_chart"/>
+                </div>
+            </xpath>
         </field>
     </record>
     <record id="action_valuation" model="ir.actions.act_window">

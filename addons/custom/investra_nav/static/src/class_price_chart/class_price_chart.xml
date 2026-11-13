@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="investra_nav.ClassPriceChart">
+        <div class="o_investra_class_price_chart">
+            <div class="o_investra_class_price_chart_header">
+                <div>
+                    <h2>Vývoj kurzů tříd</h2>
+                    <p>Zveřejněné kurzy podle měny třídy do data tohoto ocenění.</p>
+                </div>
+                <t t-if="state.status === 'ready'">
+                    <div class="o_investra_class_price_chart_periods" role="group" aria-label="Období grafu">
+                        <button type="button" t-att-class="state.period === '3m' ? 'btn btn-sm active' : 'btn btn-sm'"
+                                t-att-aria-pressed="state.period === '3m'" t-on-click="() => this.setPeriod('3m')">3M</button>
+                        <button type="button" t-att-class="state.period === '6m' ? 'btn btn-sm active' : 'btn btn-sm'"
+                                t-att-aria-pressed="state.period === '6m'" t-on-click="() => this.setPeriod('6m')">6M</button>
+                        <button type="button" t-att-class="state.period === '1y' ? 'btn btn-sm active' : 'btn btn-sm'"
+                                t-att-aria-pressed="state.period === '1y'" t-on-click="() => this.setPeriod('1y')">1R</button>
+                        <button type="button" t-att-class="state.period === 'all' ? 'btn btn-sm active' : 'btn btn-sm'"
+                                t-att-aria-pressed="state.period === 'all'" t-on-click="() => this.setPeriod('all')">Max</button>
+                    </div>
+                </t>
+            </div>
+            <t t-if="state.status === 'loading'">
+                <p>Načítám zveřejněné kurzy…</p>
+            </t>
+            <t t-elif="state.status === 'unsaved'">
+                <p>Uložte ocenění.</p>
+            </t>
+            <t t-elif="state.status === 'empty'">
+                <p>Zatím žádné zveřejněné ocenění.</p>
+            </t>
+            <t t-elif="state.status === 'too_many_currencies'">
+                <p>Fond má kurzy ve více než dvou měnách, graf s vedlejší osou je neukáže.</p>
+            </t>
+            <t t-else="">
+                <t t-if="hasVisibleData()">
+                    <div class="o_investra_class_price_chart_canvas">
+                        <canvas t-ref="chart.ref"/>
+                    </div>
+                    <p class="o_investra_class_price_chart_note">
+                        Zveřejněné kurzy v měně třídy. Osy mají různé stupnice – sklon čar nesrovnávejte.
+                    </p>
+                </t>
+                <p t-else="">V tomto období nejsou zveřejněné kurzy.</p>
+            </t>
+        </div>
+    </t>
+</templates>
