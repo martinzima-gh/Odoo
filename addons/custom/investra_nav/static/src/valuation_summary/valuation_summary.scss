@@ -165,8 +165,9 @@ $investra-graphite-2: #6a6967 !default;
 
     .o_investra_summary_hint { color: $investra-graphite-2; margin-bottom: 16px; }
 
-    // Tabulky ocenění jsou jen pro čtení: bez prázdných výplňových řádků, které Odoo doplňuje do výšky 4 řádků.
-    .o_field_x2many .o_list_table tbody tr:not(.o_data_row):has(> td[colspan]:only-child) {
+    // Bez prázdných výplňových řádků, které Odoo doplňuje do výšky 4 řádků. Řádek „Přidat řádek“
+    // (ručně doložené úplaty) má stejnou stavbu, proto je výslovně vyjmutý.
+    .o_field_x2many .o_list_table tbody tr:not(.o_data_row):not(:has(.o_field_x2many_list_row_add)):has(> td[colspan]:only-child) {
         display: none;
     }
 
