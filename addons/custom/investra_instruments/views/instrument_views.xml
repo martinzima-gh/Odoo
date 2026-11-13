@@ -34,6 +34,9 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not book_warning">
+                        <field name="book_warning" readonly="1"/>
+                    </div>
                     <div class="alert alert-warning" role="alert" invisible="not calendar_missing">
                         Dluhopis nemá kalendář toků: naběhlý úrok se v obchodech nepředvyplní a ocenění ho u pozice nepočítá.
                         Doplňte toky na záložce Smluvní peněžní toky.
@@ -219,6 +222,9 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not book_warning">
+                        <field name="book_warning" readonly="1"/>
+                    </div>
                     <group>
                         <group>
                             <field name="instrument_id" string="Nástroj" readonly="state == 'approved'"/>

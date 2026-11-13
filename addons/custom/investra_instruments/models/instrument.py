@@ -30,6 +30,33 @@ SETTLEMENT_FX_WARNING = 0.10
 BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest"}
 
 
+def book_problem(env, books, record_label, in_form=False):
+    """Text hlášky, když kniha záznamu není zaškrtnutá v přepínači firem nebo ji uživatel nemá povolenou; jinak False.
+
+    `in_form`: varianta pro pruh ve formuláři (rozhodnutí 2026-11-13 „Upozornění na nezaškrtnutou knihu ve formuláři“) –
+    přepnutí firmy znovu načte stránku a neuložený formulář zahodí, proto se má kniha zaškrtnout před vyplněním.
+    """
+    if env.su:
+        return False
+    book = (books - env.companies)[:1].sudo()
+    if not book:
+        return False
+    if book in env.user.sudo().company_ids:
+        if in_form:
+            return env._("%(what)s vede kniha %(book)s, která není zaškrtnutá v přepínači firem vpravo nahoře. Zaškrtněte ji "
+                         "dřív, než začnete vyplňovat nebo upravovat: bez ní se změny neuloží a přepnutí firem neuložený "
+                         "formulář zahodí.", what=record_label, book=book.name)
+        return env._("%(what)s vede kniha %(book)s. Zaškrtněte ji v přepínači firem vpravo nahoře a akci opakujte.",
+                     what=record_label, book=book.name)
+    if in_form:
+        return env._("%(what)s vede kniha %(book)s, kterou nemáte mezi povolenými společnostmi: změny nepůjde uložit. "
+                     "Pokud je potřebujete, požádejte správce (Nastavení → Uživatelé → Povolené společnosti).",
+                     what=record_label, book=book.name)
+    return env._("%(what)s vede kniha %(book)s, kterou nemáte mezi povolenými společnostmi. "
+                 "Požádejte správce o přidání (Nastavení → Uživatelé → Povolené společnosti).",
+                 what=record_label, book=book.name)
+
+
 def check_book_active(env, books, record_label):
     """Srozumitelná hláška místo obecné chyby více společností (rozhodnutí 2026-11-13 „Sdílené nástroje a pravidlo knihy“).
 
@@ -37,19 +64,9 @@ def check_book_active(env, books, record_label):
     a hláška řekne, kterou knihu zaškrtnout, nebo že ji uživatel nemá mezi povolenými společnostmi.
     Pravidlo záznamů zůstává beze změny, tohle je jen dřívější a čitelnější kontrola.
     """
-    if env.su:
-        return
-    book = (books - env.companies)[:1].sudo()
-    if not book:
-        return
-    if book in env.user.sudo().company_ids:
-        message = env._("%(what)s vede kniha %(book)s. Zaškrtněte ji v přepínači firem vpravo nahoře a akci opakujte.",
-                        what=record_label, book=book.name)
-    else:
-        message = env._("%(what)s vede kniha %(book)s, kterou nemáte mezi povolenými společnostmi. "
-                        "Požádejte správce o přidání (Nastavení → Uživatelé → Povolené společnosti).",
-                        what=record_label, book=book.name)
-    raise AccessError(message)
+    message = book_problem(env, books, record_label)
+    if message:
+        raise AccessError(message)
 SYSTEM_PRICE_FIELDS = {"state", "approved_by", "entered_by"}
 # Kdo změní některé z těchto polí návrhu, stává se zadavatelem ceny.
 PRICE_INPUT_FIELDS = {"instrument_id", "fund_id", "date", "price", "currency_id", "source", "deviation_reason"}
@@ -111,6 +128,7 @@ class InvestraInstrument(models.Model):
     # Kniha nástroje: u nástroje fondu kniha fondu, u sdíleného kniha investiční společnosti. Do založení knihy
     # investiční společnosti je u sdíleného prázdná (založit ho smí jen superuživatel, ostatním je jen ke čtení).
     company_id = fields.Many2one("res.company", readonly=True, index=True, string="Kniha")
+    book_warning = fields.Char(compute="_compute_book_warning", string="Upozornění na knihu")
     isin = fields.Char(string="ISIN")
     identifier_kind = fields.Selection(IDENTIFIER_KINDS, string="Druh identifikátoru")
     identifier = fields.Char(string="Identifikátor", help="Nástroj bez ISIN: např. číslo smlouvy, IČO nebo LEI.")
@@ -192,6 +210,22 @@ class InvestraInstrument(models.Model):
             "Nástroj s ISIN je sdílený a vede ho kniha investiční společnosti, která zatím není založená (nebo jich je víc). "
             "Nástroj bez ISIN založte jako nástroj fondu."
         ))
+
+    @api.depends("fund_id", "company_id")
+    @api.depends_context("uid", "allowed_company_ids")
+    def _compute_book_warning(self):
+        """Pruh ve formuláři ještě před vyplněním: kniha se určí stejně jako při založení (fond, jinak investiční společnost).
+
+        Rozhodnutí 2026-11-13 „Upozornění na nezaškrtnutou knihu ve formuláři“. Bez knihy investiční společnosti se nic
+        neukazuje; to řekne chyba při uložení (`_shared_company`).
+        """
+        managers = self.env["investra.entity"].sudo().search([("entity_type", "=", "manager")])
+        shared_book = managers.company_id if len(managers) == 1 else self.env["res.company"]
+        for instrument in self:
+            fund = instrument.sudo().fund_id
+            book = instrument.sudo().company_id or (fund.company_id if fund else shared_book)
+            label = self.env._("Nástroj fondu") if fund else self.env._("Sdílený nástroj (s ISIN)")
+            instrument.book_warning = book_problem(self.env, book, label, in_form=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -377,6 +411,7 @@ class InvestraInstrumentPrice(models.Model):
     )
     # Kniha ceny: u ceny fondu společnost fondu, u sdílené ceny kniha investiční společnosti; nastaví se při založení.
     company_id = fields.Many2one("res.company", required=True, readonly=True, index=True, string="Kniha")
+    book_warning = fields.Char(compute="_compute_book_warning", string="Upozornění na knihu")
     date = fields.Date(required=True, string="Datum", tracking=True)
     price = fields.Float(required=True, digits=(20, 8), string="Cena", tracking=True, help="V jednotkách měny ceny za kus.")
     currency_id = fields.Many2one(
@@ -410,6 +445,18 @@ class InvestraInstrumentPrice(models.Model):
     def _compute_currency_id(self):
         for price in self:
             price.currency_id = price.instrument_id.currency_id
+
+    @api.depends("fund_id", "company_id")
+    @api.depends_context("uid", "allowed_company_ids")
+    def _compute_book_warning(self):
+        """Pruh ve formuláři ještě před vyplněním (rozhodnutí 2026-11-13 „Upozornění na nezaškrtnutou knihu ve formuláři“)."""
+        managers = self.env["investra.entity"].sudo().search([("entity_type", "=", "manager")])
+        shared_book = managers.company_id if len(managers) == 1 else self.env["res.company"]
+        for price in self:
+            fund = price.sudo().fund_id
+            book = price.sudo().company_id or (fund.company_id if fund else shared_book)
+            label = self.env._("Cenu fondu") if fund else self.env._("Sdílenou tržní cenu")
+            price.book_warning = book_problem(self.env, book, label, in_form=True)
 
     @api.model
     def _shared_price_company(self):

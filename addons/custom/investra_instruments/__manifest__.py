@@ -1,7 +1,7 @@
 {
     "name": "Investra Instruments",
     "summary": "Nástroje, ceny a pozice",
-    "version": "20.0.0.14.0",
+    "version": "20.0.0.14.1",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

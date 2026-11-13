@@ -9,7 +9,7 @@ import re
 from psycopg2 import IntegrityError
 
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 from odoo.tools import mute_logger
 
 from .common import manager_book
@@ -139,6 +139,29 @@ class TestSharedInstrumentBook(InstrumentCase):
         with self.assertRaisesRegex(AccessError, re.escape(self.manager_company.name)):
             self.instrument.with_user(self.preparer).write({"name": "Přejmenováno"})
         self.assertTrue(self.as_admin(Instrument).create(vals).company_id == self.manager_company)
+
+    def test_form_warns_about_book_before_filling(self):
+        """Pruh ve formuláři ukáže nezaškrtnutou knihu hned po otevření (rozhodnutí 2026-11-13), ne až při uložení."""
+        Instrument = self.env["investra.instrument"].with_user(self.admin_user)
+        # Nový sdílený nástroj, kniha investiční společnosti je povolená, ale nezaškrtnutá.
+        form = Form(Instrument.with_context(allowed_company_ids=[self.company.id]))
+        self.assertIn("není zaškrtnutá", form.book_warning)
+        self.assertIn(self.manager_company.name, form.book_warning)
+        # Vyplněním fondu se kniha změní na knihu fondu, která zaškrtnutá je.
+        form.fund_id = self.fund
+        self.assertFalse(form.book_warning)
+        # Obě knihy zaškrtnuté: bez pruhu.
+        self.assertFalse(Form(self.as_admin(self.env["investra.instrument"])).book_warning)
+        # Kniha mimo povolené společnosti: pruh to řekne, nevyzývá k zaškrtnutí.
+        warning = Form(self.env["investra.instrument"].with_user(self.preparer)).book_warning
+        self.assertIn("nemáte mezi povolenými", warning)
+        self.assertIn("nemáte mezi povolenými", self.instrument.with_user(self.preparer).book_warning)
+        # Cena: sdílená vede kniha investiční společnosti, cena fondu kniha fondu.
+        price_form = Form(self.env["investra.instrument.price"].with_user(self.admin_user).with_context(
+            allowed_company_ids=[self.company.id]))
+        self.assertIn("Sdílenou tržní cenu", price_form.book_warning)
+        price_form.fund_id = self.fund
+        self.assertFalse(price_form.book_warning)
 
     def test_instrument_of_other_fund_is_hidden(self):
         foreign = self.env["investra.instrument"].create({
