@@ -50,7 +50,7 @@ Rozhodnutí 2026-11-12. Zdroj: Investra Brand manuál verze 1.0 (na úložišti 
 
 **Co se v Odoo nepoužívá:** vlastní ikonografie (kap. 4) a vzory N a VA (kap. 5); ikony zůstávají z Odoo.
 
-**Vzor:** `docs/vzhled/nahled-investra.html` (schválil uživatel 2026-11-12). Dolaďování se drží tohoto vzoru: rozvržení Odoo zůstává (žádné postranní menu, vlastní hlavičky ani dlaždice mimo Odoo), žádné stíny, přechody ani průhlednost. Vlastní náhledy mimo vzor nedělej; změnu vzoru navrhni a schvaluje ji uživatel, vzor upravuje Claude.
+**Vzor:** `docs/vzhled/zasady-obrazovek.md` a hotový detail ocenění (návrh `docs/vzhled/navrh-detail-oceneni.html`, schválil uživatel 2026-11-13; nahrazuje `nahled-investra.html` z 2026-11-12). Rozvržení Odoo zůstává (žádné postranní menu, navigace ani hlavička mimo Odoo); pás klíčových čísel a karty uvnitř formuláře podle zásad jsou povolené. Žádné stíny, přechody ani průhlednost. Nový návrh obrazovky nejdřív jako statický HTML náhled se smyšlenými daty v `docs/vzhled/`, schvaluje uživatel, teprve pak kód.
 
 **Kde:** celkový vzhled je v modulu `investra_theme`: proměnné barev a písma v `static/src/scss/primary_variables.scss` (paleta jako `$investra-*`, jiné barvy nepoužívej), doplňky v `theme.scss`. Šedá škála rozhraní a funkční barvy stavů zůstávají z Odoo. Nezasahuj do Odoo core ani standardních modulů. Když návrh vyžaduje změnu mimo zelenou zónu (modely, pole, security, data, migrace, JavaScript, NAV, FX, účtování), zastav se a napiš to jako návrh do záznamu CP.
 
