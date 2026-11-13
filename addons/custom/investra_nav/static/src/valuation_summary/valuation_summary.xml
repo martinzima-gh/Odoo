@@ -2,30 +2,76 @@
 <templates xml:space="preserve">
     <t t-name="investra_nav.ValuationSummary">
         <div class="o_investra_valuation_summary">
-            <p t-if="this.subtitle" class="o_investra_valuation_subtitle" t-out="this.subtitle"/>
-            <div t-if="this.props.record.resId" class="o_investra_tiles">
-                <div class="o_investra_tile">
-                    <div class="o_investra_tile_label">FK fondu</div>
-                    <div class="o_investra_tile_value" t-out="this.capitalTile.value"/>
-                    <div class="o_investra_tile_sub">Celkový kapitál k datu ocenění</div>
-                </div>
-                <div class="o_investra_tile o_investra_tile_lagoon">
-                    <div class="o_investra_tile_label">Změna FK od minula</div>
-                    <div t-att-class="'o_investra_tile_value' + (this.changeTile.sign &lt; 0 ? ' o_investra_negative' : this.changeTile.sign &gt; 0 ? ' o_investra_positive' : '')"
-                         t-out="this.changeTile.value"/>
-                    <div class="o_investra_tile_sub">
-                        <strong t-if="this.changeTile.pct" t-out="this.changeTile.pct"/>
-                        <span>Změna kapitálu ≠ výkonnost</span>
-                    </div>
-                </div>
-                <t t-foreach="this.state.prices" t-as="price" t-key="price.key">
-                    <div class="o_investra_tile">
-                        <div class="o_investra_tile_label">Poslední zveřejněný kurz <t t-out="price.code"/></div>
-                        <div class="o_investra_tile_value" t-out="price.value"/>
-                        <div class="o_investra_tile_sub" t-out="price.sub"/>
-                    </div>
+            <div t-if="this.facts.length" class="o_investra_facts">
+                <t t-foreach="this.facts" t-as="fact" t-key="fact.key">
+                    <span>
+                        <t t-out="fact.label"/>
+                        <a t-if="fact.link" href="#" t-on-click.prevent="() => this.openPrevious()" t-out="fact.value"/>
+                        <b t-else="" t-out="fact.value"/>
+                    </span>
                 </t>
             </div>
+
+            <t t-if="this.computed">
+                <div class="o_investra_kpi">
+                    <div>
+                        <div class="o_investra_label">FK fondu</div>
+                        <div class="o_investra_big" t-out="this.kpi.capital"/>
+                        <div class="o_investra_note">celkový kapitál k datu ocenění</div>
+                    </div>
+                    <div>
+                        <div class="o_investra_label">Změna FK od minula</div>
+                        <div t-att-class="'o_investra_big ' + this.kpi.changeTone" t-out="this.kpi.change"/>
+                        <div class="o_investra_note">
+                            <b t-if="this.kpi.changePct" t-out="this.kpi.changePct"/>
+                            <span t-if="this.kpi.flows"><t t-out="this.kpi.flowsLabel"/> <t t-out="this.kpi.flows"/></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="o_investra_label">Výsledek za období</div>
+                        <div t-att-class="'o_investra_big ' + this.kpi.resultTone" t-out="this.kpi.result"/>
+                        <div class="o_investra_note">změna společná + specifická · změna kapitálu ≠ výkonnost</div>
+                    </div>
+                </div>
+
+                <div class="o_investra_classes">
+                    <t t-foreach="this.state.classes" t-as="item" t-key="item.key">
+                        <div class="o_investra_class_card">
+                            <div class="o_investra_class_head">
+                                <span class="o_investra_class_code">Třída <t t-out="item.code"/></span>
+                                <span class="o_investra_currency" t-out="item.currency"/>
+                            </div>
+                            <div class="o_investra_class_price" t-out="item.price"/>
+                            <div t-if="item.change" t-att-class="'o_investra_class_change ' + item.tone">
+                                <t t-out="item.change"/> <span t-out="item.changePct"/>
+                                <em t-if="item.since">od <t t-out="item.since"/></em>
+                            </div>
+                            <div t-else="" class="o_investra_class_change"><em>první ocenění třídy</em></div>
+                            <svg t-if="item.spark" class="o_investra_spark" t-att-viewBox="item.spark.viewBox"
+                                 preserveAspectRatio="none" aria-hidden="true">
+                                <polyline t-if="item.spark.line" t-att-points="item.spark.line" fill="none"
+                                          t-att-stroke="item.color" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                                <line t-if="item.spark.last and item.spark.current" t-att-x1="item.spark.last.x" t-att-y1="item.spark.last.y"
+                                      t-att-x2="item.spark.current.x" t-att-y2="item.spark.current.y" t-att-stroke="item.color"
+                                      stroke-width="2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
+                                <circle t-if="item.spark.last" t-att-cx="item.spark.last.x" t-att-cy="item.spark.last.y" r="3" t-att-fill="item.color"/>
+                                <circle t-if="item.spark.current" t-att-cx="item.spark.current.x" t-att-cy="item.spark.current.y" r="3.5"
+                                        fill="#ffffff" t-att-stroke="item.color" stroke-width="2"/>
+                            </svg>
+                            <div class="o_investra_spark_note">
+                                <span t-out="item.sparkNote"/>
+                                <span t-if="item.pending">○ toto ocenění</span>
+                            </div>
+                            <div class="o_investra_class_meta">
+                                <span>FK <t t-out="item.capital"/></span>
+                                <span><t t-out="item.units"/> ks</span>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+            <p t-elif="this.state.error" class="o_investra_summary_hint">Souhrn nelze zobrazit. Ocenění tím není dotčené.</p>
+            <p t-elif="this.props.record.resId" class="o_investra_summary_hint">Ocenění ještě není spočtené.</p>
         </div>
     </t>
 </templates>

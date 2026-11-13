@@ -9,9 +9,6 @@
     "data": ["security/ir.access.csv", "data/cron.xml", "views/nav_views.xml", "views/lock_exception_views.xml", "views/trade_views.xml"],
     "assets": {
         "web.assets_backend": [
-            "investra_nav/static/src/class_price_chart/class_price_chart.js",
-            "investra_nav/static/src/class_price_chart/class_price_chart.xml",
-            "investra_nav/static/src/class_price_chart/class_price_chart.scss",
             "investra_nav/static/src/valuation_summary/valuation_summary.js",
             "investra_nav/static/src/valuation_summary/valuation_summary.xml",
             "investra_nav/static/src/valuation_summary/valuation_summary.scss",

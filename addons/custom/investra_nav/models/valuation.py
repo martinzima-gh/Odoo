@@ -1475,6 +1475,35 @@ class InvestraValuationClass(models.Model):
     capital_class = fields.Float(digits=(20, 2), string="FK v měně třídy")
     price_change_pct = fields.Float(digits=(16, 4), string="Změna kurzu %")
     foreign_currency = fields.Boolean(compute="_compute_foreign_currency", string="Třída v cizí měně")
+    # Jen pro zobrazení v tabulce tříd: kurz je uložený jako text (přesná hodnota), tady v notaci jazyka uživatele.
+    price_display = fields.Char(compute="_compute_display", string="Kurz")
+    price_change_display = fields.Char(compute="_compute_display", string="Změna kurzu")
+
+    @api.depends("price", "price_change_pct")
+    def _compute_display(self):
+        lang = self.env["res.lang"]._get_data(code=self.env.lang or "en_US")
+        point, sep = lang.decimal_point or ",", lang.thousands_sep or " "
+
+        def number(text, digits=None):
+            value = Decimal(text)
+            if digits is not None:
+                value = value.quantize(Decimal(1).scaleb(-digits), rounding=ROUND_HALF_UP)
+            sign, digits_text = ("−", f"{-value:f}") if value < 0 else ("", f"{value:f}")
+            whole, _, frac = digits_text.partition(".")
+            groups = []
+            while len(whole) > 3:
+                groups.insert(0, whole[-3:])
+                whole = whole[:-3]
+            groups.insert(0, whole)
+            return sign + sep.join(groups) + (point + frac if frac else "")
+
+        for line in self:
+            line.price_display = number(line.price) if line.price else ""
+            if line.opening_price:
+                change = number(str(line.price_change_pct), 2)
+                line.price_change_display = ("+" if line.price_change_pct > 0 else "") + change + " %"
+            else:
+                line.price_change_display = ""
 
     @api.depends("class_id.currency_id", "valuation_id.fund_id.currency_id")
     def _compute_foreign_currency(self):

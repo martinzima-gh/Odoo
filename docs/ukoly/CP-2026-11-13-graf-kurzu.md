@@ -99,3 +99,6 @@ jiné moduly, výpočty. Nic se nepřepočítává mezi měnami, žádný index 
 - **Ověřeno:** čistá DB (`l10n_cz`, `investra_nav`, `investra_theme`) 312 testů, 0 chyb; sestavení `web.assets_backend`
   (CSS i JS) bez chyb; syntaxe a logika komponenty v JavaScriptCore s atrapami Odoo (legenda, 1–3 měny, období 3M, tooltip).
   Zobrazení v prohlížeči ověřuje uživatel na 8072.
+- **Navazující změna (uživatel 2026-11-13):** velký graf nahrazen malým grafem v kartě každé třídy (12 měsíců, bez
+  přepínačů) podle návrhu `docs/vzhled/navrh-detail-oceneni.html`; komponenta `class_price_chart` odstraněna, nahrazuje ji
+  widget `investra_valuation_summary`. Viz deník rozhodnutí „Detail ocenění – souhrn a karty tříd“.
