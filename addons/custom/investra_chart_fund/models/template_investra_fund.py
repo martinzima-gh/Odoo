@@ -36,6 +36,9 @@ ROLE_ACCOUNTS = {
     "accrual": "ifa_389000",
     "tax_payable": "ifa_341000",
     "class_capital": "ifa_413000",
+    # Poplatky ve prospěch fondu nebo třídy (rozhodnutí 2026-11-13): pracovní účty, číslo určí uživatel.
+    "entry_fee_capital": "ifa_564100",
+    "exit_fee_capital": "ifa_564200",
     "retained_result": "ifa_428000",
     "gain_fair_value": "ifa_611000",
     "gain_fx": "ifa_663000",
@@ -43,6 +46,8 @@ ROLE_ACCOUNTS = {
     "income_dividend": "ifa_665000",
     "income_other": "ifa_668000",
     "rounding_gain": "ifa_668100",
+    "entry_fee_income": "ifa_767200",
+    "exit_fee_income": "ifa_767300",
     "loss_fair_value": "ifa_511000",
     # Realizovaný výsledek v RH: analytika pod 615/715 (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“).
     "gain_realised": "ifa_611100",

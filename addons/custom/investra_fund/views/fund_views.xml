@@ -35,7 +35,10 @@
                     </group>
                     <group string="Úpisy a odkupy – výchozí hodnoty tříd">
                         <field name="unit_digits"/><field name="unit_rounding"/><field name="rounding_owner"/>
-                        <field name="entry_fee_rate"/><field name="exit_fee_rate"/><field name="fee_recipient"/>
+                        <field name="entry_fee_rate"/><field name="entry_fee_recipient"/>
+                        <field name="entry_fee_capital" invisible="entry_fee_recipient != 'class'"/>
+                        <field name="exit_fee_rate"/><field name="exit_fee_recipient"/>
+                        <field name="exit_fee_capital" invisible="exit_fee_recipient != 'class'"/>
                     </group>
                     <group>
                         <field name="accrual_method"/>
@@ -43,14 +46,17 @@
                     </group>
                     <notebook>
                         <page string="Třídy">
-                            <field name="class_ids" context="{'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner, 'default_entry_fee_rate': entry_fee_rate, 'default_exit_fee_rate': exit_fee_rate, 'default_fee_recipient': fee_recipient}">
+                            <field name="class_ids" context="{'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner, 'default_entry_fee_rate': entry_fee_rate, 'default_exit_fee_rate': exit_fee_rate, 'default_entry_fee_recipient': entry_fee_recipient, 'default_exit_fee_recipient': exit_fee_recipient, 'default_entry_fee_capital': entry_fee_capital, 'default_exit_fee_capital': exit_fee_capital}">
                                 <list editable="bottom">
                                     <field name="code"/><field name="name"/><field name="currency_id"/>
                                     <field name="isin"/><field name="price_digits"/><field name="price_rounding"/>
                                     <field name="distribution"/>
                                     <field name="unit_digits" optional="show"/><field name="unit_rounding" optional="show"/>
                                     <field name="rounding_owner" optional="show"/><field name="entry_fee_rate" optional="show"/>
-                                    <field name="exit_fee_rate" optional="show"/><field name="fee_recipient" optional="show"/>
+                                    <field name="entry_fee_recipient" optional="show"/>
+                                    <field name="entry_fee_capital" optional="show" readonly="entry_fee_recipient != 'class'"/>
+                                    <field name="exit_fee_rate" optional="show"/><field name="exit_fee_recipient" optional="show"/>
+                                    <field name="exit_fee_capital" optional="show" readonly="exit_fee_recipient != 'class'"/>
                                 </list>
                             </field>
                         </page>

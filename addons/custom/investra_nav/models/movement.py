@@ -8,7 +8,10 @@ Odkup: hrubá částka = kusy × cena + zbytek; výplata = hrubá částka − p
 
 Kusy × cena se zaokrouhlí na haléře matematicky. Zbytek (nesoulad dat z IS) do 0,01 jde na výnos nebo náklad
 ze zaokrouhlení, větší zastaví zaúčtování. Rozdíl ze zaokrouhlení kusů zůstává ve fondu (kapitál třídy), nebo
-se vrací investorovi (závazek, výplatu zadává IS). Poplatek se platí ven (závazek vůči příjemci).
+se vrací investorovi (závazek, výplatu zadává IS). Poplatek obhospodařovatele nebo distributora se platí ven (závazek
+vůči příjemci); poplatek fondu je výnos celého fondu (dělí se mezi třídy poměrem); poplatek třídy dostane celý třída pohybu
+jako výnos, nebo se zaškrtnutím „do kapitálu“ jako kapitál (rozhodnutí 2026-11-13 „Příjemce vstupního a výstupního
+poplatku“). Poplatek třídy proto mění kapitál třídy z pohybu stejně jako rozdíl, který zůstává ve fondu.
 
 Pohyb bez ceny (pořízený před evidencí ceny, nebo z testů) se účtuje jako dřív: kapitál = hrubá částka − poplatek − rozdíl.
 """
@@ -18,7 +21,7 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from odoo.addons.investra_fund.models.fund import FEE_RECIPIENT, ROUNDING_OWNER
+from odoo.addons.investra_fund.models.fund import FEE_RECIPIENT, INTERNAL_RECIPIENTS, ROUNDING_OWNER
 
 PREPARER = "investra_entity.group_valuation_preparer"
 UNIT_ROUNDING = {"down": ROUND_DOWN, "half_up": ROUND_HALF_UP, "up": ROUND_UP}
@@ -93,6 +96,9 @@ class InvestraClassMovement(models.Model):
     # C. Poplatek
     fee_amount_class = fields.Float(digits=(20, 2), tracking=True, string="Poplatek")
     fee_recipient = fields.Selection(FEE_RECIPIENT, tracking=True, string="Příjemce poplatku", help="Bez zadání platí hodnota třídy.")
+    fee_to_capital = fields.Boolean(
+        tracking=True, string="Poplatek do kapitálu", help="Jen s příjemcem Třída: kapitál třídy místo výnosu. Bez zadání platí hodnota třídy.",
+    )
     fee_partner_id = fields.Many2one("res.partner", tracking=True, string="Příjemce (partner)")
     fee_expected_class = fields.Float(compute="_compute_amounts", digits=(20, 2), string="Poplatek podle sazby")
 
@@ -173,24 +179,34 @@ class InvestraClassMovement(models.Model):
             movement.fee_expected_class = float(money(gross * movement._fee_rate()))
 
     @api.depends("units", "price", "amount_class", "amount", "fx_rate", "fee_amount_class", "rounding_amount_class",
-                 "rounding_owner", "movement_type", "class_id")
+                 "rounding_owner", "fee_recipient", "movement_type", "class_id")
     def _compute_capital(self):
-        """Změna kapitálu třídy: kusy × cena, upravená o rozdíl, který zůstává ve fondu."""
+        """Změna kapitálu třídy: kusy × cena, upravená o rozdíl, který zůstává ve fondu, a o poplatek třídy."""
         for movement in self:
             if not movement.class_id or not movement.movement_type:
                 movement.capital_amount = movement.capital_amount_class = 0
                 continue
             sign = 1 if movement.movement_type == "subscription" else -1
             kept = money(movement.rounding_amount_class) if movement._owner() == "fund" else Decimal(0)
+            fee = money(movement.fee_amount_class) if movement._fee_to_class() else Decimal(0)
             movement.capital_amount = float(movement._capital_functional())
-            movement.capital_amount_class = float(movement._value_class() + sign * kept)
+            movement.capital_amount_class = float(movement._value_class() + sign * (kept + fee))
 
-    def _capital_functional(self):
-        """Úpis: kusy × cena + rozdíl, který zůstává ve fondu; odkup: kusy × cena − tento rozdíl."""
+    def _fee_to_class(self):
+        return self.fee_recipient == "class"
+
+    def _capital_functional(self, with_fee=True):
+        """Úpis: kusy × cena + rozdíl, který zůstává ve fondu; odkup: kusy × cena − tento rozdíl.
+
+        Poplatek ve prospěch třídy kapitál třídy z pohybu dál zvyšuje (úpis), resp. méně snižuje (odkup), takže ho
+        v ocenění dostane celý tato třída. Řádek kapitálu třídy v dokladu je bez něj (`with_fee=False`), poplatek má
+        vlastní řádek výnosu nebo kapitálu z poplatků.
+        """
         lines = self._lines_functional()
         sign = 1 if self.movement_type == "subscription" else -1
         kept = lines["rounding"] if self._owner() == "fund" else Decimal(0)
-        return lines["value"] + sign * kept
+        fee = lines["fee"] if with_fee and self._fee_to_class() else Decimal(0)
+        return lines["value"] + sign * (kept + fee)
 
     def _lines_functional(self):
         """Částky dokladu ve funkční měně; zbytek dorovná doklad i o zaokrouhlení přepočtu měny."""
@@ -217,7 +233,11 @@ class InvestraClassMovement(models.Model):
             fund_class = self.env["investra.fund.class"].browse(vals["class_id"])
             vals.setdefault("rounding_owner", fund_class.rounding_owner)
             if vals.get("fee_amount_class"):
-                vals.setdefault("fee_recipient", fund_class.fee_recipient)
+                kind = vals.get("movement_type") or self.env.context.get("default_movement_type")
+                prefix = "entry" if kind == "subscription" else "exit"
+                if "fee_recipient" not in vals:
+                    vals["fee_recipient"] = fund_class[f"{prefix}_fee_recipient"]
+                    vals.setdefault("fee_to_capital", fund_class[f"{prefix}_fee_capital"])
             if vals.get("amount_class"):
                 rate = vals.get("fx_rate") or float(fund_class.fund_id._fx_at(fund_class.currency_id, fields.Date.to_date(vals["date"])))
                 vals.update({"fx_rate": rate, "amount": fund_class.fund_id.currency_id.round(vals["amount_class"] * rate)})
@@ -266,7 +286,16 @@ class InvestraClassMovement(models.Model):
                 movement.fee_amount_class = float(money(movement._gross_class() * movement._fee_rate()))
             if movement.class_id:
                 movement.rounding_owner = movement.rounding_owner or movement.class_id.rounding_owner
-                movement.fee_recipient = movement.fee_recipient or movement.class_id.fee_recipient
+                if movement.movement_type and not movement.fee_recipient:
+                    prefix = "entry" if movement.movement_type == "subscription" else "exit"
+                    movement.fee_recipient = movement.class_id[f"{prefix}_fee_recipient"]
+                    movement.fee_to_capital = movement.class_id[f"{prefix}_fee_capital"]
+
+    @api.constrains("fee_recipient", "fee_to_capital")
+    def _check_fee_capital(self):
+        for movement in self:
+            if movement.fee_to_capital and movement.fee_recipient != "class":
+                raise ValidationError(self.env._("Poplatek jde do kapitálu jen s příjemcem Třída; poplatek fondu je výnos."))
 
     @property
     def signed_amount(self):
@@ -374,15 +403,14 @@ class InvestraClassMovement(models.Model):
         sign = 1 if kind == "subscription" else -1
         lines = self._lines_functional()
         investor = self._owner() == "investor"
-        capital = self._capital_functional()
+        capital = self._capital_functional(with_fee=False)
         bank = lines["gross"] if kind == "subscription" else lines["gross"] - lines["fee"] - lines["rounding"]
         result = [
             {"role": "bank", "amount": sign * bank, "movement_type": kind, **self._bank_currency()},
             {"role": "class_capital", "amount": -sign * capital, "class_id": self.class_id.id, "movement_type": kind},
         ]
         if lines["fee"]:
-            result.append({"role": "subscription_fee_payable", "amount": -lines["fee"], "movement_type": kind,
-                           "partner_id": self.fee_partner_id.id or None})
+            result.append({"amount": -lines["fee"], "movement_type": kind, **self._fee_line()})
         if investor and lines["rounding"]:
             result.append({"role": "investor_rounding_payable", "amount": -lines["rounding"], "movement_type": kind})
         # Úpis: zbytek je platba navíc (výnos) nebo chybějící (náklad); odkup: fond vyplácí víc (náklad) nebo méně (výnos).
@@ -391,6 +419,16 @@ class InvestraClassMovement(models.Model):
             result.append({"role": "rounding_gain" if residual > 0 else "rounding_loss", "amount": -residual,
                            "movement_type": kind})
         return result
+
+    def _fee_line(self):
+        """Role poplatku podle příjemce (rozhodnutí 2026-11-13): ven závazek, fond výnos, třída výnos nebo kapitál třídy."""
+        prefix = "entry" if self.movement_type == "subscription" else "exit"
+        if self.fee_recipient not in INTERNAL_RECIPIENTS:
+            return {"role": "subscription_fee_payable", "partner_id": self.fee_partner_id.id or None}
+        if self.fee_recipient == "fund":
+            return {"role": f"{prefix}_fee_income"}
+        role = f"{prefix}_fee_capital" if self.fee_to_capital else f"{prefix}_fee_income"
+        return {"role": role, "class_id": self.class_id.id}
 
     def _bank_currency(self):
         """Bankovní řádek v měně kurzu, pokud je úpis nebo odkup zadaný v ní."""
@@ -419,8 +457,8 @@ class InvestraClassMovement(models.Model):
     # --- náhled zaúčtování (rozhodnutí 2026-11-13) ----------------------------------------------
 
     @api.depends("state", "class_id", "movement_type", "date", "units", "price", "price_reason", "amount_class", "amount",
-                 "fx_rate", "fee_amount_class", "fee_recipient", "fee_partner_id", "rounding_amount_class", "rounding_owner",
-                 "event_id", "event_id.state")
+                 "fx_rate", "fee_amount_class", "fee_recipient", "fee_to_capital", "fee_partner_id", "rounding_amount_class",
+                 "rounding_owner", "event_id", "event_id.state")
     def _compute_posting_preview(self):
         for movement in self:
             movement.posting_preview = movement._posting_preview_html()

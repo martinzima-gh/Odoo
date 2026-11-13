@@ -942,7 +942,7 @@ class InvestraValuation(models.Model):
         shared = value - row["pre_capital"] - delta
         shared_raw = engine.money(row["ratio"] * neutral) - row["pre_capital"]
 
-        # Kapitál třídy bere čistou částku pohybu (bez poplatku, rozdíl podle toho, komu patří).
+        # Kapitál třídy bere čistou částku pohybu (poplatek jen ve prospěch třídy, rozdíl podle toho, komu patří).
         def in_class_currency(movement):
             if same_currency:
                 return d(movement.capital_amount)

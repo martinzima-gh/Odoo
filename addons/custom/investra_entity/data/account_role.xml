@@ -51,4 +51,9 @@
     <record id="role_unidentified_payment" model="investra.account.role"><field name="code">unidentified_payment</field><field name="name">Neidentifikované platby</field><field name="category">liability</field></record>
     <!-- Bankovní poplatky na 612 (rozhodnutí 2026-11-12), ČNB VYFO20_11 ř. 23 Náklady na poplatky a provize -->
     <record id="role_expense_bank_fee" model="investra.account.role"><field name="code">expense_bank_fee</field><field name="name">Bankovní poplatky</field><field name="category">expense</field></record>
+    <!-- Poplatky za úpis a odkup ve prospěch fondu nebo třídy (rozhodnutí 2026-11-13); účet určí šablona, čísla pracovní -->
+    <record id="role_entry_fee_income" model="investra.account.role"><field name="code">entry_fee_income</field><field name="name">Výnos ze vstupních poplatků</field><field name="category">income</field></record>
+    <record id="role_exit_fee_income" model="investra.account.role"><field name="code">exit_fee_income</field><field name="name">Výnos z výstupních poplatků</field><field name="category">income</field></record>
+    <record id="role_entry_fee_capital" model="investra.account.role"><field name="code">entry_fee_capital</field><field name="name">Kapitál ze vstupních poplatků</field><field name="category">equity</field></record>
+    <record id="role_exit_fee_capital" model="investra.account.role"><field name="code">exit_fee_capital</field><field name="name">Kapitál z výstupních poplatků</field><field name="category">equity</field></record>
 </odoo>
