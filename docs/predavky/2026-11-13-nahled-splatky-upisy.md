@@ -14,12 +14,14 @@
 - Testy `tests/test_posting_preview.py` (10). Čistá DB, všechny vlastní moduly: 522 testů, 0 chyb; DB smazána.
   ERROR v logu je z `investra_rates` (`test_cron_publishes_downloaded_rates`, očekávaný log), ne regrese.
 - Deník rozhodnutí, Claude Doc, otevřené body (bod uzavřen), `CLAUDE.md`.
-
 - `investra_test` povýšena se souhlasem (záloha `zalohy/investra_test-2026-11-13-pred-nahledem-splatek.dump`):
   doklady 78, řádky 157, součty shodné; testy 292, 3 chyby jen `TestApprovalMatrix` (ruční řádky matice 81 a 83);
   web 8071 restartován. Kontrola čtením: splátka 301/302 a pohyb 3854 ukazují doklad, storno i upozornění.
 
-**Zbývá – první krok:** uživatel vyzkouší záložku Zaúčtování v UI na 8071 (splátka, úpis). Pak: přepsat `docs/architektura.md` novým exportem Claude Doc (odloženo, zatím jen nový řádek rozhodnutí).
+**Zbývá – první krok:** přepsat `docs/architektura.md` novým exportem Claude Doc (markdown) a commitnout.
+Pak navrhnout uživateli další otevřený bod z `docs/otevrene-body.md` s doporučením, např. „Přehled operací
+ke zpracování“, „Mimořádná splátka – nový kalendář a prezentace“ nebo „Návrhy obchodů v pozicích“; zeptat se, pak plán.
+Vyzkoušení záložky Zaúčtování v UI (8071) dělá uživatel; případné nálezy opravit jako první.
 
 **Pozor:** ve stejné větvi souběžně commituje jiná relace (vzhled, `investra_vzhled`, 785b471, 8a86b4c).
 Před commitem zkontrolovat `git log` a nesahat na její soubory.
