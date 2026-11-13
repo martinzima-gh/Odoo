@@ -1,11 +1,11 @@
 {
     "name": "Investra NAV",
     "summary": "Pravidla úplat, ocenění, NAV tříd, schvalování a balíček pro depozitáře",
-    "version": "20.0.0.27.1",
+    "version": "20.0.0.28.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",
-    "depends": ["investra_instruments", "investra_allocation"],
+    "depends": ["investra_instruments", "investra_allocation", "investra_fx_revaluation"],
     "data": ["security/ir.access.csv", "data/cron.xml", "views/nav_views.xml", "views/lock_exception_views.xml", "views/trade_views.xml"],
     "assets": {
         "web.assets_backend": [

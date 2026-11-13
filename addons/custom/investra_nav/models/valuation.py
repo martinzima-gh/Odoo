@@ -34,6 +34,48 @@ class InvestraFund(models.Model):
     launch_date = fields.Date(string="Datum vzniku", help="Začátek prvního oceňovacího období.")
     # Kroky schválení (dříve approval_step_ids) určuje schvalovací matice; převedla je migrace 20.0.0.6.0.
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        funds = super().create(vals_list)
+        funds._ensure_fx_profile()
+        return funds
+
+    def _ensure_fx_profile(self):
+        """Profil přecenění knihy fondu (rozhodnutí 2026-11-13, varianta A): banky a závazek z úplat, rozdíl na role
+        kurzového zisku a ztráty. Další peněžní účty přidá uživatel do profilu. Kniha s profilem se nemění."""
+        Profile = self.env["investra.fx.profile"].sudo()
+        Mapping = self.env["investra.role.account"].sudo()
+        # Profil se pozná podle fondu; ručně založené profily knihy zůstávají beze změny a ocenění je použije také.
+        for fund in self:
+            company = fund.company_id
+            if Profile.with_context(active_test=False).search_count([("fund_id", "=", fund.id)]):
+                continue
+            maps = {m.role_id.code: m for m in Mapping.search([("company_id", "=", company.id)])}
+            accounts = self.env["account.account"]
+            for code in ("bank", "fee_payable"):
+                if code in maps:
+                    accounts |= maps[code].account_id | maps[code].extra_account_ids
+            journal = self.env["account.journal"].sudo().search(
+                [("company_id", "=", company.id), ("type", "=", "general")], order="sequence, id", limit=1
+            )
+            Profile.create({
+                "name": self.env._("Přecenění – %s", fund.display_name),
+                "fund_id": fund.id,
+                "company_id": company.id,
+                "account_ids": [(6, 0, accounts.ids)],
+                "gain_account_id": maps["gain_fx"].account_id.id if "gain_fx" in maps else False,
+                "loss_account_id": maps["loss_fx"].account_id.id if "loss_fx" in maps else False,
+                "journal_id": journal.id,
+                "rate_source": fund.entity_id.rate_source or "cnb",
+            })
+
+
+class InvestraFxProfile(models.Model):
+    _inherit = "investra.fx.profile"
+
+    fund_id = fields.Many2one("investra.fund", ondelete="cascade", index=True, readonly=True, string="Fond",
+                              help="Profil založený pro fond; jeho účty přeceňuje ocenění fondu.")
+
 
 class InvestraValuation(models.Model):
     """Jedno ocenění fondu k datu ve verzi. Stavy vedou přes schválení k zaúčtování a zveřejnění."""
@@ -542,33 +584,19 @@ class InvestraValuation(models.Model):
         return realised, rated
 
     def _compute_bank_fx(self):
-        """FX přecenění bank v cizí měně a řádky bank v listu portfolio."""
+        """FX přecenění peněžních položek v cizí měně a řádky bank v listu portfolio."""
         Role = self.env["investra.account.role"]
-        main = Role.account_for(self.company_id, "bank")
         Line = self.env["account.move.line"].sudo()
-        # Každý bankovní účet role se přeceňuje zvlášť, aby přecenění sedělo s výpisem (rozhodnutí 2026-11-12
-        # „Role s více účty“). U hlavního účtu se řádek nemění, takže otisk dřívějších ocenění zůstává.
+        self._add_event("bank_fx", "FX přecenění peněžních položek", self._fx_revaluation_lines())
+        totals = {}
         groups = Line._read_group(
             self._line_domain(("account_id", "in", Role.accounts_for(self.company_id, "bank").ids)),
-            groupby=["account_id", "currency_id"],
+            groupby=["currency_id"],
             aggregates=["amount_currency:sum", "balance:sum"],
         )
-        totals = {}
-        lines, rows = [], []
-        for account, currency, amount, balance in groups:
-            fx = self._fx(currency)
-            difference = engine.money(d(amount) * fx) - engine.money(balance)
-            total = totals.setdefault(currency, [d(0), d(0)])
-            total[0] += d(amount)
-            total[1] += d(balance)
-            if currency != self.fund_id.currency_id and difference:
-                line = {"role": "bank", "amount": difference, "movement_type": "fx_revaluation",
-                        "currency_id": currency.id, "amount_currency": "0"}
-                if account != main:
-                    line["extra"] = {"account_id": account.id}
-                lines.append(line)
-                lines.append({"role": "gain_fx" if difference > 0 else "loss_fx", "amount": -difference,
-                              "movement_type": "fx_revaluation"})
+        for currency, amount, balance in groups:
+            totals[currency] = [d(amount), d(balance)]
+        rows = []
         for currency, (amount, balance) in totals.items():
             fx = self._fx(currency)
             value = engine.money(amount * fx)
@@ -584,8 +612,55 @@ class InvestraValuation(models.Model):
                 "fx_source": self._rate_source() if currency != self.fund_id.currency_id else False,
                 "fair_value": float(value),
             })
-        self._add_event("bank_fx", "FX přecenění bank", lines)
         self.env["investra.valuation.portfolio"].sudo().create(rows)
+
+    def _fx_accounts(self):
+        """Přeceňované účty knihy: banky (vždy, i nově přidané účty role) a účty profilů přecenění knihy.
+
+        Účty nevypořádaných obchodů přeceňuje vlastní krok (_compute_unsettled), proto se z profilu vynechají.
+        """
+        Role = self.env["investra.account.role"]
+        company = self.company_id
+        profiles = self.env["investra.fx.profile"].sudo().search([("company_id", "=", company.id)])
+        own = Role.accounts_for(company, "unsettled_receivable") | Role.accounts_for(company, "unsettled_payable")
+        return (Role.accounts_for(company, "bank") | profiles.account_ids) - own
+
+    def _fx_revaluation_lines(self):
+        """Přecenění podle profilu (rozhodnutí 2026-11-13, varianta A): výběr zůstatků je společný s modulem
+        investra_fx_revaluation, kurz a zaokrouhlení jsou kurzem fondu jako dosud u bank.
+
+        Řádek nese roli účtu; účet, který není hlavním účtem své role, jde přes extra (u hlavního účtu banky se řádek
+        nemění, otisk dřívějších ocenění zůstává). Peněžní účty (banky) se nedělí podle partnera, ostatní ano.
+        """
+        company = self.company_id
+        mappings = self.env["investra.role.account"].sudo().search([("company_id", "=", company.id)])
+        roles = {}
+        for mapping in mappings:
+            for account in mapping.extra_account_ids:
+                roles[account] = (mapping.role_id.code, False)
+            roles[mapping.account_id] = (mapping.role_id.code, True)
+        balances = self.env["investra.fx.profile"].sudo()._foreign_balances(
+            company, self._fx_accounts(), self.date, domain=self._line_domain(),
+            by_partner=lambda account: account.account_type != "asset_cash",
+        )
+        lines = []
+        for account, currency, partner, amount, balance in balances:
+            if account not in roles:
+                raise UserError(self.env._("Účet %s v profilu přecenění nemá v knize roli.", account.display_name))
+            code, main = roles[account]
+            difference = engine.money(d(amount) * self._fx(currency)) - engine.money(d(balance))
+            if not difference:
+                continue
+            line = {"role": code, "amount": difference, "movement_type": "fx_revaluation",
+                    "currency_id": currency.id, "amount_currency": "0"}
+            if not main:
+                line["extra"] = {"account_id": account.id}
+            if partner:
+                line["partner_id"] = partner.id
+            lines.append(line)
+            lines.append({"role": "gain_fx" if difference > 0 else "loss_fx", "amount": -difference,
+                          "movement_type": "fx_revaluation"})
+        return lines
 
     def _compute_unsettled(self):
         """Nevypořádané obchody: přecenění pohledávek a závazků kurzem a změna RH před vypořádáním."""
