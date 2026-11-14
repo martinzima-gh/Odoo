@@ -10,7 +10,8 @@ $investra-ember-4: #feeee9 !default;
 $investra-graphite: #2c2927 !default;
 $investra-graphite-2: #6a6967 !default;
 
-.o_kanban_renderer.o_investra_fund_kanban {
+// Třída z <kanban class> je v Odoo 20 na kořeni pohledu (.o_kanban_view), proměnné kanbanu nastavuje renderer.
+.o_investra_fund_kanban .o_kanban_renderer {
     // Dvě karty vedle sebe na běžném monitoru, jedna na úzkém displeji (návrh: mřížka 2 sloupce).
     --KanbanRecord-width: 560px;
     --Card-padding-v: 20px;
@@ -128,7 +129,7 @@ $investra-graphite-2: #6a6967 !default;
 }
 
 @media (max-width: 575.98px) {
-    .o_kanban_renderer.o_investra_fund_kanban .o_investra_fund_row {
+    .o_investra_fund_kanban .o_kanban_renderer .o_investra_fund_row {
         grid-template-columns: 1fr;
         gap: 14px;
 
