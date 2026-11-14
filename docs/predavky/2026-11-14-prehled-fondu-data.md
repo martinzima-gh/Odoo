@@ -6,7 +6,7 @@ Doplnit kartu Přehledu fondů (`investra_dashboard`) o poslední a další ocen
 ## Stav
 - Větev `feature/nav-prototyp`, commit „Přehled fondů: data a stavy karty“ (pushnuto).
 - `investra_dashboard` 0.2.0, jen počítaná pole, bez migrace. Testy na čisté DB 19/0; `investra_test` NEpovýšena
-  (run_tests.sh hlásí rozdíl verze 0.1.0 → 0.2.0, upgrade jen se souhlasem).
+  (později povýšena se souhlasem, viz Zbývá 2).
 
 ## Hotové
 - Model a pohledy podle rozhodnutí 2026-11-14 „Přehled fondů – data a stavy karty“ (deník i Claude Doc rev 339).
@@ -15,7 +15,8 @@ Doplnit kartu Přehledu fondů (`investra_dashboard`) o poslední a další ocen
 ## Zbývá
 1. Hotovo: seznam Ocenění jen s aktuální verzí (rozhodnutí 2026-11-14, `investra_nav` 0.28.1), testy čistá DB 332/0.
    Hotovo: graf kurzu kreslí změnu od předchozího ocenění v barvě změny (vizuálně neověřeno, Odoo s klonem odoo-dev neběží).
-2. Upgrade `investra_vzhled` a `investra_test` (`investra_dashboard` 0.2.0, `investra_nav` 0.28.1) – se souhlasem.
+2. Hotovo: klon `~/odoo-review` (cp/vzhled) sloučen s větví; `investra_vzhled` a `investra_test` povýšené
+   (zálohy `zalohy/*-2026-11-14-pred-upgradem.dump`); `investra_test` 332/0.
 3. Export Claude Doc do `docs/architektura.md` (poslední export rev 333, Doc je na rev 339).
 4. Z předchozí předávky: návrh `docs/vzhled/navrh-seznam-upisu-odkupu.html` (řazení, znaménko); `theme.scss`
    `.o_investra_metric_item` `#ffffff` → barva palety (Copilot); karta Přehledu ve firemních barvách (Copilot, zelená zóna).
