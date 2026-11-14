@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="investra_dashboard.FundTodo">
+        <div class="o_investra_todo">
+            <span class="o_investra_label">Ke zpracování</span>
+            <span t-if="!items.length" class="o_investra_control_ok">nic nečeká</span>
+            <ul t-else="" class="o_investra_todo_list">
+                <li t-foreach="items" t-as="item" t-key="item.key"
+                    t-att-class="{'o_investra_todo_mine': item.mine, 'o_investra_todo_warn': item.warn}">
+                    <a href="#" t-on-click.prevent.stop="() => this.open(item)">
+                        <span class="o_investra_todo_label" t-out="item.label"/>
+                        <span class="o_investra_todo_count" t-out="item.amount or item.count"/>
+                    </a>
+                    <span t-if="item.mine" class="o_investra_todo_turn" title="Na řadě je vaše role">můj krok</span>
+                </li>
+            </ul>
+        </div>
+    </t>
+</templates>

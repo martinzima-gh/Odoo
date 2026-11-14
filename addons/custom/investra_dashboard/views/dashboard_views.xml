@@ -13,7 +13,7 @@
                 <field name="dashboard_latest_published"/>
                 <field name="dashboard_next_valuation"/><field name="dashboard_next_valuation_id"/><field name="dashboard_next_state"/>
                 <field name="dashboard_next_version"/><field name="dashboard_next_late"/>
-                <field name="dashboard_deadline_state"/>
+                <field name="dashboard_deadline_state"/><field name="dashboard_todo"/>
                 <templates>
                     <t t-name="card">
                         <field name="name" class="o_investra_fund_name"/>
@@ -81,6 +81,10 @@
                                 <field t-else="" name="dashboard_exceptions" class="o_investra_control_warning"/>
                             </div>
                         </div>
+                        <!-- Ke zpracování: položky a odkazy počítá model, widget je jen vykreslí. -->
+                        <div class="o_investra_fund_row o_investra_fund_row_full">
+                            <widget name="investra_fund_todo"/>
+                        </div>
                         <a t-if="record.dashboard_valuation_id.raw_value" type="object" name="action_open_valuation"
                            class="o_investra_open_link">Otevřít ocenění →</a>
                     </t>
@@ -100,12 +104,28 @@
                 <field name="dashboard_next_valuation"/>
                 <field name="dashboard_next_state" widget="badge" decoration-info="dashboard_next_state in ('draft', 'computed', 'none')" decoration-warning="dashboard_next_state in ('submitted', 'approved')"/>
                 <field name="dashboard_next_late" widget="boolean" optional="hide"/>
+                <field name="dashboard_todo_count" string="Ke zpracování" optional="show"/>
                 <field name="dashboard_next_deadline"/><field name="dashboard_deadline_state" widget="badge" decoration-warning="dashboard_deadline_state == 'open'" decoration-danger="dashboard_deadline_state == 'overdue'" decoration-success="dashboard_deadline_state == 'submitted'"/><field name="dashboard_exception_count"/>
             </list>
         </field>
     </record>
+    <record id="view_fund_dashboard_search" model="ir.ui.view">
+        <field name="name">investra.fund.dashboard.search</field><field name="model">investra.fund</field><field name="priority">50</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="filter_my_todo" string="Čeká na můj krok" domain="[('dashboard_my_todo', '=', True)]"/>
+                <separator/>
+                <filter name="filter_danger" string="Vyžaduje zásah" domain="[('dashboard_status', '=', 'danger')]"/>
+                <filter name="filter_warning" string="Upozornění" domain="[('dashboard_status', '=', 'warning')]"/>
+            </search>
+        </field>
+    </record>
     <record id="action_fund_dashboard" model="ir.actions.act_window">
         <field name="name">Přehled fondů</field><field name="res_model">investra.fund</field><field name="view_mode">kanban,list</field>
+        <field name="search_view_id" ref="view_fund_dashboard_search"/>
+        <!-- Karty od nejnaléhavějších (web_search_read v modelu). -->
+        <field name="context">{'investra_dashboard_order': 1}</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_fund_dashboard_kanban')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_fund_dashboard_list')})]"/>

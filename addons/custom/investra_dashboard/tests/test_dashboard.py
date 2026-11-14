@@ -153,7 +153,11 @@ class TestDashboard(NavCase):
         self.env["investra.instrument.price"].with_user(self.preparer).create({
             "fund_id": self.fund.id, "instrument_id": instrument.id, "date": self.today, "price": 1, "source": "Test",
         })
-        self.assertIn("Ceny čekající", self.fund.dashboard_exceptions)
+        # Ceny ke schválení jsou v bloku Ke zpracování (pro schvalovatele) a kartu zvednou na Upozornění.
+        item = next(i for i in self.fund.dashboard_todo if i["key"] == "prices")
+        self.assertEqual((item["count"], item["role"], item["warn"]), (1, "approver", True))
+        self.assertEqual(self.fund.dashboard_status, "warning")
+        self.assertFalse(self.fund.dashboard_exceptions)
 
     def test_action_opens_valuation(self):
         valuation = self.posted()
@@ -164,6 +168,48 @@ class TestDashboard(NavCase):
         self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
         draft = self.valuation(self.fund, "2032-01-31")
         self.assertEqual(self.fund.action_open_next_valuation()["res_id"], draft.id)
+
+    def test_todo_lists_valuation_step_for_role(self):
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        draft = self.valuation(self.fund, "2032-01-31")
+        fund = self.fund.with_user(self.preparer)
+        item = next(i for i in fund.dashboard_todo if i["key"] == "valuation_draft")
+        self.assertEqual((item["count"], item["role"], item["mine"]), (1, "preparer", True))
+        self.assertTrue(fund.dashboard_my_todo)
+        approver_view = self.fund.with_user(self.approver)
+        self.assertFalse(next(i for i in approver_view.dashboard_todo if i["key"] == "valuation_draft")["mine"])
+        action = fund.action_open_todo("valuation_draft")
+        self.assertEqual(action["res_model"], "investra.valuation")
+        self.assertEqual(self.env["investra.valuation"].search(action["domain"]), draft)
+        draft.action_compute()
+        draft.action_submit()
+        approver_view.invalidate_recordset()
+        item = next(i for i in approver_view.dashboard_todo if i["key"] == "valuation_submitted")
+        self.assertTrue(item["mine"])
+        self.assertIn(self.fund, self.env["investra.fund"].with_user(self.approver).search([("dashboard_my_todo", "=", True)]))
+
+    def test_movement_draft_is_todo(self):
+        movement = self.env["investra.class.movement"].create({
+            "class_id": self.cls(self.fund, "A").id, "date": "2032-01-05", "manual_reason": "Test",
+            "movement_type": "subscription", "amount": 100, "units": 1,
+        })
+        item = next(i for i in self.fund.dashboard_todo if i["key"] == "movements")
+        self.assertEqual(self.env[item["model"]].search(item["domain"]), movement)
+        # Běžná práce kartu nezvedá na Upozornění, jen čeká v bloku Ke zpracování.
+        self.assertEqual(self.fund.dashboard_status, "none")
+
+    def test_cards_sorted_by_urgency(self):
+        quiet = self.make_fund(classes=[{"code": "A"}])
+        # make_fund přepne povolené knihy na novou; pro srovnání obou fondů povolit obě.
+        self.env = self.env(context=dict(self.env.context, allowed_company_ids=(self.fund | quiet).company_id.ids))
+        self.env["investra.regulatory.deadline"].create({
+            "fund_id": self.fund.id, "report": "TEST", "period_end": self.today, "due_date": self.today - timedelta(days=1),
+        })
+        Fund = self.env["investra.fund"].with_context(investra_dashboard_order=1)
+        result = Fund.web_search_read([("id", "in", (self.fund | quiet).ids)], {"name": {}})
+        self.assertEqual([r["id"] for r in result["records"]], [self.fund.id, quiet.id])
+        self.assertEqual(result["length"], 2)
+        self.assertEqual(self.env["investra.fund"].search([("dashboard_status", "=", "danger"), ("id", "in", (self.fund | quiet).ids)]), self.fund)
 
     def test_approver_cannot_change_deadline(self):
         deadline = self.deadline(3)

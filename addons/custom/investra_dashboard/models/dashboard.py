@@ -1,12 +1,15 @@
 from datetime import timedelta
 
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.tools import format_amount
 
 SOON_DAYS = 7
 # Stavy, ve kterých je ocenění zaúčtované; stejnou množinu bere výpočet jako předchozí ocenění.
 POSTED_STATES = ("posted", "sent", "confirmed", "published")
 # Stavy rozpracovaného ocenění před zaúčtováním (vrácené a stornované verze se přeskakují).
 NEXT_STATES = ("draft", "computed", "submitted", "approved")
+PREPARER = "investra_entity.group_valuation_preparer"
+APPROVER = "investra_entity.group_valuation_approver"
 
 
 class InvestraRegulatoryDeadline(models.Model):
@@ -73,11 +76,19 @@ class InvestraFund(models.Model):
     )
     dashboard_next_deadline = fields.Char(compute="_compute_dashboard", string="Další termín ČNB")
     dashboard_deadline_due = fields.Char(compute="_compute_dashboard", string="Termín ČNB (text)")
+    # Blok „Ke zpracování“ (rozhodnutí 2026-11-14 „Přehled fondů – Ke zpracování“): položky s počtem, rolí,
+    # která je na řadě, a filtrem seznamu, který karta po kliknutí otevře. Jen čtení, nic se nemění.
+    dashboard_todo = fields.Json(compute="_compute_dashboard", string="Ke zpracování")
+    dashboard_todo_count = fields.Integer(compute="_compute_dashboard", string="Počet položek ke zpracování")
+    dashboard_my_todo = fields.Boolean(
+        compute="_compute_dashboard", search="_search_dashboard_my_todo", string="Čeká na můj krok"
+    )
     dashboard_exceptions = fields.Text(compute="_compute_dashboard", string="Výjimky")
     dashboard_exception_count = fields.Integer(compute="_compute_dashboard", string="Počet výjimek")
     dashboard_status = fields.Selection(
         [("ok", "V pořádku"), ("warning", "Upozornění"), ("danger", "Vyžaduje zásah"), ("none", "Bez ocenění")],
         compute="_compute_dashboard",
+        search="_search_dashboard_status",
         string="Stav",
     )
 
@@ -86,6 +97,8 @@ class InvestraFund(models.Model):
         states = dict(self.env["investra.valuation"]._fields["state"]._description_selection(self.env))
         return [(state, states[state]) for state in NEXT_STATES] + [("none", self.env._("Nezaloženo"))]
 
+    # Blok Ke zpracování závisí na rolích přihlášeného uživatele: bez toho by se hodnoty sdílely mezi uživateli.
+    @api.depends_context("uid", "allowed_company_ids")
     def _compute_dashboard(self):
         today = fields.Date.context_today(self)
         for fund in self:
@@ -107,7 +120,9 @@ class InvestraFund(models.Model):
         )
         deadline, deadline_state, deadline_text = self._dashboard_deadline(deadlines, today)
         danger, warning = self._dashboard_exceptions(latest, missing, deadlines, today, checked=upcoming or latest)
-        status = "danger" if danger else "warning" if warning else "ok" if latest else "none"
+        todo = self._dashboard_todo(today)
+        warned = warning or any(item["warn"] for item in todo)
+        status = "danger" if danger else "warning" if warned else "ok" if latest else "none"
         states = dict(Valuation._fields["state"]._description_selection(self.env))
         result, has_result, period = self._dashboard_result(latest)
         return {
@@ -132,6 +147,9 @@ class InvestraFund(models.Model):
             "dashboard_deadline_state": deadline_state,
             "dashboard_next_deadline": deadline_text,
             "dashboard_deadline_due": deadline.due_date.strftime("%d.%m.%Y") if deadline else False,
+            "dashboard_todo": todo,
+            "dashboard_todo_count": len(todo),
+            "dashboard_my_todo": any(item["mine"] for item in todo),
             "dashboard_exceptions": "\n".join(danger + warning),
             "dashboard_exception_count": len(danger) + len(warning),
             "dashboard_status": status,
@@ -216,20 +234,124 @@ class InvestraFund(models.Model):
             danger.append(_("Termíny ČNB po lhůtě: %s", len(overdue)))
         if soon:
             warning.append(_("Termíny ČNB do %(days)s dnů: %(count)s", days=SOON_DAYS, count=len(soon)))
-        unsettled = self.env["investra.trade"].search_count(
-            [("fund_id", "=", self.id), ("state", "=", "unsettled"), ("settlement_date", "<", today)]
-        )
-        if unsettled:
-            warning.append(_("Obchody po termínu vypořádání: %s", unsettled))
+        # Obchody po termínu vypořádání a ceny ke schválení jsou v bloku Ke zpracování (_dashboard_todo);
+        # stav karty zvyšují na Upozornění přes příznak `warn` položky.
+        return danger, warning
+
+    def _dashboard_todo(self, today):
+        """Položky bloku Ke zpracování: co ve fondu čeká na krok a kdo je na řadě.
+
+        Role podle skupin (připravovatel / schvalovatel) a kroků ocenění: odeslat ke schválení, zaúčtovat
+        a odeslat depozitáři dělá připravovatel; schválit, potvrdit za depozitáře a zveřejnit schvalovatel
+        (u schválení a zveřejnění rozhoduje ještě schvalovací matice). `mine` = přihlášený uživatel má roli.
+        Každá položka nese model a doménu seznamu, který karta po kliknutí otevře.
+        """
+        self.ensure_one()
+        _ = self.env._
+        user = self.env.user
+        roles = {"preparer": user.has_group(PREPARER), "approver": user.has_group(APPROVER)}
+        items = []
+
+        def add(key, label, count, model, domain, role, warn=False, amount=None):
+            if count:
+                items.append({
+                    "key": key, "label": label, "count": count, "amount": amount, "role": role,
+                    "mine": bool(roles.get(role)), "warn": warn, "model": model, "domain": domain,
+                })
+
+        Valuation = self.env["investra.valuation"]
+        steps = [
+            (("draft", "computed"), _("Ocenění k dopracování"), "preparer"),
+            (("submitted",), _("Ocenění ke schválení"), "approver"),
+            (("approved",), _("Ocenění k zaúčtování"), "preparer"),
+            (("posted",), _("Ocenění k odeslání depozitáři"), "preparer"),
+            (("sent",), _("Ocenění k potvrzení za depozitáře"), "approver"),
+            (("confirmed",), _("Ocenění ke zveřejnění"), "approver"),
+        ]
+        for states, label, role in steps:
+            domain = [("fund_id", "=", self.id), ("state", "in", list(states))]
+            add("valuation_" + states[0], label, Valuation.search_count(domain), "investra.valuation", domain, role)
+
+        def simple(key, label, model, domain, role, warn=False):
+            add(key, label, self.env[model].search_count(domain), model, domain, role, warn=warn)
+
+        simple("events", _("Nezaúčtované návrhy dokladů"), "investra.accounting.event",
+               [("fund_id", "=", self.id), ("state", "=", "draft")], "preparer")
+        simple("movements", _("Úpisy a odkupy k zaúčtování"), "investra.class.movement",
+               [("fund_id", "=", self.id), ("state", "=", "draft")], "preparer")
+        simple("repayments", _("Návrhy splátek k zaúčtování"), "investra.instrument.repayment",
+               [("fund_id", "=", self.id), ("state", "=", "draft")], "preparer")
+        simple("trades", _("Obchody po termínu vypořádání"), "investra.trade",
+               [("fund_id", "=", self.id), ("state", "=", "unsettled"), ("settlement_date", "<", fields.Date.to_string(today))],
+               "preparer", warn=True)
         # Ceny fondu v návrhu a sdílené ceny v návrhu pro nástroje, které fond drží.
         instruments = self.env["investra.trade"].sudo()._positions(self, today)
-        prices = self.env["investra.instrument.price"].sudo().search_count([
+        simple("prices", _("Ceny ke schválení"), "investra.instrument.price", [
             ("state", "=", "draft"), "|", ("fund_id", "=", self.id),
             "&", ("fund_id", "=", False), ("instrument_id", "in", [i.id for i in instruments]),
-        ])
-        if prices:
-            warning.append(_("Ceny čekající na schválení: %s", prices))
-        return danger, warning
+        ], "approver", warn=True)
+        simple("requests", _("Žádosti ke schválení"), "investra.approval.request",
+               [("company_id", "=", self.company_id.id), ("state", "=", "pending")], "approver")
+        if "investra.fx.run" in self.env:
+            simple("fx_runs", _("Přecenění kurzů k zaúčtování"), "investra.fx.run",
+                   [("company_id", "=", self.company_id.id), ("move_id.state", "=", "draft")], "preparer")
+        # Zůstatky, které mají být k datu ocenění nulové nebo vysvětlené (ve funkční měně fondu).
+        Role = self.env["investra.account.role"]
+        for code, label in (("unidentified_payment", _("Neidentifikované platby")), ("cash_in_transit", _("Peníze na cestě"))):
+            accounts = Role.accounts_for(self.company_id, code)
+            if not accounts:
+                continue
+            domain = [("company_id", "=", self.company_id.id), ("account_id", "in", accounts.ids), ("parent_state", "=", "posted")]
+            balance = sum(self.env["account.move.line"].sudo().search(domain).mapped("balance"))
+            if not self.currency_id.is_zero(balance):
+                add(code, label, 1, "account.move.line", domain, "preparer",
+                    amount=format_amount(self.env, balance, self.currency_id))
+        return items
+
+    def _search_dashboard_status(self, operator, value):
+        if operator not in ("=", "in"):
+            raise NotImplementedError(operator)
+        values = {value} if isinstance(value, str) else set(value)
+        return [("id", "in", self.search([]).filtered(lambda f: f.dashboard_status in values).ids)]
+
+    def _search_dashboard_my_todo(self, operator, value):
+        # Odoo 20 předává i tvar ("in", {True}); „!=“ a „not in“ obrací výsledek.
+        values = {bool(v) for v in value} if isinstance(value, (list, tuple, set, frozenset)) else {bool(value)}
+        if operator in ("!=", "not in"):
+            values = {True, False} - values
+        elif operator not in ("=", "in"):
+            raise NotImplementedError(operator)
+        return [("id", "in", self.search([]).filtered(lambda f: f.dashboard_my_todo in values).ids)]
+
+    @api.model
+    def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
+        """Přehled fondů řadí karty podle naléhavosti (Vyžaduje zásah, Upozornění, V pořádku, Bez ocenění), pak názvu.
+
+        Stav je počítaný a neukládá se, proto se řadí v Pythonu; fondů je řádově desítky.
+        """
+        if not self.env.context.get("investra_dashboard_order"):
+            return super().web_search_read(domain, specification, offset=offset, limit=limit, order=order,
+                                           count_limit=count_limit)
+        funds = self.search(domain)
+        rank = {"danger": 0, "warning": 1, "ok": 2, "none": 3}
+        funds = funds.sorted(lambda f: (rank.get(f.dashboard_status, 4), (f.name or "").lower()))
+        page = funds[offset:offset + limit] if limit else funds[offset:]
+        return {"length": len(funds), "records": page.web_read(specification)}
+
+    def action_open_todo(self, key):
+        """Otevře seznam položky Ke zpracování (doménu počítá model, karta ji jen předá)."""
+        self.ensure_one()
+        item = next((i for i in self.dashboard_todo or [] if i["key"] == key), None)
+        if not item:
+            return False
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"{self.name}: {item['label']}",
+            "res_model": item["model"],
+            "domain": item["domain"],
+            "views": [(False, "list"), (False, "form")],
+            "context": {"create": False},
+        }
 
     def _dashboard_returned(self, latest):
         """Vrácené ocenění po posledním zaúčtovaném, ke kterému nezůstala žádná živá verze (nová verze smazaná)."""

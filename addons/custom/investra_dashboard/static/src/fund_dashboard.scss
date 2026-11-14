@@ -39,6 +39,7 @@ $investra-graphite-2: #6a6967 !default;
 
         &:first-of-type { padding-top: 0; }
         &:last-of-type { border-bottom: 0; padding-bottom: 0; }
+        &.o_investra_fund_row_full { grid-template-columns: 1fr; }
 
         > div { min-width: 0; }
         > div + div {
@@ -134,5 +135,51 @@ $investra-graphite-2: #6a6967 !default;
         gap: 14px;
 
         > div + div { padding-left: 0; border-left: 0; }
+    }
+}
+
+// Blok Ke zpracování (widget investra_fund_todo).
+.o_investra_fund_kanban .o_kanban_renderer {
+    .o_investra_todo_list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px 0;
+        }
+
+        a {
+            display: flex;
+            flex: 1;
+            justify-content: space-between;
+            gap: 12px;
+            color: $investra-graphite;
+        }
+
+        a:hover .o_investra_todo_label { text-decoration: underline; }
+    }
+
+    .o_investra_todo_count {
+        color: $investra-petroleum;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .o_investra_todo_warn .o_investra_todo_count { color: $investra-ember; }
+
+    .o_investra_todo_turn {
+        padding: 0 8px;
+        border: 1px solid $investra-lagoon;
+        border-radius: 10px;
+        background: $investra-lagoon-4;
+        color: $investra-lagoon;
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
     }
 }
