@@ -11,6 +11,17 @@ FUND_NUMBER = itertools.count(1)
 
 
 class NavCase(TransactionCase):
+    # Pravidlo „nové ocenění až po zveřejnění předchozího“ (rozhodnutí 2026-11-14) testy výpočtů vypínají:
+    # zakládají další ocenění po zaúčtování předchozího a ověřují výpočet, ne pořadí. Zveřejnění by jim navíc
+    # měnilo uzávěrku účetního období. Pravidlo samo ověřuje TestValuationSequence (enforce_sequence = True).
+    # Jde jen o testy; v produkčním kódu žádná výjimka z pravidla není.
+    enforce_sequence = False
+
+    def setUp(self):
+        super().setUp()
+        if not self.enforce_sequence:
+            self.patch(type(self.env["investra.valuation"]), "_check_previous_published", lambda records: None)
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

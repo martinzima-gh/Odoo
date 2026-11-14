@@ -5,3 +5,4 @@ from . import test_fx_profile_valuation
 from . import test_trade_reverse
 from . import test_posting_preview
 from . import test_price_history
+from . import test_valuation_sequence

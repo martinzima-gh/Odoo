@@ -1508,7 +1508,9 @@ class InvestraValuation(models.Model):
     def create(self, vals_list):
         if not self.env.su and any(SYSTEM_FIELDS & set(vals) for vals in vals_list):
             raise UserError(self.env._("Stav a výsledky ocenění nastavuje jen postup ocenění."))
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        records._check_previous_published()
+        return records
 
     def write(self, vals):
         if not self.env.su and SYSTEM_FIELDS & set(vals):
@@ -1516,7 +1518,29 @@ class InvestraValuation(models.Model):
         guarded = {"fund_id", "date", "version"}
         if guarded & set(vals) and self.filtered(lambda v: v.state != "draft"):
             raise UserError(self.env._("Datum ani fond ocenění po výpočtu nejde změnit."))
-        return super().write(vals)
+        result = super().write(vals)
+        if {"fund_id", "date"} & set(vals):
+            self._check_previous_published()
+        return result
+
+    def _check_previous_published(self):
+        """Nové ocenění vznikne, jen když je předchozí ocenění fondu zveřejněné (rozhodnutí 2026-11-14, varianta A).
+
+        Předchozí = poslední dřívější verze, která není vrácená ani stornovaná. Platí pro první verzi k datu
+        (založení nebo změnu data návrhu); nová verze po vrácení nebo stornu k témuž datu vzniká dál, aby šlo
+        opravit i ocenění založená před zavedením pravidla. První ocenění fondu předchozí nemá.
+        """
+        for record in self.filtered(lambda v: v.version == 1 and v.fund_id and v.date):
+            previous = record.sudo().search([
+                ("fund_id", "=", record.fund_id.id), ("date", "<", record.date),
+                ("state", "not in", ("returned", "reversed")),
+            ], order="date desc, version desc", limit=1)
+            if previous and previous.state != "published":
+                states = dict(self._fields["state"]._description_selection(self.env))
+                raise UserError(self.env._(
+                    "Nové ocenění lze založit až po zveřejnění předchozího ocenění %(previous)s (stav: %(state)s).",
+                    previous=previous.display_name, state=states.get(previous.state),
+                ))
 
     def unlink(self):
         if self.filtered(lambda v: v.state not in ("draft", "computed")):
