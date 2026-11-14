@@ -402,6 +402,9 @@ class InvestraInstrumentPrice(models.Model):
     _system_fields = SYSTEM_PRICE_FIELDS
 
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", index=True, string="Nástroj")
+    # Jen pro zobrazení a hledání (rozhodnutí 2026-11-14): převzato z nástroje, neukládá se; ukazuje aktuální ISIN.
+    instrument_code = fields.Char(related="instrument_id.code", string="Kód")
+    instrument_isin = fields.Char(related="instrument_id.isin", string="ISIN")
     fund_id = fields.Many2one(
         "investra.fund", ondelete="restrict", index=True, string="Fond",
         help="Prázdné = sdílená tržní cena pro všechny fondy. Vyplněné = cena jen pro tento fond (posudek, odchylka).",

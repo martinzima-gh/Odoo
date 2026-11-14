@@ -239,7 +239,9 @@
                     <button name="action_approve" type="object" string="Schválit"/>
                 </header>
                 <field name="date" string="Datum"/>
-                <field name="instrument_id" string="Nástroj"/>
+                <field name="instrument_code"/>
+                <field name="instrument_isin" optional="show"/>
+                <field name="instrument_id" string="Název"/>
                 <field name="scope" optional="show"/>
                 <field name="fund_id" string="Fond"/>
                 <field name="price" string="Cena"/>

@@ -109,6 +109,11 @@ class InvestraClassMovement(models.Model):
         help="Kladně; úpis kapitál zvyšuje, odkup snižuje. Ve funkční měně.",
     )
     capital_amount_class = fields.Float(compute="_compute_capital", store=True, digits=(20, 2), string="Změna kapitálu v měně kurzu")
+    # Jen pro zobrazení (rozhodnutí 2026-11-14): úpis +, odkup −. Neukládá se, účetní hodnoty ani výpočty nepoužívá.
+    capital_amount_signed = fields.Float(
+        compute="_compute_capital_signed", digits=(20, 2), aggregator=None, string="Změna kapitálu ±",
+        help="Změna kapitálu třídy ve funkční měně se znaménkem: úpis kladně, odkup záporně. Jen zobrazení.",
+    )
 
     # D. Storno a oprava
     event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
@@ -175,6 +180,12 @@ class InvestraClassMovement(models.Model):
             movement.payout_class = float(gross - money(movement.fee_amount_class) - money(movement.rounding_amount_class)) \
                 if movement.movement_type == "redemption" else 0.0
             movement.fee_expected_class = float(money(gross * movement._fee_rate()))
+
+    @api.depends("capital_amount", "movement_type")
+    def _compute_capital_signed(self):
+        for movement in self:
+            sign = -1 if movement.movement_type == "redemption" else 1
+            movement.capital_amount_signed = sign * movement.capital_amount
 
     @api.depends("units", "price", "amount_class", "amount", "fx_rate", "fee_amount_class", "rounding_amount_class",
                  "rounding_owner", "fee_recipient", "movement_type", "class_id")

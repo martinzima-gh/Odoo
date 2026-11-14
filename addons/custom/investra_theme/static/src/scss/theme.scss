@@ -351,3 +351,9 @@ $investra-badge-states: (
         border-left-width: 4px;
     }
 }
+
+// Úpisy a odkupy: změna kapitálu se znaménkem – úpis Lagoon, odkup Ember (rozhodnutí 2026-11-14).
+.o_list_renderer td[name="capital_amount_signed"] {
+    &.text-success { color: $investra-lagoon !important; }
+    &.text-danger { color: $investra-ember !important; }
+}

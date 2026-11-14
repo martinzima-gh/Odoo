@@ -54,6 +54,10 @@ class TestMovement(NavCase):
         red.action_book()
         self.assertEqual(self.lines(red), {"bank": -500, "class_capital": 500})
         self.assertEqual(red.signed_amount, -500)
+        # Zobrazovací změna kapitálu se znaménkem; uložená hodnota zůstává kladná (rozhodnutí 2026-11-14).
+        self.assertEqual(sub.capital_amount_signed, 1000)
+        self.assertEqual(red.capital_amount, 500)
+        self.assertEqual(red.capital_amount_signed, -500)
 
     # --- C: poplatek ----------------------------------------------------------------------------------
 

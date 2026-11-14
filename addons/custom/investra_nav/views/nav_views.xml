@@ -378,8 +378,9 @@
                 <field name="rounding_amount_class" optional="hide"/>
                 <field name="fx_rate" string="Kurz" optional="show"/>
                 <field name="amount"/>
-                <field name="capital_amount" optional="show"
+                <field name="capital_amount_signed" optional="show"
                        decoration-success="movement_type == 'subscription'" decoration-danger="movement_type == 'redemption'"/>
+                <field name="capital_amount" optional="hide"/>
                 <field name="event_id" string="Účetní událost" optional="hide"/>
             </list>
         </field>
