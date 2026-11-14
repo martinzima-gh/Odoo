@@ -3,68 +3,86 @@
     <record id="view_fund_dashboard_kanban" model="ir.ui.view">
         <field name="name">investra.fund.dashboard.kanban</field><field name="model">investra.fund</field><field name="priority">50</field>
         <field name="arch" type="xml">
-            <!-- Karta podle návrhu docs/vzhled/navrh-prehledu-fondu.html; data a stavy počítá model
-                 (rozhodnutí 2026-11-14 „Přehled fondů – data a stavy karty“), šablona jen zobrazuje. -->
-            <kanban create="false" group_create="false">
+            <!-- Karta podle schváleného návrhu docs/vzhled/navrh-prehledu-fondu.html, styly fund_dashboard.scss.
+                 Data a stavy počítá model (rozhodnutí 2026-11-14 „Přehled fondů – data a stavy karty“), šablona jen
+                 vybírá třídu podle stavu. Celkový stav karty návrh nemá; výjimky jsou v části Kontroly. -->
+            <kanban create="false" group_create="false" class="o_investra_fund_kanban">
                 <field name="currency_id"/>
-                <field name="dashboard_status"/><field name="dashboard_valuation_id"/><field name="dashboard_exception_count"/>
+                <field name="dashboard_valuation_id"/><field name="dashboard_exception_count"/>
                 <field name="dashboard_result"/><field name="dashboard_has_result"/>
+                <field name="dashboard_latest_published"/>
                 <field name="dashboard_next_valuation"/><field name="dashboard_next_valuation_id"/><field name="dashboard_next_state"/>
                 <field name="dashboard_next_version"/><field name="dashboard_next_late"/>
                 <field name="dashboard_deadline_state"/>
                 <templates>
                     <t t-name="card">
-                        <div class="d-flex justify-content-between">
-                            <field name="name" class="fw-bold fs-5"/>
-                            <span t-if="record.dashboard_status.raw_value == 'danger'" class="badge text-bg-danger">Vyžaduje zásah</span>
-                            <span t-if="record.dashboard_status.raw_value == 'warning'" class="badge text-bg-warning">Upozornění</span>
-                            <span t-if="record.dashboard_status.raw_value == 'ok'" class="badge text-bg-success">V pořádku</span>
-                            <span t-if="record.dashboard_status.raw_value == 'none'" class="badge text-bg-secondary">Bez ocenění</span>
-                        </div>
-                        <div class="row g-2 mt-2">
-                            <div class="col-6">
-                                <div class="text-muted small">FK</div>
-                                <field name="dashboard_capital" class="fw-bold"/>
+                        <field name="name" class="o_investra_fund_name"/>
+                        <div class="o_investra_fund_row">
+                            <div>
+                                <span class="o_investra_label">FK</span>
+                                <field name="dashboard_capital" class="o_investra_amount"/>
                             </div>
-                            <div class="col-6">
-                                <div class="text-muted small">Výsledek za období</div>
+                            <div>
+                                <span class="o_investra_label">Výsledek za období</span>
                                 <t t-if="record.dashboard_has_result.raw_value">
-                                    <span t-attf-class="fw-bold {{ record.dashboard_result.raw_value &gt; 0 ? 'text-success' : record.dashboard_result.raw_value &lt; 0 ? 'text-danger' : '' }}">
+                                    <span t-attf-class="o_investra_amount {{ record.dashboard_result.raw_value &gt; 0 ? 'o_investra_positive' : record.dashboard_result.raw_value &lt; 0 ? 'o_investra_negative' : '' }}">
                                         <t t-if="record.dashboard_result.raw_value &gt; 0">+</t><field name="dashboard_result"/>
                                     </span>
-                                    <div class="text-muted small"><field name="dashboard_result_period"/></div>
+                                    <field name="dashboard_result_period" class="o_investra_period"/>
                                 </t>
-                                <span t-else="" class="fw-bold">—</span>
+                                <span t-else="" class="o_investra_amount">—</span>
                             </div>
                         </div>
-                        <div class="mt-2">
-                            <span class="text-muted">Poslední ocenění: </span>
-                            <t t-if="record.dashboard_valuation_id.raw_value"><field name="dashboard_date"/> · <field name="dashboard_state"/></t>
-                            <t t-else="">—</t>
+                        <div class="o_investra_fund_row">
+                            <div>
+                                <span class="o_investra_label">Poslední ocenění</span>
+                                <div t-if="record.dashboard_valuation_id.raw_value" class="o_investra_value_row">
+                                    <field name="dashboard_date_text" class="o_investra_date"/>
+                                    <a type="object" name="action_open_valuation"
+                                       t-attf-class="o_investra_pill {{ record.dashboard_latest_published.raw_value ? 'o_investra_done' : 'o_investra_pending' }}">
+                                        <field name="dashboard_state"/>
+                                    </a>
+                                </div>
+                                <span t-else="">—</span>
+                            </div>
+                            <div>
+                                <span class="o_investra_label">Další ocenění</span>
+                                <div t-if="record.dashboard_next_valuation.raw_value" class="o_investra_value_row">
+                                    <field name="dashboard_next_text" class="o_investra_date"/>
+                                    <a t-if="record.dashboard_next_valuation_id.raw_value" type="object" name="action_open_next_valuation"
+                                       class="o_investra_pill o_investra_pending">
+                                        <field name="dashboard_next_state"/><t t-if="record.dashboard_next_version.raw_value &gt; 1"> · v<t t-out="record.dashboard_next_version.raw_value"/></t>
+                                    </a>
+                                    <span t-else="" class="o_investra_pill o_investra_pending"><field name="dashboard_next_state"/></span>
+                                    <span t-if="record.dashboard_next_late.raw_value" class="o_investra_pill o_investra_late">Po termínu</span>
+                                </div>
+                                <span t-else="">—</span>
+                            </div>
                         </div>
-                        <div t-if="record.dashboard_next_valuation.raw_value">
-                            <span class="text-muted">Další ocenění: </span>
-                            <field name="dashboard_next_valuation"/> ·
-                            <a t-if="record.dashboard_next_valuation_id.raw_value" type="object" name="action_open_next_valuation">
-                                <field name="dashboard_next_state"/><t t-if="record.dashboard_next_version.raw_value &gt; 1"> (v<t t-out="record.dashboard_next_version.raw_value"/>)</t>
-                            </a>
-                            <field t-else="" name="dashboard_next_state"/>
-                            <span t-if="record.dashboard_next_late.raw_value" class="badge text-bg-danger ms-1">Po termínu</span>
+                        <div class="o_investra_fund_row">
+                            <div>
+                                <t t-if="record.dashboard_deadline_state.raw_value">
+                                    <field name="dashboard_next_deadline" class="o_investra_report_name"/>
+                                    <div class="o_investra_value_row">
+                                        <span t-if="record.dashboard_deadline_state.raw_value == 'submitted'" class="o_investra_pill o_investra_done">Podáno</span>
+                                        <span t-if="record.dashboard_deadline_state.raw_value == 'open'" class="o_investra_pill o_investra_warning">Otevřeno</span>
+                                        <span t-if="record.dashboard_deadline_state.raw_value == 'overdue'" class="o_investra_pill o_investra_late">Po lhůtě</span>
+                                        <span class="o_investra_deadline">Termín <field name="dashboard_deadline_due"/></span>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <span class="o_investra_label">ČNB</span>
+                                    <span>bez termínu</span>
+                                </t>
+                            </div>
+                            <div>
+                                <span class="o_investra_label">Kontroly</span>
+                                <span t-if="!record.dashboard_exception_count.raw_value" class="o_investra_control_ok">bez výjimky</span>
+                                <field t-else="" name="dashboard_exceptions" class="o_investra_control_warning"/>
+                            </div>
                         </div>
-                        <div t-if="record.dashboard_deadline_state.raw_value">
-                            <span class="text-muted">ČNB: </span><field name="dashboard_next_deadline"/>
-                            <span t-if="record.dashboard_deadline_state.raw_value == 'overdue'" class="badge text-bg-danger ms-1">Po lhůtě</span>
-                            <span t-if="record.dashboard_deadline_state.raw_value == 'open'" class="badge text-bg-warning ms-1">Otevřeno</span>
-                            <span t-if="record.dashboard_deadline_state.raw_value == 'submitted'" class="badge text-bg-success ms-1">Podáno</span>
-                        </div>
-                        <div class="mt-2">
-                            <span class="text-muted">Kontroly: </span>
-                            <t t-if="!record.dashboard_exception_count.raw_value">bez výjimky</t>
-                            <div t-else="" class="text-danger" style="white-space: pre-line"><field name="dashboard_exceptions"/></div>
-                        </div>
-                        <div t-if="record.dashboard_valuation_id.raw_value" class="mt-2">
-                            <a type="object" name="action_open_valuation">Otevřít ocenění →</a>
-                        </div>
+                        <a t-if="record.dashboard_valuation_id.raw_value" type="object" name="action_open_valuation"
+                           class="o_investra_open_link">Otevřít ocenění →</a>
                     </t>
                 </templates>
             </kanban>

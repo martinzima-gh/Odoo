@@ -39,6 +39,10 @@ class InvestraFund(models.Model):
     # z něj FK a výsledek období ocenění. Vše ve funkční měně fondu, bez součtů napříč fondy.
     dashboard_valuation_id = fields.Many2one("investra.valuation", compute="_compute_dashboard", string="Poslední ocenění")
     dashboard_date = fields.Date(compute="_compute_dashboard", string="Datum ocenění")
+    # Texty dat pro kartu: vždy dd.mm.rrrr (rozhodnutí 2026-11-13 „Formát data v aplikaci“); pole Date
+    # v kanbanu u letošních dat vynechává rok.
+    dashboard_date_text = fields.Char(compute="_compute_dashboard", string="Datum ocenění (text)")
+    dashboard_latest_published = fields.Boolean(compute="_compute_dashboard", string="Poslední ocenění zveřejněno")
     dashboard_state = fields.Char(compute="_compute_dashboard", string="Stav ocenění")
     dashboard_capital = fields.Monetary(compute="_compute_dashboard", string="FK", currency_field="currency_id")
     dashboard_result = fields.Monetary(
@@ -50,6 +54,7 @@ class InvestraFund(models.Model):
     dashboard_result_period = fields.Char(compute="_compute_dashboard", string="Období výsledku")
     dashboard_published = fields.Date(compute="_compute_dashboard", string="Poslední zveřejnění")
     dashboard_next_valuation = fields.Date(compute="_compute_dashboard", string="Další ocenění")
+    dashboard_next_text = fields.Char(compute="_compute_dashboard", string="Další ocenění (text)")
     dashboard_next_valuation_id = fields.Many2one(
         "investra.valuation", compute="_compute_dashboard", string="Rozpracované ocenění"
     )
@@ -67,6 +72,7 @@ class InvestraFund(models.Model):
         string="Stav termínu ČNB",
     )
     dashboard_next_deadline = fields.Char(compute="_compute_dashboard", string="Další termín ČNB")
+    dashboard_deadline_due = fields.Char(compute="_compute_dashboard", string="Termín ČNB (text)")
     dashboard_exceptions = fields.Text(compute="_compute_dashboard", string="Výjimky")
     dashboard_exception_count = fields.Integer(compute="_compute_dashboard", string="Počet výjimek")
     dashboard_status = fields.Selection(
@@ -107,6 +113,8 @@ class InvestraFund(models.Model):
         return {
             "dashboard_valuation_id": latest.id,
             "dashboard_date": latest.date,
+            "dashboard_date_text": latest.date.strftime("%d.%m.%Y") if latest else False,
+            "dashboard_latest_published": latest.state == "published",
             "dashboard_state": states.get(latest.state, False),
             "dashboard_capital": latest.fund_capital,
             "dashboard_result": result,
@@ -114,6 +122,7 @@ class InvestraFund(models.Model):
             "dashboard_result_period": period,
             "dashboard_published": published[:1].date,
             "dashboard_next_valuation": next_date,
+            "dashboard_next_text": next_date.strftime("%d.%m.%Y") if next_date else False,
             "dashboard_next_valuation_id": upcoming.id,
             "dashboard_next_state": upcoming.state if upcoming else ("none" if next_date else False),
             "dashboard_next_version": upcoming.version,
@@ -122,6 +131,7 @@ class InvestraFund(models.Model):
             "dashboard_deadline_id": deadline.id,
             "dashboard_deadline_state": deadline_state,
             "dashboard_next_deadline": deadline_text,
+            "dashboard_deadline_due": deadline.due_date.strftime("%d.%m.%Y") if deadline else False,
             "dashboard_exceptions": "\n".join(danger + warning),
             "dashboard_exception_count": len(danger) + len(warning),
             "dashboard_status": status,
@@ -162,9 +172,7 @@ class InvestraFund(models.Model):
             state = "submitted" if deadline else False
         if not deadline:
             return deadline, False, False
-        text = _("%(report)s · období %(period)s · termín %(due)s",
-                 report=deadline.report, period=deadline.period_end.strftime("%m/%Y"),
-                 due=deadline.due_date.strftime("%d.%m.%Y"))
+        text = _("ČNB · %(report)s · období %(period)s", report=deadline.report, period=deadline.period_end.strftime("%m/%Y"))
         if len(deadlines) > 1:
             text += _(" (+%s další)", len(deadlines) - 1)
         return deadline, state, text

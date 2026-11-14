@@ -39,6 +39,8 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.dashboard_valuation_id, valuation)
         self.assertEqual(self.fund.dashboard_capital, 1000)
         self.assertEqual(self.fund.dashboard_state, "Zaúčtováno")
+        self.assertEqual(self.fund.dashboard_date_text, "31.01.2032")
+        self.assertFalse(self.fund.dashboard_latest_published)
         self.assertEqual(self.fund.dashboard_status, "ok")
         # První ocenění fondu nemá předchozí období: karta ukáže pomlčku, ne nulu.
         self.assertFalse(self.fund.dashboard_has_result)
@@ -75,13 +77,13 @@ class TestDashboard(NavCase):
         self.deadline(-30, state="submitted", period_end=self.today - timedelta(days=60))
         self.deadline(10, report="BLIZKY")
         self.assertEqual(self.fund.dashboard_deadline_state, "open")
-        self.assertTrue(self.fund.dashboard_next_deadline.startswith("BLIZKY"))
+        self.assertIn("BLIZKY", self.fund.dashboard_next_deadline)
         self.fund.invalidate_recordset()
         late = self.deadline(-2, report="POZDE")
         self.assertEqual(self.fund.dashboard_deadline_id, late)
         self.assertEqual(self.fund.dashboard_deadline_state, "overdue")
         self.assertIn("(+1 další)", self.fund.dashboard_next_deadline)
-        self.assertIn(late.due_date.strftime("%d.%m.%Y"), self.fund.dashboard_next_deadline)
+        self.assertEqual(self.fund.dashboard_deadline_due, late.due_date.strftime("%d.%m.%Y"))
 
     def test_draft_is_next_not_latest(self):
         # Poslední ocenění je jen zaúčtované; rozpracované je „další“ se stavem z modelu ocenění.
@@ -93,6 +95,7 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.dashboard_next_valuation, draft.date)
         self.assertEqual(self.fund.dashboard_next_state, "draft")
         self.assertEqual(self.fund.dashboard_next_version, 1)
+        self.assertEqual(self.fund.dashboard_next_text, "31.01.2032")
 
     def test_next_from_calendar_after_latest(self):
         valuation = self.posted()
