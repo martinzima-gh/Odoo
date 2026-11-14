@@ -13,11 +13,9 @@ Doplnit kartu Přehledu fondů (`investra_dashboard`) o poslední a další ocen
 - Kurzy tříd z karty i modelu odstraněny; test podaných termínů přepsán (Podáno se ukazuje, výjimku nevyvolá).
 
 ## Zbývá
-1. **Otázka uživatele: víc verzí ocenění k jednomu datu** (Ukázkový fond v `investra_vzhled`: v1–v3 Vráceno, v4 Návrh).
-   Čeká na rozhodnutí mezi variantami: A seznam ukazuje jen aktuální verzi (vrácené a stornované skryté filtrem,
-   dostupné ve formuláři), B vrácení bez nové verze (jeden záznam, historie vrácení zvlášť; červená zóna, migrace).
-   V obou: sloupec Verze bez součtu ve skupinách (`aggregator=None`).
-2. Upgrade `investra_vzhled` a `investra_test` na `investra_dashboard` 0.2.0 – se souhlasem.
+1. Hotovo: seznam Ocenění jen s aktuální verzí (rozhodnutí 2026-11-14, `investra_nav` 0.28.1), testy čistá DB 332/0.
+   Otevřená otázka uživatele: barva poklesu v grafu kurzu (čísla Ember mají, graf ne) – čeká na volbu varianty.
+2. Upgrade `investra_vzhled` a `investra_test` (`investra_dashboard` 0.2.0, `investra_nav` 0.28.1) – se souhlasem.
 3. Export Claude Doc do `docs/architektura.md` (poslední export rev 333, Doc je na rev 339).
 4. Z předchozí předávky: návrh `docs/vzhled/navrh-seznam-upisu-odkupu.html` (řazení, znaménko); `theme.scss`
    `.o_investra_metric_item` `#ffffff` → barva palety (Copilot); karta Přehledu ve firemních barvách (Copilot, zelená zóna).

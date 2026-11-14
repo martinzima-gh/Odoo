@@ -1,10 +1,12 @@
 import io
+import re
 import zipfile
 from datetime import date
 
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tools import format_date
+from odoo.tools.safe_eval import safe_eval
 
 from .common import NavCase
 
@@ -166,6 +168,23 @@ class TestWorkflow(NavCase):
         self.assertEqual(new.version, 2)
         self.assertEqual(self.env["account.move"].search_count([("company_id", "=", self.fund.company_id.id)]), count - drafts)
         self.assertFalse(self.env["account.move"].search_count([("company_id", "=", self.fund.company_id.id), ("ref", "like", "Storno")]))
+
+    def test_list_shows_only_current_version(self):
+        # Rozhodnutí 2026-11-14: výchozí filtr seznamu Ocenění skryje vrácené a stornované verze.
+        valuation = self.valuation(self.fund, self.day)
+        valuation.action_compute()
+        valuation.action_submit()
+        new = valuation.with_user(self.approver).action_return("Chybná cena")
+        action = self.env.ref("investra_nav.action_valuation")
+        self.assertIn("search_default_filter_current", action.context)
+        search = self.env.ref("investra_nav.view_valuation_search").arch
+        domain = re.search(r'name="filter_current"[^>]*domain="([^"]+)"', search).group(1)
+        found = self.env["investra.valuation"].search(
+            [("fund_id", "=", self.fund.id), ("date", "=", self.day)] + safe_eval(domain)
+        )
+        self.assertEqual(found, new)
+        # Verze se ve skupinách nesčítá.
+        self.assertFalse(self.env["investra.valuation"]._fields["version"].aggregator)
 
     def test_return_needs_reason(self):
         valuation = self.valuation(self.fund, self.day)

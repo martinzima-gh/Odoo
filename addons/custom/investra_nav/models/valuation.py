@@ -93,7 +93,8 @@ class InvestraValuation(models.Model):
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     currency_id = fields.Many2one(related="fund_id.currency_id")
     date = fields.Date(required=True, string="Datum ocenění")
-    version = fields.Integer(default=1, required=True, readonly=True, string="Verze")
+    # Bez součtu ve skupinách: součet čísel verzí nedává smysl (rozhodnutí 2026-11-14).
+    version = fields.Integer(default=1, required=True, readonly=True, string="Verze", aggregator=None)
     state = fields.Selection(
         [
             ("draft", "Návrh"),

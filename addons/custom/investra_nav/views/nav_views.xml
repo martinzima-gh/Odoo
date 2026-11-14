@@ -23,12 +23,17 @@
             <search>
                 <field name="fund_id"/>
                 <field name="date"/>
-                <filter name="filter_in_progress" string="Rozpracovaná" domain="[('state', 'in', ('draft', 'computed', 'returned'))]"/>
+                <filter name="filter_in_progress" string="Rozpracovaná" domain="[('state', 'in', ('draft', 'computed'))]"/>
                 <filter name="filter_submitted" string="Ke schválení" domain="[('state', '=', 'submitted')]"/>
                 <separator/>
                 <filter name="filter_approved_posted" string="Schválená a zaúčtovaná" domain="[('state', 'in', ('approved', 'posted'))]"/>
                 <filter name="filter_depositary" string="U depozitáře" domain="[('state', 'in', ('sent', 'confirmed'))]"/>
                 <filter name="filter_published" string="Zveřejněná" domain="[('state', '=', 'published')]"/>
+                <separator/>
+                <!-- K datu je v seznamu jen aktuální verze; vrácené a stornované verze se přidají filtrem
+                     (filtry v jedné skupině se sčítají). Rozhodnutí 2026-11-14 „Seznam Ocenění – jen aktuální verze“. -->
+                <filter name="filter_current" string="Aktuální verze" domain="[('state', 'not in', ('returned', 'reversed'))]"/>
+                <filter name="filter_returned" string="Vrácená" domain="[('state', '=', 'returned')]"/>
                 <filter name="filter_reversed" string="Stornovaná" domain="[('state', '=', 'reversed')]"/>
                 <separator/>
                 <filter name="filter_date" date="date" string="Datum ocenění"/>
@@ -300,7 +305,7 @@
         <field name="res_model">investra.valuation</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_valuation_search"/>
-        <field name="context">{'search_default_group_by_fund': 1}</field>
+        <field name="context">{'search_default_group_by_fund': 1, 'search_default_filter_current': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Zatím tu není žádné ocenění</p>
             <p>Ocenění fondu k datu. Připravovatel založí ocenění, stiskne Spočítat a po kontrolách ho odešle ke schválení; zaúčtovat lze jen ocenění schválené druhou osobou.</p>
