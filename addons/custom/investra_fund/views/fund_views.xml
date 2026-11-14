@@ -4,7 +4,7 @@
         <field name="name">investra.fund.list</field>
         <field name="model">investra.fund</field>
         <field name="arch" type="xml">
-            <list><field name="name"/><field name="currency_id"/><field name="valuation_frequency"/></list>
+            <list default_order="name asc"><field name="name"/><field name="currency_id"/><field name="valuation_frequency"/></list>
         </field>
     </record>
     <record id="view_fund_search" model="ir.ui.view">
@@ -25,12 +25,26 @@
         <field name="name">investra.fund.form</field>
         <field name="model">investra.fund</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_investra_fund_form">
                 <sheet>
-                    <group>
-                        <field name="entity_id"/><field name="currency_id"/>
-                        <field name="valuation_frequency"/><field name="manager_id"/>
-                        <field name="price_digits"/><field name="price_rounding"/>
+                    <div class="o_investra_fund_metadata">
+                        <div class="o_investra_fund_metadata_item">
+                            <label for="entity_id"/>
+                            <field name="entity_id" nolabel="1"/>
+                        </div>
+                        <div class="o_investra_fund_metadata_item">
+                            <label for="currency_id"/>
+                            <field name="currency_id" nolabel="1"/>
+                        </div>
+                        <div class="o_investra_fund_metadata_item">
+                            <label for="manager_id"/>
+                            <field name="manager_id" nolabel="1"/>
+                        </div>
+                    </div>
+                    <group string="Základní parametry">
+                        <field name="valuation_frequency"/>
+                        <field name="price_digits"/>
+                        <field name="price_rounding"/>
                         <field name="trade_recognition"/>
                     </group>
                     <group string="Úpisy a odkupy – výchozí hodnoty tříd">
@@ -38,7 +52,7 @@
                         <field name="entry_fee_rate"/><field name="entry_fee_recipient"/>
                         <field name="exit_fee_rate"/><field name="exit_fee_recipient"/>
                     </group>
-                    <group>
+                    <group string="Úročení nástrojů">
                         <field name="accrual_method"/>
                         <field name="accrual_note" invisible="accrual_method != 'linear'" required="accrual_method == 'linear'"/>
                     </group>
@@ -46,13 +60,20 @@
                         <page string="Třídy">
                             <field name="class_ids" context="{'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner, 'default_entry_fee_rate': entry_fee_rate, 'default_exit_fee_rate': exit_fee_rate, 'default_entry_fee_recipient': entry_fee_recipient, 'default_exit_fee_recipient': exit_fee_recipient}">
                                 <list editable="bottom">
-                                    <field name="code"/><field name="name"/><field name="currency_id"/>
-                                    <field name="isin"/><field name="price_digits"/><field name="price_rounding"/>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="currency_id"/>
+                                    <field name="price_digits"/>
+                                    <field name="isin"/>
                                     <field name="distribution"/>
-                                    <field name="unit_digits" optional="show"/><field name="unit_rounding" optional="show"/>
-                                    <field name="rounding_owner" optional="show"/><field name="entry_fee_rate" optional="show"/>
-                                    <field name="entry_fee_recipient" optional="show"/>
-                                    <field name="exit_fee_rate" optional="show"/><field name="exit_fee_recipient" optional="show"/>
+                                    <field name="unit_digits"/>
+                                    <field name="price_rounding" optional="hide"/>
+                                    <field name="unit_rounding" optional="hide"/>
+                                    <field name="rounding_owner" optional="hide"/>
+                                    <field name="entry_fee_rate" optional="show"/>
+                                    <field name="entry_fee_recipient" optional="hide"/>
+                                    <field name="exit_fee_rate" optional="show"/>
+                                    <field name="exit_fee_recipient" optional="hide"/>
                                 </list>
                             </field>
                         </page>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Návrh seznamu typů nástrojů</title>
+<style>
+/* Návrh seznamu typů nástrojů (Copilot, 2026-11-13). Smyšlená data, jen ilustrace. */
+@font-face{font-family:Montserrat;font-weight:400;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Regular.ttf")}
+@font-face{font-family:Montserrat;font-weight:500;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Medium.ttf")}
+@font-face{font-family:Montserrat;font-weight:600;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-SemiBold.ttf")}
+:root{--p0:#0c2631;--p:#112e3c;--p2:#596e78;--p3:#9daab0;--p4:#e8ebec;--ember:#eb5b1f;--lagoon:#0b5156;--l4:#e8eeee;--g:#2c2927;--g2:#6a6967;--g4:#eceaea}
+*{box-sizing:border-box} body{margin:0;font-family:Montserrat,Arial,sans-serif;color:var(--g);background:var(--p4);font-size:14px}
+.nav{height:44px;background:var(--p);color:#fff;display:flex;align-items:center;gap:22px;padding:0 18px;font-weight:500;font-size:14px}
+.nav b{font-weight:600;box-shadow:inset 0 -3px 0 var(--ember);padding:12px 0}
+.cp{background:#fff;border-bottom:1px solid var(--p4);padding:8px 18px}
+.crumb{font-size:12px;color:var(--lagoon)} .crumb b{display:block;color:var(--g);font-weight:600;font-size:13px}
+.ctrl{background:#fff;padding:10px 18px;border-bottom:1px solid var(--p4);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:200px;display:flex;align-items:center;background:var(--p4);border-radius:4px;padding:0 10px}
+.search input{border:0;background:transparent;font-family:inherit;font-size:13px;width:100%;padding:6px 0;color:var(--g)}
+.search input::placeholder{color:var(--g2)}
+.list-wrap{background:#fff;margin:0 18px 18px;border-radius:6px;border:1px solid var(--p4);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th{font-size:12px;font-weight:600;color:var(--p);text-align:left;padding:12px 14px;border-bottom:1px solid var(--p4);background:#f6f7f8;white-space:nowrap;position:sticky;top:0;z-index:10}
+th.num{text-align:right}
+.sort{font-size:10px;color:var(--lagoon);margin-left:4px}
+td{padding:12px 14px;border-bottom:1px solid var(--p4);text-align:left;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td b{font-weight:600;color:var(--p)}
+tr:hover{background:#f9fafb}
+.pagination{display:flex;align-items:center;justify-content:center;gap:4px;padding:12px;border-top:1px solid var(--p4);font-size:12px}
+.pagination button{border:1px solid var(--p4);background:#fff;color:var(--p);padding:4px 8px;border-radius:3px;cursor:pointer}
+.pagination button:hover{background:var(--p4)}
+.pagination button.active{background:var(--p);color:#fff;border-color:var(--p)}
+.legend{margin:22px 18px 30px;font-size:12px;color:var(--g2);max-width:1100px;line-height:1.6}
+</style></head><body>
+<div class="nav"><b>Investra</b><span>Portfolio</span><span>Typy nástrojů</span></div>
+<div class="cp"><div class="crumb">Portfolio<b>Typy nástrojů</b></div></div>
+<div class="ctrl"><div class="search"><input type="text" placeholder="Hledat…"></div></div>
+<div class="list-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th aria-sort="ascending">Kód <span class="sort">↑</span></th>
+        <th>Název</th>
+        <th>Skupina</th>
+        <th>Druh v portfoliu</th>
+        <th>Kategorie (typická)</th>
+        <th>Navržený způsob ocenění</th>
+        <th>Navržená role účtu</th>
+        <th>Navržený list ČNB</th>
+        <th class="num">Navržené maximální stáří ceny (dny)</th>
+        <th>Vyžaduje ISIN</th>
+        <th>Prefix kódu nástroje</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>AKC</b></td>
+        <td>Akcie</td>
+        <td>Kótované</td>
+        <td>Akcie</td>
+        <td>Reálná hodnota do výsledku</td>
+        <td>Cena × kusy</td>
+        <td>Role účtu B</td>
+        <td>—</td>
+        <td class="num">5</td>
+        <td>Ano</td>
+        <td>AKC</td>
+      </tr>
+      <tr>
+        <td><b>DLH</b></td>
+        <td>Dluhopis</td>
+        <td>Dluhové</td>
+        <td>Dluhopis</td>
+        <td>Naběhlá hodnota</td>
+        <td>Naběhlá hodnota</td>
+        <td>Role účtu A</td>
+        <td>—</td>
+        <td class="num">30</td>
+        <td>Ano</td>
+        <td>DLH</td>
+      </tr>
+      <tr>
+        <td><b>VKL</b></td>
+        <td>Termínovaný vklad</td>
+        <td>Peněžní trh</td>
+        <td>Termínovaný vklad</td>
+        <td>Naběhlá hodnota</td>
+        <td>Naběhlá hodnota</td>
+        <td>Role účtu C</td>
+        <td>—</td>
+        <td class="num">0</td>
+        <td>Ne</td>
+        <td>VKL</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="pagination">
+  <span>Řádky 1–3</span>
+  <button>&larr;</button>
+  <button class="active">1</button>
+  <button>&rarr;</button>
+</div>
+<div class="legend"><b>Návrh, výhradně smyšlená data:</b> Jde o výchozí editovatelný seznam; jsou zachována všechna pole a jejich pořadí. Řazení je podle kódu vzestupně. Široká tabulka se posouvá vodorovně, hodnoty se neořezávají. Kategorie, způsoby ocenění a role jsou pouze vizuální příklady, ne návrh účetního nastavení.
+</div>
+</body></html>

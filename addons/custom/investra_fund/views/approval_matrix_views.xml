@@ -5,14 +5,14 @@
         <field name="name">investra.approval.matrix.list</field>
         <field name="model">investra.approval.matrix</field>
         <field name="arch" type="xml">
-            <list>
+            <list default_order="activity asc">
                 <field name="activity"/>
                 <field name="manager_id"/>
                 <field name="fund_id" optional="show"/>
                 <field name="valid_from"/>
                 <field name="performer_role"/>
                 <field name="second_person" widget="badge" decoration-warning="second_person == 'no'"/>
-                <field name="persons"/>
+                <field name="persons" optional="hide"/>
                 <field name="note" optional="show"/>
             </list>
         </field>
@@ -89,13 +89,13 @@
         <field name="name">investra.approval.request.list</field>
         <field name="model">investra.approval.request</field>
         <field name="arch" type="xml">
-            <list>
+            <list default_order="create_date desc">
+                <field name="state" widget="badge" decoration-warning="state == 'pending'" decoration-success="state == 'done'"/>
                 <field name="create_date" string="Požádáno"/>
                 <field name="activity"/>
                 <field name="record_name"/>
                 <field name="company_id" optional="show"/>
                 <field name="requested_by"/>
-                <field name="state" widget="badge" decoration-warning="state == 'pending'" decoration-success="state == 'done'"/>
             </list>
         </field>
     </record>
@@ -156,7 +156,7 @@
         <field name="name">investra.approval.log.list</field>
         <field name="model">investra.approval.log</field>
         <field name="arch" type="xml">
-            <list create="false" edit="false" delete="false">
+            <list create="false" edit="false" delete="false" default_order="create_date desc">
                 <field name="create_date" string="Kdy"/>
                 <field name="activity"/>
                 <field name="record_name"/>

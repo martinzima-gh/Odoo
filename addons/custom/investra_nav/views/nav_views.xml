@@ -4,12 +4,12 @@
         <field name="name">investra.valuation.list</field>
         <field name="model">investra.valuation</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="fund_id"/>
+            <list default_order="date asc, version desc">
                 <field name="date"/>
+                <field name="state" widget="badge"/>
+                <field name="fund_id"/>
                 <field name="version"/>
                 <field name="previous_id" optional="hide"/>
-                <field name="state" widget="badge"/>
                 <field name="fund_capital"/>
             </list>
         </field>
@@ -353,8 +353,9 @@
         <field name="name">investra.class.movement.list</field>
         <field name="model">investra.class.movement</field>
         <field name="arch" type="xml">
-            <list decoration-muted="state == 'reversed'" decoration-info="state == 'draft'">
+            <list default_order="date asc" decoration-muted="state == 'reversed'" decoration-info="state == 'draft'">
                 <field name="date" string="Datum"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id" string="Fond"/>
                 <field name="class_id" string="Třída"/>
                 <field name="movement_type" string="Typ"/>
@@ -368,8 +369,8 @@
                 <field name="rounding_amount_class" optional="hide"/>
                 <field name="fx_rate" string="Kurz" optional="show"/>
                 <field name="amount"/>
-                <field name="capital_amount" optional="show"/>
-                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
+                <field name="capital_amount" optional="show"
+                       decoration-success="movement_type == 'subscription'" decoration-danger="movement_type == 'redemption'"/>
                 <field name="event_id" string="Účetní událost" optional="hide"/>
             </list>
         </field>
@@ -378,7 +379,7 @@
         <field name="name">investra.class.movement.form</field>
         <field name="model">investra.class.movement</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_investra_movement_form">
                 <header>
                     <button name="action_book" type="object" string="Zaúčtovat" class="btn-primary"
                             groups="investra_entity.group_valuation_preparer" invisible="state != 'draft' or not id"/>
@@ -391,25 +392,52 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
                 </header>
                 <sheet>
-                    <group>
+                    <div class="oe_title">
+                        <h1><field name="class_id" readonly="state != 'draft'"/></h1>
+                    </div>
+                    <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="fund_id"/>
+                            <field name="fund_id" nolabel="1"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="movement_type"/>
+                            <field name="movement_type" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="source"/>
+                            <field name="source" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="currency_id"/>
+                            <field name="currency_id" nolabel="1"/>
+                        </div>
+                    </div>
+                    <div class="o_investra_metric_strip">
+                        <div class="o_investra_metric_item">
+                            <label for="units"/>
+                            <field name="units" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metric_item">
+                            <label for="price"/>
+                            <field name="price" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metric_item">
+                            <label for="amount_class"/>
+                            <field name="amount_class" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                    </div>
+                    <group class="o_investra_movement_content">
                         <group string="Pohyb">
-                            <field name="class_id" readonly="state != 'draft'"/>
-                            <field name="fund_id"/>
-                            <field name="movement_type" readonly="state != 'draft'"/>
                             <field name="date" readonly="state != 'draft'"/>
-                            <field name="source" readonly="state != 'draft'"/>
                             <field name="external_ref" readonly="state != 'draft'" required="source == 'is'"/>
                             <field name="manual_reason" readonly="state != 'draft'" required="source == 'manual'"
                                    invisible="source != 'manual'"/>
                             <field name="replaced_id" invisible="not replaced_id"/>
-                        </group>
-                        <group string="Kusy a cena">
-                            <field name="units" readonly="state != 'draft'"/>
-                            <field name="price" readonly="state != 'draft'"/>
                             <field name="valuation_id" invisible="not valuation_id"/>
                             <field name="price_reason" readonly="state != 'draft'"/>
-                            <field name="currency_id"/>
-                            <field name="amount_class" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Cena a měna">
                             <field name="fx_rate" readonly="state != 'draft'"/>
                             <field name="amount" readonly="state != 'draft'"/>
                         </group>
@@ -428,12 +456,12 @@
                             <field name="capital_amount"/>
                             <field name="capital_amount_class"/>
                         </group>
+                        <group string="Účetní událost">
+                            <field name="event_id"/>
+                        </group>
                     </group>
                     <group invisible="state != 'reversed'">
                         <field name="reversal_reason"/>
-                    </group>
-                    <group>
-                        <field name="event_id"/>
                     </group>
                     <notebook invisible="not posting_preview">
                         <page name="posting_preview" string="Zaúčtování">
@@ -550,7 +578,15 @@ if isinstance(result, dict):
     <record id="view_repayment_list" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <list decoration-muted="state == 'reversed'"><header><button name="action_create_scheduled_drafts" type="object" string="Návrhy podle kalendáře" display="always" groups="investra_entity.group_valuation_preparer"/></header><field name="date"/><field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/><field name="kind" optional="show"/><field name="closes_position" optional="show"/><field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/><field name="fee_amount" optional="hide"/><field name="amount"/><field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/><field name="event_id"/></list>
+            <list default_order="date asc" decoration-muted="state == 'reversed'">
+                <header><button name="action_create_scheduled_drafts" type="object" string="Návrhy podle kalendáře" display="always" groups="investra_entity.group_valuation_preparer"/></header>
+                <field name="date"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
+                <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
+                <field name="kind" optional="show"/><field name="closes_position" optional="show"/>
+                <field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/>
+                <field name="fee_amount" optional="hide"/><field name="amount"/><field name="event_id"/>
+            </list>
         </field>
     </record>
     <record id="view_repayment_search" model="ir.ui.view">
@@ -577,7 +613,7 @@ if isinstance(result, dict):
     <record id="view_repayment_form" model="ir.ui.view">
         <field name="name">investra.instrument.repayment.form</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_investra_repayment_form">
                 <header>
                     <button name="action_book" type="object" string="Zaúčtovat" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="%(action_repayment_reverse_wizard)d" type="action" string="Opravit"
@@ -597,22 +633,46 @@ if isinstance(result, dict):
                         neuhrazená: ocenění ji (s naběhlým úrokem) odúčtuje do výsledku. Jde-li o částečnou splátku, zrušte volbu
                         Uzavírá pozici.
                     </div>
+                    <div class="oe_title">
+                        <h1>Splátka nástroje – <field name="date" nolabel="1" readonly="state != 'draft'"/></h1>
+                    </div>
+                    <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="fund_id"/>
+                            <field name="fund_id" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="instrument_id"/>
+                            <field name="instrument_id" nolabel="1" options="{'no_create': True}" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="portfolio_id"/>
+                            <field name="portfolio_id" nolabel="1" options="{'no_create': True}" readonly="state != 'draft' or not portfolio_choice" force_save="1"/>
+                        </div>
+                    </div>
+                    <div class="o_investra_metric_strip">
+                        <div class="o_investra_metric_item">
+                            <label for="principal_amount"/>
+                            <field name="principal_amount" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metric_item">
+                            <label for="interest_amount"/>
+                            <field name="interest_amount" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metric_item">
+                            <label for="amount"/>
+                            <field name="amount" nolabel="1"/>
+                        </div>
+                    </div>
                     <group>
                         <group string="Pozice">
-                            <field name="fund_id" readonly="state != 'draft'"/>
-                            <field name="date" readonly="state != 'draft'"/>
-                            <field name="instrument_id" options="{'no_create': True}" readonly="state != 'draft'"/>
-                            <field name="portfolio_id" options="{'no_create': True}" readonly="state != 'draft' or not portfolio_choice" force_save="1"/>
                             <field name="remaining_before"/>
                             <field name="remaining_after"/>
                         </group>
                         <group string="Splátka">
                             <field name="kind" readonly="state != 'draft'"/>
                             <field name="closes_position" readonly="state != 'draft'" invisible="kind != 'extraordinary'"/>
-                            <field name="principal_amount" readonly="state != 'draft'"/>
-                            <field name="interest_amount" readonly="state != 'draft'"/>
                             <field name="fee_amount" readonly="state != 'draft'"/>
-                            <field name="amount"/>
                             <field name="fx_rate" readonly="state != 'draft'"/>
                             <field name="replaced_id" invisible="not replaced_id"/>
                             <field name="event_id"/>

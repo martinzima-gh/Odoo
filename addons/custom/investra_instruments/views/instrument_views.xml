@@ -3,7 +3,7 @@
     <record id="view_instrument_list" model="ir.ui.view">
         <field name="name">investra.instrument.list</field><field name="model">investra.instrument</field>
         <field name="arch" type="xml">
-            <list>
+            <list default_order="code asc">
                 <field name="code"/><field name="name"/><field name="isin"/><field name="identifier" optional="hide"/><field name="type_id"/><field name="currency_id"/><field name="fund_id" optional="show"/>
                 <field name="cnb_sheet"/><field name="deviates_from_type"/>
             </list>
@@ -32,8 +32,25 @@
     <record id="view_instrument_form" model="ir.ui.view">
         <field name="name">investra.instrument.form</field><field name="model">investra.instrument</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_investra_instrument_form">
                 <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="type_id"/>
+                            <field name="type_id" nolabel="1"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="isin"/>
+                            <field name="isin" nolabel="1" required="isin_required"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="currency_id"/>
+                            <field name="currency_id" nolabel="1"/>
+                        </div>
+                    </div>
                     <div class="alert alert-warning" role="alert" invisible="not book_warning">
                         <field name="book_warning" readonly="1"/>
                     </div>
@@ -43,9 +60,9 @@
                     </div>
                     <field name="calendar_missing" invisible="1"/>
                     <group>
-                        <group string="Nástroj">
-                            <field name="name"/><field name="code" invisible="not code"/><field name="type_id"/><field name="type_group"/>
-                            <field name="isin" required="isin_required"/><field name="isin_required" invisible="1"/><field name="currency_id"/>
+                        <group string="Identifikace">
+                            <field name="code" invisible="not code"/><field name="type_group"/>
+                            <field name="isin_required" invisible="1"/>
                             <field name="identifier_kind" invisible="isin" required="not isin"/>
                             <field name="identifier" invisible="isin" required="not isin"/>
                             <field name="fund_id" invisible="isin" required="not isin" readonly="id"
@@ -55,7 +72,7 @@
                             <field name="counterparty_id" invisible="type_group not in ('money_market', 'loan', 'derivative')"/>
                             <field name="collateral" invisible="type_group != 'money_market'"/>
                         </group>
-                        <group string="Návrh z typu, účetní může změnit">
+                        <group string="Ocenění a klasifikace">
                             <field name="cnb_sheet"/>
                             <field name="max_price_age"/>
                             <field name="fair_value_level"/><field name="deviates_from_type"/>
@@ -94,10 +111,12 @@
     <record id="view_trade_list" model="ir.ui.view">
         <field name="name">investra.trade.list</field><field name="model">investra.trade</field>
         <field name="arch" type="xml">
-            <list>
+            <list default_order="trade_date desc">
+                <field name="trade_date"/>
+                <field name="state" widget="badge" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
-                <field name="ifrs9_category" optional="show"/><field name="trade_date"/><field name="settlement_date"/>
-                <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/><field name="state" widget="badge" decoration-muted="state == 'reversed'"/>
+                <field name="ifrs9_category" optional="show"/><field name="settlement_date"/>
+                <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/>
             </list>
         </field>
     </record>
@@ -128,7 +147,7 @@
     <record id="view_trade_form" model="ir.ui.view">
         <field name="name">investra.trade.form</field><field name="model">investra.trade</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_investra_trade_form">
                 <header>
                     <button name="action_book" type="object" string="Zaúčtovat" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_settle" type="object" string="Vypořádat" class="btn-primary" invisible="state != 'unsettled'"/>
@@ -141,30 +160,51 @@
                     <div class="alert alert-warning" role="alert" invisible="not settlement_fx_note">
                         <field name="settlement_fx_note" readonly="1"/>
                     </div>
-                    <group>
-                        <group>
-                            <field name="fund_id" readonly="event_id or state in ('settled', 'reversed')"/>
-                            <field name="portfolio_id" readonly="event_id or state in ('settled', 'reversed')" options="{'no_create': True}"/>
+                    <div class="oe_title">
+                        <h1><field name="instrument_id" readonly="event_id or state in ('settled', 'reversed')"
+                                   domain="side == 'sell' and [('id', 'in', held_instrument_ids)] or []"/></h1>
+                    </div>
+                    <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="fund_id"/>
+                            <field name="fund_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="portfolio_id"/>
+                            <field name="portfolio_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" options="{'no_create': True}"/>
+                        </div>
+                    </div>
+                    <div class="o_investra_metric_strip">
+                        <div class="o_investra_metric_item">
+                            <label for="units"/>
+                            <field name="units" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
+                        </div>
+                        <div class="o_investra_metric_item">
+                            <label for="price"/>
+                            <field name="price" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
+                        </div>
+                    </div>
+                    <group class="o_investra_trade_content">
+                        <group string="Nástroj a klasifikace">
                             <field name="side" widget="radio" options="{'horizontal': true}" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="held_instrument_ids" invisible="1"/>
-                            <field name="instrument_id" readonly="event_id or state in ('settled', 'reversed')"
-                                   domain="side == 'sell' and [('id', 'in', held_instrument_ids)] or []"/>
                             <field name="classification_id"/>
                             <field name="ifrs9_category"/>
                             <field name="held_quantity" invisible="side != 'sell' or state != 'draft'"/>
-                            <field name="units" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="quantity" invisible="1" force_save="1"/>
-                            <field name="price" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="instrument_kind" invisible="1"/>
                             <field name="accrued_interest" invisible="instrument_kind != 'bond'" readonly="event_id or state in ('settled', 'reversed')"/>
                         </group>
-                        <group>
+                        <group string="Data a kurzy">
                             <field name="trade_date" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="settlement_date" readonly="state in ('settled', 'reversed')"/>
                             <field name="foreign_currency" invisible="1"/>
                             <field name="fx_rate" invisible="not foreign_currency and fx_rate == 1" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="settlement_fx_rate" invisible="not foreign_currency and settlement_fx_rate in (0, 1)" readonly="state in ('settled', 'reversed')"/>
-                            <field name="event_id"/><field name="settlement_event_id"/>
+                        </group>
+                        <group string="Účetní události">
+                            <field name="event_id"/>
+                            <field name="settlement_event_id"/>
                             <field name="replaced_id" invisible="not replaced_id"/>
                             <field name="settlement_reversal_reason" invisible="not settlement_reversal_reason"/>
                         </group>
@@ -176,7 +216,7 @@
     <record id="view_instrument_type_list" model="ir.ui.view">
         <field name="name">investra.instrument.type.list</field><field name="model">investra.instrument.type</field>
         <field name="arch" type="xml">
-            <list editable="bottom">
+            <list editable="bottom" default_order="code asc">
                 <field name="code"/><field name="name"/><field name="group"/><field name="kind"/>
                 <field name="ifrs9_category" string="Kategorie (typická)"/><field name="valuation_method"/><field name="role_id"/>
                 <field name="cnb_sheet"/><field name="max_price_age"/><field name="isin_required"/><field name="code_prefix"/>
@@ -194,7 +234,7 @@
         <field name="name">investra.instrument.price.list</field>
         <field name="model">investra.instrument.price</field>
         <field name="arch" type="xml">
-            <list>
+            <list default_order="date desc">
                 <header>
                     <button name="action_approve" type="object" string="Schválit"/>
                 </header>
@@ -299,7 +339,7 @@
     <record id="view_classification_list" model="ir.ui.view">
         <field name="name">investra.portfolio.classification.list</field><field name="model">investra.portfolio.classification</field>
         <field name="arch" type="xml">
-            <list>
+            <list default_order="fund_id asc">
                 <field name="fund_id"/><field name="portfolio_id"/><field name="business_model" optional="show"/>
                 <field name="instrument_id"/><field name="instrument_nature" optional="show"/><field name="valid_from"/>
                 <field name="valid_to" optional="hide"/><field name="sppi" optional="show"/>
@@ -408,7 +448,7 @@
     <record id="view_portfolio_list" model="ir.ui.view">
         <field name="name">investra.fund.portfolio.list</field><field name="model">investra.fund.portfolio</field>
         <field name="arch" type="xml">
-            <list>
+            <list default_order="sequence asc">
                 <field name="sequence" widget="handle"/><field name="fund_id"/><field name="name"/><field name="business_model"/>
             </list>
         </field>

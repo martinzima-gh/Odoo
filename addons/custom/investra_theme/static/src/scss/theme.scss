@@ -64,6 +64,158 @@
     }
 }
 
+// Detail fondu: údaje pod nadpisem a přehledná, neosekaná tabulka tříd.
+.o_form_view.o_investra_fund_form {
+    .o_form_sheet_bg {
+        max-width: 2200px;
+    }
+
+    .o_investra_fund_metadata {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px 24px;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid $investra-petroleum-4;
+
+        .o_investra_fund_metadata_item {
+            min-width: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 2px;
+            color: $investra-graphite-2;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .o_field_widget {
+            color: $investra-graphite;
+            font-weight: 500;
+        }
+    }
+
+    [name="class_ids"] .o_list_renderer .o_list_table {
+        td:nth-child(2) {
+            white-space: normal !important;
+        }
+
+        thead th .text-truncate {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
+        }
+    }
+}
+
+@media (max-width: 767.98px) {
+    .o_form_view.o_investra_fund_form .o_investra_fund_metadata {
+        grid-template-columns: 1fr;
+    }
+}
+
+.o_list_renderer {
+    overflow-x: auto;
+
+    .text-success {
+        color: $investra-lagoon !important;
+    }
+
+    .text-danger {
+        color: $investra-ember !important;
+    }
+
+    .o_list_table {
+        width: max-content;
+        min-width: 100%;
+
+        thead th .text-truncate,
+        tbody td .text-truncate {
+            max-width: none !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
+        }
+    }
+}
+
+.o_form_view.o_investra_instrument_form,
+.o_form_view.o_investra_trade_form,
+.o_form_view.o_investra_movement_form,
+.o_form_view.o_investra_repayment_form {
+    .o_form_sheet_bg {
+        max-width: 1800px;
+    }
+}
+
+.o_form_view {
+    .o_investra_metadata {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 4px 24px;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid $investra-petroleum-4;
+
+        .o_investra_metadata_item {
+            min-width: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 2px;
+            color: $investra-graphite-2;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .o_field_widget {
+            color: $investra-graphite;
+            font-weight: 500;
+        }
+    }
+
+    .o_investra_metric_strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin: 4px 0 20px;
+        border: 1px solid $investra-petroleum-4;
+        border-radius: 6px;
+        background-color: $investra-petroleum-4;
+        overflow: hidden;
+
+        .o_investra_metric_item {
+            min-width: 0;
+            padding: 12px 16px;
+            background-color: #ffffff;
+
+            label {
+                display: block;
+                margin-bottom: 4px;
+                color: $investra-graphite-2;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+            }
+
+            .o_field_widget {
+                color: $investra-petroleum;
+                font-size: 18px;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+            }
+        }
+    }
+}
+
+@media (max-width: 767.98px) {
+    .o_form_view .o_investra_metric_strip {
+        grid-template-columns: 1fr;
+    }
+}
+
 // Formulář: hierarchie sekcí a popisků podle vzoru.
 .o_form_view {
     .o_horizontal_separator {
