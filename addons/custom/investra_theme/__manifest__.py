@@ -1,7 +1,7 @@
 {
     "name": "Investra Theme",
     "summary": "Firemní identita Investra ve vzhledu Odoo: barvy a písmo podle Brand manuálu 1.0",
-    "version": "20.0.0.2.1",
+    "version": "20.0.0.2.2",
     "category": "Hidden",
     "author": "Investra",
     "license": "LGPL-3",

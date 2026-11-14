@@ -4,6 +4,9 @@
 // ve formátu jazyka (cs_CZ dd.MM.yyyy) vždy celé. Platí pro všechna pole typu datum, pokud pohled
 // výslovně neuvede `options="{'numeric': false}"`. Jen zobrazení, hodnoty se nemění.
 import { registry } from "@web/core/registry";
+// Výslovné závislosti: skript musí běžet až po registraci formátovače a pole „date“.
+import "@web/views/fields/formatters";
+import "@web/views/fields/datetime/datetime_field";
 
 const dateFormatter = registry.category("formatters").get("date");
 const extractOptions = dateFormatter.extractOptions;
