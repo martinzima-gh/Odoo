@@ -19,8 +19,9 @@ Doplnit kartu Přehledu fondů (`investra_dashboard`) o poslední a další ocen
    (zálohy `zalohy/*-2026-11-14-pred-upgradem.dump`); `investra_test` 332/0.
 3. Hotovo: sloupec Změna FK (0.28.2) a pravidlo „nové ocenění až po zveřejnění předchozího“ (0.28.3); obě DB
    povýšené (zálohy `*-pred-upgradem-2.dump`), `investra_test` 338/0.
-4. **Vzhled karty Přehledu podle `docs/vzhled/navrh-prehledu-fondu.html`** – Copilot udělal jen HTML návrh, v Odoo
-   není; čeká na volbu uživatele (Claude hned, nebo úkol pro Copilota).
+4. Hotovo večer: karta Přehledu ve vzhledu návrhu, barvy stavů ve všech seznamech, 10 ocenění na fond, datum vždy
+   celé (`investra_theme` date_numeric.js), detail ocenění na celou šířku, graf po úsecích (Lagoon/Ember), šířky
+   tabulky tříd. Vizuálně kontroluje uživatel na 8072; další ladění vzhledu podle jeho snímků.
 5. Export Claude Doc do `docs/architektura.md` (poslední export rev 333, Doc je na rev 343).
 6. Z předchozí předávky: návrh `docs/vzhled/navrh-seznam-upisu-odkupu.html` (řazení, znaménko); `theme.scss`
    `.o_investra_metric_item` `#ffffff` → barva palety (Copilot); karta Přehledu ve firemních barvách (Copilot, zelená zóna).
