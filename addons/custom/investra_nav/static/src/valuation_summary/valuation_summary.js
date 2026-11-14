@@ -72,17 +72,26 @@ export function sparkline(published, current, previous = null) {
     const solid = points.slice(0, published.length);
     const last = solid[solid.length - 1] || null;
     const currentPoint = current !== null ? points[points.length - 1] : null;
-    // Konec úseku změny: nezveřejněné toto ocenění, jinak poslední zveřejněný bod (toto ocenění po zveřejnění).
-    const end = currentPoint || last;
-    const start = previousIndex >= 0 ? points[previousIndex] : null;
+    const endIndex = currentPoint ? points.length - 1 : published.length - 1;
+    // Každý úsek má barvu svého směru (uživatel 2026-11-14): růst Lagoon, pokles Ember, beze změny barva třídy.
+    const tone = (from, to) => (values[to] > values[from] ? "o_investra_up" : values[to] < values[from] ? "o_investra_down" : "");
+    const segment = (from, to) => ({ from: points[from], to: points[to], tone: tone(from, to) });
+    const segments = [];
+    for (let index = 1; index < solid.length; index++) {
+        segments.push(segment(index - 1, index));
+    }
+    const change = previousIndex >= 0 && endIndex > previousIndex && currentPoint ? segment(previousIndex, endIndex) : null;
     return {
         viewBox: `0 0 ${SPARK.width} ${SPARK.height}`,
-        line: solid.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" "),
+        segments,
         last,
-        bridge: bridged ? points[previousIndex] : null,
-        change: start && end && start !== end ? { from: start, to: end, dashed: currentPoint !== null } : null,
+        bridge: bridged && last ? segment(published.length - 1, previousIndex) : null,
+        bridgePoint: bridged ? points[previousIndex] : null,
+        change,
         current: currentPoint,
-        end,
+        // Úsek k nezveřejněnému ocenění bez předchozího (první ocenění) – tečkovaně v barvě třídy.
+        pending: !change && last && currentPoint ? { from: last, to: currentPoint } : null,
+        endTone: endIndex > 0 ? tone(endIndex - 1, endIndex) : "",
     };
 }
 
