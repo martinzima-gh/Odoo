@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Návrh seznamu ocenění</title>
+<style>
+/* Návrh seznamu ocenění (Copilot, 2026-11-13). Smyšlená data, jen ilustrace. */
+@font-face{font-family:Montserrat;font-weight:400;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Regular.ttf")}
+@font-face{font-family:Montserrat;font-weight:500;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Medium.ttf")}
+@font-face{font-family:Montserrat;font-weight:600;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-SemiBold.ttf")}
+:root{--p0:#0c2631;--p:#112e3c;--p2:#596e78;--p3:#9daab0;--p4:#e8ebec;--ember:#eb5b1f;--lagoon:#0b5156;--l4:#e8eeee;--g:#2c2927;--g2:#6a6967;--g4:#eceaea}
+*{box-sizing:border-box} body{margin:0;font-family:Montserrat,Arial,sans-serif;color:var(--g);background:var(--p4);font-size:14px}
+.nav{height:44px;background:var(--p);color:#fff;display:flex;align-items:center;gap:22px;padding:0 18px;font-weight:500;font-size:14px}
+.nav b{font-weight:600;box-shadow:inset 0 -3px 0 var(--ember);padding:12px 0}
+.cp{background:#fff;border-bottom:1px solid var(--p4);padding:8px 18px}
+.crumb{font-size:12px;color:var(--lagoon)} .crumb b{display:block;color:var(--g);font-weight:600;font-size:13px}
+.ctrl{background:#fff;padding:10px 18px;border-bottom:1px solid var(--p4);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{white-space:nowrap;border:0;border-radius:4px;padding:7px 12px;font:600 13px Montserrat,Arial;background:transparent;color:var(--p)}
+.btn.pri{background:var(--p);color:#fff}
+.search{flex:1;min-width:200px;display:flex;align-items:center;background:var(--p4);border-radius:4px;padding:0 10px}
+.search input{border:0;background:transparent;font-family:inherit;font-size:13px;width:100%;padding:6px 0;color:var(--g)}
+.search input::placeholder{color:var(--g2)}
+.list-wrap{background:#fff;margin:0 18px 18px;border-radius:6px;border:1px solid var(--p4);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th{font-size:12px;font-weight:600;color:var(--p);text-align:left;padding:12px 14px;border-bottom:1px solid var(--p4);background:#f6f7f8;white-space:nowrap;position:sticky;top:0;z-index:10}
+th.num{text-align:right}
+.sort{font-size:10px;color:var(--lagoon);margin-left:4px}
+td{padding:12px 14px;border-bottom:1px solid var(--p4);text-align:left;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td b{font-weight:600;color:var(--p)}
+tr:hover{background:#f9fafb}
+.badge{display:inline-flex;align-items:center;gap:.4em;padding:3px 8px;border-radius:3px;font-size:11px;font-weight:600;white-space:nowrap;background:#fff;color:var(--g);border:1px solid var(--p3)}
+.badge::before{content:"";width:.5em;height:.5em;border-radius:50%;background:var(--p3)}
+.badge.posted{color:var(--lagoon);border-color:var(--lagoon)}
+.badge.posted::before{background:var(--lagoon)}
+.badge.reversed{color:var(--g2);border-color:var(--g2)}
+.badge.reversed::before{background:var(--g2)}
+.pagination{display:flex;align-items:center;justify-content:center;gap:4px;padding:12px;border-top:1px solid var(--p4);font-size:12px}
+.pagination button{border:1px solid var(--p4);background:#fff;color:var(--p);padding:4px 8px;border-radius:3px;cursor:pointer}
+.pagination button:hover{background:var(--p4)}
+.pagination button.active{background:var(--p);color:#fff;border-color:var(--p)}
+.legend{margin:22px 18px 30px;font-size:12px;color:var(--g2);max-width:1100px;line-height:1.6}
+</style></head><body>
+<div class="nav"><b>Investra</b><span>Ocenění</span></div>
+<div class="cp"><div class="crumb">Ocenění<b>Ocenění fondů</b></div></div>
+<div class="ctrl">
+  <button class="btn pri">Nové ocenění</button>
+  <div class="search"><input type="text" placeholder="Hledat fond nebo datum ocenění…"></div>
+  <button class="btn">Filtr</button>
+</div>
+<div class="list-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th aria-sort="ascending">Datum ocenění <span class="sort">↑</span></th>
+        <th>Stav</th>
+        <th>Fond</th>
+        <th>Verze</th>
+        <th class="num">FK</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>31.07.2026</td>
+        <td><span class="badge">Ke schválení</span></td>
+        <td><b>Fond Vzorový</b></td>
+        <td>1</td>
+        <td class="num">247 900 000,00</td>
+      </tr>
+      <tr>
+        <td>31.08.2026</td>
+        <td><span class="badge posted">Zaúčtováno</span></td>
+        <td><b>Fond Vzorový</b></td>
+        <td>2</td>
+        <td class="num">248 750 000,00</td>
+      </tr>
+      <tr>
+        <td>31.08.2026</td>
+        <td><span class="badge reversed">Stornováno</span></td>
+        <td><b>Fond Vzorový</b></td>
+        <td>1</td>
+        <td class="num">248 500 000,00</td>
+      </tr>
+      <tr>
+        <td>30.09.2026</td>
+        <td><span class="badge posted">Zveřejněno a uzamčeno</span></td>
+        <td><b>Fond Vzorový</b></td>
+        <td>1</td>
+        <td class="num">250 000 000,00</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="pagination">
+  <span>Řádky 1–4</span>
+  <button>&larr;</button>
+  <button class="active">1</button>
+  <button>&rarr;</button>
+</div>
+<div class="legend"><b>Návrh, smyšlená data:</b> Datum je první sloupec, stav druhý; řádky jsou vzestupně podle data ocenění a v rámci stejného dne podle verze sestupně. Předchozí ocenění zůstává jako volitelný sloupec skrytý. FK je existující hodnota z ocenění; seznam nic nepřepočítává.
+</div>
+</body></html>

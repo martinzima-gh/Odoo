@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Návrh detailu nástroje</title>
+<style>
+/* Návrh detailu nástroje (Copilot, 2026-11-13). Smyšlená data, jen ilustrace. */
+@font-face{font-family:Montserrat;font-weight:400;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Regular.ttf")}
+@font-face{font-family:Montserrat;font-weight:500;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Medium.ttf")}
+@font-face{font-family:Montserrat;font-weight:600;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-SemiBold.ttf")}
+:root{--p0:#0c2631;--p:#112e3c;--p2:#596e78;--p3:#9daab0;--p4:#e8ebec;--ember:#eb5b1f;--lagoon:#0b5156;--l4:#e8eeee;--g:#2c2927;--g2:#6a6967;--g4:#eceaea}
+*{box-sizing:border-box} body{margin:0;font-family:Montserrat,Arial,sans-serif;color:var(--g);background:var(--p4);font-size:14px}
+.nav{height:44px;background:var(--p);color:#fff;display:flex;align-items:center;gap:22px;padding:0 18px;font-weight:500;font-size:14px}
+.nav b{font-weight:600;box-shadow:inset 0 -3px 0 var(--ember);padding:12px 0}
+.cp{background:#fff;border-bottom:1px solid var(--p4);padding:8px 18px}
+.crumb{font-size:12px;color:var(--lagoon)} .crumb b{display:block;color:var(--g);font-weight:600;font-size:13px}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 18px}
+.btn{white-space:nowrap;border:0;border-radius:4px;padding:7px 12px;font:600 13px Montserrat,Arial;background:transparent;color:var(--p)}
+.btn.pri{background:var(--p);color:#fff}
+.alert{padding:12px 14px;border-radius:4px;margin-bottom:14px;font-size:13px}
+.alert.warning{background:#fef3f0;border-left:3px solid var(--ember);color:var(--g)}
+.alert.danger{background:#fff0ed;border-left:3px solid var(--ember);color:var(--g)}
+.sheet{background:#fff;margin:0 18px 18px;border-radius:6px;border:1px solid var(--p4);padding:26px 28px}
+h1{margin:0;font-size:26px;font-weight:600;color:var(--p)}
+.sub{margin:6px 0 22px;color:var(--g2);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.sub b{color:var(--g);font-weight:500}
+.section-title{font-size:14px;font-weight:600;color:var(--p);margin:20px 0 14px;text-transform:uppercase;letter-spacing:.05em}
+.form-group{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px;margin-bottom:20px}
+.form-field{display:flex;flex-direction:column}
+.form-label{font-size:12px;font-weight:600;color:var(--g2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.form-value{font-size:14px;color:var(--g);padding:8px 0;border-bottom:1px solid var(--p4)}
+.form-field.required .form-label::after{content:" *";color:var(--ember)}
+.table-wrap{overflow-x:auto;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th{font-size:12px;font-weight:600;color:var(--p);text-align:left;padding:10px;border-bottom:2px solid var(--p4);background:#f6f7f8;white-space:nowrap}
+th.num{text-align:right}
+td{padding:10px;border-bottom:1px solid var(--p4)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td b{font-weight:600;color:var(--p)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--p4);margin:20px -28px 0;padding-left:28px}
+.tabs span{padding:9px 14px;font-size:13px;color:var(--g2);font-weight:500} .tabs .on{color:var(--p);font-weight:600;box-shadow:inset 0 -3px 0 var(--p)}
+.legend{margin:22px 0 0;font-size:12px;color:var(--g2);line-height:1.6}
+</style></head><body>
+<div class="nav"><b>Investra</b><span>Přehled</span><span>Ocenění</span><span>Portfolio</span><span>Úpisy a odkupy</span><span>Výkazy</span><span>Nastavení</span></div>
+<div class="cp"><div class="crumb">Nastavení<b>Nástrojů — ERSTE DEPOSIT 3,75% 2024–2026</b></div></div>
+<div class="bar"><button class="btn pri">Uložit</button><button class="btn">Smazat</button></div>
+<div class="sheet">
+  <h1>ERSTE DEPOSIT 3,75% 2024–2026</h1>
+  <div class="sub"><span>Typ <b>Dluhopis</b></span><span>ISIN <b>CZ0123456789</b></span><span>Měna <b>CZK</b></span></div>
+
+  <div class="alert warning">
+    Dluhopis nemá kalendář toků: naběhlý úrok se v obchodech nepředvyplní a ocenění ho u pozice nepočítá.
+    Doplňte toky na záložce <b>Smluvní peněžní toky</b>.
+  </div>
+
+  <div class="section-title">Identifikace</div>
+  <div class="form-group">
+    <div class="form-field">
+      <label class="form-label">Název</label>
+      <div class="form-value">ERSTE DEPOSIT 3,75% 2024–2026</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Kód (interní)</label>
+      <div class="form-value">ERSTE-DEPOSIT-2026</div>
+    </div>
+    <div class="form-field required">
+      <label class="form-label">ISIN</label>
+      <div class="form-value">CZ0123456789</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Identifikátor (bez ISIN)</label>
+      <div class="form-value">—</div>
+    </div>
+    <div class="form-field required">
+      <label class="form-label">Typ</label>
+      <div class="form-value">Dluhopis — cenný papír s pevným výnosem</div>
+    </div>
+    <div class="form-field required">
+      <label class="form-label">Měna</label>
+      <div class="form-value">CZK</div>
+    </div>
+  </div>
+
+  <div class="section-title">Ocenění a klasifikace</div>
+  <div class="form-group">
+    <div class="form-field">
+      <label class="form-label">List ČNB (FOFI)</label>
+      <div class="form-value">List 2 – dluhopisy a výměnné doklady</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Max věk ceny (dní)</label>
+      <div class="form-value">—</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Úroveň fair value</label>
+      <div class="form-value">Úroveň 1 – aktuální tržní cena</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Odchylka od typu</label>
+      <div class="form-value">Ne</div>
+    </div>
+  </div>
+
+  <div class="section-title">Úročení</div>
+  <div class="form-group">
+    <div class="form-field">
+      <label class="form-label">Datum splatnosti</label>
+      <div class="form-value">31.12.2026</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Kuponová sazba</label>
+      <div class="form-value">3,75 % p.a.</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Metoda počítání dní</label>
+      <div class="form-value">Skutečný/360</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Akruální metoda</label>
+      <div class="form-value">Lineární</div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Cena bez naběhlého úroku</label>
+      <div class="form-value">Ano</div>
+    </div>
+  </div>
+
+  <div class="tabs"><span class="on">Zařazení ve fondech</span><span>Smluvní peněžní toky</span><span>Chatter</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fond</th>
+          <th>Portfolio</th>
+          <th>Obchodní model</th>
+          <th>IFRS 9</th>
+          <th>Metoda ocenění</th>
+          <th class="num">Platné od</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Fond Globální Perspektiva</b></td>
+          <td>Pevné výnosy</td>
+          <td>Pronajatý ve FVPL</td>
+          <td>AmC</td>
+          <td>Amortizovaná cena (YTM)</td>
+          <td class="num">13.11.2026</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="legend"><b>Návrh:</b> Základní údaje v řádku (typ, ISIN, měna); skupina Identifikace s čitelnými poli; upozornění o chybějícím kalendáři v horní části. Zalamovaný text v popisech, čísla na jednom řádku. Tabulka zařazení bez ořezu.</div>
+</div>
+</body></html>

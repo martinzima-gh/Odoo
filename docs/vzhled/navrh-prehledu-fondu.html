@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Návrh přehledu fondů</title>
+<style>
+@font-face{font-family:Montserrat;font-weight:400;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Regular.ttf")}
+@font-face{font-family:Montserrat;font-weight:500;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-Medium.ttf")}
+@font-face{font-family:Montserrat;font-weight:600;src:url("http://127.0.0.1:8070/web/static/fonts/google/Montserrat/Montserrat-SemiBold.ttf")}
+:root{
+  --petroleum:#112e3c;--petroleum-0:#0c2631;--petroleum-4:#e8ebec;
+  --lagoon:#0b5156;--lagoon-4:#e8eeee;--ember:#eb5b1f;--ember-4:#feeee9;
+  --graphite:#2c2927;--graphite-2:#6a6967;--paper:#fff;--page:#e8ebec;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--graphite);font:14px Montserrat,Arial,sans-serif}
+.navbar{height:48px;display:flex;align-items:center;gap:24px;padding:0 24px;background:var(--petroleum);color:#fff}
+.brand{font-size:18px;font-weight:600}
+.navitem{height:48px;display:flex;align-items:center;padding:0 8px;color:#fff;font-weight:500}
+.navitem.active{border-bottom:3px solid var(--lagoon)}
+main{max-width:1480px;margin:0 auto;padding:24px}
+h1{margin:0 0 6px;color:var(--petroleum);font-size:24px;font-weight:600}
+.intro{margin:0 0 20px;color:var(--graphite-2);font-size:13px}
+.fund-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.fund-card{min-width:0;padding:20px 22px;background:var(--paper);border:1px solid var(--petroleum-4);border-radius:6px}
+.fund-name{margin:0 0 18px;color:var(--petroleum);font-size:20px;font-weight:600}
+.numbers{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding-bottom:18px;border-bottom:1px solid var(--petroleum-4)}
+.number{min-width:0}
+.number+.number{padding-left:20px;border-left:1px solid var(--petroleum-4)}
+.label{display:block;margin-bottom:5px;color:var(--graphite-2);font-size:12px;font-weight:500}
+.amount{display:block;color:var(--petroleum);font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.amount.positive{color:var(--lagoon)}
+.amount.negative{color:var(--ember)}
+.timeline{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:16px 0;border-bottom:1px solid var(--petroleum-4)}
+.timeline-item+.timeline-item{padding-left:20px;border-left:1px solid var(--petroleum-4)}
+.value-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.date{color:var(--graphite);font-variant-numeric:tabular-nums;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;min-height:25px;padding:3px 10px;border:1px solid;border-radius:14px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge.done{border-color:var(--lagoon);background:var(--lagoon-4);color:var(--lagoon)}
+.badge.pending{border-color:var(--petroleum-4);background:#fff;color:var(--petroleum)}
+.badge.warning{border-color:var(--ember);background:var(--ember-4);color:var(--ember)}
+.details{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding-top:16px}
+.detail+.detail{padding-left:20px;border-left:1px solid var(--petroleum-4)}
+.report-name{margin-bottom:7px;color:var(--petroleum);font-size:12px;font-weight:500}
+.report-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.deadline{color:var(--graphite-2);font-size:12px}
+.control-ok{color:var(--graphite)}
+.control-warning{color:var(--ember);font-weight:600}
+.open-link{display:inline-block;margin-top:18px;color:var(--lagoon);font-weight:600;text-decoration:none}
+.note{margin:18px 0 0;color:var(--graphite-2);font-size:11px;line-height:1.55}
+@media(max-width:900px){main{padding:16px}.fund-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.navbar{gap:12px;padding:0 14px}.fund-card{padding:16px}.numbers,.timeline,.details{grid-template-columns:1fr;gap:14px}.number+.number,.timeline-item+.timeline-item,.detail+.detail{padding:0;border-left:0}.amount{font-size:18px}}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <span class="brand">Investra</span>
+  <span class="navitem active">Fondy</span>
+  <span class="navitem">Ocenění</span>
+  <span class="navitem">Kontroly</span>
+  <span class="navitem">Reporty</span>
+</nav>
+<main>
+  <h1>Přehled fondů</h1>
+  <p class="intro">Jeden fond na kartu. Bez souhrnných částek napříč fondy.</p>
+  <section class="fund-grid" aria-label="Přehled jednotlivých fondů">
+    <article class="fund-card">
+      <h2 class="fund-name">Fond Alfa</h2>
+      <div class="numbers">
+        <div class="number">
+          <span class="label">FK</span>
+          <span class="amount">12 458 360,00 Kč</span>
+        </div>
+        <div class="number">
+          <span class="label">Výsledek za období</span>
+          <span class="amount positive">+324 870,45 Kč</span>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="label">Poslední ocenění</span>
+          <div class="value-row"><span class="date">30.09.2026</span><span class="badge done">Zveřejněno</span></div>
+        </div>
+        <div class="timeline-item">
+          <span class="label">Další ocenění</span>
+          <div class="value-row"><span class="date">31.10.2026</span><span class="badge pending">Rozpracováno</span></div>
+        </div>
+      </div>
+      <div class="details">
+        <div class="detail">
+          <div class="report-name">ČNB · FOFI · období 09/2026</div>
+          <div class="report-row"><span class="badge done">Podáno</span><span class="deadline">Termín 15.10.2026</span></div>
+        </div>
+        <div class="detail">
+          <span class="label">Kontroly</span>
+          <span class="control-ok">bez výjimky</span>
+        </div>
+      </div>
+      <a class="open-link" href="#">Otevřít ocenění →</a>
+    </article>
+
+    <article class="fund-card">
+      <h2 class="fund-name">Fond Beta</h2>
+      <div class="numbers">
+        <div class="number">
+          <span class="label">FK</span>
+          <span class="amount">8 937 420,00 Kč</span>
+        </div>
+        <div class="number">
+          <span class="label">Výsledek za období</span>
+          <span class="amount positive">+178 230,12 Kč</span>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="label">Poslední ocenění</span>
+          <div class="value-row"><span class="date">30.09.2026</span><span class="badge done">Zveřejněno</span></div>
+        </div>
+        <div class="timeline-item">
+          <span class="label">Další ocenění</span>
+          <div class="value-row"><span class="date">31.10.2026</span><span class="badge pending">Rozpracováno</span></div>
+        </div>
+      </div>
+      <div class="details">
+        <div class="detail">
+          <div class="report-name">ČNB · FOFI · období 09/2026</div>
+          <div class="report-row"><span class="badge done">Podáno</span><span class="deadline">Termín 15.10.2026</span></div>
+        </div>
+        <div class="detail">
+          <span class="label">Kontroly</span>
+          <span class="control-warning">1 upozornění</span>
+        </div>
+      </div>
+      <a class="open-link" href="#">Otevřít ocenění →</a>
+    </article>
+
+    <article class="fund-card">
+      <h2 class="fund-name">Fond Gama</h2>
+      <div class="numbers">
+        <div class="number">
+          <span class="label">FK</span>
+          <span class="amount">5 672 180,00 Kč</span>
+        </div>
+        <div class="number">
+          <span class="label">Výsledek za období</span>
+          <span class="amount negative">−96 340,75 Kč</span>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="label">Poslední ocenění</span>
+          <div class="value-row"><span class="date">30.09.2026</span><span class="badge done">Zveřejněno</span></div>
+        </div>
+        <div class="timeline-item">
+          <span class="label">Další ocenění</span>
+          <div class="value-row"><span class="date">31.10.2026</span><span class="badge pending">Nezahájeno</span></div>
+        </div>
+      </div>
+      <div class="details">
+        <div class="detail">
+          <div class="report-name">ČNB · FOFI · období 09/2026</div>
+          <div class="report-row"><span class="badge warning">Otevřeno</span><span class="deadline">Termín 15.10.2026</span></div>
+        </div>
+        <div class="detail">
+          <span class="label">Kontroly</span>
+          <span class="control-warning">1 upozornění</span>
+        </div>
+      </div>
+      <a class="open-link" href="#">Otevřít ocenění →</a>
+    </article>
+
+    <article class="fund-card">
+      <h2 class="fund-name">Fond Delta</h2>
+      <div class="numbers">
+        <div class="number">
+          <span class="label">FK</span>
+          <span class="amount">9 321 760,00 Kč</span>
+        </div>
+        <div class="number">
+          <span class="label">Výsledek za období</span>
+          <span class="amount negative">−112 450,32 Kč</span>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="label">Poslední ocenění</span>
+          <div class="value-row"><span class="date">30.09.2026</span><span class="badge done">Zveřejněno</span></div>
+        </div>
+        <div class="timeline-item">
+          <span class="label">Další ocenění</span>
+          <div class="value-row"><span class="date">31.10.2026</span><span class="badge warning">Po termínu</span></div>
+        </div>
+      </div>
+      <div class="details">
+        <div class="detail">
+          <div class="report-name">ČNB · FOFI · období 09/2026</div>
+          <div class="report-row"><span class="badge done">Podáno</span><span class="deadline">Termín 15.10.2026</span></div>
+        </div>
+        <div class="detail">
+          <span class="label">Kontroly</span>
+          <span class="control-warning">1 upozornění</span>
+        </div>
+      </div>
+      <a class="open-link" href="#">Otevřít ocenění →</a>
+    </article>
+  </section>
+  <p class="note">Návrh se smyšlenými údaji. „Výsledek za období“ není výkonnost fondu. Kurzy tříd zůstávají v detailu ocenění. Stavy a zdroj výsledku se musí před implementací ověřit; přehled je nesmí dopočítávat ve vzhledu.</p>
+</main>
+</body>
+</html>
