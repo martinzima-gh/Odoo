@@ -12,7 +12,11 @@
                 <field name="fund_id" optional="hide"/>
                 <field name="version"/>
                 <field name="previous_id" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
                 <field name="fund_capital"/>
+                <field name="has_capital_change" column_invisible="1"/>
+                <field name="fund_capital_change" optional="show" invisible="not has_capital_change"
+                       decoration-success="fund_capital_change &gt; 0" decoration-danger="fund_capital_change &lt; 0"/>
             </list>
         </field>
     </record>

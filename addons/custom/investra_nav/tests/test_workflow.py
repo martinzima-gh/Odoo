@@ -186,6 +186,20 @@ class TestWorkflow(NavCase):
         # Verze se ve skupinách nesčítá.
         self.assertFalse(self.env["investra.valuation"]._fields["version"].aggregator)
 
+    def test_capital_change_for_list(self):
+        # Změna FK v seznamu = FK − součet FK (t−1) tříd, jako v detailu; u prvního ocenění a návrhu prázdná.
+        first = self.run_to_posted(self.valuation(self.fund, self.day))
+        self.assertFalse(first.has_capital_change)
+        self.subscribe(self.a, "2027-02-10", 500, 5)
+        second = self.valuation(self.fund, date(2027, 2, 28))
+        self.assertFalse(second.has_capital_change)
+        second.action_compute()
+        second.invalidate_recordset(["has_capital_change", "fund_capital_change"])
+        self.assertTrue(second.has_capital_change)
+        self.assertEqual(second.previous_id, first)
+        self.assertAlmostEqual(second.fund_capital_change, second.fund_capital - first.fund_capital, places=2)
+        self.assertFalse(self.env["investra.valuation"]._fields["fund_capital_change"].aggregator)
+
     def test_return_needs_reason(self):
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()

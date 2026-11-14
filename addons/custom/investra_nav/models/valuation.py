@@ -119,6 +119,14 @@ class InvestraValuation(models.Model):
     # (rozhodnutí 2026-11-14).
     fund_capital = fields.Monetary(readonly=True, string="FK", aggregator=None)
     neutral_capital = fields.Monetary(readonly=True, string="NFK", aggregator=None)
+    # Jen zobrazení v seznamu: stejná hodnota jako „Změna FK od minula“ v detailu ocenění (FK − součet FK (t−1) tříd
+    # z přemostění), včetně úpisů a odkupů, tedy ne výkonnost. Prázdná u návrhu, vráceného a prvního ocenění
+    # (rozhodnutí 2026-11-14 „Seznam Ocenění – změna FK“).
+    fund_capital_change = fields.Monetary(
+        compute="_compute_fund_capital_change", string="Změna FK", aggregator=None,
+        help="Změna FK od předchozího ocenění včetně úpisů a odkupů; není to výkonnost.",
+    )
+    has_capital_change = fields.Boolean(compute="_compute_fund_capital_change", string="Má změnu FK")
     class_line_ids = fields.One2many("investra.valuation.class", "valuation_id", readonly=True, string="Třídy")
     fee_line_ids = fields.One2many("investra.valuation.fee", "valuation_id", readonly=True, string="Úplaty")
     portfolio_line_ids = fields.One2many("investra.valuation.portfolio", "valuation_id", readonly=True, string="Portfolio")
@@ -132,6 +140,16 @@ class InvestraValuation(models.Model):
     published_at = fields.Datetime(readonly=True, string="Zveřejněno")
 
     _uniq = models.Constraint("unique(fund_id, date, version)", "Verze ocenění k datu už existuje.")
+
+    @api.depends("state", "previous_id", "fund_capital", "class_line_ids.opening_capital")
+    def _compute_fund_capital_change(self):
+        for valuation in self:
+            shown = valuation.previous_id and valuation.state not in ("draft", "returned")
+            valuation.has_capital_change = bool(shown)
+            valuation.fund_capital_change = (
+                valuation.currency_id.round(valuation.fund_capital - sum(valuation.class_line_ids.mapped("opening_capital")))
+                if shown else 0.0
+            )
 
     @api.depends("fund_id.display_name", "date", "version")
     def _compute_display_name(self):
