@@ -114,8 +114,10 @@ class InvestraValuation(models.Model):
     )
     previous_id = fields.Many2one("investra.valuation", readonly=True, string="Předchozí ocenění")
     preparer_id = fields.Many2one("res.users", readonly=True, string="Zadal")
-    fund_capital = fields.Monetary(readonly=True, string="FK")
-    neutral_capital = fields.Monetary(readonly=True, string="NFK")
+    # Bez součtu ve skupinách: FK a NFK jsou stavové veličiny k datu; součet přes data a verze nedává smysl
+    # (rozhodnutí 2026-11-14).
+    fund_capital = fields.Monetary(readonly=True, string="FK", aggregator=None)
+    neutral_capital = fields.Monetary(readonly=True, string="NFK", aggregator=None)
     class_line_ids = fields.One2many("investra.valuation.class", "valuation_id", readonly=True, string="Třídy")
     fee_line_ids = fields.One2many("investra.valuation.fee", "valuation_id", readonly=True, string="Úplaty")
     portfolio_line_ids = fields.One2many("investra.valuation.portfolio", "valuation_id", readonly=True, string="Portfolio")
