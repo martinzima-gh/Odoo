@@ -3,8 +3,15 @@
     <record id="view_fund_dashboard_kanban" model="ir.ui.view">
         <field name="name">investra.fund.dashboard.kanban</field><field name="model">investra.fund</field><field name="priority">50</field>
         <field name="arch" type="xml">
+            <!-- Karta podle návrhu docs/vzhled/navrh-prehledu-fondu.html; data a stavy počítá model
+                 (rozhodnutí 2026-11-14 „Přehled fondů – data a stavy karty“), šablona jen zobrazuje. -->
             <kanban create="false" group_create="false">
+                <field name="currency_id"/>
                 <field name="dashboard_status"/><field name="dashboard_valuation_id"/><field name="dashboard_exception_count"/>
+                <field name="dashboard_result"/><field name="dashboard_has_result"/>
+                <field name="dashboard_next_valuation"/><field name="dashboard_next_valuation_id"/><field name="dashboard_next_state"/>
+                <field name="dashboard_next_version"/><field name="dashboard_next_late"/>
+                <field name="dashboard_deadline_state"/>
                 <templates>
                     <t t-name="card">
                         <div class="d-flex justify-content-between">
@@ -14,17 +21,49 @@
                             <span t-if="record.dashboard_status.raw_value == 'ok'" class="badge text-bg-success">V pořádku</span>
                             <span t-if="record.dashboard_status.raw_value == 'none'" class="badge text-bg-secondary">Bez ocenění</span>
                         </div>
-                        <div class="mt-2">FK: <field name="dashboard_capital"/></div>
-                        <div>Ocenění: <field name="dashboard_date"/> · <field name="dashboard_state"/></div>
-                        <div>Zveřejněno: <field name="dashboard_published"/></div>
-                        <div class="mt-2 text-muted" style="white-space: pre-line"><field name="dashboard_prices"/></div>
-                        <div class="mt-2">Další ocenění: <field name="dashboard_next_valuation"/></div>
-                        <div>Další termín ČNB: <field name="dashboard_next_deadline"/></div>
-                        <div t-if="record.dashboard_exception_count.raw_value" class="mt-2 text-danger" style="white-space: pre-line">
-                            <field name="dashboard_exceptions"/>
+                        <div class="row g-2 mt-2">
+                            <div class="col-6">
+                                <div class="text-muted small">FK</div>
+                                <field name="dashboard_capital" class="fw-bold"/>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted small">Výsledek za období</div>
+                                <t t-if="record.dashboard_has_result.raw_value">
+                                    <span t-attf-class="fw-bold {{ record.dashboard_result.raw_value &gt; 0 ? 'text-success' : record.dashboard_result.raw_value &lt; 0 ? 'text-danger' : '' }}">
+                                        <t t-if="record.dashboard_result.raw_value &gt; 0">+</t><field name="dashboard_result"/>
+                                    </span>
+                                    <div class="text-muted small"><field name="dashboard_result_period"/></div>
+                                </t>
+                                <span t-else="" class="fw-bold">—</span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-muted">Poslední ocenění: </span>
+                            <t t-if="record.dashboard_valuation_id.raw_value"><field name="dashboard_date"/> · <field name="dashboard_state"/></t>
+                            <t t-else="">—</t>
+                        </div>
+                        <div t-if="record.dashboard_next_valuation.raw_value">
+                            <span class="text-muted">Další ocenění: </span>
+                            <field name="dashboard_next_valuation"/> ·
+                            <a t-if="record.dashboard_next_valuation_id.raw_value" type="object" name="action_open_next_valuation">
+                                <field name="dashboard_next_state"/><t t-if="record.dashboard_next_version.raw_value &gt; 1"> (v<t t-out="record.dashboard_next_version.raw_value"/>)</t>
+                            </a>
+                            <field t-else="" name="dashboard_next_state"/>
+                            <span t-if="record.dashboard_next_late.raw_value" class="badge text-bg-danger ms-1">Po termínu</span>
+                        </div>
+                        <div t-if="record.dashboard_deadline_state.raw_value">
+                            <span class="text-muted">ČNB: </span><field name="dashboard_next_deadline"/>
+                            <span t-if="record.dashboard_deadline_state.raw_value == 'overdue'" class="badge text-bg-danger ms-1">Po lhůtě</span>
+                            <span t-if="record.dashboard_deadline_state.raw_value == 'open'" class="badge text-bg-warning ms-1">Otevřeno</span>
+                            <span t-if="record.dashboard_deadline_state.raw_value == 'submitted'" class="badge text-bg-success ms-1">Podáno</span>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-muted">Kontroly: </span>
+                            <t t-if="!record.dashboard_exception_count.raw_value">bez výjimky</t>
+                            <div t-else="" class="text-danger" style="white-space: pre-line"><field name="dashboard_exceptions"/></div>
                         </div>
                         <div t-if="record.dashboard_valuation_id.raw_value" class="mt-2">
-                            <a type="object" name="action_open_valuation">Otevřít ocenění</a>
+                            <a type="object" name="action_open_valuation">Otevřít ocenění →</a>
                         </div>
                     </t>
                 </templates>
@@ -36,8 +75,13 @@
         <field name="arch" type="xml">
             <list create="false">
                 <field name="name"/><field name="dashboard_status"/><field name="dashboard_date"/><field name="dashboard_state"/>
-                <field name="currency_id" column_invisible="1"/><field name="dashboard_capital"/><field name="dashboard_published"/>
-                <field name="dashboard_next_valuation"/><field name="dashboard_next_deadline"/><field name="dashboard_exception_count"/>
+                <field name="currency_id" column_invisible="1"/><field name="dashboard_capital"/>
+                <field name="dashboard_has_result" column_invisible="1"/>
+                <field name="dashboard_result" optional="show" invisible="not dashboard_has_result"/><field name="dashboard_result_period" optional="hide"/>
+                <field name="dashboard_published" optional="show"/>
+                <field name="dashboard_next_valuation"/><field name="dashboard_next_state"/>
+                <field name="dashboard_next_late" widget="boolean" optional="hide"/>
+                <field name="dashboard_next_deadline"/><field name="dashboard_deadline_state"/><field name="dashboard_exception_count"/>
             </list>
         </field>
     </record>

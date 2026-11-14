@@ -39,12 +39,16 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.dashboard_valuation_id, valuation)
         self.assertEqual(self.fund.dashboard_capital, 1000)
         self.assertEqual(self.fund.dashboard_state, "Zaúčtováno")
-        self.assertIn("A: 100.0000 CZK", self.fund.dashboard_prices)
         self.assertEqual(self.fund.dashboard_status, "ok")
+        # První ocenění fondu nemá předchozí období: karta ukáže pomlčku, ne nulu.
+        self.assertFalse(self.fund.dashboard_has_result)
+        self.assertFalse(self.fund.dashboard_result_period)
 
     def test_overdue_valuation_is_danger(self):
         self.calendar(-1)
         self.assertEqual(self.fund.dashboard_status, "danger")
+        self.assertEqual(self.fund.dashboard_next_state, "none")
+        self.assertTrue(self.fund.dashboard_next_late)
         self.assertIn("Ocenění po termínu", self.fund.dashboard_exceptions)
 
     def test_next_valuation(self):
@@ -60,10 +64,81 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.dashboard_status, "danger")
         self.assertEqual(self.fund.dashboard_exception_count, 2)
 
-    def test_submitted_deadline_is_ignored(self):
+    def test_submitted_deadline_is_shown_without_exception(self):
+        # Rozhodnutí 2026-11-14: podaný výkaz se ukáže jako „Podáno“, ale výjimku nevyvolá (dřív se skrýval).
         self.deadline(-1, state="submitted")
         self.assertEqual(self.fund.dashboard_status, "none")
-        self.assertFalse(self.fund.dashboard_next_deadline)
+        self.assertEqual(self.fund.dashboard_deadline_state, "submitted")
+        self.assertIn("TEST", self.fund.dashboard_next_deadline)
+
+    def test_deadline_priority(self):
+        self.deadline(-30, state="submitted", period_end=self.today - timedelta(days=60))
+        self.deadline(10, report="BLIZKY")
+        self.assertEqual(self.fund.dashboard_deadline_state, "open")
+        self.assertTrue(self.fund.dashboard_next_deadline.startswith("BLIZKY"))
+        self.fund.invalidate_recordset()
+        late = self.deadline(-2, report="POZDE")
+        self.assertEqual(self.fund.dashboard_deadline_id, late)
+        self.assertEqual(self.fund.dashboard_deadline_state, "overdue")
+        self.assertIn("(+1 další)", self.fund.dashboard_next_deadline)
+        self.assertIn(late.due_date.strftime("%d.%m.%Y"), self.fund.dashboard_next_deadline)
+
+    def test_draft_is_next_not_latest(self):
+        # Poslední ocenění je jen zaúčtované; rozpracované je „další“ se stavem z modelu ocenění.
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        draft = self.valuation(self.fund, "2032-01-31")
+        self.assertFalse(self.fund.dashboard_valuation_id)
+        self.assertEqual(self.fund.dashboard_status, "none")
+        self.assertEqual(self.fund.dashboard_next_valuation_id, draft)
+        self.assertEqual(self.fund.dashboard_next_valuation, draft.date)
+        self.assertEqual(self.fund.dashboard_next_state, "draft")
+        self.assertEqual(self.fund.dashboard_next_version, 1)
+
+    def test_next_from_calendar_after_latest(self):
+        valuation = self.posted()
+        self.env["investra.valuation.calendar"].create({"fund_id": self.fund.id, "date": valuation.date})
+        entry = self.env["investra.valuation.calendar"].create({"fund_id": self.fund.id, "date": "2032-02-29"})
+        self.fund.invalidate_recordset()
+        self.assertEqual(self.fund.dashboard_next_valuation, entry.date)
+        self.assertEqual(self.fund.dashboard_next_state, "none")
+        self.assertFalse(self.fund.dashboard_next_valuation_id)
+        self.assertFalse(self.fund.dashboard_next_late)  # termín 2032 je v budoucnu
+        self.fund.invalidate_recordset()
+        nxt = self.valuation(self.fund, "2032-02-29")
+        self.assertEqual(self.fund.dashboard_next_valuation_id, nxt)
+        self.assertEqual(self.fund.dashboard_next_state, "draft")
+
+    def test_next_in_future_is_not_late(self):
+        self.calendar(5)
+        self.assertEqual(self.fund.dashboard_next_state, "none")
+        self.assertFalse(self.fund.dashboard_next_late)
+
+    def test_result_of_second_valuation(self):
+        self.posted()
+        self.subscribe(self.cls(self.fund, "A"), "2032-02-10", 500, 5)
+        second = self.run_to_posted(self.valuation(self.fund, "2032-02-29"))
+        self.fund.invalidate_recordset()
+        lines = second.class_line_ids
+        self.assertEqual(self.fund.dashboard_valuation_id, second)
+        self.assertTrue(self.fund.dashboard_has_result)
+        self.assertAlmostEqual(
+            self.fund.dashboard_result, sum(lines.mapped("shared_result")) + sum(lines.mapped("delta")), places=2
+        )
+        # Výsledek nezahrnuje úpisy: změna FK minus pohyby investorů.
+        flows = sum(lines.mapped("subscription_amount")) - sum(lines.mapped("redemption_amount"))
+        self.assertAlmostEqual(
+            self.fund.dashboard_result, second.fund_capital - second.previous_id.fund_capital - flows, places=2
+        )
+        self.assertEqual(self.fund.dashboard_result_period, "01.02.–29.02.2032")
+
+    def test_checks_come_from_next_valuation(self):
+        self.posted()
+        nxt = self.valuation(self.fund, "2032-02-29")
+        self.env["investra.valuation.check"].sudo().create({
+            "valuation_id": nxt.id, "code": "test", "name": "Test", "status": "warning",
+        })
+        self.fund.invalidate_recordset()
+        self.assertIn("Kontroly s upozorněním: 1", self.fund.dashboard_exceptions)
 
     def test_manual_is_default_source(self):
         self.assertEqual(self.deadline(3).source, "manual")
@@ -81,6 +156,11 @@ class TestDashboard(NavCase):
         valuation = self.posted()
         self.fund.invalidate_recordset()
         self.assertEqual(self.fund.action_open_valuation()["res_id"], valuation.id)
+
+    def test_action_opens_next_valuation(self):
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        draft = self.valuation(self.fund, "2032-01-31")
+        self.assertEqual(self.fund.action_open_next_valuation()["res_id"], draft.id)
 
     def test_approver_cannot_change_deadline(self):
         deadline = self.deadline(3)
