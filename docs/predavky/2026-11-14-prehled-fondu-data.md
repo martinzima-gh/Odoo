@@ -14,7 +14,7 @@ Doplnit kartu Přehledu fondů (`investra_dashboard`) o poslední a další ocen
 
 ## Zbývá
 1. Hotovo: seznam Ocenění jen s aktuální verzí (rozhodnutí 2026-11-14, `investra_nav` 0.28.1), testy čistá DB 332/0.
-   Otevřená otázka uživatele: barva poklesu v grafu kurzu (čísla Ember mají, graf ne) – čeká na volbu varianty.
+   Hotovo: graf kurzu kreslí změnu od předchozího ocenění v barvě změny (vizuálně neověřeno, Odoo s klonem odoo-dev neběží).
 2. Upgrade `investra_vzhled` a `investra_test` (`investra_dashboard` 0.2.0, `investra_nav` 0.28.1) – se souhlasem.
 3. Export Claude Doc do `docs/architektura.md` (poslední export rev 333, Doc je na rev 339).
 4. Z předchozí předávky: návrh `docs/vzhled/navrh-seznam-upisu-odkupu.html` (řazení, znaménko); `theme.scss`

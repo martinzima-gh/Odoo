@@ -1,7 +1,8 @@
 /** @odoo-module **/
 // Souhrn detailu ocenění podle návrhu docs/vzhled/navrh-detail-oceneni.html (uživatel 2026-11-13).
 // Řádek údajů ocenění, pás FK fondu / změna FK od minula / výsledek za období a karta každé třídy:
-// kurz tohoto ocenění, změna proti minulému ocenění a malý graf zveřejněných kurzů za 12 měsíců.
+// kurz tohoto ocenění, změna proti minulému ocenění a malý graf zveřejněných kurzů za 12 měsíců;
+// úsek grafu od minulého ocenění k tomuto má barvu změny (růst Lagoon, pokles Ember).
 // Jen zobrazení údajů, které uložil výpočet (přemostění kapitálu tříd, rozhodnutí 2026-11-10):
 //   FK = FK (t−1) + úpisy − odkupy − dividendy + změna společná + změna specifická.
 // Změna FK zahrnuje pohyby investorů, není to výkonnost. Kurzy jsou v měně třídy, nic se nepřepočítává
@@ -37,9 +38,23 @@ function sum(lines, field) {
     return lines.reduce((total, line) => total + (line[field] || 0), 0);
 }
 
-/** Body malého grafu: zveřejněné kurzy plnou čarou, kurz tohoto ocenění (pokud ještě není zveřejněný) zvlášť. */
-export function sparkline(published, current) {
+/**
+ * Body malého grafu. Plná čára = zveřejněné kurzy. Změna se v grafu kreslí stejně jako v čísle karty:
+ * od předchozího ocenění k tomuto (rozhodnutí 2026-11-14 „Graf kurzu – změna od předchozího ocenění“).
+ * Předchozí ocenění, které ještě není zveřejněné, je v grafu samostatný bod napojený tečkovaně.
+ *
+ * @param published zveřejněné kurzy [{date, price}] vzestupně
+ * @param current kurz tohoto ocenění, pokud ještě není zveřejněný, jinak null
+ * @param previous předchozí ocenění {date, price}, nebo null u prvního ocenění
+ */
+export function sparkline(published, current, previous = null) {
     const values = published.map((point) => point.price);
+    let previousIndex = previous ? published.findIndex((point) => point.date === previous.date) : -1;
+    const bridged = previousIndex < 0 && previous !== null && current !== null;
+    if (bridged) {
+        values.push(previous.price);
+        previousIndex = values.length - 1;
+    }
     if (current !== null) {
         values.push(current);
     }
@@ -56,11 +71,18 @@ export function sparkline(published, current) {
     }));
     const solid = points.slice(0, published.length);
     const last = solid[solid.length - 1] || null;
+    const currentPoint = current !== null ? points[points.length - 1] : null;
+    // Konec úseku změny: nezveřejněné toto ocenění, jinak poslední zveřejněný bod (toto ocenění po zveřejnění).
+    const end = currentPoint || last;
+    const start = previousIndex >= 0 ? points[previousIndex] : null;
     return {
         viewBox: `0 0 ${SPARK.width} ${SPARK.height}`,
         line: solid.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" "),
         last,
-        current: current !== null ? points[points.length - 1] : null,
+        bridge: bridged ? points[previousIndex] : null,
+        change: start && end && start !== end ? { from: start, to: end, dashed: currentPoint !== null } : null,
+        current: currentPoint,
+        end,
     };
 }
 
@@ -188,9 +210,10 @@ export class InvestraValuationSummary extends Component {
                 return; // zastaralá odpověď nesmí přepsat novější
             }
             const previousDate = previous.length ? formatDate(previous[0].date) : "";
+            const previousIso = previous.length ? toDate(previous[0].date).toISODate() : "";
             Object.assign(this.state, {
                 lines,
-                classes: this.buildClasses(lines, fundClasses, history, date, previousDate),
+                classes: this.buildClasses(lines, fundClasses, history, date, previousDate, previousIso),
                 error: false,
             });
         } catch (error) {
@@ -201,7 +224,7 @@ export class InvestraValuationSummary extends Component {
         }
     }
 
-    buildClasses(lines, fundClasses, history, date, previousDate) {
+    buildClasses(lines, fundClasses, history, date, previousDate, previousIso) {
         const digitsById = new Map(fundClasses.map((item) => [item.id, item.price_digits]));
         const isoDate = date.toISODate();
         return [...lines]
@@ -213,8 +236,9 @@ export class InvestraValuationSummary extends Component {
                 const opening = line.opening_price ? parseFloat(line.opening_price) : null;
                 const published = history.filter((row) => row.class_id[0] === classId);
                 const thisPublished = published.length && published[published.length - 1].date === isoDate;
-                const spark = sparkline(published, thisPublished || Number.isNaN(price) ? null : price);
                 const change = opening ? price - opening : null;
+                const previousPoint = opening && previousIso ? { date: previousIso, price: opening } : null;
+                const spark = sparkline(published, thisPublished || Number.isNaN(price) ? null : price, previousPoint);
                 const fmt = (value) => formatFloat(value, { digits: [16, digits] });
                 return {
                     key: classId,

@@ -144,6 +144,14 @@ $investra-graphite-2: #6a6967 !default;
         height: 56px;
         overflow: visible;
         width: 100%;
+
+        // Barva změny od předchozího ocenění (CSS má přednost před atributem stroke/fill v SVG).
+        .o_investra_spark_change.o_investra_up,
+        .o_investra_spark_point.o_investra_up { stroke: $investra-lagoon; }
+        .o_investra_spark_change.o_investra_down,
+        .o_investra_spark_point.o_investra_down { stroke: $investra-ember; }
+        .o_investra_spark_end.o_investra_up { fill: $investra-lagoon; }
+        .o_investra_spark_end.o_investra_down { fill: $investra-ember; }
     }
 
     .o_investra_spark_note,
