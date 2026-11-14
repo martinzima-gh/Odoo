@@ -10,6 +10,8 @@
                  (Odoo bere stejný limit i pro stránku seznamu bez seskupení). -->
             <list limit="10">
                 <field name="date"/>
+                <!-- Šířky sloupců (uživatel 2026-11-14): stav a čísla mají horní mez, aby se volné místo nerozteklo
+                     do sloupce Stav a čísla zůstala u sebe. -->
                 <!-- Barvy stavů z funkčních barev Odoo (Brand manuál: stavy nenesou firemní barvy), rozhodnutí 2026-11-14:
                      rozpracované modře, čeká na schválení oranžově, zaúčtované až potvrzené tmavě, zveřejněné zeleně,
                      vrácené červeně, stornované šedě. -->
@@ -19,14 +21,14 @@
                        decoration-primary="state in ('posted', 'sent', 'confirmed')"
                        decoration-success="state == 'published'"
                        decoration-danger="state == 'returned'"
-                       decoration-muted="state == 'reversed'"/>
+                       decoration-muted="state == 'reversed'" width="[170,220]"/>
                 <field name="fund_id" optional="hide"/>
-                <field name="version"/>
+                <field name="version" width="[60,80]"/>
                 <field name="previous_id" optional="hide"/>
                 <field name="currency_id" column_invisible="1"/>
-                <field name="fund_capital"/>
+                <field name="fund_capital" width="[170,220]"/>
                 <field name="has_capital_change" column_invisible="1"/>
-                <field name="fund_capital_change" optional="show" invisible="not has_capital_change"
+                <field name="fund_capital_change" optional="show" invisible="not has_capital_change" width="[150,200]"
                        decoration-success="fund_capital_change &gt; 0" decoration-danger="fund_capital_change &lt; 0"/>
             </list>
         </field>
