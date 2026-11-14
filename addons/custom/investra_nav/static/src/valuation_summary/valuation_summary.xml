@@ -49,10 +49,10 @@
                             <div t-else="" class="o_investra_class_change"><em>první ocenění třídy</em></div>
                             <svg t-if="item.spark" class="o_investra_spark" t-att-viewBox="item.spark.viewBox"
                                  preserveAspectRatio="none" aria-hidden="true">
-                                <polyline t-if="item.spark.line" t-att-points="item.spark.line" fill="none"
+                                <polyline t-if="item.spark.line" t-att-points="item.spark.line" fill="none" t-att-class="'o_investra_spark_line ' + item.tone"
                                           t-att-stroke="item.color" stroke-width="2" vector-effect="non-scaling-stroke"/>
                                 <!-- Nezveřejněné předchozí ocenění: napojení na zveřejněné kurzy bez barvy změny. -->
-                                <line t-if="item.spark.last and item.spark.bridge" t-att-x1="item.spark.last.x" t-att-y1="item.spark.last.y"
+                                <line t-if="item.spark.last and item.spark.bridge" t-att-class="'o_investra_spark_bridge ' + item.tone" t-att-x1="item.spark.last.x" t-att-y1="item.spark.last.y"
                                       t-att-x2="item.spark.bridge.x" t-att-y2="item.spark.bridge.y" t-att-stroke="item.color"
                                       stroke-opacity="0.45" stroke-width="2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
                                 <!-- Úsek změny od předchozího ocenění k tomuto, v barvě změny jako číslo nad grafem. -->
@@ -65,8 +65,8 @@
                                       t-att-x2="item.spark.current.x" t-att-y2="item.spark.current.y" t-att-stroke="item.color"
                                       stroke-width="2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
                                 <circle t-if="item.spark.last" t-att-cx="item.spark.last.x" t-att-cy="item.spark.last.y" r="3" t-att-fill="item.color"
-                                        t-att-class="item.spark.current ? '' : 'o_investra_spark_end ' + item.tone"/>
-                                <circle t-if="item.spark.bridge" t-att-cx="item.spark.bridge.x" t-att-cy="item.spark.bridge.y" r="2.5"
+                                        t-att-class="(item.spark.current ? 'o_investra_spark_dot ' : 'o_investra_spark_end ') + item.tone"/>
+                                <circle t-if="item.spark.bridge" t-att-class="'o_investra_spark_dot ' + item.tone" t-att-cx="item.spark.bridge.x" t-att-cy="item.spark.bridge.y" r="2.5"
                                         t-att-fill="item.color" fill-opacity="0.45"/>
                                 <circle t-if="item.spark.current" t-att-class="'o_investra_spark_point ' + item.tone"
                                         t-att-cx="item.spark.current.x" t-att-cy="item.spark.current.y" r="3.5"

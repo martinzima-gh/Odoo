@@ -9,9 +9,15 @@ $investra-ember: #eb5b1f !default;
 $investra-graphite: #2c2927 !default;
 $investra-graphite-2: #6a6967 !default;
 
-// Široké tabulky ocenění (třídy, portfolio) potřebují víc místa než výchozích 1400 px listu.
-.o_form_view.o_investra_valuation_form .o_form_sheet_bg {
-    max-width: 2200px;
+// Široké tabulky ocenění (třídy, portfolio) potřebují víc místa než výchozích 1400 px listu: list se
+// roztáhne na celou šířku okna (uživatel 2026-11-14, dříve strop 2200 px).
+.o_form_view.o_investra_valuation_form,
+.o_form_view .o_form_renderer.o_investra_valuation_form {
+    max-width: none;
+
+    .o_form_renderer,
+    .o_form_sheet_bg,
+    .o_form_sheet_bg > .o_form_sheet { max-width: none; }
 }
 
 .o_investra_valuation_form {
@@ -145,7 +151,14 @@ $investra-graphite-2: #6a6967 !default;
         overflow: visible;
         width: 100%;
 
-        // Barva změny od předchozího ocenění (CSS má přednost před atributem stroke/fill v SVG).
+        // Barva změny od předchozího ocenění pro celý graf (uživatel 2026-11-14: při poklesu celý graf Ember
+        // jako číslo nad ním). CSS má přednost před atributem stroke/fill v SVG.
+        .o_investra_spark_line.o_investra_up { stroke: $investra-lagoon; }
+        .o_investra_spark_line.o_investra_down { stroke: $investra-ember; }
+        .o_investra_spark_bridge.o_investra_up { stroke: $investra-lagoon; }
+        .o_investra_spark_bridge.o_investra_down { stroke: $investra-ember; }
+        .o_investra_spark_dot.o_investra_up { fill: $investra-lagoon; }
+        .o_investra_spark_dot.o_investra_down { fill: $investra-ember; }
         .o_investra_spark_change.o_investra_up,
         .o_investra_spark_point.o_investra_up { stroke: $investra-lagoon; }
         .o_investra_spark_change.o_investra_down,
