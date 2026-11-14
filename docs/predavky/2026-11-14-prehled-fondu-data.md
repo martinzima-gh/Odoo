@@ -22,6 +22,9 @@ Doplnit kartu Přehledu fondů (`investra_dashboard`) o poslední a další ocen
 4. Hotovo večer: karta Přehledu ve vzhledu návrhu, barvy stavů ve všech seznamech, 10 ocenění na fond, datum vždy
    celé (`investra_theme` date_numeric.js), detail ocenění na celou šířku, graf po úsecích (Lagoon/Ember), šířky
    tabulky tříd. Vizuálně kontroluje uživatel na 8072; další ladění vzhledu podle jeho snímků.
+   Přehled fondů krok 1 hotový (Ke zpracování, řazení, filtry, `investra_dashboard` 0.4.0). Další krok 2:
+   termíny a uzávěrka (plánované zveřejnění, „uzamčeno do“), čisté úpisy − odkupy, tabulka; krok 3 likvidita
+   až po dohodě definice.
 5. Export Claude Doc do `docs/architektura.md` (poslední export rev 333, Doc je na rev 343).
 6. Z předchozí předávky: návrh `docs/vzhled/navrh-seznam-upisu-odkupu.html` (řazení, znaménko); `theme.scss`
    `.o_investra_metric_item` `#ffffff` → barva palety (Copilot); karta Přehledu ve firemních barvách (Copilot, zelená zóna).
