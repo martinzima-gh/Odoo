@@ -246,7 +246,7 @@
                         </list></field></page>
                         <page string="Kontroly"><field name="check_ids"><list><field name="name"/><field name="status"/><field name="detail"/></list></field></page>
                         <page string="Schválení"><field name="approval_ids"><list><field name="name"/><field name="min_role"/><field name="alone" optional="show"/><field name="user_id"/><field name="approved_at"/><field name="matrix_id" optional="hide"/></list></field></page>
-                        <page string="Doklady"><field name="event_ids"><list><field name="name"/><field name="state"/><field name="move_id"/></list></field></page>
+                        <page string="Doklady"><field name="event_ids"><list><field name="name"/><field name="state" widget="badge" decoration-info="state in ('draft', 'locked')" decoration-success="state == 'posted'" decoration-muted="state in ('reversed', 'discarded')"/><field name="move_id"/></list></field></page>
                     </notebook>
                 </sheet>
             </form>
@@ -384,7 +384,7 @@
             <!-- Nejnovější nahoře, při shodném datu fondy abecedně (požadavek 2026-11-14). -->
             <list default_order="date desc, fund_id asc" decoration-muted="state == 'reversed'" decoration-info="state == 'draft'">
                 <field name="date" string="Datum"/>
-                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id" string="Fond"/>
                 <field name="class_id" string="Třída"/>
                 <field name="movement_type" string="Typ"/>
@@ -611,7 +611,7 @@ if isinstance(result, dict):
             <list default_order="date asc" decoration-muted="state == 'reversed'">
                 <header><button name="action_create_scheduled_drafts" type="object" string="Návrhy podle kalendáře" display="always" groups="investra_entity.group_valuation_preparer"/></header>
                 <field name="date"/>
-                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
                 <field name="kind" optional="show"/><field name="closes_position" optional="show"/>
                 <field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/>

@@ -90,7 +90,7 @@
         <field name="model">investra.approval.request</field>
         <field name="arch" type="xml">
             <list default_order="create_date desc">
-                <field name="state" widget="badge" decoration-warning="state == 'pending'" decoration-success="state == 'done'"/>
+                <field name="state" widget="badge" decoration-warning="state == 'pending'" decoration-success="state == 'done'" decoration-danger="state == 'rejected'"/>
                 <field name="create_date" string="Požádáno"/>
                 <field name="activity"/>
                 <field name="record_name"/>

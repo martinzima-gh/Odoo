@@ -92,14 +92,15 @@
         <field name="name">investra.fund.dashboard.list</field><field name="model">investra.fund</field><field name="priority">50</field>
         <field name="arch" type="xml">
             <list create="false">
-                <field name="name"/><field name="dashboard_status"/><field name="dashboard_date"/><field name="dashboard_state"/>
+                <field name="name"/><field name="dashboard_status" widget="badge" decoration-success="dashboard_status == 'ok'" decoration-warning="dashboard_status == 'warning'" decoration-danger="dashboard_status == 'danger'" decoration-muted="dashboard_status == 'none'"/><field name="dashboard_date"/><field name="dashboard_state"/>
                 <field name="currency_id" column_invisible="1"/><field name="dashboard_capital"/>
                 <field name="dashboard_has_result" column_invisible="1"/>
                 <field name="dashboard_result" optional="show" invisible="not dashboard_has_result"/><field name="dashboard_result_period" optional="hide"/>
                 <field name="dashboard_published" optional="show"/>
-                <field name="dashboard_next_valuation"/><field name="dashboard_next_state"/>
+                <field name="dashboard_next_valuation"/>
+                <field name="dashboard_next_state" widget="badge" decoration-info="dashboard_next_state in ('draft', 'computed', 'none')" decoration-warning="dashboard_next_state in ('submitted', 'approved')"/>
                 <field name="dashboard_next_late" widget="boolean" optional="hide"/>
-                <field name="dashboard_next_deadline"/><field name="dashboard_deadline_state"/><field name="dashboard_exception_count"/>
+                <field name="dashboard_next_deadline"/><field name="dashboard_deadline_state" widget="badge" decoration-warning="dashboard_deadline_state == 'open'" decoration-danger="dashboard_deadline_state == 'overdue'" decoration-success="dashboard_deadline_state == 'submitted'"/><field name="dashboard_exception_count"/>
             </list>
         </field>
     </record>
@@ -113,7 +114,7 @@
         <field name="name">investra.regulatory.deadline.list</field><field name="model">investra.regulatory.deadline</field>
         <field name="arch" type="xml">
             <list editable="bottom">
-                <field name="fund_id"/><field name="report"/><field name="period_end"/><field name="due_date"/><field name="state"/><field name="source"/>
+                <field name="fund_id"/><field name="report"/><field name="period_end"/><field name="due_date"/><field name="state" widget="badge" decoration-warning="state == 'open' and due_date &gt;= current_date" decoration-danger="state == 'open' and due_date &lt; current_date" decoration-success="state == 'submitted'"/><field name="source"/>
             </list>
         </field>
     </record>

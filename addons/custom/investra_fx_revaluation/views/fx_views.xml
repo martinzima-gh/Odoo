@@ -26,7 +26,7 @@
     <record id="view_fx_run_list" model="ir.ui.view">
         <field name="name">investra.fx.run.list</field><field name="model">investra.fx.run</field>
         <field name="arch" type="xml">
-            <list><field name="date"/><field name="profile_id"/><field name="currency_id" column_invisible="1"/><field name="difference"/><field name="move_id"/><field name="move_state"/></list>
+            <list><field name="date"/><field name="profile_id"/><field name="currency_id" column_invisible="1"/><field name="difference"/><field name="move_id"/><field name="move_state" widget="badge" decoration-info="move_state == 'draft'" decoration-success="move_state == 'posted'" decoration-muted="move_state == 'cancel'"/></list>
         </field>
     </record>
     <record id="view_fx_run_search" model="ir.ui.view">

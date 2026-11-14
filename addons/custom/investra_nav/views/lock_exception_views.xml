@@ -5,7 +5,7 @@
         <field name="model">investra.lock.exception.request</field>
         <field name="arch" type="xml">
             <list default_order="create_date desc">
-                <field name="state" widget="badge" decoration-warning="state == 'draft'" decoration-success="state == 'active'"/>
+                <field name="state" widget="badge" decoration-warning="state == 'draft'" decoration-success="state == 'active'" decoration-danger="state == 'rejected'" decoration-muted="state == 'revoked'"/>
                 <field name="create_date" string="Požádáno"/>
                 <field name="company_id"/>
                 <field name="user_id"/>

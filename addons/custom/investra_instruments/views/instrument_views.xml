@@ -113,7 +113,7 @@
         <field name="arch" type="xml">
             <list default_order="trade_date desc">
                 <field name="trade_date"/>
-                <field name="state" widget="badge" decoration-muted="state == 'reversed'"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'unsettled'" decoration-success="state == 'settled'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
                 <field name="ifrs9_category" optional="show"/><field name="settlement_date"/>
                 <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/>

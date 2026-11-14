@@ -9,7 +9,7 @@
                 <field name="fund_id" optional="show"/><field name="source_name" optional="show"/>
                 <field name="amount" sum="Celkem" optional="show"/><field name="currency_id" optional="hide"/>
                 <field name="amount_currency" optional="show"/><field name="foreign_currency_id" optional="show"/>
-                <field name="state"/><field name="move_id"/><field name="reversal_move_id" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state in ('draft', 'locked')" decoration-success="state == 'posted'" decoration-muted="state in ('reversed', 'discarded')"/><field name="move_id"/><field name="reversal_move_id" optional="show"/>
                 <field name="company_id" optional="hide" groups="base.group_multi_company"/>
             </list>
         </field>
