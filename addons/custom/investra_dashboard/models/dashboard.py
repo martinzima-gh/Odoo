@@ -3,6 +3,8 @@ from datetime import timedelta
 from odoo import api, fields, models
 from odoo.tools import format_amount
 
+from odoo.addons.investra_fund.models.approval_matrix import ROLE_RANK, user_rank
+
 SOON_DAYS = 7
 # Stavy, ve kterých je ocenění zaúčtované; stejnou množinu bere výpočet jako předchozí ocenění.
 POSTED_STATES = ("posted", "sent", "confirmed", "published")
@@ -65,13 +67,16 @@ class InvestraFund(models.Model):
         selection="_dashboard_next_state_selection", compute="_compute_dashboard", string="Stav dalšího ocenění"
     )
     dashboard_next_version = fields.Integer(compute="_compute_dashboard", string="Verze dalšího ocenění")
-    dashboard_next_late = fields.Boolean(compute="_compute_dashboard", string="Další ocenění po termínu")
+    dashboard_next_late = fields.Boolean(
+        compute="_compute_dashboard", search="_search_dashboard_next_late", string="Další ocenění po termínu"
+    )
     dashboard_deadline_id = fields.Many2one(
         "investra.regulatory.deadline", compute="_compute_dashboard", string="Termín ČNB"
     )
     dashboard_deadline_state = fields.Selection(
         [("overdue", "Po lhůtě"), ("open", "Otevřeno"), ("submitted", "Podáno")],
         compute="_compute_dashboard",
+        search="_search_dashboard_deadline_state",
         string="Stav termínu ČNB",
     )
     dashboard_next_deadline = fields.Char(compute="_compute_dashboard", string="Další termín ČNB")
@@ -260,6 +265,7 @@ class InvestraFund(models.Model):
                 })
 
         Valuation = self.env["investra.valuation"]
+        Matrix = self.env["investra.approval.matrix"]
         steps = [
             (("draft", "computed"), _("Ocenění k dopracování"), "preparer"),
             (("submitted",), _("Ocenění ke schválení"), "approver"),
@@ -268,9 +274,11 @@ class InvestraFund(models.Model):
             (("sent",), _("Ocenění k potvrzení za depozitáře"), "approver"),
             (("confirmed",), _("Ocenění ke zveřejnění"), "approver"),
         ]
+        # Počty ocenění podle stavu jedním dotazem (dřív šest dotazů na kartu).
+        counts = dict(Valuation._read_group([("fund_id", "=", self.id)], ["state"], ["__count"]))
         for states, label, role in steps:
             domain = [("fund_id", "=", self.id), ("state", "in", list(states))]
-            add("valuation_" + states[0], label, Valuation.search_count(domain), "investra.valuation", domain, role)
+            add("valuation_" + states[0], label, sum(counts.get(state, 0) for state in states), "investra.valuation", domain, role)
 
         def simple(key, label, model, domain, role, warn=False):
             add(key, label, self.env[model].search_count(domain), model, domain, role, warn=warn)
@@ -302,11 +310,59 @@ class InvestraFund(models.Model):
             if not accounts:
                 continue
             domain = [("company_id", "=", self.company_id.id), ("account_id", "in", accounts.ids), ("parent_state", "=", "posted")]
-            balance = sum(self.env["account.move.line"].sudo().search(domain).mapped("balance"))
+            balance = self.env["account.move.line"].sudo()._read_group(domain, [], ["balance:sum"])[0][0] or 0.0
             if not self.currency_id.is_zero(balance):
                 add(code, label, 1, "account.move.line", domain, "preparer",
                     amount=format_amount(self.env, balance, self.currency_id))
+        # „Můj krok“ u kroků řízených schvalovací maticí: rozhoduje pravidlo matice (nejnižší role, jmenovití
+        # uživatelé, jiná osoba než zadavatel), ne jen skupina. Ostatní kroky zůstávají podle skupiny.
+        matrix = {
+            "valuation_submitted": lambda records: any(self._dashboard_can_approve(v, user) for v in records),
+            "valuation_confirmed": lambda records: self._dashboard_can_perform(
+                Matrix._rule("valuation_publish", self), user),
+            "prices": lambda records: any(self._dashboard_can_approve_price(p, user) for p in records),
+            "requests": lambda records: any(self._dashboard_can_confirm(r, user) for r in records),
+        }
+        for item in items:
+            if item["key"] in matrix:
+                item["mine"] = bool(matrix[item["key"]](self.env[item["model"]].search(item["domain"])))
+        # Pořadí: nejdřív můj krok, pak varování, jinak pořadí pracovního postupu (řazení je stabilní).
+        items.sort(key=lambda item: (not item["mine"], not item["warn"]))
         return items
+
+    @staticmethod
+    def _dashboard_allowed(user, role, users):
+        """Splňuje uživatel nejnižší roli stupně a výčet uživatelů? Stejné pravidlo jako `check_user` matice, bez výjimky."""
+        return user_rank(user) >= ROLE_RANK[role or "approver"] and (not users or user in users)
+
+    def _dashboard_can_perform(self, rule, user):
+        return self._dashboard_allowed(user, rule.performer_role, rule.performer_users)
+
+    def _dashboard_can_approve(self, valuation, user):
+        """Smí uživatel schválit další krok ocenění? Podmínky jako `investra.valuation.action_approve`."""
+        step = valuation.approval_ids.filtered(lambda a: not a.user_id).sorted("sequence")[:1]
+        if not step or not self._dashboard_allowed(user, step.min_role, step.allowed_user_ids):
+            return False
+        return step.alone or (valuation.preparer_id != user and user not in valuation.approval_ids.user_id)
+
+    def _dashboard_can_approve_price(self, price, user):
+        """Smí uživatel schválit cenu? Podmínky jako `investra.approval.matrix._approve_step`."""
+        funds = price.fund_id or self.env["investra.fund"].search([])
+        rule = self.env["investra.approval.matrix"]._rule("price_approve", funds)
+        if rule.persons == 1:
+            return self._dashboard_can_perform(rule, user)
+        done = self.env["investra.approval.done"].search([("res_model", "=", price._name), ("res_id", "=", price.id)])
+        step = rule.steps[min(len(done), len(rule.steps) - 1)]
+        performers = price.entered_by | price.create_uid
+        return self._dashboard_allowed(user, step.role, step.users) and user not in performers and user not in done.user_id
+
+    def _dashboard_can_confirm(self, request, user):
+        """Smí uživatel potvrdit žádost? Podmínky jako `investra.approval.request.action_approve`."""
+        lines = request.line_ids.sorted("sequence")
+        line = lines.filtered(lambda l: not l.user_id)[:1]
+        if not line or not self._dashboard_allowed(user, line.role, line.user_ids):
+            return False
+        return user != request.requested_by and user not in lines.user_id
 
     def _search_dashboard_status(self, operator, value):
         if operator not in ("=", "in"):
@@ -314,14 +370,26 @@ class InvestraFund(models.Model):
         values = {value} if isinstance(value, str) else set(value)
         return [("id", "in", self.search([]).filtered(lambda f: f.dashboard_status in values).ids)]
 
+    def _search_dashboard_next_late(self, operator, value):
+        return self._search_dashboard_bool("dashboard_next_late", operator, value)
+
+    def _search_dashboard_deadline_state(self, operator, value):
+        if operator not in ("=", "in"):
+            raise NotImplementedError(operator)
+        values = {value} if isinstance(value, (str, bool)) else set(value)
+        return [("id", "in", self.search([]).filtered(lambda f: f.dashboard_deadline_state in values).ids)]
+
     def _search_dashboard_my_todo(self, operator, value):
+        return self._search_dashboard_bool("dashboard_my_todo", operator, value)
+
+    def _search_dashboard_bool(self, name, operator, value):
         # Odoo 20 předává i tvar ("in", {True}); „!=“ a „not in“ obrací výsledek.
         values = {bool(v) for v in value} if isinstance(value, (list, tuple, set, frozenset)) else {bool(value)}
         if operator in ("!=", "not in"):
             values = {True, False} - values
         elif operator not in ("=", "in"):
             raise NotImplementedError(operator)
-        return [("id", "in", self.search([]).filtered(lambda f: f.dashboard_my_todo in values).ids)]
+        return [("id", "in", self.search([]).filtered(lambda f: bool(f[name]) in values).ids)]
 
     @api.model
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
@@ -362,6 +430,41 @@ class InvestraFund(models.Model):
             return False
         alive = Valuation.search(after + [("state", "not in", ("returned", "reversed")), ("date", "in", returned.mapped("date"))])
         return bool(set(returned.mapped("date")) - set(alive.mapped("date")))
+
+    def action_open_fund(self):
+        """Otevře formulář fondu (akce Přehledu má jen karty a tabulku)."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "investra.fund",
+            "res_id": self.id,
+            "view_mode": "form",
+            "views": [(False, "form")],
+        }
+
+    def action_open_checks(self):
+        """Otevře kontroly ocenění, ze kterého karta bere výjimky: rozpracované další, jinak poslední zaúčtované."""
+        self.ensure_one()
+        valuation = self.dashboard_next_valuation_id or self.dashboard_valuation_id
+        if not valuation:
+            return False
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("%s: kontroly ocenění", valuation.display_name),
+            "res_model": "investra.valuation.check",
+            "domain": [("valuation_id", "=", valuation.id), ("status", "!=", "ok")],
+            "views": [(False, "list")],
+            "context": {"create": False},
+        }
+
+    def action_open_deadlines(self):
+        """Otevře termíny ČNB fondu; výchozí filtr Otevřeno, pokud nějaký otevřený je."""
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("investra_dashboard.action_deadline")
+        action["name"] = self.env._("%s: termíny ČNB", self.name)
+        action["domain"] = [("fund_id", "=", self.id)]
+        action["context"] = {"search_default_filter_open": 1} if self.dashboard_deadline_state in ("open", "overdue") else {}
+        return action
 
     def action_open_valuation(self):
         self.ensure_one()

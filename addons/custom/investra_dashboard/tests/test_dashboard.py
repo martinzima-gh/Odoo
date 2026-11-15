@@ -188,6 +188,57 @@ class TestDashboard(NavCase):
         self.assertTrue(item["mine"])
         self.assertIn(self.fund, self.env["investra.fund"].with_user(self.approver).search([("dashboard_my_todo", "=", True)]))
 
+    def test_my_step_follows_matrix(self):
+        """„Můj krok“ u schválení: zadavatel se skupinou schvalovatele vlastní ocenění schválit nesmí."""
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        draft = self.valuation(self.fund, "2032-01-31")
+        draft.action_compute()
+        draft.action_submit()
+        self.assertTrue(draft.approval_ids)
+
+        def mine(user):
+            fund = self.fund.with_user(user)
+            fund.invalidate_recordset()
+            return next(i for i in fund.dashboard_todo if i["key"] == "valuation_submitted")["mine"]
+
+        self.assertTrue(mine(self.approver))
+        draft.sudo().preparer_id = self.approver
+        self.assertFalse(mine(self.approver))
+        draft.sudo().preparer_id = self.preparer
+        draft.approval_ids.sudo().allowed_user_ids = self.preparer
+        self.assertFalse(mine(self.approver))
+
+    def test_todo_sorted_my_step_first(self):
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        draft = self.valuation(self.fund, "2032-01-31")
+        draft.action_compute()
+        draft.action_submit()
+        self.env["investra.class.movement"].create({
+            "class_id": self.cls(self.fund, "A").id, "date": "2032-02-05", "manual_reason": "Test",
+            "movement_type": "subscription", "amount": 100, "units": 1,
+        })
+        todo = self.fund.with_user(self.approver).dashboard_todo
+        self.assertGreater(len(todo), 1)
+        self.assertEqual(todo[0]["key"], "valuation_submitted")
+        self.assertEqual([i["mine"] for i in todo], sorted((i["mine"] for i in todo), reverse=True))
+
+    def test_filters_and_card_links(self):
+        Fund = self.env["investra.fund"]
+        self.calendar(-1)
+        self.deadline(-1)
+        self.assertIn(self.fund, Fund.search([("dashboard_next_late", "=", True)]))
+        self.assertNotIn(self.fund, Fund.search([("dashboard_next_late", "=", False)]))
+        self.assertIn(self.fund, Fund.search([("dashboard_deadline_state", "=", "overdue")]))
+        self.assertNotIn(self.fund, Fund.search([("dashboard_deadline_state", "in", ["open", "submitted"])]))
+        self.assertEqual(self.fund.action_open_fund()["res_id"], self.fund.id)
+        action = self.fund.action_open_deadlines()
+        self.assertEqual(action["domain"], [("fund_id", "=", self.fund.id)])
+        self.assertTrue(action["context"]["search_default_filter_open"])
+        self.assertFalse(self.fund.action_open_checks())
+        valuation = self.posted()
+        self.fund.invalidate_recordset()
+        self.assertEqual(self.fund.action_open_checks()["domain"][0], ("valuation_id", "=", valuation.id))
+
     def test_movement_draft_is_todo(self):
         movement = self.env["investra.class.movement"].create({
             "class_id": self.cls(self.fund, "A").id, "date": "2032-01-05", "manual_reason": "Test",
