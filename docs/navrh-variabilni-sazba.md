@@ -76,6 +76,5 @@ u nástrojů s kalendářem; `estimated = False`, `active = True`. Ověřit na �
 5. Lineární vklad ve splatnosti se změnou sazby; RH dluhopis: vydělaný úrok před změnou se nezmění, naběhlý úrok obchodu.
 6. Odmítnutí: zamčené ocenění ≥ platí od; splátka po platí od; platí od ≤ posledního období; historie nástroje.
 
-## K rozhodnutí
-1. Varianta EIR a) / b). 2. Archivace nahrazených toků (doporučeno) vs. přegenerování starých toků z období sazeb
+## K rozhodnutí: 1. Varianta EIR a) / b). 2. Archivace nahrazených toků (doporučeno) vs. přegenerování starých toků z období sazeb
 (nefunguje u ručních toků „Nepravidelně“). 3. Platí od kdykoli (po úsecích), nebo jen k začátku kupónového období.
