@@ -13,6 +13,10 @@ Plán: `docs/navrh-evidence-nastroju.md` (schválen 14.–15. 11. 2026). Každý
 | IM-06 | Portfolio: kategorie, schválení, zámek, kompatibilita | **Opus 5.5** | červená (logika klasifikace) | IM-05 |
 | IM-07 | Účetní profil a přiřazení | Sonnet 5.5 | oranžová | IM-04, IM-06 |
 | IM-08 | README addonu, ukázkové SELECTy, test report | Haiku 5.5 (nebo Antigravity/Copilot v `~/odoo-review`) | zelená | IM-07 |
+| IM-09 | Oprava formuláře nástroje: emitent s popiskem, odchylka od typu jako upozornění | Haiku 5.5 (nebo Copilot/Antigravity) | zelená | — |
+| IM-10 | Výplata úroku „Nepravidelně“ (toky ručně) | Sonnet 5.5 | červená (malá) | — |
+| IM-11 | Variabilní sazba: krok 1 návrh, krok 2 implementace | **Opus 5.5** | červená | IM-10 |
+| IM-12 | Záloha, instalace do `investra_test` a `investra_vzhled`, převzetí | Sonnet 5.5 | provozní | IM-09, IM-10 |
 
 Proč takto: úkoly s přesným popisem polí a hlášek zvládne Sonnet; Opus jen tam, kde se mění stávající červená zóna,
 migrují data a upravují stávající testy klasifikace. Fable 5.2 už není potřeba; vrátit se k němu jen při změně
