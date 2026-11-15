@@ -56,3 +56,27 @@ Návrh: (a) úpravy v klonu zahodit, protože je pokrývá 29ee710, a klon přep
 
 **Neověřeno:** kouřová zkouška v UI (formulář nástroje, portfolio, Nastavení → Číselníky) – jen log, registr a SELECT; testy Odoo se nespouštěly (úkol je nepožaduje); `investra_instrument_master` je nainstalován bez demo dat.
 **Adresy:** 8071 – `investra_test` (nové obrazovky už vidět); 8072 – `investra_vzhled` zatím beze změny.
+
+### Doplnění 15. 11. 2026 odpoledne – `investra_vzhled` a `investra_nav` 20.0.0.29.0 (Claude Code, Opus 5.5)
+
+Martin rozhodl variantu (a): úpravy dvou pohledů v `~/odoo-review` zahodit (pokrývá je 29ee710). Diff zahozených úprav
+uložen jen dočasně mimo repozitář. Klon posunut fast-forwardem 840ff11 → `b27ad0a`, pracovní strom čistý.
+
+1. **Zálohy:** `zalohy/investra_vzhled-2026-11-15-pred-nav29.dump` (6,0 MB, 10 291 položek),
+   `zalohy/investra_test-2026-11-15-pred-nav29.dump` (6,0 MB, 10 737 položek); `pg_restore -l` čitelné.
+2. **`investra_vzhled`:** `-u investra_instruments,investra_nav -i investra_instrument_master --without-demo` přes
+   `docker exec investra-vzhled-web`, rc 0, 0 ERROR/CRITICAL (log `.test-logs/upgrade-vzhled-2026-11-15-nav29.log`).
+   IM-05: SPPI přeneseno na 12 nástrojů, konflikty žádné, zařazení {na 19, pass 1} před i po.
+   IM-11: 20 nástrojů pevná sazba, 9 toků platných, 0 období. Restart kontejneru; 4 řádky ERROR/CRITICAL v logu
+   pocházejí ze starého procesu v sekundě před restartem (neznal nový modul), po restartu registr bez chyby, `/web/login` 200.
+3. **`investra_test`:** `-u investra_nav` přes `docker exec investra-test-web`, rc 0, 0 ERROR
+   (log `.test-logs/upgrade-test-2026-11-15-nav29.log`); IM-11: 9 nástrojů pevná sazba, 9 toků, 0 období.
+   Restart, registr bez chyby, 8071 `/web/login` 200.
+4. **Kontrola dat** (SELECT před a po, obě DB): počet a kontrolní součet zařazení (id, SPPI, IFRS 9) a toků
+   (id, nástroj, datum, částka) **beze změny** (vzhled 20 zařazení `97b42bd1…`, test 9 `d0a30097…`, toky 9 `dcfbfadc…`).
+5. **Stav modulů v obou DB:** `investra_instrument_master` 20.0.0.6.0, `investra_instruments` 20.0.0.15.0,
+   `investra_nav` 20.0.0.29.0, vše installed. Kritéria přijetí splněna.
+
+Nález: varování o duplicitních popiscích `investra.valuation.class` → zadání `AG-017` (návrh).
+Neověřeno: UI v prohlížeči (formulář nástroje, průvodce sazbou, nabídka Přehled na 8072 – bod 4 předávky čeká na
+text chyby od Martina); testy Odoo se nespouštěly (testy IM-11 prošly na čisté DB, viz IM-11 Výsledek).
