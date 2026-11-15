@@ -5,7 +5,7 @@
 | Položka | Hodnota |
 |---|---|
 | Zóna | zelená (šablona widgetu, bez výpočtu a účtování) |
-| Výchozí větev | `main` po ST-01 |
+| Výchozí větev | `feature/instrument-master` (ST-01 ještě neproběhlo; změna 15. 11. 2026) |
 | Větev úkolu | `ukol/ST-03` |
 | Zadal, dne | Claude (hlavní relace), 15. 11. 2026 |
 | Navazuje na | `docs/plan-dalsiho-vyvoje.md` (Etapa 0), hlášení Martina z 8071 (15. 11. 2026 13:21) |
@@ -32,6 +32,9 @@ jádro tak píše všechny šablony (např. `web.Ribbon`: `this.classes`, `this.
 
 **Rozsah souborů:** `addons/custom/investra_dashboard/static/src/fund_todo.xml`, případně jiné šablony se stejnou
 chybou, `tools/view_check/`, tento soubor (Výsledek), předávka.
+
+**Sloučení:** po Martinově potvrzení v prohlížeči sloučit `ukol/ST-03` do `feature/instrument-master` (fast-forward),
+pushnout a krátkou větev smazat místně i na origin; oprava se pak do `main` dostane s ST-01.
 
 **Mimo rozsah:** `dashboard.py` a výpočet položek, vzhled karet, verze modulu, databáze, restart služeb.
 

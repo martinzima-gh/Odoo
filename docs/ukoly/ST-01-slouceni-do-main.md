@@ -25,8 +25,8 @@ začínaly větví z `main`. Kód se nemění.
 
 1. `git status`, `git fetch origin`, zopakovat kontrolu `git rev-list --left-right --count` pro tři dvojice výše.
    Kdyby levá strana nebyla 0 nebo strom nebyl čistý, zastavit se a napsat Martinovi.
-2. `tools/run_tests.sh all` (dočasná `investra_ci_*`, sama se smaže). Očekávání 677 testů, 0 selhání, 0 chyb;
-   jiný výsledek = zastavit, neslučovat.
+2. `tools/run_tests.sh all` (dočasná `investra_ci_*`, sama se smaže). Očekávání nejméně 677 testů, 0 selhání, 0 chyb
+   (ST-03 mohlo testy přidat); selhání, chyba nebo méně testů = zastavit, neslučovat.
 3. Doplnit sekci Převzetí v IM-11, IM-12, IM-13 (datum, commit, výsledek testů, nálezy – z jejich sekce Výsledek
    a z `docs/predavky/2026-11-15-im13-hotovo.md`) a jeden řádek stavu v `IM-00-prehled.md`.
 4. Deník `docs/rozhodnuti.md` (sloučení do `main`, datum, důvod), předávka `docs/predavky/2026-11-15-st01-main.md`.
@@ -46,7 +46,7 @@ GitHub Actions (ST-02), pravidla agentů (ST-04).
 
 **Kritéria přijetí:**
 
-- testy 677/0/0 před sloučením (číslo z výstupu skriptu, ne odhad),
+- testy nejméně 677, 0 selhání, 0 chyb před sloučením (číslo z výstupu skriptu, ne odhad),
 - tři větve na stejném commitu, `git status` čistý,
 - odmítne-li GitHub push do `main` (ochrana větve), nic neobcházet: zastavit se a navrhnout pull request,
 - ve Výsledku návrh, které větve smazat (kandidáti: `feature/investra-skeleton` shodná s původním `main`,
