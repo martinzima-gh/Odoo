@@ -125,7 +125,7 @@ class InvestraFund(models.Model):
         )
         deadline, deadline_state, deadline_text = self._dashboard_deadline(deadlines, today)
         danger, warning = self._dashboard_exceptions(latest, missing, deadlines, today, checked=upcoming or latest)
-        todo = self._dashboard_todo(today)
+        todo = self._dashboard_todo(today, next_date)
         warned = warning or any(item["warn"] for item in todo)
         status = "danger" if danger else "warning" if warned else "ok" if latest else "none"
         states = dict(Valuation._fields["state"]._description_selection(self.env))
@@ -153,7 +153,8 @@ class InvestraFund(models.Model):
             "dashboard_next_deadline": deadline_text,
             "dashboard_deadline_due": deadline.due_date.strftime("%d.%m.%Y") if deadline else False,
             "dashboard_todo": todo,
-            "dashboard_todo_count": len(todo),
+            # Výhledové položky (info) jsou jen informace, do počtu práce se nepočítají.
+            "dashboard_todo_count": len([item for item in todo if not item["info"]]),
             "dashboard_my_todo": any(item["mine"] for item in todo),
             "dashboard_exceptions": "\n".join(danger + warning),
             "dashboard_exception_count": len(danger) + len(warning),
@@ -243,7 +244,7 @@ class InvestraFund(models.Model):
         # stav karty zvyšují na Upozornění přes příznak `warn` položky.
         return danger, warning
 
-    def _dashboard_todo(self, today):
+    def _dashboard_todo(self, today, next_date=False):
         """Položky bloku Ke zpracování: co ve fondu čeká na krok a kdo je na řadě.
 
         Role podle skupin (připravovatel / schvalovatel) a kroků ocenění: odeslat ke schválení, zaúčtovat
@@ -257,11 +258,12 @@ class InvestraFund(models.Model):
         roles = {"preparer": user.has_group(PREPARER), "approver": user.has_group(APPROVER)}
         items = []
 
-        def add(key, label, count, model, domain, role, warn=False, amount=None):
+        def add(key, label, count, model, domain, role, warn=False, amount=None, info=False):
             if count:
                 items.append({
                     "key": key, "label": label, "count": count, "amount": amount, "role": role,
-                    "mine": bool(roles.get(role)), "warn": warn, "model": model, "domain": domain,
+                    "mine": bool(roles.get(role)) and not info, "warn": warn, "info": info,
+                    "model": model, "domain": domain,
                 })
 
         Valuation = self.env["investra.valuation"]
@@ -280,8 +282,8 @@ class InvestraFund(models.Model):
             domain = [("fund_id", "=", self.id), ("state", "in", list(states))]
             add("valuation_" + states[0], label, sum(counts.get(state, 0) for state in states), "investra.valuation", domain, role)
 
-        def simple(key, label, model, domain, role, warn=False):
-            add(key, label, self.env[model].search_count(domain), model, domain, role, warn=warn)
+        def simple(key, label, model, domain, role, warn=False, info=False):
+            add(key, label, self.env[model].search_count(domain), model, domain, role, warn=warn, info=info)
 
         simple("events", _("Nezaúčtované návrhy dokladů"), "investra.accounting.event",
                [("fund_id", "=", self.id), ("state", "=", "draft")], "preparer")
@@ -298,6 +300,11 @@ class InvestraFund(models.Model):
             ("state", "=", "draft"), "|", ("fund_id", "=", self.id),
             "&", ("fund_id", "=", False), ("instrument_id", "in", [i.id for i in instruments]),
         ], "approver", warn=True)
+        # Nástroje bez použitelné ceny k dalšímu ocenění; jen když den ocenění už nastal (dřív cena být nemůže).
+        if next_date and next_date <= today:
+            unpriced = self._dashboard_unpriced(next_date)
+            add("missing_prices", _("Nástroje bez aktuální ceny k ocenění"), len(unpriced), "investra.instrument",
+                [("id", "in", unpriced)], "preparer", warn=True)
         simple("requests", _("Žádosti ke schválení"), "investra.approval.request",
                [("company_id", "=", self.company_id.id), ("state", "=", "pending")], "approver")
         if "investra.fx.run" in self.env:
@@ -314,6 +321,16 @@ class InvestraFund(models.Model):
             if not self.currency_id.is_zero(balance):
                 add(code, label, 1, "account.move.line", domain, "preparer",
                     amount=format_amount(self.env, balance, self.currency_id))
+        # Výhled na SOON_DAYS dnů: jen informace, stav karty nemění a „můj krok“ nemá.
+        soon = [("date", ">=", fields.Date.to_string(today)), ("date", "<=", fields.Date.to_string(today + timedelta(days=SOON_DAYS)))]
+        held = [i.id for i in instruments]
+        simple("soon_flows", _("Splátky a kupóny do %s dnů", SOON_DAYS), "investra.instrument.cashflow",
+               [("instrument_id", "in", held)] + soon, "preparer", info=True)
+        simple("soon_settlements", _("Vypořádání obchodů do %s dnů", SOON_DAYS), "investra.trade",
+               [("fund_id", "=", self.id), ("state", "=", "unsettled")]
+               + [("settlement_date", leaf[1], leaf[2]) for leaf in soon], "preparer", info=True)
+        simple("soon_maturities", _("Splatnost nástrojů do %s dnů", SOON_DAYS), "investra.instrument",
+               [("id", "in", held)] + [("maturity_date", leaf[1], leaf[2]) for leaf in soon], "preparer", info=True)
         # „Můj krok“ u kroků řízených schvalovací maticí: rozhoduje pravidlo matice (nejnižší role, jmenovití
         # uživatelé, jiná osoba než zadavatel), ne jen skupina. Ostatní kroky zůstávají podle skupiny.
         matrix = {
@@ -327,8 +344,28 @@ class InvestraFund(models.Model):
             if item["key"] in matrix:
                 item["mine"] = bool(matrix[item["key"]](self.env[item["model"]].search(item["domain"])))
         # Pořadí: nejdřív můj krok, pak varování, jinak pořadí pracovního postupu (řazení je stabilní).
-        items.sort(key=lambda item: (not item["mine"], not item["warn"]))
+        items.sort(key=lambda item: (item["info"], not item["mine"], not item["warn"]))
         return items
+
+    def _dashboard_unpriced(self, day):
+        """Držené nástroje, které ocenění k `day` neocení nebo na ně upozorní: bez schválené ceny, nebo s cenou
+        starší než maximální stáří nástroje. Stejná pravidla jako `investra.valuation._approved_price`
+        a kontrola `price_age`; nástroje v naběhlé hodnotě cenu nepotřebují."""
+        Classification = self.env["investra.portfolio.classification"]
+        Price = self.env["investra.instrument.price"]
+        found = set()
+        for (instrument, portfolio), quantity in self.env["investra.trade"].sudo()._holdings(self, day).items():
+            if instrument.id in found or not quantity:
+                continue
+            if Classification._valid(portfolio, instrument, day).valuation_method == "amortised":
+                continue
+            price = Price.search([
+                ("instrument_id", "=", instrument.id), ("date", "<=", day), ("state", "=", "approved"),
+                "|", ("fund_id", "=", self.id), ("fund_id", "=", False),
+            ], order="date desc", limit=1)
+            if not price or (day - price.date).days > instrument.max_price_age:
+                found.add(instrument.id)
+        return sorted(found)
 
     @staticmethod
     def _dashboard_allowed(user, role, users):

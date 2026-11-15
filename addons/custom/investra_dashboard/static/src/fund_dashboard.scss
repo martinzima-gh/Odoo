@@ -172,6 +172,9 @@ $investra-graphite-2: #6a6967 !default;
 
     .o_investra_todo_warn .o_investra_todo_count { color: $investra-ember; }
 
+    // Výhledové položky (do 7 dnů) jsou jen informace: tlumeně, bez důrazu.
+    .o_investra_todo_info { opacity: 0.7; }
+
     .o_investra_todo_turn {
         padding: 0 8px;
         border: 1px solid $investra-lagoon;

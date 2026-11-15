@@ -123,6 +123,15 @@
             </list>
         </field>
     </record>
+    <!-- Seznam smluvních toků pro položku „Splátky a kupóny do 7 dnů“; model jiný samostatný seznam nemá. -->
+    <record id="view_cashflow_dashboard_list" model="ir.ui.view">
+        <field name="name">investra.instrument.cashflow.dashboard.list</field><field name="model">investra.instrument.cashflow</field><field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="date"/><field name="instrument_id"/><field name="flow_type"/><field name="amount"/>
+            </list>
+        </field>
+    </record>
     <record id="view_fund_dashboard_search" model="ir.ui.view">
         <field name="name">investra.fund.dashboard.search</field><field name="model">investra.fund</field><field name="priority">50</field>
         <field name="arch" type="xml">

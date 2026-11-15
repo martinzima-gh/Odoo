@@ -239,6 +239,45 @@ class TestDashboard(NavCase):
         self.fund.invalidate_recordset()
         self.assertEqual(self.fund.action_open_checks()["domain"][0], ("valuation_id", "=", valuation.id))
 
+    def test_missing_price_and_outlook(self):
+        """Držený nástroj bez ceny k nastalému dni ocenění zvedne kartu; výhled na 7 dnů je jen informace."""
+        day = lambda days: self.today + timedelta(days=days)
+        self.subscribe(self.cls(self.fund, "A"), day(-10), 50000, 500)
+        bond = self.env["investra.instrument"].create(with_ids(self.env, {
+            "name": f"Dluhopis {self.fund.id}", "currency_id": self.czk.id,
+            "type_id": self.env.ref("investra_instruments.type_bond").id, "start_date": day(-10), "day_count": "thirty360_eu",
+        }, self.fund))
+        bond.cashflow_ids = [
+            (0, 0, {"date": day(3), "amount": 30, "flow_type": "interest"}),
+            (0, 0, {"date": day(400), "amount": 1000, "flow_type": "principal"}),
+        ]
+        self.classify(self.fund, bond)
+        trade = self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": bond.id,
+            "trade_date": day(-5), "quantity": 10, "price": 1000,
+        })
+        trade._book()
+        todo = lambda: {i["key"]: i for i in self.fund.dashboard_todo}
+        # Den ocenění ještě nenastal: chybějící cena se nehlásí.
+        entry = self.calendar(2)
+        self.assertNotIn("missing_prices", todo())
+        entry.unlink()
+        self.calendar(-1)
+        self.fund.invalidate_recordset()
+        item = todo()["missing_prices"]
+        self.assertEqual((item["count"], item["warn"]), (1, True))
+        self.assertEqual(self.env[item["model"]].search(item["domain"]), bond)
+        flows = todo()["soon_flows"]
+        self.assertEqual((flows["count"], flows["info"], flows["mine"], flows["warn"]), (1, True, False, False))
+        self.assertEqual(self.fund.dashboard_todo[-1]["key"], "soon_flows")
+        self.assertEqual(self.fund.dashboard_todo_count, len([i for i in self.fund.dashboard_todo if not i["info"]]))
+        price = self.env["investra.instrument.price"].with_user(self.preparer).create({
+            "fund_id": self.fund.id, "instrument_id": bond.id, "date": day(-1), "price": 1000, "source": "Test",
+        })
+        price.with_user(self.approver).action_approve()
+        self.fund.invalidate_recordset()
+        self.assertNotIn("missing_prices", todo())
+
     def test_movement_draft_is_todo(self):
         movement = self.env["investra.class.movement"].create({
             "class_id": self.cls(self.fund, "A").id, "date": "2032-01-05", "manual_reason": "Test",
