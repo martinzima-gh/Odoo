@@ -6,10 +6,11 @@
             <!-- Karta podle schváleného návrhu docs/vzhled/navrh-prehledu-fondu.html, styly fund_dashboard.scss.
                  Data a stavy počítá model (rozhodnutí 2026-11-14 „Přehled fondů – data a stavy karty“), šablona jen
                  vybírá třídu podle stavu. Celkový stav karty návrh nemá; výjimky jsou v části Kontroly. -->
-            <kanban create="false" group_create="false" class="o_investra_fund_kanban">
+            <kanban create="false" group_create="false" class="o_investra_fund_kanban" js_class="investra_fund_dashboard">
                 <field name="currency_id"/>
                 <field name="dashboard_valuation_id"/><field name="dashboard_exception_count"/>
                 <field name="dashboard_result"/><field name="dashboard_has_result"/>
+                <field name="dashboard_net_flow"/><field name="dashboard_lock_text"/><field name="dashboard_lock_exception_count"/>
                 <field name="dashboard_latest_published"/>
                 <field name="dashboard_next_valuation"/><field name="dashboard_next_valuation_id"/><field name="dashboard_next_state"/>
                 <field name="dashboard_next_version"/><field name="dashboard_next_late"/>
@@ -33,6 +34,28 @@
                                     <field name="dashboard_result_period" class="o_investra_period"/>
                                 </t>
                                 <span t-else="" class="o_investra_amount">—</span>
+                            </div>
+                        </div>
+                        <!-- Úpisy − odkupy za období výsledku a uzávěrka knihy (rozhodnutí 2026-11-15). -->
+                        <div class="o_investra_fund_row">
+                            <div>
+                                <span class="o_investra_label">Úpisy − odkupy</span>
+                                <t t-if="record.dashboard_has_result.raw_value">
+                                    <span t-attf-class="o_investra_amount {{ record.dashboard_net_flow.raw_value &gt; 0 ? 'o_investra_positive' : record.dashboard_net_flow.raw_value &lt; 0 ? 'o_investra_negative' : '' }}">
+                                        <t t-if="record.dashboard_net_flow.raw_value &gt; 0">+</t><field name="dashboard_net_flow"/>
+                                    </span>
+                                    <field name="dashboard_result_period" class="o_investra_period"/>
+                                </t>
+                                <span t-else="" class="o_investra_amount">—</span>
+                            </div>
+                            <div>
+                                <span class="o_investra_label">Uzávěrka</span>
+                                <div t-if="record.dashboard_lock_text.raw_value" class="o_investra_value_row">
+                                    <span class="o_investra_deadline">Uzamčeno do</span>
+                                    <field name="dashboard_lock_text" class="o_investra_date"/>
+                                    <span t-if="record.dashboard_lock_exception_count.raw_value" class="o_investra_pill o_investra_warning">Výjimky: <field name="dashboard_lock_exception_count"/></span>
+                                </div>
+                                <span t-else="">bez zámku</span>
                             </div>
                         </div>
                         <div class="o_investra_fund_row">
@@ -105,7 +128,7 @@
                 <field name="name"/><field name="dashboard_status" widget="badge" decoration-success="dashboard_status == 'ok'" decoration-warning="dashboard_status == 'warning'" decoration-danger="dashboard_status == 'danger'" decoration-muted="dashboard_status == 'none'"/><field name="dashboard_date"/><field name="dashboard_state"/>
                 <field name="currency_id" column_invisible="1"/><field name="dashboard_capital"/>
                 <field name="dashboard_has_result" column_invisible="1"/>
-                <field name="dashboard_result" optional="show" invisible="not dashboard_has_result"/><field name="dashboard_result_period" optional="hide"/>
+                <field name="dashboard_result" optional="show" invisible="not dashboard_has_result"/><field name="dashboard_net_flow" optional="show" invisible="not dashboard_has_result"/><field name="dashboard_lock_text" optional="hide"/><field name="dashboard_result_period" optional="hide"/>
                 <field name="dashboard_published" optional="show"/>
                 <field name="dashboard_next_valuation"/>
                 <field name="dashboard_next_state" widget="badge" decoration-info="dashboard_next_state in ('draft', 'computed', 'none')" decoration-warning="dashboard_next_state in ('submitted', 'approved')"/>

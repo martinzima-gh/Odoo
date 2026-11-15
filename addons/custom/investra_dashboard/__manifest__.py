@@ -12,6 +12,8 @@
             "investra_dashboard/static/src/fund_dashboard.scss",
             "investra_dashboard/static/src/fund_todo.js",
             "investra_dashboard/static/src/fund_todo.xml",
+            "investra_dashboard/static/src/fund_summary.js",
+            "investra_dashboard/static/src/fund_summary.xml",
         ],
     },
     "installable": True,

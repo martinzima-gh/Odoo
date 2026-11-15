@@ -57,6 +57,15 @@ class InvestraFund(models.Model):
     )
     dashboard_has_result = fields.Boolean(compute="_compute_dashboard", string="Má výsledek za období")
     dashboard_result_period = fields.Char(compute="_compute_dashboard", string="Období výsledku")
+    # Čisté úpisy − odkupy za stejné období jako výsledek (rozhodnutí 2026-11-15): zaúčtované pohyby tříd
+    # s datem v období, změna kapitálu ve funkční měně; úpis kladně, odkup záporně.
+    dashboard_net_flow = fields.Monetary(
+        compute="_compute_dashboard", string="Úpisy − odkupy", currency_field="currency_id",
+        help="Zaúčtované úpisy minus odkupy s datem v období posledního ocenění, změna kapitálu ve funkční měně.",
+    )
+    # Uzávěrka: zámek období knihy fondu (nastavuje zveřejnění ocenění) a právě platné výjimky ze zámku.
+    dashboard_lock_text = fields.Char(compute="_compute_dashboard", string="Uzamčeno do")
+    dashboard_lock_exception_count = fields.Integer(compute="_compute_dashboard", string="Platné výjimky ze zámku")
     dashboard_published = fields.Date(compute="_compute_dashboard", string="Poslední zveřejnění")
     dashboard_next_valuation = fields.Date(compute="_compute_dashboard", string="Další ocenění")
     dashboard_next_text = fields.Char(compute="_compute_dashboard", string="Další ocenění (text)")
@@ -130,6 +139,10 @@ class InvestraFund(models.Model):
         status = "danger" if danger else "warning" if warned else "ok" if latest else "none"
         states = dict(Valuation._fields["state"]._description_selection(self.env))
         result, has_result, period = self._dashboard_result(latest)
+        lock = self.company_id.fiscalyear_lock_date
+        exceptions = self.env["investra.lock.exception.request"].search_count([
+            ("company_id", "=", self.company_id.id), ("state", "=", "active"), ("end_datetime", ">", fields.Datetime.now()),
+        ])
         return {
             "dashboard_valuation_id": latest.id,
             "dashboard_date": latest.date,
@@ -140,6 +153,9 @@ class InvestraFund(models.Model):
             "dashboard_result": result,
             "dashboard_has_result": has_result,
             "dashboard_result_period": period,
+            "dashboard_net_flow": self._dashboard_net_flow(latest) if has_result else 0.0,
+            "dashboard_lock_text": lock.strftime("%d.%m.%Y") if lock else False,
+            "dashboard_lock_exception_count": exceptions,
             "dashboard_published": published[:1].date,
             "dashboard_next_valuation": next_date,
             "dashboard_next_text": next_date.strftime("%d.%m.%Y") if next_date else False,
@@ -214,6 +230,17 @@ class InvestraFund(models.Model):
         end = latest.date
         period = f"{start.strftime('%d.%m.' if start.year == end.year else '%d.%m.%Y')}–{end.strftime('%d.%m.%Y')}"
         return result, True, period
+
+    def _dashboard_net_flow(self, latest):
+        """Úpisy minus odkupy za období posledního ocenění (od dne po předchozím ocenění do data ocenění)."""
+        groups = self.env["investra.class.movement"]._read_group(
+            [("fund_id", "=", self.id), ("state", "=", "posted"),
+             ("date", ">", latest.previous_id.date), ("date", "<=", latest.date)],
+            ["movement_type"], ["capital_amount:sum"],
+        )
+        return self.currency_id.round(sum(
+            (1 if movement_type == "subscription" else -1) * (amount or 0.0) for movement_type, amount in groups
+        ))
 
     def _dashboard_exceptions(self, latest, missing, deadlines, today, checked=None):
         """Vrátí výjimky vyžadující zásah a upozornění jako texty.
@@ -427,6 +454,26 @@ class InvestraFund(models.Model):
         elif operator not in ("=", "in"):
             raise NotImplementedError(operator)
         return [("id", "in", self.search([]).filtered(lambda f: bool(f[name]) in values).ids)]
+
+    @api.model
+    def dashboard_summary(self):
+        """Souhrnný pás nad kartami: počty fondů podle stavu. Jen počty, žádné součty částek napříč fondy
+        (rozhodnutí 2026-11-14). `filter` je název filtru vyhledávání, který pás po kliknutí přepne."""
+        _ = self.env._
+        funds = self.search([])
+        cards = [
+            ("danger", _("Vyžaduje zásah"), "filter_danger", lambda f: f.dashboard_status == "danger"),
+            ("warning", _("Upozornění"), "filter_warning", lambda f: f.dashboard_status == "warning"),
+            ("late", _("Ocenění po termínu"), "filter_next_late", lambda f: f.dashboard_next_late),
+            ("mine", _("Čeká na můj krok"), "filter_my_todo", lambda f: f.dashboard_my_todo),
+        ]
+        return {
+            "total": len(funds),
+            "cards": [
+                {"key": key, "label": label, "filter": name, "count": len(funds.filtered(test))}
+                for key, label, name, test in cards
+            ],
+        }
 
     @api.model
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):

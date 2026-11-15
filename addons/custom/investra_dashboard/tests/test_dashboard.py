@@ -278,6 +278,30 @@ class TestDashboard(NavCase):
         self.fund.invalidate_recordset()
         self.assertNotIn("missing_prices", todo())
 
+    def test_net_flow_lock_and_summary(self):
+        cls = self.cls(self.fund, "A")
+        self.subscribe(cls, "2032-01-01", 1000, 10)
+        self.run_to_published(self.valuation(self.fund, "2032-01-31"))
+        self.fund.invalidate_recordset()
+        # První ocenění nemá období: úpisy − odkupy se neukazují; zveřejnění uzamklo období.
+        self.assertFalse(self.fund.dashboard_net_flow)
+        self.assertEqual(self.fund.dashboard_lock_text, "31.01.2032")
+        self.assertFalse(self.fund.dashboard_lock_exception_count)
+        self.subscribe(cls, "2032-02-10", 500, 5)
+        self.subscribe(cls, "2032-02-20", 200, 2, kind="redemption")
+        self.run_to_posted(self.valuation(self.fund, "2032-02-29"))
+        self.fund.invalidate_recordset()
+        self.assertEqual(self.fund.dashboard_net_flow, 300)
+        summary = self.env["investra.fund"].dashboard_summary()
+        self.assertEqual(summary["total"], self.env["investra.fund"].search_count([]))
+        self.assertEqual([c["filter"] for c in summary["cards"]],
+                         ["filter_danger", "filter_warning", "filter_next_late", "filter_my_todo"])
+        # Fond bez ocenění s prošlým termínem kalendáře se počítá do „Ocenění po termínu“.
+        other = self.make_fund(classes=[{"code": "A"}])
+        self.env["investra.valuation.calendar"].create({"fund_id": other.id, "date": self.today - timedelta(days=1)})
+        late = next(c for c in self.env["investra.fund"].dashboard_summary()["cards"] if c["key"] == "late")
+        self.assertGreaterEqual(late["count"], 1)
+
     def test_movement_draft_is_todo(self):
         movement = self.env["investra.class.movement"].create({
             "class_id": self.cls(self.fund, "A").id, "date": "2032-01-05", "manual_reason": "Test",
