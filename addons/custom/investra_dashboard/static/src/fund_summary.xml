@@ -5,7 +5,7 @@
             <span class="o_investra_summary_total">Fondů: <t t-out="this.state.total"/></span>
             <button t-foreach="this.state.cards" t-as="card" t-key="card.key" type="button"
                     class="o_investra_summary_card" t-att-class="'o_investra_summary_' + card.key + (card.count ? '' : ' o_investra_summary_zero')"
-                    t-on-click="() => this.toggle(card)">
+                    t-att-disabled="!card.count" t-on-click="() => this.toggle(card)">
                 <span class="o_investra_summary_count" t-out="card.count"/>
                 <span class="o_investra_summary_label" t-out="card.label"/>
             </button>

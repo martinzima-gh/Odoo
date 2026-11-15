@@ -16,16 +16,10 @@ záloha před povýšením `zalohy/investra-2026-11-15-pred-prehled-05.dump`.
 - 6, 7, 10: souhrnný pás nad kartami, úpisy − odkupy za období, uzávěrka a platné výjimky ze zámku.
 - Testy `tools/run_tests.sh investra_dashboard`: 29 testů, 0 chyb. Rozhodnutí v deníku (4 řádky) a v Claude Doc (1 řádek).
 
-**Zbývá:**
-
-1. Martin ověří Přehled v prohlížeči (Cmd+Shift+R): souhrnný pás a přepínání filtru kliknutím, nový pás karty,
-   „+N dalších“, prokliky. Nic z toho nebylo v prohlížeči ověřeno; pás je nová komponenta OWL podle vzoru z jádra.
-2. Bod 11 (malý graf FK) – rozhodnout až po zhlédnutí karty.
-3. Bod 14 (řazení tabulky podle počítaných sloupců) – neověřeno, zda klik na záhlaví řadí.
-4. Body 15 (karta Investra Services) a 16 (likvidita, limity) – neotevřeno.
-5. `docs/architektura.md` nebyl po doplnění řádku v Claude Doc znovu exportován.
-
-**Otevřené otázky:** výjimky ze zámku čekající na potvrzení nejsou v bloku Ke zpracování (jen počet platných na kartě).
+**Zbývá:** nic. Martin Přehled v prohlížeči viděl (souhrnný pás funguje); nález „jde kliknout na kartu s nulou“
+opraven (karta s počtem 0 je vypnutá). Graf FK, řazení tabulky, karta Investra Services, likvidita a limity jsou
+odložené jako poznámky v `docs/otevrene-body.md` („Přehled fondů – možná vylepšení“); otevřít jen na Martinův pokyn.
+`docs/architektura.md` nebyl po doplnění řádku v Claude Doc znovu exportován. Sloučení do `main` jen na Martinovu výzvu.
 
 **Soubory ke čtení:** `addons/custom/investra_dashboard/models/dashboard.py`, `views/dashboard_views.xml`,
 `static/src/fund_summary.js`, `docs/ukoly/AG-018-prehled-ovladani-karty.md`.

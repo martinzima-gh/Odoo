@@ -251,6 +251,7 @@ $investra-graphite-2: #6a6967 !default;
     .o_investra_summary_danger .o_investra_summary_count,
     .o_investra_summary_late .o_investra_summary_count { color: $investra-ember; }
     .o_investra_summary_mine .o_investra_summary_count { color: $investra-lagoon; }
-    .o_investra_summary_zero { opacity: 0.55; }
+    .o_investra_summary_zero { opacity: 0.55; cursor: default; }
+    .o_investra_summary_zero:hover { border-color: $investra-petroleum-4; }
     .o_investra_summary_zero .o_investra_summary_count { color: $investra-graphite-2; }
 }

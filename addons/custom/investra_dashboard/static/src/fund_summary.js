@@ -27,6 +27,10 @@ export class InvestraFundSummary extends Component {
     }
 
     toggle(card) {
+        // Karta s nulou je vypnutá: filtr by jen vyprázdnil seznam (nález uživatele 2026-11-15).
+        if (!card.count) {
+            return;
+        }
         const searchModel = this.env.searchModel;
         const item = searchModel && searchModel.getSearchItems((searchItem) => searchItem.name === card.filter)[0];
         if (item) {
