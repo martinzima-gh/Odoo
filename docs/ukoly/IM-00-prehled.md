@@ -38,3 +38,7 @@ Prompt pro relaci (doplnit číslo úkolu):
     Přečti CLAUDE.md, docs/ukoly/IM-00-prehled.md a docs/ukoly/IM-0X-….md a z docs/navrh-evidence-nastroju.md jen oddíly
     uvedené v úkolu. Celý projekt neprocházej. Proveď úkol, pusť testy podle oddílu 2 plánu, doplň sekci Výsledek,
     commitni a zastav se.
+
+**Stav 15. 11. 2026 (ST-01):** IM-01 až IM-13 převzaty a sloučeny do `main` (fast-forward); testy `all` 685, 0 selhání, 0 chyb.
+
+**Stav 15. 11. 2026 (ST-01):** IM-01 až IM-13 převzaty a sloučeny do `main` (fast-forward); testy `all` 685, 0 selhání, 0 chyb.

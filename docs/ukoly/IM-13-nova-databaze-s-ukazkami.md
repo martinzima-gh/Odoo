@@ -109,3 +109,5 @@ Hotovo 15. 11. 2026 (Claude, Opus 5.5). Ověřeno dotazy `docs/sql/24-pracovni-d
 - **Testy:** `tools/run_tests.sh all` na dočasné databázi: 677 testů, 0 selhání, 0 chyb; dočasné databáze smazané.
 
 ## Převzetí
+
+- 15. 11. 2026 (ST-01): commit d226d19 (a 177b93a, a80fa4d, 4da3a53), součást `feature/instrument-master`, sloučeno do `main`. Testy v době úkolu 677 (0/0), po sloučení `all`: 685, 0 selhání, 0 chyb. Nález: heslo správce v `investra` změní Martin při prvním přihlášení.

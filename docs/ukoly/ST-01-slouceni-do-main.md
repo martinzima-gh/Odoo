@@ -57,9 +57,20 @@ GitHub Actions (ST-02), pravidla agentů (ST-04).
 
 ## Výsledek
 
-Doplní provádějící relace.
+Provedl Claude Sonnet 5.5, 15. 11. 2026.
 
-- **Změněné soubory:**
+- **Změněné soubory:** `docs/ukoly/IM-00`, `IM-11`, `IM-12`, `IM-13`, `OC-01`, `ST-03` (Převzetí a stav), tento soubor,
+  `docs/rozhodnuti.md`, `docs/predavky/2026-11-15-st01-main.md`. Kód se nezměnil.
+- **Odchylka od zadání:** před ST-01 byla `feature/instrument-master` posunuta na OC-01 (+3 commity, fast-forward);
+  místo stavu +31 tedy +35 před `feature/nav-prototyp`. `ukol/OC-01` smazána místně i na origin (souhlas Martina).
+  IM-12 neměl sekci Převzetí, byla založena.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Návrh větví ke smazání:**
+  - `git fetch origin`, `git rev-list --left-right --count`: `origin/main...feature/nav-prototyp` 0/320,
+    `feature/nav-prototyp...feature/instrument-master` 0/35 (před OC-01), strom čistý.
+  - `tools/run_tests.sh all`: 0 failed, 0 error z 685 testů (nejméně 677), dočasná DB smazána.
+  - Závěrečné ověření shody větví a `curl` na 8071: viz předávka a zpráva Martinovi.
+- **Neověřeno:** ochrana větve `main` na GitHubu (zjistí se pushem).
+- **Návrh větví ke smazání** (jen návrh, nemazáno): `feature/investra-skeleton` (shodná s původním `main`, obsažená),
+  `feature/nav-prototyp` a `feature/instrument-master` (po sloučení shodné s `main`; ponechat, dokud se z nich něco
+  zakládá), `review/ag/AG-001-formular-oceneni`, `review/ag/AG-002-formular-oceneni-opravy` (zastaralé), `kontrola/2026-11-05`
+  a `kontrola/2026-11-06` (po uzavření nálezů).

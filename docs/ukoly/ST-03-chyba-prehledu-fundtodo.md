@@ -56,3 +56,5 @@ pushnout a krátkou větev smazat místně i na origin; oprava se pak do `main` 
 - **Otevřené otázky a návrhy mimo rozsah:** kontrolu šablon lze později zařadit do CI (ST-02).
 
 ## Převzetí
+
+- 15. 11. 2026 (ST-01, Claude Sonnet 5.5): commit 33677ff byl už součástí `feature/instrument-master` před OC-01; větev `ukol/ST-03` nepoužita. Testy `tools/run_tests.sh all` po převzetí OC-01: 0 failed, 0 error z 685 testů. Zobrazení Přehledu v prohlížeči zůstává na Martinovi (viz Neověřeno).

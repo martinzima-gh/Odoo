@@ -106,3 +106,5 @@ Provedl Claude (Opus 5.5), 15. 11. 2026, větev `ukol/OC-01`.
   fond–datum–verze) – rozhodnout, zda zrušení verze 2+ zakázat.
 
 ## Převzetí
+
+- 15. 11. 2026 (ST-01, Claude Sonnet 5.5): `ukol/OC-01` (commity 07e6653, d1c5c36, e247ffb) převzata posunutím `feature/instrument-master` (fast-forward z 33677ff na e247ffb, bez slučovacího commitu). Před tím ověřeno: větev čistá, shodná s `origin/ukol/OC-01`, o 3 commity před `feature/instrument-master`. Testy `tools/run_tests.sh all`: 0 failed, 0 error z 685 testů. Větev `ukol/OC-01` smazána po ověření, že je celá ve `feature/instrument-master` (souhlas Martina).

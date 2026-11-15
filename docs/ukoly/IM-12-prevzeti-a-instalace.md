@@ -80,3 +80,7 @@ uložen jen dočasně mimo repozitář. Klon posunut fast-forwardem 840ff11 → 
 Nález: varování o duplicitních popiscích `investra.valuation.class` → zadání `AG-017` (návrh).
 Neověřeno: UI v prohlížeči (formulář nástroje, průvodce sazbou, nabídka Přehled na 8072 – bod 4 předávky čeká na
 text chyby od Martina); testy Odoo se nespouštěly (testy IM-11 prošly na čisté DB, viz IM-11 Výsledek).
+
+## Převzetí
+
+- 15. 11. 2026 (ST-01): provozní úkol dokončen commity 0bcd7d0 a 8bfa591; `investra_test` a `investra_vzhled` povýšeny na `investra_nav` 20.0.0.29.0 (zálohy `zalohy/*-pred-nav29.dump`), od té doby zastavené. Sloučeno do `main`; testy po sloučení `all`: 685, 0 selhání, 0 chyb. Nález: AG-017.

@@ -89,3 +89,5 @@ hodnotě dál nepodporovaný. Generátor u variabilní sazby s nahrazenými toky
 Návrh vzhledu: žádný.
 
 ## Převzetí
+
+- 15. 11. 2026 (ST-01): implementace v commitu b27ad0a, součást `feature/instrument-master`; sloučeno do `feature/nav-prototyp` a `main` posunutím ukazatele. Testy v době úkolu 675 (0/0), po sloučení `all`: 685, 0 selhání, 0 chyb. Nález: AG-017 (varování o duplicitních popiscích `investra.valuation.class`).
