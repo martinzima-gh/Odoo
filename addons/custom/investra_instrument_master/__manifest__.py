@@ -1,7 +1,7 @@
 {
     "name": "Investra Instrument Master",
     "summary": "Evidence nástrojů, emitentů a portfolií: číselníky ČNB a IFRS 9, práva a seed",
-    "version": "20.0.0.1.0",
+    "version": "20.0.0.2.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",
@@ -17,8 +17,10 @@
         "data/classification_reason.xml",
         "data/country_membership.xml",
         "views/configuration_views.xml",
+        "views/issuer_views.xml",
         "views/menus.xml",
     ],
+    "post_init_hook": "post_init_hook",
     "installable": True,
     "application": False,
 }

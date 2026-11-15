@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stávající nabídka a akce protistran se přejmenují a dostanou filtr Aktuální; soubory investra_counterparty zůstávají beze změny. -->
+    <record id="investra_counterparty.menu_profile" model="ir.ui.menu"><field name="name">Emitenti a protistrany</field></record>
+    <record id="investra_counterparty.action_profile" model="ir.actions.act_window">
+        <field name="name">Emitenti a protistrany</field>
+        <field name="context">{'search_default_latest': 1}</field>
+    </record>
+
+    <record id="view_profile_list_issuer" model="ir.ui.view">
+        <field name="name">investra.counterparty.profile.list.issuer</field><field name="model">investra.counterparty.profile</field>
+        <field name="inherit_id" ref="investra_counterparty.view_profile_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lei']" position="after">
+                <field name="esa_code_id"/><field name="resident_status"/><field name="eu_status"/><field name="issuer_type_id"/>
+                <field name="review_state" widget="badge" decoration-warning="review_state == 'draft'" decoration-success="review_state == 'reviewed'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_profile_search_issuer" model="ir.ui.view">
+        <field name="name">investra.counterparty.profile.search.issuer</field><field name="model">investra.counterparty.profile</field>
+        <field name="inherit_id" ref="investra_counterparty.view_profile_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sector_id']" position="after">
+                <field name="esa_code_id"/>
+                <filter name="latest" string="Aktuální" domain="[('is_latest', '=', True)]"/>
+                <filter name="missing_esa" string="Chybí ESA" domain="[('esa_code_id', '=', False)]"/>
+                <filter name="missing_lei" string="Chybí LEI" domain="[('lei', '=', False)]"/>
+                <filter name="not_reviewed" string="Nezkontrolováno" domain="[('review_state', '=', 'draft')]"/>
+                <separator/>
+                <filter name="resident" string="Rezident" domain="[('resident_status', '=', 'r')]"/>
+                <filter name="nonresident" string="Nerezident" domain="[('resident_status', '=', 'nr')]"/>
+                <filter name="eu" string="EU" domain="[('eu_status', 'in', ('cz', 'eu'))]"/>
+                <filter name="non_eu" string="Mimo EU" domain="[('eu_status', 'in', ('eea', 'non_eu'))]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_profile_form_issuer" model="ir.ui.view">
+        <field name="name">investra.counterparty.profile.form.issuer</field><field name="model">investra.counterparty.profile</field>
+        <field name="inherit_id" ref="investra_counterparty.view_profile_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_review" type="object" string="Potvrdit verzi" class="btn-primary"
+                            invisible="review_state != 'draft' or not id" groups="investra_entity.group_valuation_approver"/>
+                    <field name="review_state" widget="statusbar" statusbar_visible="draft,reviewed"/>
+                </header>
+            </xpath>
+            <xpath expr="//sheet/group" position="before">
+                <div class="alert alert-warning" role="alert" invisible="review_state != 'reviewed'">
+                    Verze je potvrzená a nejde změnit. Pro změnu údajů založte novou verzi s datem „Platí od“ a důvodem změny.
+                </div>
+            </xpath>
+            <xpath expr="//sheet/group" position="inside">
+                <field name="esa_code_id" required="1"/>
+            </xpath>
+            <xpath expr="//sheet/group" position="after">
+                <group string="Odvozené hodnoty">
+                    <field name="resident_status"/><field name="issuer_type_id"/><field name="eu_status"/><field name="derivation_note"/>
+                </group>
+                <group string="Kontrola">
+                    <field name="review_state"/><field name="reviewed_by"/><field name="reviewed_on"/>
+                    <field name="change_reason"/><field name="source"/><field name="is_latest"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
