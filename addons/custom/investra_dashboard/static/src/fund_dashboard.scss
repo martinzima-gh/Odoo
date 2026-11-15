@@ -199,6 +199,8 @@ $investra-graphite-2: #6a6967 !default;
     a.o_investra_fund_name,
     a.o_investra_link_control,
     a.o_investra_link_deadline {
+        // Převzetí AG-018: odkaz je řádkový prvek, dolní odsazení tříd názvu a výkazu by jinak neplatilo.
+        display: block;
         text-decoration: none;
 
         &:hover {

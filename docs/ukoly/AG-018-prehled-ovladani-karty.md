@@ -86,4 +86,9 @@ Doplnil Copilot 15. 11. 2026, 19:10.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+- 15. 11. 2026 (Claude): commit Copilota `9c96dc4` (větev klonu `cp/prehled-ovladani`) sloučen do `etapa/derivaty` (fast-forward).
+- Revize: diff jen dva soubory z Rozsahu a zadání, zelená zóna; `tools/view_check/check_views.py` chyb: 0.
+- Nález a oprava při převzetí: třídy `o_investra_fund_name` a `o_investra_report_name` přešly z pole na řádkový odkaz,
+  kde dolní odsazení neplatí; doplněno `display: block` u tří odkazů ve `fund_dashboard.scss`.
+- `tools/run_tests.sh investra_dashboard`: 0 failed, 0 error z 27 testů.
+- Neověřeno: vzhled a prokliky v prohlížeči (pracovní databáze potřebuje povýšení modulu, čeká na Martinův souhlas).
