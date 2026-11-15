@@ -1,0 +1,147 @@
+# Plán dalšího vývoje (od 2026-11-15)
+
+Navazuje na evidenci nástrojů (IM-01 až IM-13). Pořadí schválil Martin 15. 11. 2026 (deriváty nahoru kvůli FX swapům);
+body označené „doporučení“ rozhodl Claude podle svého návrhu a Martin je může změnit.
+
+## Společná pravidla
+
+- Jedna verze aplikace (`CLAUDE.md`): větev pro etapu z `main`, databáze `investra` na 8071, testy jen na `investra_ci_*`.
+- Každá etapa začíná **krokem návrhu** (Opus): ověří předpisy a kód, sepíše `docs/navrh-<téma>.md` (nejvýš 100 řádků,
+  varianty a doporučení, číselný příklad, seznam testů) a rozepíše zadání kroků do `docs/ukoly/<ID>-*.md`. Pak se zastaví.
+  Martin návrh schválí a teprve potom běží implementace, každý krok v nové relaci.
+- Modely: návrh a červená zóna (účtování, ocenění, NAV, migrace) **Opus**; modely, formuláře, importy, sestavy podle
+  přesného zadání **Sonnet**; dokumentace a SELECTy **Haiku**; vzhled **Copilot nebo Antigravity** v `~/odoo-review`.
+  Fable jen při sporu o architekturu nebo účetní logiku a pro tento plán.
+- Každá operace s účetním dopadem má náhled zaúčtování a záložku dokladů (`investra.posting.preview`).
+- Odkazy na předpisy uvádět přesně a jen ověřené; neověřené označit. Rámce nemíchat (fondy 501/2002 Sb., Services 500/2002 Sb.).
+- Po etapě: instalace do `investra` se zálohou, ukázka v ukázkových datech (`tools/demo_data/seed.py`), sloučení do `main`
+  na Martinovu výzvu.
+
+## Pořadí etap
+
+| # | Etapa | ID | Proč v tomto pořadí |
+|---|---|---|---|
+| 0 | Stabilizace | ST | čistý základ: `main`, automatické testy, převzetí IM |
+| 1 | Deriváty: FX forward a FX swap | DE | fondy je budou mít; zajištění tříd v cizí měně |
+| 2 | Převzetí fondu (počáteční stavy) | PF | bez něj nenaběhne žádný skutečný fond; cíl Q1 2027 |
+| 3 | Výkazy ČNB | CN | měsíční lhůty 25–30 dnů (`docs/cnb/lhuty.md`) |
+| 4 | ECL | EC | dopad jen u AC a FVOCI; fond je převážně FVTPL |
+| 5 | FVOCI do kapitálu | FO | dokončení IFRS 9; ECL u FVOCI na něm závisí |
+| 6 | Výroční zprávy | VZ | využije sestavy z etapy 3 |
+| 7 | Provozní pohodlí | UX | přání z otevřených bodů, průběžně |
+
+## Etapa 0 – Stabilizace (ST)
+
+| Krok | Obsah | Model |
+|---|---|---|
+| ST-01 | Sekce Převzetí IM-01 až IM-13, sloučení `feature/instrument-master` → `feature/nav-prototyp` → `main` (souhlas Martina v promptu), smazání sloučených větví po dotazu | Sonnet |
+| ST-02 | GitHub Actions: instalace všech modulů `investra_*` a testy na čisté databázi při každém pushi; bez tajných údajů v repozitáři | Sonnet |
+| ST-03 | Chyba nabídky Přehled (padá v prohlížeči; text chyby dodá Martin) | Sonnet |
+| ST-04 | Pravidla Copilota a Antigravity: společná instance 8072 podle `CLAUDE.md` | Sonnet |
+
+Prompt ST-01 (`/model sonnet`):
+
+    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla, Etapa 0) a poslední soubor v docs/predavky/.
+    Proveď ST-01. Souhlasím se sloučením feature/instrument-master do feature/nav-prototyp a do main (Martin);
+    před sloučením pusť testy všech modulů investra_* na dočasné databázi. Větve nemaž, jen navrhni. Zapiš do deníku,
+    udělej předávku, napiš mi, co šlo ven, a zastav se.
+
+ST-02 až ST-04: stejný prompt s číslem kroku, bez věty o sloučení; větev `ukol/ST-0X` z `main`.
+
+## Etapa 1 – Deriváty: FX forward a FX swap (DE)
+
+Rozsah první verze: měnový forward a měnový swap (dvě nohy), mimoburzovní, bez zajišťovacího účetnictví.
+Ostatní deriváty až podle pozic fondů. Podklady: `docs/navrh-oceneni-derivatu.md`, otevřené body „Oceňování derivátů“,
+„Podrozvaha v Odoo“, „TISIFI10 u nových smluv“; důvěrné `duverne/poznatky-derivaty.md` jen číst, nekopírovat.
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| DE-01 | Návrh: evidence smlouvy (nominály obou měn, sjednaný kurz, data obou noh, protistrana, portfolio, účel: zajištění třídy / fondu / spekulace), zdroj hodnoty (ocenění protistrany nebo vlastní výpočet z forwardových bodů), účtování (podrozvaha, kladná a záporná RH, přecenění, vypořádání), přiřazení výsledku zajištění třídě, dopad do výkazů ČNB | Opus | návrh |
+| DE-02 | Model smlouvy, formulář, práva, vazba na nástroj a BA0088, kontroly | Sonnet | oranžová |
+| DE-03 | Ocenění: reálná hodnota ke dni ocenění, vstupy (spot, forwardové body nebo úrokové sazby obou měn), řádek v ocenění, kontroly stáří vstupů | Opus | červená |
+| DE-04 | Účtování: sjednání (podrozvaha), přecenění, vypořádání obou noh, storna, náhled zaúčtování | Opus | červená |
+| DE-05 | Zajištění třídy: výsledek derivátu jen do třídy, kterou zajišťuje (`investra_allocation`), přemostění tříd | Opus | červená |
+| DE-06 | Ukázka v `seed.py` (FX swap u fondu s třídou v EUR), README, SELECTy | Haiku | zelená |
+
+Prompt DE-01 (`/model opus`):
+
+    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla, Etapa 1), docs/navrh-oceneni-derivatu.md,
+    docs/predpisy-a-standardy.md a související otevřené body. Kód neměň. Proveď DE-01: návrh do docs/navrh-fx-derivaty.md
+    a zadání DE-02 až DE-06 do docs/ukoly/. Předpisy ověř v primárních zdrojích, neověřené označ. Uveď číselný příklad
+    FX swapu přes dvě ocenění. Commitni do větve etapa/derivaty, napiš mi otázky k rozhodnutí a zastav se.
+
+## Etapa 2 – Převzetí fondu (PF)
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| PF-01 | Návrh: den přechodu, počáteční rozvaha, pozice po nástrojích a portfoliích s pořizovací cenou a kurzem, naběhlé úroky, třídy a počty podílů, poslední kurz, co dělat s chybějícím pořizovacím kurzem; formát importu (Excel) a kontroly proti rozvaze předchozího administrátora | Opus | návrh |
+| PF-02 | Šablony importu a průvodce s náhledem a konflikty (vzor: import číselníků IM-02) | Sonnet | oranžová |
+| PF-03 | Zaúčtování počátečních stavů a založení pozic; první ocenění navazuje na převzatý kurz | Opus | červená |
+| PF-04 | Odsouhlasení: sestava rozdílů převzato × Odoo, protokol o převzetí | Sonnet | oranžová |
+
+Prompt PF-01: jako DE-01, s oddílem Etapa 2, výstup `docs/navrh-prevzeti-fondu.md`, větev `etapa/prevzeti-fondu`.
+
+## Etapa 3 – Výkazy ČNB (CN)
+
+Dnes: katalog FOFI20261201 v `docs/cnb/`, modul `investra_cnb` s převodovou tabulkou. Odeslání do SDAT je mimo rozsah,
+dokud není přístup do testovacího SDAT (`docs/navrh-sdat.md`).
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| CN-01 | Návrh: které výkazy podává FKI a v jakém pořadí je stavět (podle `docs/cnb/lhuty.md` a `vykazy-*.csv`), model výkazu (fond, období, stav, hodnoty, ruční úpravy s důvodem), zdroje dat (účty přes převodovou tabulku, pozice, emitenti), kontroly z `kontroly-*.csv`, export | Opus | návrh |
+| CN-02 | Jádro: model výkazu a hodnot, plnění z účetnictví, stavy a schválení, náhled | Sonnet | oranžová |
+| CN-03 | Rozvahové a výsledkové výkazy (první sada podle CN-01) | Sonnet | oranžová |
+| CN-04 | Výkazy po pozicích (DOFOS31 a příbuzné): BA0088, ESA, země, měna, kategorie | Sonnet | oranžová |
+| CN-05 | Kontroly ČNB před schválením, přehled chyb | Sonnet | oranžová |
+| CN-06 | Export do souboru podle metodiky; ověření proti ukázkovým datům | Opus | oranžová |
+
+Prompt CN-01: jako DE-01, s oddílem Etapa 3 a soubory `docs/cnb/README.md`, `lhuty.md`, `prevodova-tabulka.md`;
+výstup `docs/navrh-vykazy-cnb.md`, větev `etapa/vykazy-cnb`. Katalog číst jen cíleně (grep), ne celý.
+
+## Etapa 4 – ECL (EC)
+
+Doporučení: PD a LGD se zadávají ručně na protistraně; tabulka ratingů až později.
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| EC-01 | Návrh: rozsah (dluhové AC a FVOCI; FVTPL ne), ověření opory (501/2002 Sb. a IFRS 9 část 5.5), výpočet ECL = expozice × PD × LGD (stupeň 1 dvanáctiměsíční, 2 a 3 za dobu trvání), přechody mezi stupni, role účtů, řádky ČNB | Opus | návrh |
+| EC-02 | Nastavení na protistraně (verzované: rating, stupeň, PD 12 m, PD za dobu trvání, LGD, zdroj) a výjimka na nástroji s povinným důvodem | Sonnet | oranžová |
+| EC-03 | Výpočet při ocenění, upozornění na splátky po splatnosti 30 a 90 dnů, účtování změny ECL s náhledem a storny | Opus | červená |
+| EC-04 | Přehled ECL podle fondu, protistrany a stupně; ukázka v `seed.py` | Sonnet | oranžová |
+
+Prompt EC-01: jako DE-01, s oddílem Etapa 4 a `docs/navrh-klasifikace-ifrs9.md`; výstup `docs/navrh-ecl.md`, větev `etapa/ecl`.
+
+## Etapa 5 – FVOCI do kapitálu (FO)
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| FO-01 | Návrh: přecenění dluhových FVOCI do kapitálu, úrok EIR do výsledku, recyklace při prodeji, kapitálové FVOCI bez recyklace, ECL u FVOCI, dopad na NAV a výkazy | Opus | návrh |
+| FO-02 | Implementace v ocenění a účtování | Opus | červená |
+
+## Etapa 6 – Výroční zprávy (VZ)
+
+Doporučení: vlastní sestavy v Community (potřebuje je i etapa 3); výstupem jsou tabulky do Excelu, text zprávy se píše ručně.
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| VZ-01 | Návrh: požadavky na obsah výroční zprávy fondu ověřit v ZISIF a prováděcích předpisech; seznam tabulek, zdroje dat | Opus | návrh |
+| VZ-02 | Rozvaha, výkaz zisku a ztráty, přehled o změnách vlastního kapitálu, podrozvaha | Sonnet | oranžová |
+| VZ-03 | Tabulky přílohy: skladba majetku, vývoj kurzu a fondového kapitálu, úplaty, obchody | Sonnet | oranžová |
+| VZ-04 | Export do Excelu, kontrola na ukázkových datech | Haiku | zelená |
+
+## Etapa 7 – Provozní pohodlí (UX)
+
+Přehled operací ke zpracování; zařazení nástroje vzniká prvním nákupem; výchozí maximální stáří ceny podle typu;
+pořadí stavů ocenění v čase. Zadání píše Claude jednotlivě do `docs/ukoly/`, provádí Sonnet, vzhled Copilot nebo Antigravity.
+
+## Šablona promptu pro implementační krok
+
+    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla) a docs/ukoly/<ID>-….md a z návrhu etapy jen oddíly
+    uvedené v úkolu. Celý projekt neprocházej. Pracuj ve větvi etapy. [U červené zóny: Plán v úkolu <ID> schvaluji
+    (červená zóna, Martin).] Soubor .env existuje, nečti ho ani nevypisuj. Proveď úkol, pusť testy na dočasné databázi
+    investra_ci_* a po testech ji smaž, doplň sekci Výsledek, commitni, pushni do origin s výslovným cílem a zastav se.
+
+## Mimo plán (čeká na podklady nebo rozhodnutí)
+
+Napojení na IS (chybí dokumentace), odeslání do SDAT (chybí přístup), bankovní výpisy a párování (Community × Enterprise),
+ostatní deriváty, příprava produkce (hosting, zálohy, vícefaktorové přihlášení, DORA), nezávislý výpočet NAV.
