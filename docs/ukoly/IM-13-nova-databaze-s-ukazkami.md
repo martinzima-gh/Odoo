@@ -22,6 +22,10 @@ nad `~/odoo-dev/addons/custom`; `investra_vzhled` (8072) čte kód z `~/odoo-rev
    Odoo; pak `seed.py`.
 4. Kontejner na 8071 spouštět nad `investra` (`-d investra --db-filter=^investra$`); kontejnery `investra-test-web`,
    `investra-vzhled-web` a služba `investra_dev` na 8070 zastavit. **Databáze ani svazky nemazat.**
+4a. **Schvalování jedním uživatelem (pokyn Martina 15. 11. 2026):** v databázi `investra` nastavit schvalovací matici
+   a související parametry u všech fondů a operací tak, že stačí jeden uživatel (zadavatel smí sám schválit, „2 oči“).
+   Nastavit přes ORM/UI, ne SQL; výchozí hodnoty modulů ani testy čtyř očí neměnit. Ukázkoví schvalovatelé pak nejsou
+   nutní; stačí jeden pracovní uživatel. Ve Výsledku vypsat, které parametry se změnily a jak je vrátit.
 5. `tools/run_tests.sh`: přestat používat pracovní databázi; testy jen na dočasné `investra_ci_*` (vytvořit, otestovat,
    smazat). Upravit `CLAUDE.md` (tabulka Prostředí, věta o testech) a README.
 6. Ukázkové SELECTy s počty do `docs/sql/` (fondy, ocenění podle fondu, obchody, zařazení podle kategorie).
@@ -40,8 +44,7 @@ nad `~/odoo-dev/addons/custom`; `investra_vzhled` (8072) čte kód z `~/odoo-rev
 K tomu: emitenti s detailním ESA, zemí a LEI ve správném formátu (smyšlené); nástroje s BA0088, CFI, posouzeným SPPI
 a potvrzenou klasifikací; schválená portfolia s kategorií a účetním profilem; ceny a kurzy pro každý den ocenění; úpisy
 a odkupy v několika obdobích; aspoň jeden prodej, jedna splátka jistiny a jeden kupón; úplaty podle nastavení fondu.
-Ocenění projdou celým postupem včetně schválení (schvaluje jiný uživatel než zadavatel, podle schvalovací matice);
-založit k tomu ukázkové uživatele bez hesel v repozitáři (hesla nastaví Martin v UI, nebo se vypíší jen jemu mimo git).
+Ocenění projdou celým postupem včetně schválení; schvaluje jeden uživatel (viz krok 4a). Žádná hesla v repozitáři.
 
 **Mimo rozsah:** změny modulů (chybu, která brání naplnění, popsat a navrhnout jako zadání, neopravovat potichu),
 sloučení do `main`, mazání starých databází, produkční prostředí.
