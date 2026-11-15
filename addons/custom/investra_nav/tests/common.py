@@ -5,6 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from odoo.tests import TransactionCase
+from odoo.addons.investra_instruments.tests.common import assess_sppi
 
 SCENARIOS = Path(__file__).parent / "scenarios"
 FUND_NUMBER = itertools.count(1)
@@ -68,6 +69,7 @@ class NavCase(TransactionCase):
         if model in ("hold_to_collect", "hold_collect_sell") and instrument.type_id.kind in ("bond", "loan", "deposit", "repo"):
             vals.setdefault("sppi", "pass")
             vals.setdefault("sppi_note", "Test: pevný úrok a jistina")
+        vals = assess_sppi(instrument, vals, day)
         return self.env["investra.portfolio.classification"].create({
             "portfolio_id": self.portfolio(fund, model).id, "instrument_id": instrument.id, "valid_from": day, **vals,
         })

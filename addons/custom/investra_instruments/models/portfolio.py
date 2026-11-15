@@ -33,6 +33,11 @@ NATURE_BY_KIND = {
 # Povahy, u nichž se hodnotí SPPI: pro držitele dluhový nástroj (podílový list s právem odkupu typicky SPPI nesplní).
 SPPI_NATURES = {"debt", "puttable"}
 SPPI = [("pass", "Splněn"), ("fail", "Nesplněn"), ("na", "Nehodnotí se")]
+# Test SPPI je vlastnost nástroje společná pro všechny fondy (rozhodnutí uživatele 15. 11. 2026, úkol IM-05);
+# zařazení ho přebírá a „Neposouzeno“ se v něm chová jako „Nehodnotí se“.
+SPPI_STATUS = [("not_assessed", "Neposouzeno")] + SPPI
+SPPI_ASSESSED = {"pass", "fail"}
+SPPI_INSTRUMENT_FIELDS = {"sppi_status", "sppi_note", "sppi_version", "sppi_assessed_on"}
 SPPI_VERSION = [
     ("pre_2025_1047", "IFRS 9 před novelou (EU) 2025/1047"),
     ("eu_2025_1047", "IFRS 9 ve znění nařízení (EU) 2025/1047"),
@@ -53,13 +58,115 @@ MANDATORY_BASIS = {
     ("participation", "fvtpl"): "IFRS 10.31 (investiční jednotka), IAS 28.18",
 }
 # Pole zařazení, na kterých stojí zaúčtované hodnoty a jejich zdůvodnění; po prvním obchodu je změní jen reklasifikace.
+# SPPI tu není: zařazení ho přebírá z nástroje, kde se po prvním obchodu s nástrojem zamkne (IM-05).
 LOCKED_CLASSIFICATION = {
-    "portfolio_id", "instrument_id", "valid_from", "instrument_nature", "nature_note", "sppi", "sppi_note", "sppi_version",
+    "portfolio_id", "instrument_id", "valid_from", "instrument_nature", "nature_note",
     "designation", "designation_note", "category_override", "override_note", "valuation_method", "role_id",
 }
 # Ruční kategorii zapisuje jen krok podle schvalovací matice (rozhodnutí 2026-11-11); hodnotu nejde poslat přes API.
 _OVERRIDE_OK = object()
 COMPUTED_CLASSIFICATION = {"ifrs9_category", "mandatory_category", "computed_category", "classification_basis"}
+SPPI_FROM_INSTRUMENT = {"sppi", "sppi_note", "sppi_version"}
+
+
+def sppi_version_for(day):
+    """Znění IFRS 9 pro posouzení SPPI podle data posouzení (od 1. 1. 2026 nařízení (EU) 2025/1047)."""
+    return "eu_2025_1047" if not day or fields.Date.to_date(day) >= AMENDMENT_FROM else "pre_2025_1047"
+
+
+class InvestraInstrumentSppi(models.Model):
+    """Test SPPI na nástroji (IFRS 9 4.1.2 b, 4.1.2A b): smluvní peněžní toky jsou vlastností nástroje, ne fondu."""
+
+    _inherit = "investra.instrument"
+
+    sppi_status = fields.Selection(
+        SPPI_STATUS, required=True, default="not_assessed", string="Test SPPI", tracking=True,
+        help="Smluvní peněžní toky jsou jen splátky jistiny a úroku (IFRS 9 4.1.2 b). Platí pro všechny fondy; "
+             "zařazení v portfoliích ho přebírají. Po prvním obchodu s nástrojem se nemění.",
+    )
+    sppi_note = fields.Char(string="Odůvodnění SPPI", tracking=True)
+    sppi_version = fields.Selection(
+        SPPI_VERSION, string="Znění IFRS 9 pro SPPI", tracking=True,
+        help="Podle data posouzení: od 1. 1. 2026 IFRS 9 ve znění nařízení (EU) 2025/1047.",
+    )
+    sppi_assessed_on = fields.Date(string="Posouzeno dne", tracking=True)
+    sppi_assessed_by = fields.Many2one("res.users", readonly=True, ondelete="restrict", string="Posoudil", tracking=True)
+    sppi_applicable = fields.Boolean(compute="_compute_sppi_applicable", string="Hodnotí se SPPI")
+    sppi_locked = fields.Boolean(compute="_compute_sppi_locked", string="SPPI zamčeno")
+
+    @api.depends("type_id.kind", "classification_ids.instrument_nature")
+    def _compute_sppi_applicable(self):
+        for instrument in self:
+            instrument.sppi_applicable = bool(instrument._sppi_natures() & SPPI_NATURES)
+
+    def _compute_sppi_locked(self):
+        traded = set(self.env["investra.trade"].sudo().search([("instrument_id", "in", self.ids)]).instrument_id.ids)
+        for instrument in self:
+            instrument.sppi_locked = instrument.id in traded
+
+    def _sppi_natures(self):
+        """Povahy, které nástroj má: podle druhu typu a podle posouzení v zařazeních."""
+        self.ensure_one()
+        natures = {NATURE_BY_KIND.get(self.type_id.kind, "equity")} if self.type_id else set()
+        return natures | set(self.classification_ids.mapped("instrument_nature"))
+
+    @api.model
+    def _prepare_sppi(self, vals, current=None):
+        """Každá změna posouzení je nové posouzení: posoudil přihlášený uživatel, dnes (nezadá-li se datum), a znění
+        IFRS 9 podle data posouzení (nezadá-li se). Neposouzený test nemá posuzovatele ani datum, nehodnocený nemá znění."""
+        status = vals.get("sppi_status") or (current.sppi_status if current else "not_assessed")
+        if status == "not_assessed":
+            vals.update(sppi_version=False, sppi_assessed_on=False, sppi_assessed_by=False)
+            return vals
+        if not (self.env.su and vals.get("sppi_assessed_by")):
+            vals["sppi_assessed_by"] = self.env.user.id
+        vals["sppi_assessed_on"] = vals.get("sppi_assessed_on") or fields.Date.context_today(self)
+        if status in SPPI_ASSESSED:
+            vals["sppi_version"] = vals.get("sppi_version") or sppi_version_for(vals["sppi_assessed_on"])
+        else:
+            vals["sppi_version"] = False
+        return vals
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        vals_list = [self._prepare_sppi(dict(vals)) if SPPI_INSTRUMENT_FIELDS & set(vals) else vals for vals in vals_list]
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if not SPPI_INSTRUMENT_FIELDS & set(vals):
+            return super().write(vals)
+        def differs(instrument, name):
+            field = instrument._fields[name]
+            return field.convert_to_cache(instrument[name], instrument) != field.convert_to_cache(vals[name], instrument)
+
+        changed = self.filtered(lambda i: any(differs(i, name) for name in SPPI_INSTRUMENT_FIELDS & set(vals)))
+        if not changed:
+            return super().write(vals)
+        if not self.env.su and self.env["investra.trade"].sudo().search_count([("instrument_id", "in", changed.ids)], limit=1):
+            raise UserError(self.env._("Po prvním obchodu s nástrojem nejde posouzení SPPI změnit."))
+        for instrument in changed:
+            super(InvestraInstrumentSppi, instrument).write(self._prepare_sppi(dict(vals), instrument))
+        if self - changed:
+            super(InvestraInstrumentSppi, self - changed).write(vals)
+        # Zařazení SPPI přebírají jako uložená pole; jejich kontroly se při přepočtu nespouštějí (plán, oddíl 2).
+        changed.classification_ids._check_classification()
+        return True
+
+    @api.constrains("sppi_status", "sppi_note", "sppi_version", "sppi_assessed_on", "type_id")
+    def _check_sppi(self):
+        for instrument in self:
+            name = instrument.display_name
+            if instrument.sppi_status in SPPI_ASSESSED:
+                if not instrument._sppi_natures() & SPPI_NATURES:
+                    raise ValidationError(self.env._("Test SPPI se hodnotí jen u dluhových nástrojů a podílových listů: %s.", name))
+                if not (instrument.sppi_note and instrument.sppi_version):
+                    raise ValidationError(self.env._("Vyhodnocený test SPPI musí mít odůvodnění a znění IFRS 9: %s.", name))
+                if sppi_version_for(instrument.sppi_assessed_on) == "eu_2025_1047" and instrument.sppi_version != "eu_2025_1047":
+                    raise ValidationError(self.env._(
+                        "Posouzení SPPI od 1. 1. 2026 se dělá podle IFRS 9 ve znění nařízení (EU) 2025/1047: %s.", name,
+                    ))
+            elif instrument.sppi_version:
+                raise ValidationError(self.env._("Znění IFRS 9 se uvádí jen u vyhodnoceného testu SPPI: %s.", name))
 
 
 class InvestraFundPortfolio(models.Model):
@@ -125,13 +232,16 @@ class InvestraPortfolioClassification(models.Model):
         string="Posouzení povahy", tracking=True,
         help="Povinné, když se povaha liší od druhu typu (např. podílový list posouzený podle IAS 32 jako kapitálový nástroj).",
     )
-    # (b) test SPPI
+    # (b) test SPPI: převzatý z nástroje (IM-05); u povahy bez SPPI a u neposouzeného nástroje „Nehodnotí se“
     sppi = fields.Selection(
-        SPPI, required=True, default="na", string="Test SPPI", tracking=True,
-        help="Smluvní peněžní toky jsou jen splátky jistiny a úroku (IFRS 9 4.1.2 b). Hodnotí se u dluhových nástrojů a podílových listů.",
+        # Bez required: uložené vypočtené pole se při založení vkládá prázdné a dopočítá se až potom (NOT NULL by selhal);
+        # výpočet hodnotu nastaví vždy.
+        SPPI, compute="_compute_sppi", store=True, string="Test SPPI", tracking=True,
+        help="Převzato z nástroje. Smluvní peněžní toky jsou jen splátky jistiny a úroku (IFRS 9 4.1.2 b). "
+             "Hodnotí se u dluhových nástrojů a podílových listů.",
     )
-    sppi_note = fields.Char(string="Odůvodnění SPPI", tracking=True)
-    sppi_version = fields.Selection(SPPI_VERSION, string="Znění IFRS 9 pro SPPI", tracking=True)
+    sppi_note = fields.Char(compute="_compute_sppi", store=True, string="Odůvodnění SPPI", tracking=True)
+    sppi_version = fields.Selection(SPPI_VERSION, compute="_compute_sppi", store=True, string="Znění IFRS 9 pro SPPI", tracking=True)
     # (c) obchodní model z portfolia
     business_model = fields.Selection(related="portfolio_id.business_model", string="Obchodní model")
     # (d) povinná klasifikace
@@ -166,6 +276,20 @@ class InvestraPortfolioClassification(models.Model):
     def _compute_display_name(self):
         for record in self:
             record.display_name = f"{record.instrument_id.name} – {record.portfolio_id.name}"
+
+    # --- (b) SPPI z nástroje ---------------------------------------------------------------------
+
+    @api.model
+    def _sppi_from(self, instrument, nature):
+        """Test SPPI zařazení: hodnota nástroje u povahy, u níž se SPPI hodnotí; jinak (i u neposouzeného) „na“."""
+        if nature in SPPI_NATURES and instrument.sppi_status in SPPI_ASSESSED:
+            return {"sppi": instrument.sppi_status, "sppi_note": instrument.sppi_note, "sppi_version": instrument.sppi_version}
+        return {"sppi": "na", "sppi_note": False, "sppi_version": False}
+
+    @api.depends("instrument_id.sppi_status", "instrument_id.sppi_note", "instrument_id.sppi_version", "instrument_nature")
+    def _compute_sppi(self):
+        for record in self:
+            record.update(record._sppi_from(record.instrument_id, record.instrument_nature))
 
     # --- (d) a (f): klasifikace ----------------------------------------------------------------
 
@@ -238,7 +362,10 @@ class InvestraPortfolioClassification(models.Model):
 
     @api.model
     def _default_sppi_version(self, portfolio, valid_from):
-        """Znění pro SPPI podle začátku účetního období, do kterého spadá den platnosti."""
+        """Znění pro SPPI podle začátku účetního období, do kterého spadá den platnosti.
+
+        Jen pro starší migraci 20.0.0.5.0. Od IM-05 se znění určuje podle data posouzení na nástroji (`sppi_version_for`).
+        """
         if not (portfolio and valid_from):
             return "eu_2025_1047"
         company = portfolio.fund_id.company_id
@@ -312,15 +439,16 @@ class InvestraPortfolioClassification(models.Model):
         for vals in vals_list:
             if COMPUTED_CLASSIFICATION & set(vals):
                 raise UserError(self.env._("Klasifikace se určuje z povahy nástroje, testu SPPI, obchodního modelu a určení."))
+            if SPPI_FROM_INSTRUMENT & set(vals):
+                raise UserError(self.env._("Test SPPI se posuzuje na nástroji; zařazení ho přebírá."))
             instrument = self.env["investra.instrument"].browse(vals.get("instrument_id"))
             portfolio = self.env["investra.fund.portfolio"].browse(vals.get("portfolio_id"))
             if instrument:
                 vals.setdefault("instrument_nature", self._default_nature(instrument))
-            if vals.get("sppi", "na") != "na":
-                vals.setdefault("sppi_version", self._default_sppi_version(portfolio, vals.get("valid_from") or fields.Date.today()))
             if instrument and portfolio:
+                sppi = self._sppi_from(instrument, vals["instrument_nature"])["sppi"]
                 proposal = self._proposal(
-                    instrument, portfolio, vals["instrument_nature"], vals.get("sppi", "na"), vals.get("designation", "none"),
+                    instrument, portfolio, vals["instrument_nature"], sppi, vals.get("designation", "none"),
                     vals.get("category_override"), vals.get("valid_from") or fields.Date.context_today(self),
                 )
                 for field, value in proposal.items():
@@ -335,12 +463,8 @@ class InvestraPortfolioClassification(models.Model):
         if self.instrument_id:
             self.instrument_nature = self._default_nature(self.instrument_id)
 
-    @api.onchange("instrument_id", "portfolio_id", "instrument_nature", "sppi", "designation", "category_override", "valid_from")
+    @api.onchange("instrument_id", "portfolio_id", "instrument_nature", "designation", "category_override", "valid_from")
     def _onchange_proposal(self):
-        if self.sppi == "na":
-            self.sppi_version = False
-        elif not self.sppi_version:
-            self.sppi_version = self._default_sppi_version(self.portfolio_id, self.valid_from)
         if self.instrument_id and self.portfolio_id and self.instrument_nature:
             self.update(self._proposal(
                 self.instrument_id, self.portfolio_id, self.instrument_nature, self.sppi, self.designation, self.category_override,
@@ -366,8 +490,10 @@ class InvestraPortfolioClassification(models.Model):
 
     # --- kontroly ----------------------------------------------------------------------------
 
+    # SPPI není mezi spouštěči: je převzaté z nástroje a Odoo by kontrolu spustilo uprostřed výpočtu kategorie;
+    # při změně SPPI ji volá zápis nástroje (InvestraInstrumentSppi.write).
     @api.constrains(
-        "instrument_nature", "nature_note", "sppi", "sppi_note", "sppi_version", "designation", "designation_note",
+        "instrument_nature", "nature_note", "designation", "designation_note",
         "category_override", "override_note", "valuation_method", "portfolio_id", "instrument_id", "valid_from",
     )
     def _check_classification(self):
@@ -379,23 +505,12 @@ class InvestraPortfolioClassification(models.Model):
             # (a) povaha
             if nature != record._default_nature(record.instrument_id) and not record.nature_note:
                 raise ValidationError(self.env._("Povaha nástroje se liší od druhu typu; doplňte posouzení povahy: %s.", name))
-            # (b) SPPI
-            if nature not in SPPI_NATURES and record.sppi != "na":
-                raise ValidationError(self.env._("Test SPPI se hodnotí jen u dluhových nástrojů a podílových listů: %s.", name))
+            # (b) SPPI: odůvodnění a znění kontroluje nástroj (IM-05); znění se řídí datem posouzení, ne obdobím fondu.
             if nature in SPPI_NATURES and model in SPPI_MODELS and record.sppi == "na":
                 raise ValidationError(self.env._(
-                    "V modelu Držet pro inkaso nebo Inkaso i prodej musí mít nástroj vyhodnocený test SPPI (IFRS 9 4.1.2): %s.", name,
+                    "V modelu Držet pro inkaso nebo Inkaso i prodej musí mít nástroj vyhodnocený test SPPI (IFRS 9 4.1.2); "
+                    "posuďte ho na nástroji: %s.", name,
                 ))
-            if record.sppi == "na" and record.sppi_version:
-                raise ValidationError(self.env._("Znění IFRS 9 se uvádí jen u vyhodnoceného testu SPPI: %s.", name))
-            if record.sppi != "na":
-                if not (record.sppi_note and record.sppi_version):
-                    raise ValidationError(self.env._("Vyhodnocený test SPPI musí mít odůvodnění a znění IFRS 9: %s.", name))
-                required = record._default_sppi_version(record.portfolio_id, record.valid_from)
-                if required == "eu_2025_1047" and record.sppi_version != required:
-                    raise ValidationError(self.env._(
-                        "Pro účetní období od 1. 1. 2026 se SPPI posuzuje podle IFRS 9 ve znění nařízení (EU) 2025/1047: %s.", name,
-                    ))
             # (e) určení a volba
             if record.designation != "none" and not record.designation_note:
                 raise ValidationError(self.env._("Určení nebo volba musí mít odůvodnění: %s.", name))
@@ -456,6 +571,8 @@ class InvestraPortfolioClassification(models.Model):
     def write(self, vals):
         if not self.env.su and COMPUTED_CLASSIFICATION & set(vals):
             raise UserError(self.env._("Klasifikace se určuje z povahy nástroje, testu SPPI, obchodního modelu a určení."))
+        if not self.env.su and SPPI_FROM_INSTRUMENT & set(vals):
+            raise UserError(self.env._("Test SPPI se posuzuje na nástroji; zařazení ho přebírá."))
         if not self.env.su and LOCKED_CLASSIFICATION & set(vals) and self._trades():
             raise UserError(self.env._(
                 "Po prvním obchodu nejde zařazení změnit; změna je reklasifikace (IFRS 9 4.4.1), která zatím není podporovaná."

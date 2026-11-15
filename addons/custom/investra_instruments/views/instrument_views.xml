@@ -88,6 +88,15 @@
                         <field name="accrual_method"/>
                         <field name="accrual_note" invisible="accrual_method != 'linear'" required="accrual_method == 'linear'"/>
                     </group>
+                    <group string="Test SPPI" invisible="not sppi_applicable">
+                        <field name="sppi_applicable" invisible="1"/><field name="sppi_locked" invisible="1"/>
+                        <field name="sppi_status" readonly="sppi_locked"/>
+                        <field name="sppi_note" invisible="sppi_status == 'not_assessed'"
+                               required="sppi_status in ('pass', 'fail')" readonly="sppi_locked"/>
+                        <field name="sppi_assessed_on" invisible="sppi_status == 'not_assessed'" readonly="sppi_locked"/>
+                        <field name="sppi_version" invisible="sppi_status not in ('pass', 'fail')" readonly="sppi_locked"/>
+                        <field name="sppi_assessed_by" invisible="not sppi_assessed_by"/>
+                    </group>
                     <notebook>
                         <page string="Zařazení ve fondech">
                             <field name="classification_ids" readonly="1">
@@ -400,8 +409,8 @@
                     <group>
                         <group string="(b) Test SPPI" invisible="instrument_nature not in ('debt', 'puttable')">
                             <field name="sppi"/>
-                            <field name="sppi_version" invisible="sppi == 'na'" required="sppi != 'na'"/>
-                            <field name="sppi_note" invisible="sppi == 'na'" required="sppi != 'na'"/>
+                            <field name="sppi_version" invisible="sppi == 'na'"/>
+                            <field name="sppi_note" invisible="sppi == 'na'"/>
                         </group>
                         <group string="(c) Obchodní model">
                             <field name="business_model"/>

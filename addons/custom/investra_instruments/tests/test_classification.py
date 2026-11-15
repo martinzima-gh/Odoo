@@ -75,13 +75,15 @@ class TestClassification(InstrumentCase):
         env = self.env(context=dict(self.env.context, allowed_company_ids=[self.company.id, other_book.company_id.id]))
         other = env["investra.fund"].create({"entity_id": other_book.id})
         bond = self.bond()
+        # SPPI je vlastnost nástroje (IM-05): posoudí se jednou před prvním obchodem a platí pro oba fondy.
+        bond.write({"sppi_status": "pass", "sppi_note": "Pevná sazba", "sppi_assessed_on": "2000-01-01"})
         first = self.classify(self.fund, bond)
         self.trade(bond, 1)._book()
         second = env["investra.portfolio.classification"].create({
             "portfolio_id": env["investra.fund.portfolio"].create({
                 "fund_id": other.id, "name": "Inkaso", "business_model": "hold_to_collect",
             }).id,
-            "instrument_id": bond.id, "valid_from": "2000-01-01", "sppi": "pass", "sppi_note": "Pevná sazba",
+            "instrument_id": bond.id, "valid_from": "2000-01-01",
         })
         self.assertEqual((first.ifrs9_category, second.ifrs9_category), ("fvtpl", "amortised"))
 
@@ -183,7 +185,9 @@ class TestClassificationRules(InstrumentCase):
             self.classify(self.fund, self.make("participation"), designation="fvoci_equity", designation_note="x")
 
     def test_sppi_version_follows_period(self):
-        """Pro období od 1. 1. 2026 se SPPI posuzuje podle IFRS 9 ve znění nařízení (EU) 2025/1047."""
+        """Posouzení SPPI od 1. 1. 2026 se dělá podle IFRS 9 ve znění nařízení (EU) 2025/1047.
+
+        Od IM-05 rozhoduje datum posouzení na nástroji; pomocná metoda classify posuzuje ke dni zařazení."""
         current = self.classify(self.fund, self.make("bond"), "hold_to_collect", day="2027-03-01")
         self.assertEqual(current.sppi_version, "eu_2025_1047")
         with self.assertRaises(ValidationError):
@@ -223,3 +227,82 @@ class TestClassificationRules(InstrumentCase):
         return self.env["investra.trade"].create({
             "fund_id": self.fund.id, "instrument_id": instrument.id, "trade_date": "2026-11-02", "quantity": 1, "price": 1,
         })
+
+
+@tagged("post_install", "-at_install")
+class TestSppiOnInstrument(InstrumentCase):
+    """Test SPPI je vlastnost nástroje společná pro všechny fondy; zařazení ho přebírá (úkol IM-05, 15. 11. 2026)."""
+
+    def bond(self, **vals):
+        return self.env["investra.instrument"].create(with_ids(self.env, {
+            "name": f"Dluhopis {self.id()[-12:]}", "currency_id": self.czk.id,
+            "type_id": self.env.ref("investra_instruments.type_bond").id, **vals,
+        }))
+
+    def create_classification(self, instrument, model, **vals):
+        return self.env["investra.portfolio.classification"].create({
+            "portfolio_id": self.portfolio(self.fund, model).id, "instrument_id": instrument.id, "valid_from": "2026-11-01", **vals,
+        })
+
+    def test_new_instrument_is_not_assessed(self):
+        bond = self.bond()
+        self.assertEqual((bond.sppi_status, bond.sppi_version, bond.sppi_assessed_by), ("not_assessed", False, self.env["res.users"]))
+        self.assertTrue(bond.sppi_applicable)
+        self.assertFalse(self.instrument.sppi_applicable)
+        fair = self.create_classification(bond, "fair_value")
+        self.assertEqual((fair.sppi, fair.ifrs9_category), ("na", "fvtpl"))
+        self.assertIn("(b) Test SPPI: nehodnotí se", fair.classification_basis)
+
+    def test_sppi_model_needs_assessed_instrument(self):
+        bond = self.bond()
+        for model in ("hold_to_collect", "hold_collect_sell"):
+            with self.assertRaises(ValidationError):
+                self.create_classification(bond, model)
+
+    def test_classification_takes_sppi_from_instrument(self):
+        bond = self.bond(sppi_status="pass", sppi_note="Pevná sazba", sppi_assessed_on="2026-03-01")
+        self.assertEqual((bond.sppi_version, bond.sppi_assessed_by), ("eu_2025_1047", self.env.user))
+        held = self.create_classification(bond, "hold_to_collect")
+        self.assertEqual((held.sppi, held.sppi_note, held.sppi_version), ("pass", "Pevná sazba", "eu_2025_1047"))
+        self.assertEqual(held.ifrs9_category, "amortised")
+        with self.assertRaises(UserError):
+            self.create_classification(bond, "fair_value", sppi="fail", sppi_note="x")
+        with self.assertRaises(UserError):
+            held.with_user(self.preparer).write({"sppi": "fail"})
+
+    def test_instrument_change_revalidates_classifications(self):
+        bond = self.bond(sppi_status="pass", sppi_note="Pevná sazba")
+        held = self.create_classification(bond, "hold_to_collect")
+        # Nesplněný test by změnil kategorii na FVTPL, ale zařazení se oceňuje naběhlou hodnotou: zápis se odmítne.
+        with self.assertRaises(ValidationError):
+            bond.write({"sppi_status": "fail", "sppi_note": "Páka v úroku"})
+        fair = self.create_classification(self.bond(sppi_status="pass", sppi_note="Pevná sazba"), "fair_value")
+        fair.instrument_id.write({"sppi_status": "fail", "sppi_note": "Páka v úroku"})
+        self.assertEqual((fair.sppi, fair.sppi_note, fair.ifrs9_category), ("fail", "Páka v úroku", "fvtpl"))
+        self.env.invalidate_all()
+        self.assertEqual((bond.sppi_status, held.sppi, held.ifrs9_category), ("pass", "pass", "amortised"))
+
+    def test_version_follows_assessment_date(self):
+        self.assertEqual(self.bond(sppi_status="pass", sppi_note="x", sppi_assessed_on="2025-12-31").sppi_version, "pre_2025_1047")
+        with self.assertRaises(ValidationError):
+            self.bond(sppi_status="pass", sppi_note="x", sppi_assessed_on="2026-01-01", sppi_version="pre_2025_1047")
+        with self.assertRaises(ValidationError):  # vyhodnocený test bez odůvodnění
+            self.bond(sppi_status="fail")
+        with self.assertRaises(ValidationError):  # akcie test SPPI nemá
+            self.instrument.write({"sppi_status": "pass", "sppi_note": "x"})
+
+    def test_sppi_locked_after_first_trade(self):
+        bond = self.env["investra.instrument"].create(with_ids(self.env, {
+            "name": "Vklad SPPI", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_deposit").id,
+            "sppi_status": "pass", "sppi_note": "Pevná sazba",
+        }, self.fund))
+        self.create_classification(bond, "fair_value")
+        self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "instrument_id": bond.id, "trade_date": "2026-11-02", "quantity": 1, "price": 100,
+        })
+        self.assertTrue(bond.sppi_locked)
+        bond.with_user(self.preparer).write({"sppi_status": "pass", "sppi_note": "Pevná sazba"})  # beze změny projde
+        for vals in ({"sppi_status": "fail"}, {"sppi_note": "Jiné odůvodnění"}, {"sppi_assessed_on": "2026-12-01"}):
+            with self.assertRaises(UserError):
+                bond.with_user(self.preparer).write(vals)
+        self.assertEqual(bond.sppi_status, "pass")

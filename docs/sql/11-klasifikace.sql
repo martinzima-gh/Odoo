@@ -82,3 +82,22 @@ JOIN investra_account_role rz ON rz.id = z.role_id
 JOIN res_company c ON c.id = z.company_id
 WHERE z.role_id <> t.role_id
 ORDER BY c.name, i.name;
+
+-- 9. Test SPPI na nástroji (od investra_instruments 20.0.0.15.0, úkol IM-05) a jeho převzetí v zařazeních
+SELECT i.code AS kod, i.name AS nastroj, i.sppi_status AS sppi_nastroje, i.sppi_version AS zneni,
+       i.sppi_assessed_on AS posouzeno, u.login AS posoudil, count(z.id) AS zarazeni,
+       string_agg(DISTINCT z.sppi, ', ') AS sppi_v_zarazenich
+FROM investra_instrument i
+LEFT JOIN res_users u ON u.id = i.sppi_assessed_by
+LEFT JOIN investra_portfolio_classification z ON z.instrument_id = i.id
+GROUP BY i.id, u.login
+ORDER BY i.code;
+
+-- 10. Kontrola: zařazení, jehož SPPI neodpovídá nástroji (má být prázdné; „Neposouzeno“ se v zařazení chová
+--     jako „Nehodnotí se“, u povahy bez SPPI je v zařazení vždy „Nehodnotí se“)
+SELECT i.name AS nastroj, z.id AS zarazeni, z.instrument_nature AS povaha, i.sppi_status AS sppi_nastroje, z.sppi AS sppi_zarazeni
+FROM investra_portfolio_classification z
+JOIN investra_instrument i ON i.id = z.instrument_id
+WHERE z.sppi <> CASE WHEN z.instrument_nature IN ('debt', 'puttable') AND i.sppi_status IN ('pass', 'fail')
+                     THEN i.sppi_status ELSE 'na' END
+ORDER BY i.name;

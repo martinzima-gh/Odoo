@@ -2,7 +2,7 @@ from datetime import date
 
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
-from odoo.addons.investra_instruments.tests.common import with_ids
+from odoo.addons.investra_instruments.tests.common import assess_sppi, with_ids
 
 
 class InstrumentCase(TransactionCase):
@@ -40,6 +40,7 @@ class InstrumentCase(TransactionCase):
         if model in ("hold_to_collect", "hold_collect_sell") and instrument.type_id.kind in ("bond", "loan", "deposit", "repo"):
             vals.setdefault("sppi", "pass")
             vals.setdefault("sppi_note", "Test: pevný úrok a jistina")
+        vals = assess_sppi(instrument, vals, day)
         return cls.env["investra.portfolio.classification"].create({
             "portfolio_id": cls.portfolio(fund, model).id, "instrument_id": instrument.id, "valid_from": day, **vals,
         })
@@ -248,11 +249,14 @@ class TestInstrumentType(InstrumentCase):
             form.identifier = "TV-FORM-1"
             self.assertEqual(form.cnb_sheet, self.env.ref("investra_instruments.type_deposit").cnb_sheet)
         deposit = self.make("deposit")
+        # SPPI se posuzuje na nástroji (IM-05); formulář zařazení ho převezme.
+        with Form(deposit) as form:
+            form.sppi_status = "pass"
+            form.sppi_note = "Pevná sazba, jistina"
         with Form(self.env["investra.portfolio.classification"]) as form:
             form.portfolio_id = self.portfolio(self.fund, "hold_to_collect")
             form.instrument_id = deposit
-            form.sppi = "pass"
-            form.sppi_note = "Pevná sazba, jistina"
+            self.assertEqual(form.sppi, "pass")
             self.assertEqual(form.instrument_nature, "debt")
             self.assertEqual(form.ifrs9_category, "amortised")
             self.assertEqual(form.valuation_method, "amortised")

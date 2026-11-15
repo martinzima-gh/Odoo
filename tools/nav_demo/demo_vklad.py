@@ -46,13 +46,14 @@ deposit = scoped["investra.instrument"].create({
     "fund_id": fund.id, "identifier_kind": "contract", "identifier": f"TV-UKAZKA-{fund.id}",
     "issuer_id": bank.id, "principal": 5000000, "start_date": "2026-09-15", "maturity_date": "2026-12-15",
     "coupon_rate": 3.6, "day_count": "act360",
+    # Test SPPI je vlastnost nástroje (IM-05); zařazení ho přebírá.
+    "sppi_status": "pass", "sppi_note": "Pevná sazba, jistina a úrok k splatnosti", "sppi_assessed_on": "2026-09-15",
 })
 deposit.action_generate_schedule()
 # Vklad v modelu Držet pro inkaso se splněným testem SPPI: naběhlá hodnota (rozhodnutí 2026-11-11).
 held = scoped["investra.fund.portfolio"].create({"fund_id": fund.id, "name": "Držet pro inkaso", "business_model": "hold_to_collect"})
 scoped["investra.portfolio.classification"].create({
-    "portfolio_id": held.id, "instrument_id": deposit.id, "valid_from": "2026-09-15", "sppi": "pass",
-    "sppi_note": "Pevná sazba, jistina a úrok k splatnosti",
+    "portfolio_id": held.id, "instrument_id": deposit.id, "valid_from": "2026-09-15",
 })
 scoped["investra.trade"].create({
     "fund_id": fund.id, "portfolio_id": held.id, "instrument_id": deposit.id, "trade_date": "2026-09-15", "quantity": 1, "price": 5000000,
