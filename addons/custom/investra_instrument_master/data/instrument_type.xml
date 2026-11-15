@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Typy bez povinného druhu BA0088 (plán 3.4); ostatní typy ho vyžadují při potvrzení klasifikace. -->
+<odoo>
+    <record id="investra_instruments.type_deposit" model="investra.instrument.type"><field name="ba0088_required" eval="False"/></record>
+    <record id="investra_instruments.type_repo" model="investra.instrument.type"><field name="ba0088_required" eval="False"/></record>
+    <record id="investra_instruments.type_loan" model="investra.instrument.type"><field name="ba0088_required" eval="False"/></record>
+</odoo>

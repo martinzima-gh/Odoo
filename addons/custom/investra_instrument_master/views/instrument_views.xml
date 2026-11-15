@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Formulář nástroje: jen přidání přes XPath; stávající pole se nepřesouvají ani neodstraňují. -->
+    <record id="view_instrument_form_master" model="ir.ui.view">
+        <field name="name">investra.instrument.form.master</field><field name="model">investra.instrument</field>
+        <field name="inherit_id" ref="investra_instruments.view_instrument_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_confirm_classification" type="object" string="Potvrdit klasifikaci" class="btn-primary"
+                            invisible="review_state != 'draft' or not id" groups="investra_entity.group_valuation_approver"/>
+                    <button name="action_change_classification" type="object" string="Změnit klasifikaci"
+                            invisible="review_state != 'reviewed'"/>
+                    <field name="review_state" widget="statusbar" statusbar_visible="draft,reviewed"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='isin']" position="attributes">
+                <attribute name="readonly">review_state == 'reviewed'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='issuer_id']" position="attributes">
+                <attribute name="readonly">review_state == 'reviewed'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='type_id']/.." position="after">
+                <div class="o_investra_metadata_item">
+                    <label for="ba0088_id"/>
+                    <field name="ba0088_id" nolabel="1" readonly="review_state == 'reviewed'" options="{'no_create': True}"/>
+                </div>
+                <div class="o_investra_metadata_item">
+                    <label for="cfi_code"/>
+                    <field name="cfi_code" nolabel="1" readonly="review_state == 'reviewed'"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='calendar_missing']" position="before">
+                <div class="alert alert-warning" role="alert" invisible="not classification_gap">
+                    <field name="classification_gap" readonly="1"/>
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not isin_warning">
+                    <field name="isin_warning" readonly="1"/>
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not cfi_warning">
+                    <field name="cfi_warning" readonly="1"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='maturity_date']/.." position="attributes">
+                <attribute name="invisible">type_group not in ('debt', 'money_market', 'loan') and asset_family != 'debt'</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="before">
+                <group string="Klasifikace ČNB" invisible="not ba0088_id and not asset_family">
+                    <field name="asset_family"/>
+                    <field name="ba0088_requires_justification" invisible="1"/>
+                    <field name="ba0088_leverage_rule" invisible="1"/>
+                    <field name="ba0088_note" invisible="not ba0088_requires_justification"
+                           required="ba0088_requires_justification"/>
+                    <field name="leverage_flag" invisible="ba0088_leverage_rule == 'none' and asset_family != 'certificate'"/>
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Detail">
+                    <group>
+                        <group string="Emise" invisible="asset_family != 'debt' and type_group not in ('debt', 'money_market', 'loan')">
+                            <field name="issue_date"/><field name="nominal_value"/><field name="coupon_type"/>
+                            <field name="seniority"/><field name="convertible"/><field name="perpetual"/>
+                        </group>
+                        <group string="Podklad">
+                            <field name="underlying_description"/>
+                            <field name="underlying_instrument_id"/>
+                        </group>
+                        <group string="Původ údajů">
+                            <field name="master_source"/><field name="reviewed_by"/><field name="reviewed_on"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_instrument_list_master" model="ir.ui.view">
+        <field name="name">investra.instrument.list.master</field><field name="model">investra.instrument</field>
+        <field name="inherit_id" ref="investra_instruments.view_instrument_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type_id']" position="after">
+                <field name="ba0088_id" optional="show"/><field name="cfi_code" optional="hide"/><field name="review_state" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_instrument_search_master" model="ir.ui.view">
+        <field name="name">investra.instrument.search.master</field><field name="model">investra.instrument</field>
+        <field name="inherit_id" ref="investra_instruments.view_instrument_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='fund_id']" position="after">
+                <field name="ba0088_id"/><field name="cfi_code"/>
+                <filter name="no_ba0088" string="Chybí BA0088" domain="[('ba0088_id', '=', False)]"/>
+                <filter name="no_cfi" string="Chybí CFI" domain="[('cfi_code', '=', False)]"/>
+                <filter name="no_issuer" string="Bez emitenta" domain="[('issuer_id', '=', False)]"/>
+                <filter name="unreviewed" string="Nezkontrolováno" domain="[('review_state', '=', 'draft')]"/>
+                <filter name="overdue" string="Po splatnosti"
+                        domain="[('maturity_date', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_masterdata_change_wizard_form" model="ir.ui.view">
+        <field name="name">investra.masterdata.change.wizard.form</field><field name="model">investra.masterdata.change.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="alert alert-warning" role="alert">
+                    Klasifikace je potvrzená. Změna se zapíše do historie s uvedeným důvodem.
+                </div>
+                <group>
+                    <field name="instrument_id"/>
+                    <field name="ba0088_id" options="{'no_create': True}"/><field name="cfi_code"/>
+                    <field name="isin"/><field name="issuer_id"/>
+                    <field name="effective_date"/><field name="reason"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Změnit" class="btn-primary"/>
+                    <button string="Zrušit" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_masterdata_change_list" model="ir.ui.view">
+        <field name="name">investra.masterdata.change.list</field><field name="model">investra.masterdata.change</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="create_date"/><field name="record_name"/><field name="field_name"/>
+                <field name="old_value"/><field name="new_value"/><field name="effective_date"/>
+                <field name="reason"/><field name="user_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_masterdata_change" model="ir.actions.act_window">
+        <field name="name">Historie změn klasifikace</field><field name="res_model">investra.masterdata.change</field>
+        <field name="view_mode">list</field>
+    </record>
+    <menuitem id="menu_masterdata_change" name="Historie změn klasifikace" parent="menu_setup_codelists"
+              action="action_masterdata_change" sequence="90"/>
+</odoo>
