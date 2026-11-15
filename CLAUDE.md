@@ -47,6 +47,20 @@ Rozhodnutí 2026-11-09 (nahrazuje „jednu pracovní relaci“ z 2026-11-07):
 - Izolace je zatím na úrovni 1 (stejný uživatel macOS, ochrana pravidly a schvalováním příkazů); úroveň 2 je otevřený bod.
 - Relace v aplikaci Claude se pro tento projekt nepoužívá. Do zpráv mezi agenty nepsat důvěrný obsah ani hesla.
 
+## Jedna verze aplikace
+
+Rozhodnutí 2026-11-15: pracuje se vždy jen s **jednou verzí aplikace**.
+
+- Jedna linie kódu: `~/odoo-dev`, jedna pracovní větev, po ověření do `main`. Souběžné dlouhé větve s různým stavem
+  aplikace se nezakládají; krátká větev pro úkol se po převzetí sloučí a smaže.
+- Jedna pracovní databáze a jedna běžící instance: `investra` na http://127.0.0.1:8071 (zavádí úkol `docs/ukoly/IM-13`;
+  do jeho dokončení platí tabulka Prostředí níže). Další trvalé kopie databáze se nezakládají.
+- Testy a zkoušky migrací běží jen na dočasných `investra_ci_*`, které se po testech mažou; do pracovní databáze nesahají.
+- Jediná výjimka: **Copilot** smí mít vlastní instanci pro ladění vzhledu, v jiném okně VS Code nad klonem `~/odoo-review`
+  (port 8072). Její databáze je jen kopie pracovní databáze, obnovuje se z ní před laděním, nic se v ní nezadává
+  a změny se do aplikace dostanou jen převzetím od Clauda. Když se neladí, instance neběží.
+- Kdo by potřeboval další verzi nebo kopii, nejdřív se zeptá Martina.
+
 ## Prostředí
 
 | Instance | Účel | Adresa | Databáze |
