@@ -309,6 +309,34 @@ class TestFairValueInterest(NavCase):
     def flows(self, instrument):
         return [(f.date, f.flow_type, f.amount) for f in instrument.cashflow_ids.sorted(lambda f: (f.date, f.flow_type))]
 
+    def test_irregular_payout_with_manual_flows_equals_regular_instrument(self):
+        """Nepravidelná výplata: ruční toky dají stejný naběhlý kupón, naběhlý úrok obchodu i naběhlou hodnotu."""
+        flows = [(0, 0, {"date": "2029-05-01", "amount": 20, "flow_type": "interest"}),
+                 (0, 0, {"date": "2030-01-01", "amount": 40, "flow_type": "interest"}),
+                 (0, 0, {"date": "2030-01-01", "amount": 1000, "flow_type": "principal"})]
+        regular = self.instrument("bond", start_date="2029-01-01", day_count="thirty360_eu", coupon_frequency="semiannual")
+        irregular = self.instrument("bond", start_date="2029-01-01", day_count="thirty360_eu", coupon_frequency="irregular")
+        regular.cashflow_ids = flows
+        irregular.cashflow_ids = flows
+        self.assertEqual(irregular._accrued_coupon_unit(date(2029, 3, 1)), regular._accrued_coupon_unit(date(2029, 3, 1)))
+        accrued = []
+        for bond in (regular, irregular):
+            trade = self.env["investra.trade"].create({
+                "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": bond.id,
+                "trade_date": "2029-03-01", "quantity": 10, "price": 990,
+            })
+            accrued.append((trade.accrued_interest, bond._accrued_value(self.fund, date(2029, 3, 15))))
+        self.assertGreater(accrued[0][0], 0)
+        self.assertEqual(accrued[0], accrued[1])
+
+    def test_irregular_payout_does_not_generate_or_delete_flows(self):
+        bond = self.instrument("bond", principal=1000, coupon_rate=6, day_count="thirty360_eu", coupon_frequency="irregular",
+                               start_date="2029-01-01", maturity_date="2031-01-01")
+        bond.cashflow_ids = [(0, 0, {"date": "2029-05-01", "amount": 20, "flow_type": "interest"})]
+        with self.assertRaisesRegex(UserError, "nepravidelné výplatě"):
+            bond.action_generate_schedule()
+        self.assertEqual(self.flows(bond), [(date(2029, 5, 1), "interest", 20)])
+
     def test_semiannual_schedule(self):
         bond = self.instrument("bond", principal=1000, coupon_rate=6, day_count="thirty360_eu", coupon_frequency="semiannual",
                                start_date="2029-01-01", maturity_date="2031-01-01")

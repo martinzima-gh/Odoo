@@ -36,4 +36,24 @@ na záložce Smluvní peněžní toky.
 
 ## Výsledek
 
+Hotovo podle plánu, výpočty ani očekávané hodnoty referenčních scénářů se nezměnily.
+
+**Změněné soubory** (`investra_nav`, verze 20.0.0.28.8 → 20.0.0.28.9, bez migrace):
+- `models/instrument_accrual.py`: hodnota `irregular` „Nepravidelně“ na konci výběru, doplněná nápověda; `action_generate_schedule`
+  u `irregular` nic negeneruje ani nemaže a vyhodí uvedenou `UserError` (kontrola je před ostatními, `COUPON_MONTHS` se nedosáhne).
+- `views/nav_views.xml`: tlačítko „Vygenerovat kalendář“ skryté při `coupon_frequency == 'irregular'`.
+- `tests/test_fair_value_interest.py`: dva nové testy (ruční toky u `irregular` dají stejný naběhlý kupón na jednotku,
+  naběhlý úrok obchodu i naběhlou hodnotu jako stejné toky u `semiannual`; generátor u `irregular` skončí hláškou a toky nezmění).
+
+**Testy:** dočasná `investra_ci_master` podle oddílu 2 plánu (instalace `investra_instrument_master` a `investra_nav`,
+`l10n_cz`, pak `-u investra_nav,investra_instruments,investra_instrument_master --test-enable`):
+**0 failed, 0 error(s) z 484 testů**. Jediný ERROR v logu je záměrný (test povinného důvodu v průvodci změny údajů).
+Databáze `investra_ci_master` i její filestore po testech smazány.
+
+**Neověřeno:** vzhled a skrytí tlačítka v prohlížeči (jen XML podmínka, testy UI neběžely); instalace do `investra_test`
+a `investra_vzhled` patří do IM-12. Poznámka: `investra_instrument_master` nezávisí na `investra_nav`, proto je ho pro
+testy nutné instalovat zvlášť.
+
+**Odchylky:** žádné.
+
 ## Převzetí

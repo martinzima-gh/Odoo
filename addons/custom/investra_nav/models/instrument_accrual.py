@@ -9,6 +9,8 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from .. import engine
 
 COUPON_MONTHS = {"maturity": 0, "annual": 12, "semiannual": 6, "quarterly": 3, "monthly": 1}
+# Nepravidelná výplata nemá krok kalendáře: toky zadává uživatel ručně (rozhodnutí 2026-11-15, IM-10).
+IRREGULAR = "irregular"
 # Částka toku je na jednotku (u jistiny na jednotku 1 i zlomky haléře), proto 8 desetinných míst jako pole toku.
 UNIT_AMOUNT = Decimal("0.00000001")
 
@@ -25,8 +27,9 @@ class InvestraInstrument(models.Model):
     start_date = fields.Date(string="Začátek úročení")
     coupon_frequency = fields.Selection(
         [("maturity", "Ve splatnosti"), ("annual", "Ročně"), ("semiannual", "Pololetně"), ("quarterly", "Čtvrtletně"),
-         ("monthly", "Měsíčně")], default="maturity", string="Výplata úroku",
-        help="Pro generátor kalendáře: kupónová data se odpočítají od splatnosti, kratší první období je na začátku.",
+         ("monthly", "Měsíčně"), ("irregular", "Nepravidelně")], default="maturity", string="Výplata úroku",
+        help="Pro generátor kalendáře: kupónová data se odpočítají od splatnosti, kratší první období je na začátku. "
+             "Nepravidelně: toky se zadají ručně na záložce Smluvní peněžní toky.",
     )
 
     @api.constrains("start_date", "maturity_date")
@@ -53,6 +56,12 @@ class InvestraInstrument(models.Model):
         kalendáře“). Výplata Ve splatnosti dává vklad s jednou splátkou jako dosud.
         """
         for instrument in self:
+            if instrument.coupon_frequency == IRREGULAR:
+                # Nic negenerovat ani nemazat: ručně zadané toky zůstávají.
+                raise UserError(self.env._(
+                    "Při nepravidelné výplatě úroku se kalendář negeneruje; zadejte toky ručně na záložce "
+                    "Smluvní peněžní toky: %s.", instrument.name,
+                ))
             if not (instrument.principal and instrument.start_date and instrument.maturity_date):
                 raise UserError(self.env._("Vyplňte jistinu, začátek a splatnost: %s.", instrument.name))
             if instrument.maturity_date <= instrument.start_date:
