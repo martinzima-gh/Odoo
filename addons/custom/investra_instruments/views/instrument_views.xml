@@ -75,9 +75,13 @@
                         <group string="Ocenění a klasifikace">
                             <field name="cnb_sheet"/>
                             <field name="max_price_age"/>
-                            <field name="fair_value_level"/><field name="deviates_from_type"/>
+                            <field name="fair_value_level"/>
+                            <field name="deviates_from_type" invisible="1"/>
                         </group>
                     </group>
+                    <div class="alert alert-info" role="alert" invisible="not deviates_from_type">
+                        List ČNB se liší od návrhu typu nástroje.
+                    </div>
                     <group string="Ostatní podíl" invisible="type_group != 'other_holding'">
                         <field name="class_id"/>
                         <field name="holding_kind" required="type_group == 'other_holding'"/>

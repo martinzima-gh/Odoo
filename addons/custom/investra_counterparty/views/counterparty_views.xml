@@ -38,7 +38,12 @@
         <field name="name">investra.instrument.form.issuer</field><field name="model">investra.instrument</field>
         <field name="inherit_id" ref="investra_instruments.view_instrument_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='isin']" position="before"><field name="issuer_id"/></xpath>
+            <xpath expr="//field[@name='isin']/.." position="after">
+                <div class="o_investra_metadata_item">
+                    <label for="issuer_id"/>
+                    <field name="issuer_id" nolabel="1"/>
+                </div>
+            </xpath>
         </field>
     </record>
     <menuitem id="menu_profile" name="Protistrany" parent="investra_entity.menu_setup_instruments" action="action_profile" sequence="30"/>
