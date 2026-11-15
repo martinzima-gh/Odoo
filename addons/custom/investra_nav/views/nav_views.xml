@@ -151,6 +151,9 @@
                     <button name="action_approve" type="object" string="Schválit" invisible="state != 'submitted'"/>
                     <button name="action_post" type="object" string="Zaúčtovat" invisible="state != 'approved'"/>
                     <button name="action_send_depositary" type="object" string="Odeslat depozitáři" invisible="state != 'posted'"/>
+                    <button name="action_cancel_draft" type="object" string="Zrušit návrh" invisible="state not in ('draft', 'computed')"
+                            groups="investra_entity.group_valuation_preparer"
+                            confirm="Ocenění se smaže i se svými návrhy dokladů. Zaúčtované doklady se nezmění. Pokračovat?"/>
                     <button name="action_depositary_confirm" type="object" string="Potvrzeno depozitářem" invisible="state != 'sent'"/>
                     <button name="action_publish" type="object" string="Zveřejnit a uzamknout" invisible="state != 'confirmed'"/>
                     <button name="action_build_package" type="object" string="Balíček pro depozitáře" invisible="state not in ('posted', 'sent', 'confirmed', 'published')"/>
@@ -317,6 +320,14 @@
                     <field name="neutral_capital" help="Neutrální fondový kapitál: FK fondu bez specifických změn tříd; dělí se mezi třídy alokačním poměrem."/>
                 </group>
             </xpath>
+        </field>
+    </record>
+    <!-- Historie fondu: zápis o zrušení návrhu ocenění (OC-01). -->
+    <record id="view_fund_form_history" model="ir.ui.view">
+        <field name="name">investra.fund.form.history</field><field name="model">investra.fund</field>
+        <field name="inherit_id" ref="investra_fund.view_fund_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="after"><chatter/></xpath>
         </field>
     </record>
     <record id="action_valuation" model="ir.actions.act_window">

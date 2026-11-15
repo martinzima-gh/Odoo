@@ -85,4 +85,6 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Odoo jako NAV systém | Může se ukázat méně vhodné než specializovaný systém | Ověřit prototypem před produkcí |
 | Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě zkušebních knih |
 | Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, předpisy, DORA | Postup po fázích, start na Investra Services |
+| Historická ocenění při převzetí fondu (OC-01) | Pravidla pořadí ocenění (předchozí zveřejněné, žádné pozdější) brání zadat převzatá historická ocenění mimo pořadí | Řešit v etapě PF (PF-01): převzatá ocenění buď po řadě, nebo výjimka jen pro převzetí |
+| Zrušení návrhu druhé a další verze (OC-01) | Po zrušení návrhu verze 2+ (po vrácení nebo stornu) nejde k témuž datu založit novou verzi 1 (jedinečnost fond–datum–verze); datum zůstane jen s vrácenou nebo stornovanou verzí | Rozhodnout, zda zrušení verze 2+ zakázat, nebo umožnit založit další verzi k datu |
 | Chybějící údaje při převzetí fondu | Bez pořizovacího kurzu nebo údajů po pozicích nejde oddělit FX a FV | Účetní postup pro stanovení hodnot ke dni přechodu |

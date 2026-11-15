@@ -29,7 +29,9 @@ def d(value):
 
 
 class InvestraFund(models.Model):
-    _inherit = "investra.fund"
+    # Historie fondu (chatter): zápis o zrušení návrhu ocenění (OC-01, rozhodnutí 2026-11-15).
+    _name = "investra.fund"
+    _inherit = ["investra.fund", "mail.thread"]
 
     launch_date = fields.Date(string="Datum vzniku", help="Začátek prvního oceňovacího období.")
     # Kroky schválení (dříve approval_step_ids) určuje schvalovací matice; převedla je migrace 20.0.0.6.0.
@@ -1417,6 +1419,29 @@ class InvestraValuation(models.Model):
         record.write({"state": "returned", "return_reason": reason})
         return record._new_version()
 
+    def action_cancel_draft(self):
+        """Zrušení návrhu ocenění (Návrh, Spočteno) tlačítkem; jen zpracovatel (OC-01, rozhodnutí 2026-11-15).
+
+        Návrhy dokladů zaniknou bez storen (nebyly zaúčtované), záznam ocenění se smaže a do historie fondu se zapíše,
+        kdo, kdy a které ocenění zrušil. Zaúčtované doklady se nemění. Stav „Zrušeno“ se nezavádí.
+        """
+        self._require(PREPARER)
+        self._require_state("draft", "computed")
+        states = dict(self._fields["state"]._description_selection(self.env))
+        author = self.env.user.partner_id
+        for record in self.sudo():
+            fund, name, state = record.fund_id, record.display_name, states.get(record.state)
+            drafts = record.event_ids.filtered(lambda e: e.state in ("draft", "locked"))
+            record.unlink()
+            fund.message_post(
+                body=self.env._(
+                    "Zrušen návrh ocenění %(valuation)s (stav: %(state)s); zrušené návrhy dokladů: %(count)s.",
+                    valuation=name, state=state, count=len(drafts),
+                ),
+                author_id=author.id,
+            )
+        return self.env["ir.actions.act_window"]._for_xml_id("investra_nav.action_valuation")
+
     def _new_version(self):
         self.ensure_one()
         return self.create({"fund_id": self.fund_id.id, "date": self.date, "version": self.version + 1})
@@ -1510,6 +1535,7 @@ class InvestraValuation(models.Model):
             raise UserError(self.env._("Stav a výsledky ocenění nastavuje jen postup ocenění."))
         records = super().create(vals_list)
         records._check_previous_published()
+        records._check_no_later_valuation()
         return records
 
     def write(self, vals):
@@ -1521,6 +1547,7 @@ class InvestraValuation(models.Model):
         result = super().write(vals)
         if {"fund_id", "date"} & set(vals):
             self._check_previous_published()
+            self._check_no_later_valuation()
         return result
 
     def _check_previous_published(self):
@@ -1542,9 +1569,29 @@ class InvestraValuation(models.Model):
                     previous=previous.display_name, state=states.get(previous.state),
                 ))
 
+    def _check_no_later_valuation(self):
+        """Nové ocenění jen po posledním ocenění fondu (OC-01, rozhodnutí 2026-11-15).
+
+        Blokuje pozdější ocenění v jakémkoli stavu kromě Vráceno a Stornováno. Platí jako `_check_previous_published`
+        jen pro první verzi k datu (založení nebo změnu data a fondu návrhu); nové verze po vrácení nebo stornu vznikají
+        dál. Stávající záznamy se zpětně nekontrolují.
+        """
+        for record in self.filtered(lambda v: v.version == 1 and v.fund_id and v.date):
+            later = record.sudo().search([
+                ("fund_id", "=", record.fund_id.id), ("date", ">", record.date),
+                ("state", "not in", ("returned", "reversed")),
+            ], order="date desc, version desc", limit=1)
+            if later:
+                raise UserError(self.env._(
+                    "Fond už má ocenění k pozdějšímu datu %(date)s. Nové ocenění lze založit jen po posledním ocenění.",
+                    date=format_date(self.env, later.date),
+                ))
+
     def unlink(self):
         if self.filtered(lambda v: v.state not in ("draft", "computed")):
             raise UserError(self.env._("Ocenění po odeslání ke schválení nejde smazat."))
+        # Návrhy dokladů zaniknou s oceněním, aby po smazání nezůstaly osiřelé (OC-01).
+        self.sudo().event_ids.filtered(lambda e: e.state in ("draft", "locked"))._discard_events()
         return super().unlink()
 
 
