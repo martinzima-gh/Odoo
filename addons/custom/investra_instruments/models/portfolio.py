@@ -32,6 +32,9 @@ NATURE_BY_KIND = {
 }
 # Povahy, u nichž se hodnotí SPPI: pro držitele dluhový nástroj (podílový list s právem odkupu typicky SPPI nesplní).
 SPPI_NATURES = {"debt", "puttable"}
+# Povahy, u nichž splněný SPPI vede k naběhlé hodnotě nebo FVOCI. Podílový list s právem odkupu je vždy FVTPL, ani ruční
+# kategorií ne naběhlá hodnota či FVOCI (rozhodnutí uživatele 15. 11. 2026: výnos závisí na výkonnosti fondu).
+SPPI_CATEGORY_NATURES = {"debt"}
 SPPI = [("pass", "Splněn"), ("fail", "Nesplněn"), ("na", "Nehodnotí se")]
 # Test SPPI je vlastnost nástroje společná pro všechny fondy (rozhodnutí uživatele 15. 11. 2026, úkol IM-05);
 # zařazení ho přebírá a „Neposouzeno“ se v něm chová jako „Nehodnotí se“.
@@ -52,8 +55,8 @@ DESIGNATION = [
 ]
 MANDATORY_BASIS = {
     ("debt", "amortised"): "IFRS 9 4.1.2", ("debt", "fvoci"): "IFRS 9 4.1.2A", ("debt", "fvtpl"): "IFRS 9 4.1.4",
-    ("puttable", "amortised"): "IFRS 9 4.1.2", ("puttable", "fvoci"): "IFRS 9 4.1.2A",
-    ("puttable", "fvtpl"): "IFRS 9 4.1.4; pro držitele není kapitálovým nástrojem (IAS 32 16A–16D), volba 5.7.5 není",
+    ("puttable", "fvtpl"): "IFRS 9 4.1.4; pro držitele není kapitálovým nástrojem (IAS 32 16A–16D), volba 5.7.5 není; "
+                           "naběhlá hodnota ani FVOCI se nepoužije (rozhodnutí 2026-11-15)",
     ("equity", "fvtpl"): "IFRS 9 4.1.4", ("derivative", "fvtpl"): "IFRS 9 4.1.4 (držen k obchodování)",
     ("participation", "fvtpl"): "IFRS 10.31 (investiční jednotka), IAS 28.18",
 }
@@ -296,7 +299,7 @@ class InvestraPortfolioClassification(models.Model):
     @api.model
     def _mandatory(self, nature, model, sppi):
         """Povinná klasifikace bez určení a volby (IFRS 9 4.1.2, 4.1.2A, 4.1.4)."""
-        if nature in SPPI_NATURES and model in SPPI_MODELS and sppi == "pass":
+        if nature in SPPI_CATEGORY_NATURES and model in SPPI_MODELS and sppi == "pass":
             return "amortised" if model == "hold_to_collect" else "fvoci"
         return "fvtpl"
 
@@ -506,7 +509,7 @@ class InvestraPortfolioClassification(models.Model):
             if nature != record._default_nature(record.instrument_id) and not record.nature_note:
                 raise ValidationError(self.env._("Povaha nástroje se liší od druhu typu; doplňte posouzení povahy: %s.", name))
             # (b) SPPI: odůvodnění a znění kontroluje nástroj (IM-05); znění se řídí datem posouzení, ne obdobím fondu.
-            if nature in SPPI_NATURES and model in SPPI_MODELS and record.sppi == "na":
+            if nature in SPPI_CATEGORY_NATURES and model in SPPI_MODELS and record.sppi == "na":
                 raise ValidationError(self.env._(
                     "V modelu Držet pro inkaso nebo Inkaso i prodej musí mít nástroj vyhodnocený test SPPI (IFRS 9 4.1.2); "
                     "posuďte ho na nástroji: %s.", name,
@@ -537,6 +540,11 @@ class InvestraPortfolioClassification(models.Model):
                     raise ValidationError(self.env._(
                         "Ruční kategorie se shoduje s vypočtenou; přepsání není potřeba: %s.", name,
                     ))
+            if nature == "puttable" and record.ifrs9_category in ("amortised", "fvoci"):
+                raise ValidationError(self.env._(
+                    "Podílový list s právem odkupu se oceňuje vždy reálnou hodnotou do výsledku; zařaďte ho do portfolia "
+                    "FVTPL: %s.", name,
+                ))
             if (record.ifrs9_category == "amortised") != (record.valuation_method == "amortised"):
                 raise ValidationError(self.env._("Naběhlou hodnotou se oceňuje právě kategorie Naběhlá hodnota: %s.", name))
 

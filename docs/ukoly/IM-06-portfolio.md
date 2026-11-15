@@ -71,7 +71,14 @@ tlačítky, portfolio bez kategorie jako dosud. Kritérium 9 viz testy výše.
 **Neověřeno:** vzhled v prohlížeči (instalace do `investra_vzhled`/`investra_test` je až po dokončení modulu);
 chování uzavřeného portfolia u nových obchodů (obchod se neměnil, uzavření obchody neblokuje).
 
-**K posouzení:** strom IFRS 9 připouští podílový list s právem odkupu a splněným SPPI v naběhlé hodnotě; kritérium 3 je
-proto testované s neposouzeným a nesplněným SPPI. Má-li AC podílové listy odmítat vždy, je to změna stromu (červená zóna).
+**Doplněk 15. 11. 2026 – podílový list vždy FVTPL** (rozhodnutí uživatele, deník rozhodnutí; červená zóna, schválil Martin):
+strom v `investra_instruments/models/portfolio.py` vede povahu „puttable“ vždy do FVTPL (`SPPI_CATEGORY_NATURES = {"debt"}`),
+ruční kategorie naběhlá hodnota / FVOCI se u ní odmítne a v modelech s SPPI se u ní SPPI nevyžaduje. Portfolia AC a FVOCI_D
+podílový list odmítnou hláškou „Podílový list s právem odkupu se oceňuje vždy reálnou hodnotou do výsledku …“ (kritérium 3
+testované s neposouzeným, nesplněným i splněným SPPI). Nový test `test_fund_units_never_amortised_or_fvoci`
+v `investra_instruments`. Data: `investra_test` 0 a `investra_vzhled` 3 zařazení podílových listů, žádné v naběhlé hodnotě
+ani FVOCI; migrace není. Testy na čisté `investra_ci_master` (postup výše): **0 failed, 0 error(s) of 483 tests**
+(master 59, instruments 84, counterparty 10, nav 319, cnb 11); jediný ERROR v logu je známý `bad query` z IM-04.
+Databáze i filestore smazané.
 
 ## Převzetí

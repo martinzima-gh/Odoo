@@ -3,7 +3,7 @@ from odoo.exceptions import UserError, ValidationError
 
 from odoo.addons.investra_instruments.models.instrument import IFRS9_CATEGORY
 from odoo.addons.investra_instruments.models.portfolio import (
-    DESIGNATION, MANDATORY_BASIS, NATURE, SPPI, SPPI_INSTRUMENT_FIELDS, SPPI_NATURES, SPPI_STATUS, SPPI_VERSION,
+    DESIGNATION, MANDATORY_BASIS, NATURE, SPPI, SPPI_CATEGORY_NATURES, SPPI_INSTRUMENT_FIELDS, SPPI_STATUS, SPPI_VERSION,
 )
 
 APPROVER_GROUP = "investra_entity.group_valuation_approver"
@@ -207,7 +207,12 @@ class InvestraPortfolioClassificationMaster(models.Model):
             if not category:
                 continue
             portfolio, instrument = record.portfolio_id.display_name, record.instrument_id.display_name
-            if category.code in SPPI_CATEGORIES and record.instrument_nature in SPPI_NATURES:
+            if category.code in SPPI_CATEGORIES and record.instrument_nature == "puttable":
+                raise ValidationError(self.env._(
+                    "Podílový list s právem odkupu se oceňuje vždy reálnou hodnotou do výsledku; zařaďte ho do portfolia "
+                    "FVTPL: %s.", instrument,
+                ))
+            if category.code in SPPI_CATEGORIES and record.instrument_nature in SPPI_CATEGORY_NATURES:
                 status = record.instrument_id.sppi_status
                 if status == "fail":
                     raise ValidationError(self.env._(

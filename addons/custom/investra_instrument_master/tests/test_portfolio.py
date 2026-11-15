@@ -62,14 +62,17 @@ class TestPortfolioCategory(InstrumentCase):
         portfolio = self.make_portfolio("AC", "hold_to_collect")
         with self.assertRaisesRegex(ValidationError, "vychází podle IFRS 9 jako FVTPL"):
             self.place(portfolio, self.make("derivative_otc"))
-        with self.assertRaisesRegex(ValidationError, "vyžaduje u nástroje splněný test SPPI"):
-            self.place(portfolio, self.make("fund"))
-        with self.assertRaisesRegex(ValidationError, "nesplněným testem SPPI"):
-            self.place(portfolio, self.make("fund", sppi_status="fail", sppi_note="Výnos podle výkonnosti fondu"))
+        # Podílový list s právem odkupu je vždy FVTPL, i se splněným SPPI (rozhodnutí uživatele 15. 11. 2026).
+        for sppi in ("not_assessed", "fail", "pass"):
+            vals = {"sppi_status": sppi, "sppi_note": "Test" if sppi != "not_assessed" else False}
+            with self.assertRaisesRegex(ValidationError, "Podílový list s právem odkupu"):
+                self.place(portfolio, self.make("fund", **vals))
 
     def test_fvoci_debt_accepts_sppi_bond_only(self):
         portfolio = self.make_portfolio("FVOCI_D", "hold_collect_sell")
         self.assertEqual(self.place(portfolio, self.bond()).ifrs9_category, "fvoci")
+        with self.assertRaisesRegex(ValidationError, "Podílový list s právem odkupu"):
+            self.place(portfolio, self.make("fund", sppi_status="pass", sppi_note="Test"))
         with self.assertRaisesRegex(ValidationError, "vychází podle IFRS 9 jako FVOCI_E"):
             self.place(portfolio, self.make("equity"), designation="fvoci_equity", designation_note="Strategická investice")
 

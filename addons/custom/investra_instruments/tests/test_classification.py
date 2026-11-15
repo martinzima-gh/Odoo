@@ -150,6 +150,17 @@ class TestClassificationRules(InstrumentCase):
         )
         self.assertEqual(assessed.ifrs9_category, "fvoci")
 
+    def test_fund_units_never_amortised_or_fvoci(self):
+        """Podílový list s právem odkupu je vždy FVTPL, i se splněným SPPI a ruční kategorií (rozhodnutí uživatele 15. 11. 2026)."""
+        for model in ("hold_to_collect", "hold_collect_sell"):
+            units = self.classify(self.fund, self.make("fund"), model, sppi="pass", sppi_note="Test: pevný výnos")
+            self.assertEqual((units.mandatory_category, units.ifrs9_category), ("fvtpl", "fvtpl"))
+            self.assertNotEqual(units.valuation_method, "amortised")
+        self.classify(self.fund, self.make("fund"), "hold_to_collect")  # SPPI se u podílového listu nevyžaduje
+        for category in ("amortised", "fvoci"):
+            with self.assertRaisesRegex(ValidationError, "Podílový list s právem odkupu"):
+                self.classify(self.fund, self.make("fund"), category_override=category, override_note="Metodik")
+
     def test_no_election_when_held_for_trading(self):
         """Mezera 3: volba 5.7.5 není u nástroje drženého k obchodování."""
         with self.assertRaises(ValidationError):
