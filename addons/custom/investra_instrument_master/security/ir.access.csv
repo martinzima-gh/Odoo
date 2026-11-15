@@ -23,3 +23,8 @@ access_masterdata_change_approver,investra.masterdata.change approver,investra.m
 access_masterdata_change_manager,investra.masterdata.change manager,investra.masterdata.change,group_codelist_manager,r,
 access_masterdata_change_wizard_preparer,investra.masterdata.change.wizard preparer,investra.masterdata.change.wizard,investra_entity.group_valuation_preparer,crud,
 access_masterdata_change_wizard_approver,investra.masterdata.change.wizard approver,investra.masterdata.change.wizard,investra_entity.group_valuation_approver,crud,
+access_accounting_profile_read,investra.accounting.profile read,investra.accounting.profile,account.group_account_readonly,r,
+access_accounting_profile_manager,investra.accounting.profile manager,investra.accounting.profile,group_codelist_manager,cru,
+access_accounting_profile_assignment_read,investra.accounting.profile.assignment read,investra.accounting.profile.assignment,account.group_account_readonly,r,
+access_accounting_profile_assignment_manager,investra.accounting.profile.assignment manager,investra.accounting.profile.assignment,group_codelist_manager,cru,
+investra_accounting_profile_assignment_company_rule,Přiřazení účetních profilů podle společnosti,investra.accounting.profile.assignment,,crud,"[('company_id', 'in', company_ids)]"

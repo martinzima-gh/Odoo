@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Účetní profily -->
+    <record id="view_accounting_profile_list" model="ir.ui.view">
+        <field name="name">investra.accounting.profile.list</field><field name="model">investra.accounting.profile</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="code" readonly="id"/><field name="name"/><field name="role_id" options="{'no_create': True}"/>
+                <field name="valid_from" optional="hide"/><field name="valid_to" optional="hide"/><field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_accounting_profile_search" model="ir.ui.view">
+        <field name="name">investra.accounting.profile.search</field><field name="model">investra.accounting.profile</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/><field name="name"/><field name="role_id"/>
+                <filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+    <record id="view_accounting_profile_form" model="ir.ui.view">
+        <field name="name">investra.accounting.profile.form</field><field name="model">investra.accounting.profile</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group><field name="code" readonly="id"/><field name="name"/><field name="role_id" options="{'no_create': True}"/></group>
+                        <group><field name="valid_from"/><field name="valid_to"/><field name="active"/></group>
+                    </group>
+                    <group><field name="source_methodology"/><field name="note"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_accounting_profile" model="ir.actions.act_window">
+        <field name="name">Účetní profily</field><field name="res_model">investra.accounting.profile</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Přiřazení účetních profilů -->
+    <record id="view_accounting_profile_assignment_list" model="ir.ui.view">
+        <field name="name">investra.accounting.profile.assignment.list</field>
+        <field name="model">investra.accounting.profile.assignment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id"/><field name="portfolio_id"/><field name="ba0088_id"/><field name="ba0088_group_id"/>
+                <field name="accounting_profile_id"/><field name="role_id" optional="show"/><field name="priority"/>
+                <field name="valid_from"/><field name="valid_to"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_accounting_profile_assignment_search" model="ir.ui.view">
+        <field name="name">investra.accounting.profile.assignment.search</field>
+        <field name="model">investra.accounting.profile.assignment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="portfolio_id"/><field name="ba0088_id"/><field name="ba0088_group_id"/>
+                <field name="accounting_profile_id"/><field name="company_id"/>
+                <group>
+                    <filter name="group_by_company" string="Společnost" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_by_portfolio" string="Portfolio" context="{'group_by': 'portfolio_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_accounting_profile_assignment_form" model="ir.ui.view">
+        <field name="name">investra.accounting.profile.assignment.form</field>
+        <field name="model">investra.accounting.profile.assignment</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Kdy pravidlo platí">
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="portfolio_id" options="{'no_create': True}" domain="[('company_id', '=', company_id)]"/>
+                            <field name="ba0088_id" options="{'no_create': True}" invisible="ba0088_group_id"/>
+                            <field name="ba0088_group_id" options="{'no_create': True}" invisible="ba0088_id"/>
+                        </group>
+                        <group string="Výsledek">
+                            <field name="accounting_profile_id" options="{'no_create': True}"/><field name="role_id"/>
+                            <field name="priority"/><field name="valid_from"/><field name="valid_to"/>
+                        </group>
+                    </group>
+                    <group><field name="note"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_accounting_profile_assignment" model="ir.actions.act_window">
+        <field name="name">Přiřazení účetních profilů</field><field name="res_model">investra.accounting.profile.assignment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Formulář portfolia: záložka Účetní profil (jen přidání přes XPath) -->
+    <record id="view_portfolio_form_profile" model="ir.ui.view">
+        <field name="name">investra.fund.portfolio.form.profile</field><field name="model">investra.fund.portfolio</field>
+        <field name="inherit_id" ref="view_portfolio_form_master"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='governance']" position="after">
+                <page string="Účetní profil" name="accounting_profile">
+                    <field name="profile_assignment_ids" context="{'default_portfolio_id': id}">
+                        <list editable="bottom">
+                            <field name="ba0088_id" options="{'no_create': True}"/>
+                            <field name="ba0088_group_id" options="{'no_create': True}"/>
+                            <field name="accounting_profile_id" options="{'no_create': True}"/>
+                            <field name="priority"/><field name="valid_from"/><field name="valid_to"/>
+                            <field name="company_id" optional="hide"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Zařazení: vybraný profil a stav vedle role účtu -->
+    <record id="view_classification_form_profile" model="ir.ui.view">
+        <field name="name">investra.portfolio.classification.form.profile</field>
+        <field name="model">investra.portfolio.classification</field>
+        <field name="inherit_id" ref="investra_instruments.view_classification_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field name="accounting_profile_id"/>
+                <field name="profile_state" widget="badge" decoration-success="profile_state == 'ok'"
+                       decoration-warning="profile_state == 'deviates'" decoration-danger="profile_state == 'missing'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_accounting_profile" name="Účetní profily" parent="investra_entity.menu_setup_accounting" action="action_accounting_profile" sequence="30"/>
+    <menuitem id="menu_accounting_profile_assignment" name="Přiřazení účetních profilů" parent="investra_entity.menu_setup_accounting" action="action_accounting_profile_assignment" sequence="40"/>
+</odoo>
