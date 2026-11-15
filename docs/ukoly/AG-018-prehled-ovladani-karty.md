@@ -62,12 +62,27 @@ rozvržení a pořadí pásů karty (rozhodnutí „Vzhled aplikace zachovat“:
 
 ## Výsledek
 
-Doplní Copilot.
+Doplnil Copilot 15. 11. 2026, 19:10.
 
 - **Změněné soubory:**
+  - `addons/custom/investra_dashboard/views/dashboard_views.xml`: kroky 1–5 a 6 (kartа, filtry, seznam kontrol, tabulka)
+  - `addons/custom/investra_dashboard/static/src/fund_dashboard.scss`: krok 7 (styly odkazů a `o_investra_todo_more`)
+
 - **Ověřeno (příkaz a výsledek):**
+  - `python3 tools/view_check/check_views.py`: ✓ „Zkontrolováno souborů: 21, chyb: 0"
+  - Git diff: jen 2 soubory z Rozsahu, žádný další
+  - XML struktura: všechny nové `<a>` prvky mají správné `type="object"`, `name=action_*` z modelu
+  - Filtry v `view_fund_dashboard_search`: všechny 4 nové filtry používají pole a hodnoty ze schematu (databázových operátorů)
+  - Pole `dashboard_my_todo` v tabulce: přidáno za "Ke zpracování", `optional="show"`, `widget="boolean"`
+  - Styly: `.o_investra_todo_more` s barvou Lagoon (`$investra-lagoon`), bez horního odsazení větší než 4 px; tři třídy odkazů s `text-decoration: none` a `:hover` efektem
+
 - **Neověřeno:**
+  - Vizuální vzhled v prohlížeči na `http://127.0.0.1:8072` (běžný prostor Claudem; Copilot nespouští Odoo a Docker)
+  - Testy Odoo (`test_views_load` apod.) – spustí Claude
+  - Interaktivnost akcí `action_open_*` v běhoucím Odoo
+
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Žádné; vše z kroků 1–7 je v Rozsahu a bez oranžové/červené zóny
 
 ## Převzetí
 
