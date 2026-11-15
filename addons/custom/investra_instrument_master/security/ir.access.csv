@@ -28,3 +28,5 @@ access_accounting_profile_manager,investra.accounting.profile manager,investra.a
 access_accounting_profile_assignment_read,investra.accounting.profile.assignment read,investra.accounting.profile.assignment,account.group_account_readonly,r,
 access_accounting_profile_assignment_manager,investra.accounting.profile.assignment manager,investra.accounting.profile.assignment,group_codelist_manager,cru,
 investra_accounting_profile_assignment_company_rule,Přiřazení účetních profilů podle společnosti,investra.accounting.profile.assignment,,crud,"[('company_id', 'in', company_ids)]"
+access_codelist_import_wizard_manager,investra.codelist.import.wizard manager,investra.codelist.import.wizard,group_codelist_manager,crud,
+access_codelist_import_line_manager,investra.codelist.import.line manager,investra.codelist.import.line,group_codelist_manager,crud,

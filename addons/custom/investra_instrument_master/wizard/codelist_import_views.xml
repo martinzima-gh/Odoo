@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_codelist_import_form" model="ir.ui.view">
+        <field name="name">investra.codelist.import.wizard.form</field><field name="model">investra.codelist.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import číselníku">
+                <field name="state" invisible="1"/>
+                <group invisible="state != 'upload'">
+                    <field name="target"/>
+                    <field name="file" filename="filename"/><field name="filename" invisible="1"/>
+                    <field name="domain_code" placeholder="D_S_RNBD_4"/>
+                    <field name="methodology"/><field name="valid_from"/>
+                </group>
+                <div class="alert alert-info" role="alert" invisible="state != 'preview'">
+                    Zapíšou se jen zaškrtnuté řádky. Konflikty (ručně upravené názvy) se nepřepíší a nic se nemaže;
+                    chybějící kódy dostanou jen datum „Platí do“. U nových kódů ESA doplňte typ emitenta.
+                </div>
+                <field name="line_ids" invisible="state != 'preview'">
+                    <list editable="bottom" create="0" delete="0"
+                          decoration-danger="state == 'conflict'" decoration-success="state == 'new'"
+                          decoration-warning="state in ('renamed', 'missing')" decoration-muted="state == 'same'">
+                        <field name="apply" readonly="state in ('conflict', 'same')"/>
+                        <field name="state"/><field name="code"/><field name="name"/><field name="current_name"/>
+                        <field name="aggregate_sector_id" readonly="state != 'new'"/>
+                    </list>
+                </field>
+                <group invisible="state != 'done'"><field name="result" nolabel="1" colspan="2"/></group>
+                <footer>
+                    <button string="Zobrazit náhled" type="object" name="action_preview" class="btn-primary" invisible="state != 'upload'"/>
+                    <button string="Zapsat" type="object" name="action_apply" class="btn-primary" invisible="state != 'preview'"
+                            confirm="Zapsat vybrané změny číselníku?"/>
+                    <button string="Zpět" type="object" name="action_back" invisible="state != 'preview'"/>
+                    <button string="Zavřít" special="cancel" invisible="state == 'preview'"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_codelist_import" model="ir.actions.act_window">
+        <field name="name">Import číselníku</field><field name="res_model">investra.codelist.import.wizard</field>
+        <field name="view_mode">form</field><field name="target">new</field>
+    </record>
+    <menuitem id="menu_codelist_import" name="Import číselníku" parent="menu_setup_codelists"
+              action="action_codelist_import" sequence="90" groups="group_codelist_manager"/>
+</odoo>
