@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Druhy CP (BA0088) -->
+    <record id="view_ba0088_code_list" model="ir.ui.view">
+        <field name="name">investra.ba0088.code.list</field><field name="model">investra.ba0088.code</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="code" readonly="id"/><field name="name"/><field name="selectable"/><field name="asset_family"/>
+                <field name="group_id"/><field name="parent_code"/><field name="requires_issuer" optional="hide"/>
+                <field name="requires_maturity" optional="hide"/><field name="requires_justification" optional="hide"/>
+                <field name="leverage_rule" optional="hide"/><field name="valid_from" optional="hide"/>
+                <field name="valid_to" optional="hide"/><field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_ba0088_code_search" model="ir.ui.view">
+        <field name="name">investra.ba0088.code.search</field><field name="model">investra.ba0088.code</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/><field name="name"/>
+                <filter name="selectable" string="Nabízené u nástroje" domain="[('selectable', '=', True)]"/>
+                <filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_by_family" string="Rodina" context="{'group_by': 'asset_family'}"/>
+                    <filter name="group_by_group" string="Skupina" context="{'group_by': 'group_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_ba0088_code_form" model="ir.ui.view">
+        <field name="name">investra.ba0088.code.form</field><field name="model">investra.ba0088.code</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code" readonly="id"/><field name="name"/><field name="parent_code"/>
+                            <field name="valid_from"/><field name="valid_to"/><field name="active"/>
+                        </group>
+                        <group>
+                            <field name="selectable"/><field name="asset_family"/><field name="group_id"/>
+                            <field name="requires_issuer"/><field name="requires_maturity"/>
+                            <field name="requires_justification"/><field name="leverage_rule"/>
+                        </group>
+                    </group>
+                    <group><field name="source_methodology"/><field name="locally_modified"/><field name="note"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_ba0088_code" model="ir.actions.act_window">
+        <field name="name">Druhy CP (BA0088)</field><field name="res_model">investra.ba0088.code</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_selectable': 1}</field>
+    </record>
+
+    <!-- Skupiny BA0088 -->
+    <record id="view_ba0088_group_list" model="ir.ui.view">
+        <field name="name">investra.ba0088.group.list</field><field name="model">investra.ba0088.group</field>
+        <field name="arch" type="xml">
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="active" optional="hide"/></list>
+        </field>
+    </record>
+    <record id="view_ba0088_group_search" model="ir.ui.view">
+        <field name="name">investra.ba0088.group.search</field><field name="model">investra.ba0088.group</field>
+        <field name="arch" type="xml">
+            <search><field name="code"/><field name="name"/><filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/></search>
+        </field>
+    </record>
+    <record id="view_ba0088_group_form" model="ir.ui.view">
+        <field name="name">investra.ba0088.group.form</field><field name="model">investra.ba0088.group</field>
+        <field name="arch" type="xml">
+            <form><sheet><group><field name="code" readonly="id"/><field name="name"/><field name="active"/><field name="note"/></group></sheet><chatter/></form>
+        </field>
+    </record>
+    <record id="action_ba0088_group" model="ir.actions.act_window">
+        <field name="name">Skupiny BA0088</field><field name="res_model">investra.ba0088.group</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Typy emitenta -->
+    <record id="view_esa_aggregate_list" model="ir.ui.view">
+        <field name="name">investra.esa.aggregate.sector.list</field><field name="model">investra.esa.aggregate.sector</field>
+        <field name="arch" type="xml">
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="help_text" optional="hide"/><field name="active" optional="hide"/></list>
+        </field>
+    </record>
+    <record id="view_esa_aggregate_search" model="ir.ui.view">
+        <field name="name">investra.esa.aggregate.sector.search</field><field name="model">investra.esa.aggregate.sector</field>
+        <field name="arch" type="xml">
+            <search><field name="code"/><field name="name"/><filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/></search>
+        </field>
+    </record>
+    <record id="view_esa_aggregate_form" model="ir.ui.view">
+        <field name="name">investra.esa.aggregate.sector.form</field><field name="model">investra.esa.aggregate.sector</field>
+        <field name="arch" type="xml">
+            <form><sheet><group><field name="code" readonly="id"/><field name="name"/><field name="help_text"/><field name="active"/></group></sheet><chatter/></form>
+        </field>
+    </record>
+    <record id="action_esa_aggregate" model="ir.actions.act_window">
+        <field name="name">Typy emitenta</field><field name="res_model">investra.esa.aggregate.sector</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Sektory ESA (detail) -->
+    <record id="view_esa_code_list" model="ir.ui.view">
+        <field name="name">investra.esa.code.list</field><field name="model">investra.esa.code</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="code" readonly="id"/><field name="name"/><field name="aggregate_sector_id"/><field name="residency"/>
+                <field name="residency_warning" decoration-danger="residency_warning"/><field name="esa2010_sector_id" optional="show"/>
+                <field name="any_country" optional="hide"/><field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_esa_code_search" model="ir.ui.view">
+        <field name="name">investra.esa.code.search</field><field name="model">investra.esa.code</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/><field name="name"/>
+                <filter name="resident" string="Rezident" domain="[('residency', '=', 'r')]"/>
+                <filter name="nonresident" string="Nerezident" domain="[('residency', '=', 'nr')]"/>
+                <filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/>
+                <group><filter name="group_by_aggregate" string="Typ emitenta" context="{'group_by': 'aggregate_sector_id'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="view_esa_code_form" model="ir.ui.view">
+        <field name="name">investra.esa.code.form</field><field name="model">investra.esa.code</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not residency_warning"><field name="residency_warning"/></div>
+                    <group>
+                        <group><field name="code" readonly="id"/><field name="name"/><field name="aggregate_sector_id"/><field name="residency"/></group>
+                        <group><field name="esa2010_sector_id"/><field name="any_country"/><field name="valid_from"/><field name="valid_to"/><field name="active"/></group>
+                    </group>
+                    <group><field name="source_methodology"/><field name="locally_modified"/><field name="note"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_esa_code" model="ir.actions.act_window">
+        <field name="name">Sektory ESA (detail)</field><field name="res_model">investra.esa.code</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Členství zemí -->
+    <record id="view_membership_list" model="ir.ui.view">
+        <field name="name">investra.country.group.membership.list</field><field name="model">investra.country.group.membership</field>
+        <field name="arch" type="xml">
+            <list editable="bottom"><field name="country_id"/><field name="group"/><field name="valid_from"/><field name="valid_to"/><field name="source"/></list>
+        </field>
+    </record>
+    <record id="view_membership_search" model="ir.ui.view">
+        <field name="name">investra.country.group.membership.search</field><field name="model">investra.country.group.membership</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="country_id"/>
+                <filter name="eu" string="EU" domain="[('group', '=', 'eu')]"/>
+                <filter name="eea" string="EHP mimo EU" domain="[('group', '=', 'eea')]"/>
+                <group><filter name="group_by_group" string="Skupina" context="{'group_by': 'group'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="view_membership_form" model="ir.ui.view">
+        <field name="name">investra.country.group.membership.form</field><field name="model">investra.country.group.membership</field>
+        <field name="arch" type="xml">
+            <form><sheet><group><field name="country_id"/><field name="group"/><field name="valid_from"/><field name="valid_to"/><field name="source"/></group></sheet><chatter/></form>
+        </field>
+    </record>
+    <record id="action_membership" model="ir.actions.act_window">
+        <field name="name">Členství zemí v EU/EHP</field><field name="res_model">investra.country.group.membership</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Oceňovací kategorie -->
+    <record id="view_measurement_category_list" model="ir.ui.view">
+        <field name="name">investra.measurement.category.list</field><field name="model">investra.measurement.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="ifrs9_category" readonly="id"/><field name="help_text" optional="show"/><field name="active" optional="hide"/></list>
+        </field>
+    </record>
+    <record id="view_measurement_category_search" model="ir.ui.view">
+        <field name="name">investra.measurement.category.search</field><field name="model">investra.measurement.category</field>
+        <field name="arch" type="xml">
+            <search><field name="code"/><field name="name"/><filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/></search>
+        </field>
+    </record>
+    <record id="view_measurement_category_form" model="ir.ui.view">
+        <field name="name">investra.measurement.category.form</field><field name="model">investra.measurement.category</field>
+        <field name="arch" type="xml">
+            <form><sheet><group><field name="code" readonly="id"/><field name="name"/><field name="ifrs9_category" readonly="id"/><field name="help_text"/><field name="active"/></group></sheet><chatter/></form>
+        </field>
+    </record>
+    <record id="action_measurement_category" model="ir.actions.act_window">
+        <field name="name">Oceňovací kategorie</field><field name="res_model">investra.measurement.category</field><field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Důvody klasifikace -->
+    <record id="view_classification_reason_list" model="ir.ui.view">
+        <field name="name">investra.classification.reason.list</field><field name="model">investra.classification.reason</field>
+        <field name="arch" type="xml">
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="requires_note"/><field name="help_text" optional="show"/><field name="active" optional="hide"/></list>
+        </field>
+    </record>
+    <record id="view_classification_reason_search" model="ir.ui.view">
+        <field name="name">investra.classification.reason.search</field><field name="model">investra.classification.reason</field>
+        <field name="arch" type="xml">
+            <search><field name="code"/><field name="name"/><filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/></search>
+        </field>
+    </record>
+    <record id="view_classification_reason_form" model="ir.ui.view">
+        <field name="name">investra.classification.reason.form</field><field name="model">investra.classification.reason</field>
+        <field name="arch" type="xml">
+            <form><sheet><group><field name="code" readonly="id"/><field name="name"/><field name="requires_note"/><field name="help_text"/><field name="active"/></group></sheet><chatter/></form>
+        </field>
+    </record>
+    <record id="action_classification_reason" model="ir.actions.act_window">
+        <field name="name">Důvody klasifikace</field><field name="res_model">investra.classification.reason</field><field name="view_mode">list,form</field>
+    </record>
+</odoo>

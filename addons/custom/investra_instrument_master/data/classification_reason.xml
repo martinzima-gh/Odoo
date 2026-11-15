@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="reason_business_model" model="investra.classification.reason"><field name="code">BUSINESS_MODEL</field><field name="name">Obchodní model</field><field name="help_text">Kategorie vychází ze způsobu řízení portfolia a u dluhových nástrojů z výsledku testu SPPI.</field></record>
+    <record id="reason_sppi_fail" model="investra.classification.reason"><field name="code">SPPI_FAIL</field><field name="name">Nesplněný test SPPI</field><field name="help_text">Smluvní peněžní toky nesplňují test SPPI, proto nástroj nemůže být v naběhlé hodnotě ani ve FVOCI.</field></record>
+    <record id="reason_mandatory_fvtpl" model="investra.classification.reason"><field name="code">MANDATORY_FVTPL</field><field name="name">Povinné FVTPL</field><field name="help_text">Reálná hodnota do výsledku je povinná podle povahy nástroje nebo doloženého odborného posouzení.</field></record>
+    <record id="reason_fvtpl_designation" model="investra.classification.reason"><field name="code">FVTPL_DESIGNATION</field><field name="name">Určení FVTPL</field><field name="help_text">Dobrovolná neodvolatelná volba při prvotním zachycení, typicky k odstranění účetního nesouladu.</field></record>
+    <record id="reason_equity_fvoci_election" model="investra.classification.reason"><field name="code">EQUITY_FVOCI_ELECTION</field><field name="name">Volba FVOCI u kapitálového nástroje</field><field name="help_text">Neodvolatelná volba FVOCI pro kapitálový nástroj, který není držen k obchodování.</field></record>
+    <record id="reason_other" model="investra.classification.reason"><field name="code">OTHER</field><field name="name">Jiný důvod</field><field name="help_text">Jiný doložený důvod; vyžaduje textové vysvětlení a schválení.</field><field name="requires_note" eval="True"/></record>
+</odoo>

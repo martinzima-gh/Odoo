@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ba0088_group_gov_bonds" model="investra.ba0088.group"><field name="code">GOV_BONDS</field><field name="name">Státní dluhopisy</field></record>
+    <record id="ba0088_group_other_bonds" model="investra.ba0088.group"><field name="code">OTHER_BONDS</field><field name="name">Ostatní dluhopisy</field></record>
+    <record id="ba0088_group_certificates" model="investra.ba0088.group"><field name="code">CERTIFICATES</field><field name="name">Investiční certifikáty</field></record>
+    <record id="ba0088_group_equities" model="investra.ba0088.group"><field name="code">EQUITIES</field><field name="name">Akcie</field></record>
+    <record id="ba0088_group_fund_securities" model="investra.ba0088.group"><field name="code">FUND_SECURITIES</field><field name="name">Cenné papíry fondů</field></record>
+    <record id="ba0088_group_other_equity_securities" model="investra.ba0088.group"><field name="code">OTHER_EQUITY_SECURITIES</field><field name="name">Ostatní majetkové cenné papíry</field></record>
+    <record id="ba0088_group_bills_coupons" model="investra.ba0088.group"><field name="code">BILLS_COUPONS</field><field name="name">Směnky a kupóny</field></record>
+    <record id="ba0088_group_forwards_futures" model="investra.ba0088.group"><field name="code">FORWARDS_FUTURES</field><field name="name">Forwardy a futures</field></record>
+    <record id="ba0088_group_swaps" model="investra.ba0088.group"><field name="code">SWAPS</field><field name="name">Swapy</field></record>
+    <record id="ba0088_group_options_and_other_derivatives" model="investra.ba0088.group"><field name="code">OPTIONS_AND_OTHER_DERIVATIVES</field><field name="name">Opce a ostatní deriváty</field></record>
+    <record id="ba0088_group_other_instruments" model="investra.ba0088.group"><field name="code">OTHER_INSTRUMENTS</field><field name="name">Ostatní nástroje</field></record>
+</odoo>

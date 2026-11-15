@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_setup_codelists" name="Číselníky" parent="investra_entity.menu_setup" sequence="25"/>
+    <menuitem id="menu_ba0088_code" name="Druhy CP (BA0088)" parent="menu_setup_codelists" action="action_ba0088_code" sequence="10"/>
+    <menuitem id="menu_ba0088_group" name="Skupiny BA0088" parent="menu_setup_codelists" action="action_ba0088_group" sequence="20"/>
+    <menuitem id="menu_esa_code" name="Sektory ESA (detail)" parent="menu_setup_codelists" action="action_esa_code" sequence="30"/>
+    <menuitem id="menu_esa_aggregate" name="Typy emitenta" parent="menu_setup_codelists" action="action_esa_aggregate" sequence="40"/>
+    <menuitem id="menu_membership" name="Členství zemí v EU/EHP" parent="menu_setup_codelists" action="action_membership" sequence="50"/>
+    <menuitem id="menu_measurement_category" name="Oceňovací kategorie" parent="menu_setup_codelists" action="action_measurement_category" sequence="60"/>
+    <menuitem id="menu_classification_reason" name="Důvody klasifikace" parent="menu_setup_codelists" action="action_classification_reason" sequence="70"/>
+</odoo>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="measurement_ac" model="investra.measurement.category"><field name="code">AC</field><field name="name">Naběhlá hodnota</field><field name="ifrs9_category">amortised</field></record>
+    <record id="measurement_fvoci_d" model="investra.measurement.category"><field name="code">FVOCI_D</field><field name="name">FVOCI – dluhový nástroj</field><field name="ifrs9_category">fvoci</field></record>
+    <record id="measurement_fvoci_e" model="investra.measurement.category"><field name="code">FVOCI_E</field><field name="name">FVOCI – kapitálový nástroj</field><field name="ifrs9_category">fvoci</field></record>
+    <record id="measurement_fvtpl" model="investra.measurement.category"><field name="code">FVTPL</field><field name="name">FVTPL</field><field name="ifrs9_category">fvtpl</field></record>
+</odoo>

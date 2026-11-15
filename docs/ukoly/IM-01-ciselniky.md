@@ -33,4 +33,29 @@
 
 ## Výsledek
 
+Hotovo 15. 11. 2026, větev `feature/instrument-master` (založena z `feature/nav-prototyp`, neexistovala).
+
+**Změněné soubory:** nový addon `addons/custom/investra_instrument_master/` (manifest, `models/` mixin + regulatory_codes +
+classification_codes, `security/` skupina a `ir.access.csv`, `data/` 7 souborů, `views/` configuration + menus, `tests/`)
+a `tools/codelist_seed.py` (generuje `esa_code.xml`, `ba0088.xml` a `ba0088_group.xml`).
+
+**Testy** (dočasná DB `investra_ci_master`, postup oddílu 2 plánu: instalace → `l10n_cz` → `-u` s testy):
+`0 failed, 0 error(s) of 15 tests`. Instalace na čisté DB bez ERROR a bez varování modulu (zůstala jen varování infrastruktury:
+`--without-demo=all`, `/mnt/extra-addons`, markdown2). Počty ověřeny testy: ESA 80 (VLI 8, BANK 18, FIN 42, NFP 6, OST 6), příklady
+1311000 → R/VLI, 2002212 → NR/BANK (ESA 2010 2002200), 1230100 → FIN; BA0088 84 / 52 nabízených, páka 63 povinná a 191 zakázaná,
+zdůvodnění jen kód 7; EU 27 zemí od 2020-02-01, překryv odmítnut; práva (čtenář nezapíše, správce založí a upraví, nikdo nesmaže,
+`code` nejde změnit); změna názvu a typu emitenta v historii. Dočasná DB i filestore smazány.
+
+**Neověřeno:** vzhled formulářů v prohlížeči (pohledy jen načteny při instalaci); instalace do `investra_test`/`investra_vzhled` se
+podle IM-00 nedělala; moduly `investra_counterparty` a ostatní testy nespuštěny (addon do nich nezasahuje).
+
+**Odchylky a rozhodnutí k potvrzení:**
+- Mixin sám dědí `mail.thread` (jinak Odoo hlásí varování u `tracking`).
+- Názvy skupin BA0088 (např. „Státní dluhopisy“) a typů emitenta ze zadání plánu; české názvy skupin jsem doplnil sám, v katalogu nejsou.
+- `requires_issuer` / `requires_maturity` nastaveno jen u 52 nabízených kódů (ostatní nemají rodinu); splatnost u rodin debt a bill.
+- Oceňovací kategorie: dle poznámky „zakládá jen modul“ uživatel nezakládá (přestože tabulka práv dává správci `cru`); upravovat smí.
+- `locally_modified` se nastaví při každém zápisu mimo načítání modulu a kontext `investra_codelist_import` (včetně zápisu superuživatele).
+- Nabídka Číselníky obsahuje jen sedm uvedených položek; „Import číselníku“ a „Účtování“ patří IM-02 a IM-07.
+- Seznam ESA 2010 se ověřuje proti `investra_counterparty/data/esa_sector.xml` (skript skončí chybou, když cílový sektor chybí).
+
 ## Převzetí
