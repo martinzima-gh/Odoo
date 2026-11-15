@@ -38,6 +38,6 @@ a pro účetnictví a výpočet NAV investičních fondů. Vypořádání úpis�
 ## Přístup k databázi pro čtení
 
 Databáze jsou pro DBeaver dostupné jen z tohoto počítače na `127.0.0.1:5433` (zachované `investra_dev`
-a `investra_test`; v pracovní `investra` zatím účet `dbeaver_ro` práva nemá, viz `docs/otevrene-body.md`).
+a `investra_test`; v pracovní `investra` má účet `dbeaver_ro` stejná práva, skript `tools/db/dbeaver_ro_grants.sql`).
 Účet `dbeaver_ro` smí pouze číst a nevidí hesla ani tajné údaje; heslo je v `.env`.
 Ukázkové dotazy jsou v `docs/sql/`.
