@@ -22,6 +22,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Lhůty uchování podle ZISIF | Zvláštní lhůty pro obhospodařovatele a administrátora nejsou ověřené | Ověřit v aktuálním znění a doplnit do Pravidel archivace |
 | Postup ocenění | Typovaná pravidla poplatků, pořadí modulů | Rozhodnout; doporučení je v Doc (Postup ocenění v Odoo) |
 | Transakční výkazy a oznámení | Katalog pokrývá jen rámec Fondy; hlášení obchodů mají krátkou lhůtu a vlastní data | Ověřit povinnost Investry, pak rozhodnout o rozsahu a doplnit katalog |
+| Zjednodušené ocenění FX derivátů | Reálná hodnota bez diskontování a tržních forwardových bodů (rozhodnutí 2026-11-15); odchylka od IFRS 13 a Pravidel oceňování neposouzena; EMIR a limity ZISIF u derivátů neověřeny | Před prvním skutečným fondem ověřit s auditorem; pak případně doplnit úrokové sazby měn (varianta C v návrhu) |
 | TISIFI10 u nových smluv | Zda je bez vypořádání přeceněním celá změna RH; mění výsledek v měsíci sjednání | Počítat celou změnu; potvrdit s ČNB před implementací |
 | Výkazy speciálních fondů | Speciální fondy mohou podávat jiné výkazy než FKI, například ROFOS11 a DOFOS70 | Ověřit v plánu výskytů SDAT a doplnit tabulku výkazů |
 | Příplatek mimo základní kapitál | Zda se počítá do CET1 a na který řádek DOFOS60 patří; ovlivňuje vykázaný kapitál | Potvrdit s auditorem nebo ČNB |

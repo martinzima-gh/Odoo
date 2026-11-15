@@ -63,9 +63,11 @@ označením „neověřeno“; pět zadání DE-02 až DE-06; seznam otázek k r
 
 ## Výsledek
 
-Doplní provádějící relace.
+Hotovo 15. 11. 2026, hlavní relace (Fable) místo relace Opus; rozsah zúžil Martin na zjednodušené řešení.
 
-- **Vytvořené soubory:**
-- **Ověřené předpisy (zdroj, datum):**
-- **Neověřeno:**
-- **Otázky k rozhodnutí:**
+- **Vytvořené soubory:** `docs/navrh-fx-derivaty.md`, zadání `DE-02` až `DE-05` (původní DE-05 Zajištění třídy odpadlo,
+  ukázka je nově DE-05), úprava plánu, deník rozhodnutí, otevřený bod „Zjednodušené ocenění FX derivátů“.
+- **Ověřeno:** číselný příklad přepočítán (součet změn RH = −300 000,00); v kódu existují typ `derivative_otc`,
+  role `derivative`, účet Deriváty v osnově fondu, typ účtu `off_balance` v Odoo 20, události a náhled zaúčtování.
+- **Neověřeno:** předpisy (501/2002 Sb., ČÚS, IFRS 13, EMIR, ZISIF) – ověření je první bod DE-03; čísla účtů.
+- **Rozhodnuto Martinem:** varianta B; bez zajišťovacích derivátů; ruční hodnota s přílohou nebo důvodem; vypořádání tlačítkem.
