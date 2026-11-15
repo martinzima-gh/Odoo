@@ -13,9 +13,8 @@
 - Deník rozhodnutí, Claude Doc (Přijatá rozhodnutí), otevřené body, Výsledek v zadání.
 
 **Zbývá:**
-1. Martin zruší ocenění id 39 (fond C, 1. 9. 2026) tlačítkem a ověří v prohlížeči (seznam v odpovědi relace).
-2. Spustit kontrolní SELECTy z Výsledku zadání a doplnit jejich výsledek do sekce Výsledek.
-3. Sloučení `ukol/OC-01` do pracovní větve / `main` jen na Martinovu výzvu.
+1. ~~Zrušení id 39 a kontrolní SELECTy~~ hotovo 15. 11. 2026 (výsledek v zadání).
+2. Sloučení `ukol/OC-01` do pracovní větve / `main` jen na Martinovu výzvu.
 
 **Rozhodnutí:** 2026-11-15 „Pořadí ocenění a zrušení návrhu (OC-01)“.
 

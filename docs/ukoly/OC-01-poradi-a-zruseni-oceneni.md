@@ -88,12 +88,18 @@ Provedl Claude (Opus 5.5), 15. 11. 2026, větev `ukol/OC-01`.
     31.10.2026…“), k 15. 9. 2026 odmítnuto pravidlem o zveřejnění předchozího (kvůli id 39); počet ocenění fondu beze změny (7).
   - Stav před zrušením id 39 (SELECT): ocenění 39 `computed`, události 215–217 `draft`, doklady 239–241 `draft`
     k 2026-09-01; uzávěrka společnosti 2026-10-31.
-- **Neověřeno:** zrušení id 39 v `investra` (provede Martin tlačítkem). Kontrolní SELECT po zrušení:
+- **Zrušení id 39 v `investra`:** provedl Martin tlačítkem „Zrušit návrh“ 15. 11. 2026. Kontrolní SELECTy
+  (read-only transakce) po zrušení:
 
       SELECT e.id, e.state, e.move_id FROM investra_accounting_event e
        WHERE e.res_model = 'investra.valuation' AND e.res_id = 39;      -- čekáme 3 řádky, state = discarded, move_id prázdné
       SELECT id FROM account_move WHERE id IN (239, 240, 241);         -- čekáme 0 řádků
       SELECT id FROM investra_valuation WHERE id = 39;                 -- čekáme 0 řádků
+
+  Výsledek: události 215, 216, 217 ve stavu `discarded` bez `move_id` (3 řádky); doklady 239–241 neexistují
+  (0 řádků); ocenění 39 neexistuje (0 řádků). Fond C má 6 ocenění, všechna zveřejněná (31. 5. až 31. 10. 2026,
+  verze 1). Historie fondu C (`mail_message` id 1590, 2026-11-15 17:40:42 UTC): „Zrušen návrh ocenění Fond C – … –
+  01.09.2026 – v1 (stav: Spočteno); zrušené návrhy dokladů: 3.“ Kritéria přijetí jsou splněná.
 
 - **Otevřené otázky a návrhy mimo rozsah:** zapsané do `docs/otevrene-body.md`: výjimka pro historická ocenění
   při převzetí fondu (etapa PF); zrušení návrhu verze 2+ znemožní k témuž datu založit novou verzi (jedinečnost
