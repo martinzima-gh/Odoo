@@ -39,12 +39,12 @@ body označené „doporučení“ rozhodl Claude podle svého návrhu a Martin 
 | ST-03 | Chyba nabídky Přehled (padá v prohlížeči; text chyby dodá Martin) | Sonnet |
 | ST-04 | Pravidla Copilota a Antigravity: společná instance 8072 podle `CLAUDE.md` | Sonnet |
 
-Prompt ST-01 (`/model sonnet`):
+Prompt ST-01 (`/model sonnet`), zadání `docs/ukoly/ST-01-slouceni-do-main.md`:
 
-    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla, Etapa 0) a poslední soubor v docs/predavky/.
-    Proveď ST-01. Souhlasím se sloučením feature/instrument-master do feature/nav-prototyp a do main (Martin);
-    před sloučením pusť testy všech modulů investra_* na dočasné databázi. Větve nemaž, jen navrhni. Zapiš do deníku,
-    udělej předávku, napiš mi, co šlo ven, a zastav se.
+    Přečti CLAUDE.md, docs/ukoly/ST-01-slouceni-do-main.md a docs/predavky/2026-11-15-im13-hotovo.md. Celý projekt
+    neprocházej. Proveď ST-01 přesně podle zadání. Souhlasím se sloučením feature/instrument-master do
+    feature/nav-prototyp a do main bez --force (Martin). Větve nemaž, jen navrhni. Soubor .env nečti ani nevypisuj.
+    Doplň Výsledek, deník a předávku, napiš mi, co šlo ven, a zastav se.
 
 ST-02 až ST-04: stejný prompt s číslem kroku, bez věty o sloučení; větev `ukol/ST-0X` z `main`.
 
@@ -63,12 +63,13 @@ Ostatní deriváty až podle pozic fondů. Podklady: `docs/navrh-oceneni-derivat
 | DE-05 | Zajištění třídy: výsledek derivátu jen do třídy, kterou zajišťuje (`investra_allocation`), přemostění tříd | Opus | červená |
 | DE-06 | Ukázka v `seed.py` (FX swap u fondu s třídou v EUR), README, SELECTy | Haiku | zelená |
 
-Prompt DE-01 (`/model opus`):
+Prompt DE-01 (`/model opus`), až po ST-01, zadání `docs/ukoly/DE-01-navrh-fx-derivaty.md`:
 
-    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla, Etapa 1), docs/navrh-oceneni-derivatu.md,
-    docs/predpisy-a-standardy.md a související otevřené body. Kód neměň. Proveď DE-01: návrh do docs/navrh-fx-derivaty.md
-    a zadání DE-02 až DE-06 do docs/ukoly/. Předpisy ověř v primárních zdrojích, neověřené označ. Uveď číselný příklad
-    FX swapu přes dvě ocenění. Commitni do větve etapa/derivaty, napiš mi otázky k rozhodnutí a zastav se.
+    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla, Etapa 1), docs/ukoly/DE-01-navrh-fx-derivaty.md,
+    docs/navrh-oceneni-derivatu.md, docs/predpisy-a-standardy.md a související otevřené body. Celý projekt neprocházej,
+    kód čti jen cíleně a neměň ho. Založ větev etapa/derivaty z main a proveď DE-01 podle zadání. Předpisy ověř
+    v primárních zdrojích, neověřené označ. Commitni, pushni do origin etapa/derivaty:etapa/derivaty, napiš mi otázky
+    k rozhodnutí a zastav se.
 
 ## Etapa 2 – Převzetí fondu (PF)
 
