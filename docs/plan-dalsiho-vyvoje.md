@@ -36,7 +36,7 @@ body označené „doporučení“ rozhodl Claude podle svého návrhu a Martin 
 |---|---|---|
 | ST-01 | Sekce Převzetí IM-01 až IM-13, sloučení `feature/instrument-master` → `feature/nav-prototyp` → `main` (souhlas Martina v promptu), smazání sloučených větví po dotazu | Sonnet |
 | ST-02 | GitHub Actions: instalace všech modulů `investra_*` a testy na čisté databázi při každém pushi; bez tajných údajů v repozitáři | Sonnet |
-| ST-03 | Chyba nabídky Přehled (padá v prohlížeči; text chyby dodá Martin) | Sonnet |
+| ST-03 | Chyba nabídky Přehled: šablona `FundTodo` čte `items` bez `this.` (zadání `docs/ukoly/ST-03-chyba-prehledu-fundtodo.md`) | Sonnet |
 | ST-04 | Pravidla Copilota a Antigravity: společná instance 8072 podle `CLAUDE.md` | Sonnet |
 
 Prompt ST-01 (`/model sonnet`), zadání `docs/ukoly/ST-01-slouceni-do-main.md`:

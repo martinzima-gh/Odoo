@@ -17,7 +17,7 @@ Běží `investra-web` (8071, databáze `investra`) a výuková instance 8069; 8
 1. Martin: změnit výchozí heslo správce v `investra`, projít nabídky v prohlížeči.
 2. ST-01 (Sonnet) – sloučení do `main`; pak DE-01 (Opus) – návrh FX derivátů. Postupně, ne souběžně (jeden pracovní strom).
 3. Po DE-01: Martin rozhodne varianty, hlavní relace zkontroluje zadání DE-02 až DE-06.
-4. ST-02 (GitHub Actions), ST-03 (chyba Přehledu – čeká na text chyby), ST-04 (pravidla Copilota a Antigravity, 8072 z kopie `investra`).
+4. ST-02 (GitHub Actions), ST-03 (chyba Přehledu – zadání hotové, Sonnet, hned po ST-01), ST-04 (pravidla Copilota a Antigravity, 8072 z kopie `investra`).
 
 **Rozhodnutí:** žádné nové.
 
