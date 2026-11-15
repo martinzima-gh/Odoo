@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Formulář portfolia: jen přidání přes XPath; stávající pole i seznam zařazení zůstávají na svém místě. -->
+    <record id="view_portfolio_form_master" model="ir.ui.view">
+        <field name="name">investra.fund.portfolio.form.master</field><field name="model">investra.fund.portfolio</field>
+        <field name="inherit_id" ref="investra_instruments.view_portfolio_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_approve" type="object" string="Schválit" class="btn-primary"
+                            invisible="state != 'draft' or not id" groups="investra_entity.group_valuation_approver"/>
+                    <button name="action_close" type="object" string="Uzavřít"
+                            invisible="state == 'closed' or not id" groups="investra_entity.group_valuation_approver"
+                            confirm="Portfolio se uzavře a jeho platnost skončí dnešním dnem. Pokračovat?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,closed"/>
+                </header>
+            </xpath>
+            <xpath expr="//sheet/group" position="before">
+                <field name="is_locked" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="not is_locked">
+                    Portfolio je v užívání od <field name="lock_date" readonly="1" class="oe_inline"/>. Kategorii, obchodní model
+                    a důvod klasifikace nejde změnit; založte nové portfolio a toto uzavřete.
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='fund_id']" position="attributes">
+                <attribute name="readonly">is_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="code"/>
+                <field name="measurement_category_id" readonly="is_locked" options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='business_model']" position="attributes">
+                <attribute name="readonly">is_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='business_model']" position="after">
+                <field name="classification_reason_id" readonly="is_locked" options="{'no_create': True}"/>
+                <field name="reason_help" nolabel="1" colspan="2" readonly="1" class="text-muted"
+                       invisible="not reason_help"/>
+            </xpath>
+            <xpath expr="//sheet/group" position="after">
+                <notebook>
+                    <page string="Klasifikace IFRS 9" name="ifrs9">
+                        <group>
+                            <field name="strategy_description"/>
+                            <field name="sales_policy_description"/>
+                        </group>
+                    </page>
+                    <page string="Řízení a kontrola" name="governance">
+                        <group>
+                            <group string="Platnost">
+                                <field name="valid_from"/><field name="valid_to"/>
+                                <field name="lock_date" invisible="not is_locked"/>
+                            </group>
+                            <group string="Schválení a revize">
+                                <field name="approved_by"/><field name="approved_on"/>
+                                <field name="review_frequency"/><field name="last_review_date"/><field name="next_review_date"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_portfolio_list_master" model="ir.ui.view">
+        <field name="name">investra.fund.portfolio.list.master</field><field name="model">investra.fund.portfolio</field>
+        <field name="inherit_id" ref="investra_instruments.view_portfolio_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="code" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='business_model']" position="before">
+                <field name="measurement_category_id" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='business_model']" position="after">
+                <field name="state" widget="badge" optional="show" decoration-warning="state == 'draft'"
+                       decoration-success="state == 'approved'" decoration-muted="state == 'closed'"/>
+                <field name="valid_from" optional="show"/><field name="valid_to" optional="hide"/>
+                <field name="is_locked" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
