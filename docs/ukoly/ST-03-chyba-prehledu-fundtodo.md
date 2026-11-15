@@ -43,11 +43,16 @@ pushnout a krátkou větev smazat místně i na origin; oprava se pak do `main` 
 
 ## Výsledek
 
-Doplní provádějící relace.
-
-- **Změněné soubory:**
+- **Změněné soubory:** `addons/custom/investra_dashboard/static/src/fund_todo.xml` (`this.items` ve dvou místech),
+  nově `tools/view_check/check_templates.py` a `test_check_templates.py`, tento soubor.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+  - Prověřené šablony (celkem 2): `investra_dashboard/static/src/fund_todo.xml` (chyba opravena),
+    `investra_nav/static/src/valuation_summary/valuation_summary.xml` (v pořádku, vše přes `this.`).
+  - `python3 tools/view_check/check_templates.py`: před opravou 2 chyby (obě `items`), po opravě 0.
+  - `python3 -m unittest test_check_templates test_check_views` (v `tools/view_check`): 7 testů OK.
+  - `tools/run_tests.sh investra_dashboard`: 0 failed, 0 error z 24 testů, dočasná DB smazána.
+- **Neověřeno:** že se Přehled na 8071 načte bez chyby (po Cmd+Shift+R) – ověří Martin v prohlížeči.
+  Kontrola šablon je heuristika (první identifikátor ve výrazech); těla šipkových funkcí a `t-on-*` nekontroluje.
+- **Otevřené otázky a návrhy mimo rozsah:** kontrolu šablon lze později zařadit do CI (ST-02).
 
 ## Převzetí
