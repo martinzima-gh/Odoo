@@ -1,6 +1,6 @@
 # Investra Instrument Master
 
-Evidence nástrojů, emitentů a portfolií a číselníky ČNB a IFRS 9. Verze `20.0.0.5.0`, závisí na `investra_counterparty`
+Evidence nástrojů, emitentů a portfolií a číselníky ČNB a IFRS 9. Verze `20.0.0.6.0`, závisí na `investra_counterparty`
 a `investra_instruments`. Plán a rozhodnutí: `docs/navrh-evidence-nastroju.md`, zadání úkolů `docs/ukoly/IM-*.md`.
 
 ## Co modul dělá
@@ -36,9 +36,17 @@ a nástroje a schválení portfolia smí jen skupina schvalování; kontrola je 
 
 Seed je v `data/*.xml` s `noupdate="1"`: upgrade modulu záznamy nepřepíše, ručně změněné se tedy neztratí.
 Soubory `esa_code.xml`, `ba0088.xml` a `ba0088_group.xml` generuje `tools/codelist_seed.py` z katalogů v `docs/cnb/`
-(ručně je neupravovat). Při nové metodice: obnovit katalog v `docs/cnb/`, spustit skript a nové kódy doplnit
-(zatím ručně v číselníku; hromadný průvodce importem **není hotový**, viz níže). Zdroj a verze jsou v poli „Zdroj metodiky“
-(např. `FOFI20261201 / D_S_RNBD_4`, `BA0088 v023.000`).
+(ručně je neupravovat). Zdroj a verze jsou v poli „Zdroj metodiky“ (např. `FOFI20261201 / D_S_RNBD_4`, `BA0088 v023.000`).
+
+**Import nové verze** (Nastavení → Číselníky → Import číselníku, jen správce číselníků):
+1. Zvolte cílový číselník (BA0088 nebo ESA), nahrajte CSV (UTF-8) ve formátu ČNB `domena;nazev_domeny_nebo_hierarchie;kod;hodnota`
+   (zadejte doménu, u ESA `D_S_RNBD_4`) nebo ve formátu katalogu BA0088 (`…;typ;kod;nazev`), vyplňte metodiku a „Platí od“.
+2. Náhled ukáže řádky: nový, změněný název, beze změny, chybí v nové verzi, konflikt. Zapíšou se jen zaškrtnuté řádky.
+3. Konflikt = ručně upravený název; nepřepíše se a vypíše se ve výsledku. Nic se nemaže; kód, který chybí, dostane jen
+   „Platí do“ (den před „Platí od“).
+4. U nového kódu ESA se rezidentství předvyplní z první číslice; typ emitenta je nutné v náhledu doplnit, jinak se zápis odmítne.
+   U nového kódu BA0088 se doplní jen nadřazený kód; nabízení u nástroje, rodinu a skupinu nastavte ručně.
+5. Druhý import téhož souboru nic nezmění.
 
 ## Instalace a upgrade
 
@@ -51,11 +59,11 @@ Soubory `esa_code.xml`, `ba0088.xml` a `ba0088_group.xml` generuje `tools/codeli
 
 ## Neimplementováno a otevřené (oddíl 8 plánu + výsledky úkolů)
 
-- Průvodce importem číselníků (IM-02): sekce Výsledek úkolu je prázdná, v modulu průvodce není (jen `masterdata.change.wizard`).
 - BA0088 je z testovacího portálu SDAT; před ostrým provozem porovnat s produkčním. Složení domény `D_S_CPMKT_1` není staženo.
 - Členové EHP mimo EU a historie členství v EU před 1. 2. 2020; vazba kódů 1443000 a 2004430 na `Z_ESA2010`.
 - Mezinárodní instituce: profil dál vyžaduje zemi (změna je červená zóna).
 - `BANK_SECTORS` v `investra_counterparty` neobsahuje nerezidentní banky (2002100, 2002200): ověřit s metodikem.
 - Návrh role účtu zařazení z účetního profilu a povinnost kategorie portfolia v databázi (červená zóna, později).
 - `eu_status` se s plynutím času sám nepřepočítá; `classification_gap` zatím nehlásí chybějící SPPI (návrh na doplnění).
-- Vzhled formulářů nebyl zkontrolován v prohlížeči.
+- Nové kódy BA0088 z importu nemají rodinu, skupinu ani příznaky; import skutečné nové verze metodiky nebyl vyzkoušen.
+- Vzhled formulářů (včetně průvodce importem) nebyl zkontrolován v prohlížeči.

@@ -39,8 +39,8 @@ Test report čísla jen přebírá ze sekcí Výsledek.
 
 **Odchylky:**
 - Soubor SQL se jmenuje `23-…`, ne `12-…` ze zadání: číslo 12 už má `12-ucetni-udalosti.sql`.
-- Sekce Výsledek úkolu IM-02 je prázdná a v modulu není průvodce importem číselníků; README i test report to uvádějí
-  (správa číselníků zatím ručně a přes `tools/codelist_seed.py`). Je potřeba rozhodnout, zda IM-02 doběhnout.
-- Test report neobsahuje součet za celý modul po IM-07 (poslední širší běh byl po IM-06).
+- Doplněno 15. 11. 2026 po dokončení IM-02: README (verze 20.0.0.6.0, postup importu) a test report (79 testů) aktualizovány;
+  původní verze uváděla průvodce jako nehotový.
+- Test report nemá širší sadu všech modulů po IM-07 a IM-02 (poslední byla po IM-06).
 
 ## Převzetí
