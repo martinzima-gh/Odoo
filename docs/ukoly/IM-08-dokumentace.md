@@ -23,4 +23,24 @@
 
 ## Výsledek
 
+Hotovo 15. 11. 2026 (Claude Code), větev `feature/instrument-master`. Kód ani pohledy beze změny.
+
+**Změněné soubory:** nové `addons/custom/investra_instrument_master/README.md`, `docs/sql/23-evidence-nastroju.sql`,
+`docs/ukoly/IM-test-report.md`; upraven `README.md` v kořeni (příkaz pro testy nahrazen odkazem na `tools/run_tests.sh`).
+
+**Ověření SELECTů:** addon není nainstalovaný v `investra_test`, `investra_dev` ani `investra_vzhled`, proto jsem ho nainstalovala
+do dočasné `investra_ci_master` (bez demo dat) a všech 9 dotazů pustila v read-only režimu: žádná chyba, všechny jen s prázdným
+výsledkem kromě počtů číselníků (BA0088 84, ESA 80, kategorie 4, důvody 6; ručně změněných 0). Dočasná DB je smazána, filestore
+po ní nezůstal. Testy Odoo se nespouštěly.
+
+**Neověřeno:** správnost výsledků na datech (v DB nebyli emitenti, nástroje ani portfolia); dotaz 7 (zařazení bez účetního profilu)
+napodobuje výběr profilu v SQL, protože `profile_state` není uložené pole; vzhled a obsah README bez prohlížení v aplikaci.
+Test report čísla jen přebírá ze sekcí Výsledek.
+
+**Odchylky:**
+- Soubor SQL se jmenuje `23-…`, ne `12-…` ze zadání: číslo 12 už má `12-ucetni-udalosti.sql`.
+- Sekce Výsledek úkolu IM-02 je prázdná a v modulu není průvodce importem číselníků; README i test report to uvádějí
+  (správa číselníků zatím ručně a přes `tools/codelist_seed.py`). Je potřeba rozhodnout, zda IM-02 doběhnout.
+- Test report neobsahuje součet za celý modul po IM-07 (poslední širší běh byl po IM-06).
+
 ## Převzetí
