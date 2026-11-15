@@ -13,9 +13,10 @@ Běží 8070 `investra_dev`, 8071 `investra_test`, 8072 `investra_vzhled`; datab
 - `docs/plan-dalsiho-vyvoje.md`: etapy ST, DE (FX forward a swap), PF, CN, EC (ECL jako procento), FO, VZ, UX s modely a prompty.
 
 **Zbývá (první krok nahoře):**
-1. IM-13 stojí na chybě `create_book` (odložené načtení osnovy přepíše měnu a šablonu osnovy po commitu); podrobnosti
-   v `docs/predavky/2026-11-15-im13-pracovni-databaze.md`. Připravit zadání opravy (červená zóna: kniha, měna, osnova)
-   a prompt pro Opus; po opravě pokračování IM-13 (Investra Services, databáze `investra`, zastavení starých instancí).
+1. Chybu `create_book` (odložené načtení osnovy přepíše měnu a šablonu osnovy po commitu) a dokončení IM-13 řeší
+   jiná relace (stav v době předávky; popis v `docs/predavky/2026-11-15-im13-pracovni-databaze.md`). Nová hlavní relace
+   nejdřív ověří jen čtením, že je to hotové: `git status` čistý, sekce Výsledek v IM-13, databáze `investra` na 8071,
+   staré instance zastavené. Co chybí, popíše a připraví na to zadání a prompt.
 2. Ověřit dopad chyby na stávající data: v `investra_test` má Investra Services šablonu osnovy `investra_fund`.
 3. Po IM-13: ST-01 (sloučení do `main`), pak DE-01 (návrh FX derivátů) podle plánu.
 4. Chyba nabídky Přehled na 8072: čeká se na text chyby z prohlížeče od uživatele.
