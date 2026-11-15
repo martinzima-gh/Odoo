@@ -17,6 +17,15 @@ Nová metodika = nové soubory se jménem podle metodiky; rozdíl proti minulé 
 | `ukazatele-*.csv` | Ukazatele použité ve vzorcích (`EAR2592`, `AFO0031` apod.) | 390 |
 | `kontroly-*.xlsx` | Vše výše v jednom sešitu, s filtry a listem kontrol pro každý výkaz | |
 
+## Číselník BA0088 (druhy cenných papírů a derivátů)
+
+`ciselnik-BA0088-v023.csv`: celý číselník BA0088 „Druhy cenných papírů a odvozených kontraktů (derivátů)“, verze 023.000,
+platnost od 1. 1. 2024, staženo 15. 11. 2026 z detailu verze číselníku (`F1013-detail-verze-ciselniku.zul?id=22343`)
+na testovacím portálu SDAT `sdatt.cnb.cz`. 84 položek (`typ` = polozka) a 35 souhrnných položek (`typ` = souhrnna).
+Je to celý číselník, ne doména: které položky patří do domény `D_S_CPMKT_1` (REFIM10), staženo není.
+Seznam položek je stránkovaný po 20; další stránky vrací požadavek `onPaging` na `zkau`.
+Před ostrým provozem porovnat verzi s produkčním portálem `sdat.cnb.cz`.
+
 ## Jak číst vzorce
 
 - **Sémantický tvar:** `WITH(P0019=S_VSEMEN, …) [AFO0031] = [AFO0037] + … MARGIN 4000;` Pracuje s ukazateli a parametry.

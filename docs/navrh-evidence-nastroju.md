@@ -24,8 +24,9 @@ Co systém neumí dnes a tato etapa to nepřidává (samostatné plány): účto
    Povaha nástroje, určení a volby (4.1.5, 5.7.5) a držení k obchodování zůstávají na zařazení a portfoliu.
 5. **Typ nástroje (`type_id`) zůstává** pro NAV. BA0088 je regulatorní druh vedle něj; povinný je až při potvrzení
    klasifikace nástroje a jen u typů s příznakem „Vyžaduje BA0088“.
-6. **Seed BA0088** jen z kódů uložených v `docs/cnb/`. Doména `D_S_CPMKT_1` (deriváty 6xxx, 63, 69, 7, 191, 199) se
-   nejdřív stáhne ze SDAT do `docs/cnb/`; do té doby se tyto kódy nezakládají.
+6. **Seed BA0088** jen z kódů uložených v `docs/cnb/`. Celý číselník BA0088 (verze 023.000, platnost od 1. 1. 2024,
+   84 položek a 35 souhrnných) je od 15. 11. 2026 v `docs/cnb/ciselnik-BA0088-v023.csv`. U nástroje se nabízí 52 kódů
+   ze zadání (příznak „Nabízet u nástroje“); nadřazené a podrobnější položky jsou v číselníku jen pro úplnost.
 7. **Jedna nová skupina** „Investra: správce číselníků“. Ostatní role: čtení = `account.group_account_readonly`,
    příprava = `investra_entity.group_valuation_preparer`, kontrola a schválení = `investra_entity.group_valuation_approver`.
 8. Nová pole **nejsou povinná v databázi** (stávající testy zakládají nástroje a portfolia bez nich); povinnost se vynucuje
@@ -89,7 +90,7 @@ $C -u investra_instrument_master --test-enable --test-tags /investra_instrument_
 
 | Model | Pole navíc |
 |---|---|
-| `investra.ba0088.code` | `asset_family` Selection (debt, equity, fund, certificate, bill, coupon, direct_equity, derivative, other), required; `parent_code` Char; `group_id` M2O `investra.ba0088.group`; `requires_issuer`, `requires_maturity`, `requires_justification` Boolean; `leverage_rule` Selection (none, must_true, must_false), default none |
+| `investra.ba0088.code` | `selectable` Boolean „Nabízet u nástroje“ (doména pole `ba0088_id` nástroje); `asset_family` Selection (debt, equity, fund, certificate, bill, coupon, direct_equity, derivative, other), povinné u `selectable`; `parent_code` Char; `group_id` M2O `investra.ba0088.group`; `requires_issuer`, `requires_maturity`, `requires_justification` Boolean; `leverage_rule` Selection (none, must_true, must_false), default none |
 | `investra.ba0088.group` | — |
 | `investra.esa.aggregate.sector` | `help_text` Text |
 | `investra.esa.code` | `aggregate_sector_id` M2O required tracking; `residency` Selection (r „Rezident“, nr „Nerezident“) required tracking; `residency_warning` Char computed (první číslice 1 ≠ r, 2 ≠ nr); `esa2010_sector_id` M2O `investra.esa.sector`; `any_country` Boolean |
@@ -193,7 +194,7 @@ Schválení vyžaduje `code`, kategorii, důvod, `assessment`, `valid_from`.
 | `data/esa_aggregate_sector.xml` | VLI Vládní instituce, BANK Banky a obdobné úvěrové instituce, FIN Ostatní finanční instituce, NFP Nefinanční podniky, OST Ostatní | zadání |
 | `data/esa_code.xml` | 80 kódů `D_S_RNBD_4`, názvy doslova z katalogu | `docs/cnb/ciselniky-FOFI20261201.csv`, generuje `tools/codelist_seed.py` |
 | `data/ba0088_group.xml` | GOV_BONDS, OTHER_BONDS, CERTIFICATES, EQUITIES, FUND_SECURITIES, OTHER_EQUITY_SECURITIES, BILLS_COUPONS, FORWARDS_FUTURES, SWAPS, OPTIONS_AND_OTHER_DERIVATIVES, OTHER_INSTRUMENTS | zadání |
-| `data/ba0088.xml` | 28 kódů `D_S_CPSBS_1` | katalog; kódy `D_S_CPMKT_1` až po stažení |
+| `data/ba0088.xml` | 84 položek číselníku BA0088 v023.000 (souhrnné `S_…` se nezakládají); `parent_code` = nejdelší existující kratší kód se stejným začátkem; `selectable` u 52 kódů níže | `docs/cnb/ciselnik-BA0088-v023.csv`, generuje `tools/codelist_seed.py` |
 | `data/measurement_category.xml` | AC (amortised), FVOCI_D (fvoci), FVOCI_E (fvoci), FVTPL (fvtpl) | zadání |
 | `data/classification_reason.xml` | BUSINESS_MODEL, SPPI_FAIL, MANDATORY_FVTPL, FVTPL_DESIGNATION, EQUITY_FVOCI_ELECTION, OTHER (`requires_note`) | zadání |
 | `data/country_membership.xml` | EU: 27 zemí standardní skupiny `base.europe`, platí od 2020-02-01 | standard Odoo; EHP nezakládat (chybí zdroj) |
@@ -208,10 +209,14 @@ OST = 1443000, 1500000, 2004430, 2005000, 2009031, 2009035 (6). Kódy 2009031 a 
 instituce shodný kód; nerezidenti prvními pěti číslicemi + `00` (2002212 → 2002200), 2001001–3 → 2001000, vládní shodný
 kód, 2009031 a 2009035 → 2009030. Kódy 1443000 a 2004430 nechat prázdné (potvrdí metodik).
 
-**BA0088 → rodina a skupina** (kódy z katalogu): 111, 112, 141 → debt, GOV_BONDS; 12, 13, 142, 149, 15, 41, 42, 17, 19 →
-debt, OTHER_BONDS; 211, 212, 219 → equity, EQUITIES; 217, 218, 225, 226 → fund, FUND_SECURITIES; 23, 24, 27, 29 → equity,
-OTHER_EQUITY_SECURITIES; 8 → direct_equity, OTHER_EQUITY_SECURITIES; 311, 312 → bill, BILLS_COUPONS; 36, 37 → coupon,
-BILLS_COUPONS. `requires_issuer` u všech; `requires_maturity` u debt a bill.
+**BA0088 → rodina a skupina** (52 kódů s `selectable`; ostatní položky bez rodiny a skupiny): 111, 112, 141 → debt,
+GOV_BONDS; 12, 13, 142, 149, 15, 41, 42, 17, 199 → debt, OTHER_BONDS; 191, 63 → certificate, CERTIFICATES (191
+`leverage_rule` must_false, 63 must_true); 211, 212, 219 → equity, EQUITIES; 217, 218, 225, 226 → fund, FUND_SECURITIES;
+23, 24, 27, 29 → equity, OTHER_EQUITY_SECURITIES; 8 → direct_equity, OTHER_EQUITY_SECURITIES; 311, 312 → bill,
+BILLS_COUPONS; 36, 37 → coupon, BILLS_COUPONS; 6111, 6112, 6119, 612 → derivative, FORWARDS_FUTURES; 6131–6136, 6139 →
+derivative, SWAPS; 6191, 6192, 6199, 6211, 6212, 6221, 6222, 623, 629, 69 → derivative, OPTIONS_AND_OTHER_DERIVATIVES;
+7 → other, OTHER_INSTRUMENTS (`requires_justification`). `requires_issuer` u všech kromě derivátů; `requires_maturity`
+u debt a bill.
 
 **Nápovědy důvodů klasifikace** (`help_text`):
 - BUSINESS_MODEL: Kategorie vychází ze způsobu řízení portfolia a u dluhových nástrojů z výsledku testu SPPI.
@@ -275,7 +280,8 @@ a „Schválit“ jen pro skupinu schvalování; stejná kontrola i v metodě.
 
 ## 8. Otevřené body této etapy
 
-- Stažení domény `D_S_CPMKT_1` (BA0088 pro REFIM10) ze SDAT do `docs/cnb/`; pak doplnit kódy a skupiny derivátů.
+- Číselník BA0088 je stažený z testovacího portálu SDAT (`sdatt.cnb.cz`); před ostrým provozem porovnat verzi
+  s produkčním portálem. Složení domény `D_S_CPMKT_1` staženo není; 52 nabízených kódů je podle zadání.
 - Členové EHP mimo EU a historie členství v EU před 1. 2. 2020 (zdroj).
 - Vazba 1443000 a 2004430 na `Z_ESA2010`.
 - Mezinárodní instituce: profil dál vyžaduje zemi (změna `required` je červená zóna).

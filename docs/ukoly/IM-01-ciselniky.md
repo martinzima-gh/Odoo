@@ -16,15 +16,15 @@
 - `security/security.xml`, `security/ir.access.csv`
 - `views/configuration_views.xml`, `views/menus.xml`
 - `data/*.xml` podle oddílu 4 plánu; `esa_code.xml` a `ba0088.xml` vygeneruje `tools/codelist_seed.py` z
-  `docs/cnb/ciselniky-FOFI20261201.csv` (oddělovač `;`, UTF-8 s BOM)
+  `docs/cnb/ciselniky-FOFI20261201.csv` (ESA) a `docs/cnb/ciselnik-BA0088-v023.csv` (BA0088); oddělovač `;`, UTF-8 s BOM
 - `tests/test_code_lists.py`, `tests/test_security.py`
 
-**Mimo rozsah:** rozšíření emitenta, nástroje a portfolia; import; CFI mapa; jakýkoli kód BA0088, který není v katalogu.
+**Mimo rozsah:** rozšíření emitenta, nástroje a portfolia; import; CFI mapa; jakýkoli kód, který není v `docs/cnb/`.
 
 **Kritéria přijetí:**
 - 80 ESA kódů; typy emitenta VLI 8, BANK 18, FIN 42, NFP 6, OST 6; 1311000 → R, VLI; 2002212 → NR, BANK; 1230100 → FIN.
 - `residency_warning` se ukáže, když kód začíná 1 a rezidentství je NR.
-- 28 kódů BA0088 s rodinou a skupinou; 27 zemí EU od 2020-02-01; překryv období členství se odmítne.
+- 84 položek BA0088, z toho 52 s příznakem „Nabízet u nástroje“, rodinou a skupinou; 63 má páku povinnou, 191 zakázanou, 7 vyžaduje zdůvodnění; 27 zemí EU od 2020-02-01; překryv období členství se odmítne.
 - Uživatel s čtením účetnictví číselník nezapíše; správce číselníků založí a upraví; nikdo nemaže; `code` po založení nejde změnit.
 - Změna názvu a typu emitenta je v historii záznamu.
 - Instalace na čisté databázi bez chyb a varování modulu.

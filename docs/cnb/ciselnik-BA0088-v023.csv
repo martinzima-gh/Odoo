@@ -1,0 +1,120 @@
+﻿ciselnik;verze;platnost_od;typ;kod;nazev
+BA0088;023.000;2024-01-01;polozka;1;Dluhopisy
+BA0088;023.000;2024-01-01;polozka;11;Státní bezkuponové dluhopisy
+BA0088;023.000;2024-01-01;polozka;111;Státní pokladniční poukázky
+BA0088;023.000;2024-01-01;polozka;112;Ostatní státní bezkuponové dluhopisy
+BA0088;023.000;2024-01-01;polozka;12;Bezkuponové dluhopisy centrálních bank
+BA0088;023.000;2024-01-01;polozka;13;Ostatní  bezkuponové dluhopisy
+BA0088;023.000;2024-01-01;polozka;14;Kupónové dluhopisy
+BA0088;023.000;2024-01-01;polozka;141;Státní kuponové dluhopisy
+BA0088;023.000;2024-01-01;polozka;142;Komunální dluhopisy
+BA0088;023.000;2024-01-01;polozka;149;Ostatní kupónové dluhopisy
+BA0088;023.000;2024-01-01;polozka;15;Hypotéční zástavní listy
+BA0088;023.000;2024-01-01;polozka;17;Cenné papíry zajištěné aktivy
+BA0088;023.000;2024-01-01;polozka;19;Ostatní dluhopisy
+BA0088;023.000;2024-01-01;polozka;191;Nepákové investiční certifikáty
+BA0088;023.000;2024-01-01;polozka;199;Jiné dluhopisy
+BA0088;023.000;2024-01-01;polozka;2;Majetkové cenné papíry
+BA0088;023.000;2024-01-01;polozka;21;Akcie
+BA0088;023.000;2024-01-01;polozka;211;Kmenové akcie
+BA0088;023.000;2024-01-01;polozka;212;Prioritní akcie
+BA0088;023.000;2024-01-01;polozka;217;Akcie ostatních investičních fondů
+BA0088;023.000;2024-01-01;polozka;218;Akcie fondů peněžního trhu
+BA0088;023.000;2024-01-01;polozka;219;Ostatní akcie
+BA0088;023.000;2024-01-01;polozka;22;Podílové listy
+BA0088;023.000;2024-01-01;polozka;225;Podílové listy fondů peněžního trhu
+BA0088;023.000;2024-01-01;polozka;226;Podílové listy ostatních investičních fondů
+BA0088;023.000;2024-01-01;polozka;23;Zatímní listy
+BA0088;023.000;2024-01-01;polozka;24;Poukázky na akcie
+BA0088;023.000;2024-01-01;polozka;27;Globální depozitní certifikáty  (GDR)
+BA0088;023.000;2024-01-01;polozka;29;Ostatní majetkové CP nedefinované v jiných položkách skup. 2
+BA0088;023.000;2024-01-01;polozka;3;Specifické cenné papíry
+BA0088;023.000;2024-01-01;polozka;31;Směnky
+BA0088;023.000;2024-01-01;polozka;311;Depozitní směnky
+BA0088;023.000;2024-01-01;polozka;312;Ostatní směnky
+BA0088;023.000;2024-01-01;polozka;32;Šeky
+BA0088;023.000;2024-01-01;polozka;33;Náložné listy
+BA0088;023.000;2024-01-01;polozka;34;Skladištní  a zemědělské skladní listy
+BA0088;023.000;2024-01-01;polozka;36;Kupóny k dluhopisům -samostatné
+BA0088;023.000;2024-01-01;polozka;37;Kupóny k majetkovým cenným papírům  -samostatné
+BA0088;023.000;2024-01-01;polozka;39;Ostatní specifické cenné papíry
+BA0088;023.000;2024-01-01;polozka;41;Veřejnoprávní zástavní listy
+BA0088;023.000;2024-01-01;polozka;42;Smíšené zástavní listy
+BA0088;023.000;2024-01-01;polozka;6;Deriváty
+BA0088;023.000;2024-01-01;polozka;61;Pevné termínové operace
+BA0088;023.000;2024-01-01;polozka;611;Forwardy
+BA0088;023.000;2024-01-01;polozka;6111;FX forward
+BA0088;023.000;2024-01-01;polozka;6112;FRA
+BA0088;023.000;2024-01-01;polozka;6119;Ostatní forwardy
+BA0088;023.000;2024-01-01;polozka;612;Futures
+BA0088;023.000;2024-01-01;polozka;613;Swapy
+BA0088;023.000;2024-01-01;polozka;6131;FX swap
+BA0088;023.000;2024-01-01;polozka;6132;IR swap
+BA0088;023.000;2024-01-01;polozka;6133;CC IR swap
+BA0088;023.000;2024-01-01;polozka;6134;Equity swap
+BA0088;023.000;2024-01-01;polozka;6135;Total return swap
+BA0088;023.000;2024-01-01;polozka;6136;Credit default swap
+BA0088;023.000;2024-01-01;polozka;6139;Ostatní swapy
+BA0088;023.000;2024-01-01;polozka;619;Jiné pevné termínové kontrakty
+BA0088;023.000;2024-01-01;polozka;6191;Contract for difference
+BA0088;023.000;2024-01-01;polozka;6192;Spread bet
+BA0088;023.000;2024-01-01;polozka;6199;Ostatní pevné termínované kontrakty
+BA0088;023.000;2024-01-01;polozka;62;Opce a obdobné kontrakty
+BA0088;023.000;2024-01-01;polozka;621;Opce
+BA0088;023.000;2024-01-01;polozka;6211;Nákupní opce (call options)
+BA0088;023.000;2024-01-01;polozka;62111;Nakoupené nákupní opce
+BA0088;023.000;2024-01-01;polozka;62115;Prodané kupní opce
+BA0088;023.000;2024-01-01;polozka;6212;Prodejní opce (put options)
+BA0088;023.000;2024-01-01;polozka;62121;Nakoupené prodejní opce
+BA0088;023.000;2024-01-01;polozka;62125;Prodané prodejní opce
+BA0088;023.000;2024-01-01;polozka;622;Opční listy (warranty)
+BA0088;023.000;2024-01-01;polozka;6221;Nákupní opční listy (warranty)
+BA0088;023.000;2024-01-01;polozka;6222;Prodejní opční listy (warranty)
+BA0088;023.000;2024-01-01;polozka;623;Binární opce
+BA0088;023.000;2024-01-01;polozka;629;Jiné proměnné termínové kontrakty
+BA0088;023.000;2024-01-01;polozka;6291;Nákupní jiné proměnné kontrakty
+BA0088;023.000;2024-01-01;polozka;62911;Nakoupené jiné nákupní proměnné kontrakty
+BA0088;023.000;2024-01-01;polozka;62915;Prodané jiné nákupní proměnné kontrakty
+BA0088;023.000;2024-01-01;polozka;6292;Prodejní jiné proměnné kontrakty
+BA0088;023.000;2024-01-01;polozka;62921;Nakoupené jiné prodejní proměnné kontrakty
+BA0088;023.000;2024-01-01;polozka;62925;Prodané jiné prodejní proměnné kontrakty
+BA0088;023.000;2024-01-01;polozka;63;Pákové investiční certifikáty
+BA0088;023.000;2024-01-01;polozka;69;Komplexní deriváty
+BA0088;023.000;2024-01-01;polozka;7;Ostatní nástroje ( nedefinované ve skupinách 1,2,3,6,8)
+BA0088;023.000;2024-01-01;polozka;8;Majetkové podíly
+BA0088;023.000;2024-01-01;polozka;9;Jiné investiční nástroje
+BA0088;023.000;2024-01-01;souhrnna;S_AKBFPT;Akcie bez akciií FPT
+BA0088;023.000;2024-01-01;souhrnna;S_AKBPTZL;Akcie, poukázky na akcie a zatímní listy  (bez FPT)
+BA0088;023.000;2024-01-01;souhrnna;S_AKPLFPT;Akcie a PL fondů peněžního trhu
+BA0088;023.000;2024-01-01;souhrnna;S_AKPLOF;Akcie a PL ostatních investičních fondů
+BA0088;023.000;2024-01-01;souhrnna;S_AZLMP;Akcie, zatímní listy a majetkové podíly
+BA0088;023.000;2024-01-01;souhrnna;S_BDLBSPP;Bezkupónové dluhopisy bez státních pokl. poukázek
+BA0088;023.000;2024-01-01;souhrnna;S_CPDRBANK;Cenné papíry v držení bank
+BA0088;023.000;2024-01-01;souhrnna;S_CPEMIT;Cenné papíry emitované bankou
+BA0088;023.000;2024-01-01;souhrnna;S_CPMKT;Cenné papíry pro MKT
+BA0088;023.000;2024-01-01;souhrnna;S_CPPF;Cenné papíry v členění pro penzijní fondy
+BA0088;023.000;2024-01-01;souhrnna;S_CPPROD;Cenné papíry k prodeji celkem
+BA0088;023.000;2024-01-01;souhrnna;S_CPSBS;Cenné papíry - základní druhy pro SBS
+BA0088;023.000;2024-01-01;souhrnna;S_DERIV;Deriváty pro pojištovny
+BA0088;023.000;2024-01-01;souhrnna;S_DERSBS;Deriváty pro majetek zákazníka
+BA0088;023.000;2024-01-01;souhrnna;S_DLCPEM;Dluhové cenné papíry emitované bankou
+BA0088;023.000;2024-01-01;souhrnna;S_DLEMIT;Dluhopisy a kupóny emitované bankou
+BA0088;023.000;2024-01-01;souhrnna;S_DLUHAKUP;Dluhopisy a kupóny
+BA0088;023.000;2024-01-01;souhrnna;S_DLUHCP;Dluhové cenné papíry
+BA0088;023.000;2024-01-01;souhrnna;S_JMCPAKU;Jiné majetkové cenné papíry a kupóny
+BA0088;023.000;2024-01-01;souhrnna;S_KDBSTAKO;Kupónové dluhopisy kromě státních a komunálních
+BA0088;023.000;2024-01-01;souhrnna;S_KDL;Kuponové dluhopisy
+BA0088;023.000;2024-01-01;souhrnna;S_MAJCPPOD;Majetkové  CP, kupóny a majetkové podíly
+BA0088;023.000;2024-01-01;souhrnna;S_MCPBFPT;Majetkové cenné papíry bez FPT
+BA0088;023.000;2024-01-01;souhrnna;S_MCPEMIT;Majetkové cenné emitované bankou
+BA0088;023.000;2024-01-01;souhrnna;S_MPJCPKU;Majetkové podíly, jiné maj. cenné papíry a kupóny
+BA0088;023.000;2024-01-01;souhrnna;S_NAKPRK;Nakoupené  opce
+BA0088;023.000;2024-01-01;souhrnna;S_NEOBCP;Neobchodovatelné CP
+BA0088;023.000;2024-01-01;souhrnna;S_NEODLCP;Neobchodovatelné dluhopisy
+BA0088;023.000;2024-01-01;souhrnna;S_OSSPCP;Jiné specifické cenné papíry
+BA0088;023.000;2024-01-01;souhrnna;S_PROPRK;Prodané opce
+BA0088;023.000;2024-01-01;souhrnna;S_SPPOU;Bezkuponové dluhopisy státní a emisních bank
+BA0088;023.000;2024-01-01;souhrnna;S_VSE88;Akcie, dluhopisy, směnky a ostatní
+BA0088;023.000;2024-01-01;souhrnna;S_VYBCPPS;Vybrané cenné papíry pro penzijní společnosti
+BA0088;023.000;2024-01-01;souhrnna;S_ZASTL;Zástavní listy
+BA0088;023.000;2024-01-01;souhrnna;S_ZLAPOUAK;Zatímní listy a poukázky na akcie
