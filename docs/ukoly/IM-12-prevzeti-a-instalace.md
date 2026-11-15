@@ -34,3 +34,25 @@ ze zálohy bez dotazu, mazání čehokoli kromě vlastních `investra_ci_*`, ru�
 kde co uvidí (8071 test, 8072 vzhled).
 
 ## Výsledek
+
+**Stav: hotová jen část (`investra_test`); `investra_vzhled` se nepovýšil – zastaveno před krokem 4.** Provedl Claude Code (Sonnet 5.5), 15. 11. 2026.
+
+**1. Zálohy** (`zalohy/`, mimo git): `investra_test-2026-11-15-pred-IM.dump` (6,1 MB), `investra_vzhled-2026-11-15-pred-IM.dump` (6,3 MB);
+`pg_restore -l` u obou čitelný (10 291 položek).
+
+**2. Stav před upgradem** (SELECT nad `investra_portfolio_classification`):
+- `investra_test`: 9 zařazení; SPPI Nehodnotí se 8, Splněn 1; IFRS 9 FVTPL 8, naběhlá hodnota 1; kontrolní součet dvojic (id, sppi, kategorie) `d0a30097…`.
+- `investra_vzhled`: 20 zařazení; SPPI Nehodnotí se 19, Splněn 1; FVTPL 19, naběhlá hodnota 1; součet `97b42bd1…` (zatím jen stav před, bez upgradu).
+
+**3. `investra_test`:** `odoo -u investra_instruments -i investra_instrument_master --without-demo` (bez testů), návratový kód 0, v logu 0 ERROR/CRITICAL.
+- Migrace 20.0.0.15.0, log: „IM-05: SPPI přeneseno na 4 nástrojů; nástroje s rozdílným SPPI: žádné; zařazení podle SPPI před {na: 8, pass: 1}, po {pass: 1, na: 8}.“
+- Stavy: `investra_instrument_master` 20.0.0.6.0 installed, `investra_instruments` 20.0.0.15.0, `investra_nav` 20.0.0.28.9 (povýšen jako závislý).
+- Po upgradu stejné SELECTy: **kategorie IFRS 9, SPPI i kontrolní součet beze změny** (9 zařazení).
+- Restart `investra-test-web`; `/web/login` vrací 200, registr se načetl bez chyby (0 ERROR). Pohledy nástroje/portfolia/zařazení v DB (12) a 2 položky nabídky s „číselník“ existují.
+
+**4. `investra_vzhled` – NEPROVEDENO. Důvod:** konvertovat větev do `~/odoo-review` nelze bez zásahu do cizí práce. Klon je na `feature/instrument-master` v commitu 840ff11 (bez IM-09 a IM-10) a má **neuložené úpravy** `investra_counterparty/views/counterparty_views.xml` a `investra_instruments/views/instrument_views.xml` (ruční verze IM-09, v `docs/ukoly/CP-*` nezapsaná). Stejné soubory mění commit 29ee710, takže převzetí by je přepsalo nebo skončilo konfliktem. Nic jsem v klonu neměnil.
+Kontejner `investra-vzhled-web` čte moduly jen z `~/odoo-review` (`/mnt/review-addons`).
+Návrh: (a) úpravy v klonu zahodit, protože je pokrývá 29ee710, a klon přepnout na tento commit; nebo (b) je nejdřív uložit stranou/commitnout. Rozhodne Martin.
+
+**Neověřeno:** kouřová zkouška v UI (formulář nástroje, portfolio, Nastavení → Číselníky) – jen log, registr a SELECT; testy Odoo se nespouštěly (úkol je nepožaduje); `investra_instrument_master` je nainstalován bez demo dat.
+**Adresy:** 8071 – `investra_test` (nové obrazovky už vidět); 8072 – `investra_vzhled` zatím beze změny.

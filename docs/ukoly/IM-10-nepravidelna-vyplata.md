@@ -57,3 +57,5 @@ testy nutné instalovat zvlášť.
 **Odchylky:** žádné.
 
 ## Převzetí
+
+- 15. 11. 2026 (IM-12): v `investra_test` je kód načten (upgrade `investra_instruments`, `investra_nav` 20.0.0.28.9), registr bez chyb. `investra_vzhled` zatím ne, viz Výsledek IM-12.

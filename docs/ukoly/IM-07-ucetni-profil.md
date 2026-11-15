@@ -56,3 +56,5 @@ společnosti).
 - Nic se neúčtuje, role zařazení se nepřepisuje, žádná vazba na `account.account`.
 
 ## Převzetí
+
+- 15. 11. 2026 (IM-12): kód nainstalován do `investra_test` (`investra_instrument_master` 20.0.0.6.0 installed; `investra_instruments` 20.0.0.15.0). `investra_vzhled` zatím ne, viz Výsledek IM-12. Ověřeno jen stavem modulů, logem a SELECTem, ne průchodem v UI.

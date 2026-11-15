@@ -82,3 +82,5 @@ ani FVOCI; migrace není. Testy na čisté `investra_ci_master` (postup výše):
 Databáze i filestore smazané.
 
 ## Převzetí
+
+- 15. 11. 2026 (IM-12): kód nainstalován do `investra_test` (`investra_instrument_master` 20.0.0.6.0 installed; `investra_instruments` 20.0.0.15.0). `investra_vzhled` zatím ne, viz Výsledek IM-12. Ověřeno jen stavem modulů, logem a SELECTem, ne průchodem v UI.
