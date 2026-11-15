@@ -1,0 +1,10 @@
+id,name,model_id,group_id/id,operation,domain
+access_derivative_read,investra.derivative read,investra.derivative,account.group_account_readonly,r,
+access_derivative_preparer,investra.derivative preparer,investra.derivative,investra_entity.group_valuation_preparer,cru,
+investra_derivative_company_rule,FX deriváty podle společnosti,investra.derivative,,crud,"[('company_id', 'in', company_ids)]"
+access_derivative_leg_read,investra.derivative.leg read,investra.derivative.leg,account.group_account_readonly,r,
+access_derivative_leg_preparer,investra.derivative.leg preparer,investra.derivative.leg,investra_entity.group_valuation_preparer,crud,
+investra_derivative_leg_company_rule,Nohy FX derivátů podle společnosti,investra.derivative.leg,,crud,"[('company_id', 'in', company_ids)]"
+access_derivative_value_read,investra.derivative.value read,investra.derivative.value,account.group_account_readonly,r,
+access_derivative_value_preparer,investra.derivative.value preparer,investra.derivative.value,investra_entity.group_valuation_preparer,crud,
+investra_derivative_value_company_rule,Ruční hodnoty FX derivátů podle společnosti,investra.derivative.value,,crud,"[('company_id', 'in', company_ids)]"

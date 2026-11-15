@@ -40,11 +40,24 @@ uložit a chybné kombinace hlásí srozumitelnou českou chybu.
 
 ## Výsledek
 
-Doplní provádějící relace.
+Provedl Claude Code (hlavní relace) 15. 11. 2026, větev `etapa/derivaty`.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** nový modul `addons/custom/investra_derivative/` (`__manifest__.py`, `models/derivative.py`,
+  `security/ir.access.csv`, `views/derivative_views.xml`, `tests/common.py`, `tests/test_derivative.py`), tento soubor.
+- **Ověřeno (příkaz a výsledek):** `tools/run_tests.sh investra_derivative` → 0 failed, 0 error(s) of 15 tests;
+  `tools/run_tests.sh all` → 0 failed, 0 error(s) of 703 tests (dočasné `investra_ci_*`, smazány). Testy pokrývají
+  založení nástroje 1 : 1 (typ Mimoburzovní derivát, kód OTC-…, identifikátor = číslo smlouvy), uložení swapu
+  formulářem jako zpracovatel, všechny kontroly z bodu 4 s českou hláškou, ochranu stavu a zámek po Sjednáno.
+- **Odchylky od zadání:**
+  - Přidán třetí druh **FX spot** (pokyn Martina 15. 11. 2026 v relaci): jedna noha jako forward, volí se při zadání.
+  - Měna nástroje = funkční měna fondu (v ní se vede reálná hodnota); měnový pár je v názvu a na nohách.
+  - Smlouva má práva jako obchod (`cru`, bez mazání); nohy a ruční hodnoty `crud`. Návrh smlouvy tedy zpracovatel
+    nesmaže, stejně jako obchod.
+  - Zařazení nástroje do obchodního modelu se při založení nevytváří (datum sjednání se v návrhu může měnit);
+    založí ho Sjednat v DE-03.
+- **Neověřeno:** vzhled formuláře v prohlížeči (ověřeno jen uložení přes testovací `Form`); modul není nainstalovaný
+  v `investra` (DE-05).
+- **Otevřené otázky a návrhy mimo rozsah:** FX spot dostává nástroj typu Mimoburzovní derivát (list ČNB DOFO31_22)
+  stejně jako forward – zda má spot ve výkazech ČNB a v portfoliu vystupovat jako derivát, rozhodne Martin (DE-05, etapa CN).
 
 ## Převzetí
