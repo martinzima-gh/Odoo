@@ -82,13 +82,19 @@ class InvestraEntity(models.Model):
 
         Načtení osnovy přepíše měnu společnosti měnou šablony, proto se měna nastaví znovu
         a výsledek se zkontroluje. První načtení šablony může potvrdit transakci.
+
+        Společnost se zakládá s kontextem chart_template_load: jinak Odoo při založení společnosti
+        se zemí odloží vlastní načtení odhadnuté osnovy na commit (account, res.company.install_l10n_modules)
+        a to by po commitu přepsalo osnovu i funkční měnu. Funkční měna se nastavuje jen tady
+        při založení knihy (rozhodnutí 2026-11-15).
         """
         values.setdefault("rate_source", RATE_SOURCE_BY_CURRENCY.get(currency.name, "cnb"))
-        company = self.env["res.company"].sudo().create({
+        Company = self.env["res.company"].sudo()
+        company = Company.browse(Company.with_context(chart_template_load=True).create({
             "name": name,
             "currency_id": currency.id,
             "country_id": (country or self.env.ref("base.cz")).id,
-        })
+        }).id)
         self.env["account.chart.template"].sudo().try_loading(template, company=company, install_demo=False)
         if company.currency_id != currency:
             company.currency_id = currency

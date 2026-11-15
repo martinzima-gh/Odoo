@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 
 from odoo.addons.investra_rates.models.rate import parse_cnb, parse_ecb
 
@@ -125,7 +126,9 @@ class TestRate(TransactionCase):
         document = "27.07.2031 #143\nzemě|měna|množství|kód|kurz\nEMU|euro|1|EUR|24,500\n"
         response = MagicMock(text=document)
         Rates = self.env["res.currency.rate"].sudo()
-        with patch("odoo.addons.investra_rates.models.rate.requests.get", return_value=response):
+        # Stejná odpověď přijde i stažení ECB, které ji jako XML nepřečte a zaloguje chybu; to je tu záměr.
+        with patch("odoo.addons.investra_rates.models.rate.requests.get", return_value=response), \
+                mute_logger("odoo.addons.investra_rates.models.rate"):
             self.env["investra.rate"]._cron_fetch()
         rate = Rates.search([("currency_id.name", "=", "EUR"), ("name", "=", "2031-07-27"), ("company_id", "=", False)])
         self.assertEqual(len(rate), 1)

@@ -53,8 +53,8 @@ Rozhodnutí 2026-11-15: pracuje se vždy jen s **jednou verzí aplikace**.
 
 - Jedna linie kódu: `~/odoo-dev`, jedna pracovní větev, po ověření do `main`. Souběžné dlouhé větve s různým stavem
   aplikace se nezakládají; krátká větev pro úkol se po převzetí sloučí a smaže.
-- Jedna pracovní databáze a jedna běžící instance: `investra` na http://127.0.0.1:8071 (zavádí úkol `docs/ukoly/IM-13`;
-  do jeho dokončení platí tabulka Prostředí níže). Další trvalé kopie databáze se nezakládají.
+- Jedna pracovní databáze a jedna běžící instance: `investra` na http://127.0.0.1:8071 (zavedeno úkolem
+  `docs/ukoly/IM-13` 2026-11-15). Další trvalé kopie databáze se nezakládají.
 - Testy a zkoušky migrací běží jen na dočasných `investra_ci_*`, které se po testech mažou; do pracovní databáze nesahají.
 - Jediná výjimka: **Copilot a Antigravity** (stejná úroveň) smějí mít společnou vlastní instanci pro svou práci, v jiném
   okně VS Code nad klonem `~/odoo-review` (port 8072). Její databáze je jen kopie pracovní databáze, obnovuje se z ní
@@ -66,9 +66,12 @@ Rozhodnutí 2026-11-15: pracuje se vždy jen s **jednou verzí aplikace**.
 
 | Instance | Účel | Adresa | Databáze |
 |---|---|---|---|
-| `docker-compose.investra.yml` (projekt `odoo-investra`) | vývoj, Odoo 20 Community, bez Odoo Mates | http://127.0.0.1:8070 | `investra_dev` |
-| kontejner `investra-vzhled-web` (`docker compose -f docker-compose.investra.yml run`, moduly z `~/odoo-review`, `--dev=xml`) | ladění vzhledu s Copilotem; data jsou kopie `investra_test` z 2026-11-13, jen pro vzhled | http://127.0.0.1:8072 | `investra_vzhled` |
+| kontejner `investra-web` (`docker compose -f docker-compose.investra.yml run`, moduly z `~/odoo-dev`; příkaz v README) | pracovní databáze, Odoo 20 Community bez Odoo Mates, smyšlená ukázková data (`tools/demo_data/run_seed.sh`) | http://127.0.0.1:8071 | `investra` |
+| služba `odoo` v `docker-compose.investra.yml` (projekt `odoo-investra`) | zastavená od 2026-11-15; databáze zachovaná, nastavení Services se z ní jen čte | (8070) | `investra_dev` |
 | `docker-compose.yml` | výuková instance, Odoo 19 + Odoo Mates | http://localhost:8069 | `odoo_cz` |
+
+- Zastavené a zachované (nemazat): `investra_test` a `investra_vzhled` (zálohy `zalohy/*-2026-11-15-pred-zastavenim.dump`).
+  Instance Copilota a Antigravity (8072, viz výše) se zakládá z kopie `investra`, ne z nich.
 
 - Obraz Odoo je připnutý (`odoo:20.0-20261102`); aktualizace jen řízeně.
 - Hesla jsou pouze v `.env` (v `.gitignore`); šablona `.env.example`. Hesla nikdy nevypisovat.
@@ -77,7 +80,8 @@ Rozhodnutí 2026-11-15: pracuje se vždy jen s **jednou verzí aplikace**.
   nevytvořilo nové prázdné svazky.
 - Kontejner Odoo 20 má navíc prázdný anonymní svazek `/mnt/extra-addons`. Vytváří ho oficiální obraz Odoo
   (deklaruje tuto cestu jako VOLUME); vlastní moduly jsou připojené jen přes `./addons/custom`.
-- Testy Odoo: `tools/run_tests.sh <modul[,modul]>` (pevně `investra_test`, celý log v `.test-logs/`);
+- Testy Odoo: `tools/run_tests.sh <modul[,modul]|all>`; každý běh založí novou dočasnou `investra_ci_<čas>`, nainstaluje
+  moduly, otestuje a databázi i s filestore smaže; pracovní `investra` nepoužívá. Celý log v `.test-logs/`;
   log číst jen při neúspěchu, „0 testů“ ani ERROR v logu není úspěch. Testy Odoo spouští jen Claude.
 - Odoo 20: přístupová práva jsou v `security/ir.access.csv`
   (`id,name,model_id,group_id/id,operation,domain`), ne v `ir.model.access.csv`.

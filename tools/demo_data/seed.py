@@ -118,9 +118,11 @@ while day <= TODAY:
     if day.weekday() < 5:
         value = round(min(25.40, max(24.10, value + random.gauss(0, 0.04))), 3)
         RATE[day] = value
-        env["investra.rate"]._store("cnb", day, {"EUR": (D(1), D(str(value)))}, f"ukazka-cnb-{day}")
+        # Uložit a promítnout do kurzů Odoo jako cron stahování (_cron_fetch), jinak by doklady v cizí měně
+        # zadané v UI (mimo výpočty fondů, které čtou evidenci kurzů) přepočítaly Odoo kurzem 1.
+        env["investra.rate"]._store("cnb", day, {"EUR": (D(1), D(str(value)))}, f"ukazka-cnb-{day}")._publish()
         # Kniha v EUR (fond C) má zdroj ECB: jednotky CZK za 1 EUR (zjednodušeně stejná smyšlená hodnota).
-        env["investra.rate"]._store("ecb", day, {"CZK": (D(1), D(str(value)))}, f"ukazka-ecb-{day}")
+        env["investra.rate"]._store("ecb", day, {"CZK": (D(1), D(str(value)))}, f"ukazka-ecb-{day}")._publish()
     day += timedelta(days=1)
 
 

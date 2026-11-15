@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+from odoo.addons.base.models.res_company import ResCompany as BaseCompany
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
@@ -24,6 +27,26 @@ class TestEntity(TransactionCase):
     def test_eur_fund_keeps_functional_currency_after_chart(self):
         entity = self.Entity.create_book("Fond EUR", "fund", "cas501", self.eur, "cz")
         self.assertEqual(entity.company_id.currency_id, self.eur)
+
+    def test_book_survives_deferred_chart_loading(self):
+        """Mimo testy Odoo při založení společnosti se zemí odloží načtení osnovy na commit.
+
+        V testech základní install_l10n_modules vrací False, proto se běh mimo testy simuluje
+        a odložené kroky se spustí jako při commitu. Odhad šablony je pevně cz (v holé databázi by
+        patřil neinstalovanému modulu). Měna ani osnova se nesmí přepsat.
+        """
+        template_model = type(self.env["account.chart.template"])
+        with (
+            patch.object(BaseCompany, "install_l10n_modules", lambda self: True),
+            patch.object(template_model, "_guess_chart_template", lambda self, country: "cz"),
+        ):
+            fund = self.Entity.create_book("Fond EUR commit", "fund", "cas501", self.eur, "cz")
+            services = self.Entity.create_book("Servis commit", "service", "cas500", self.czk, "cz")
+        self.env.cr.precommit.run()
+        self.env.invalidate_all()
+        self.assertEqual(fund.company_id.currency_id, self.eur)
+        self.assertEqual(fund.company_id.chart_template, "cz")
+        self.assertEqual(services.company_id.chart_template, "cz")
 
     def test_fund_book_has_mandatory_settings(self):
         company = self.Entity.create_book("Fond", "fund", "cas501", self.czk, "cz").company_id

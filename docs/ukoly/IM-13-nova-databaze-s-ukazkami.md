@@ -74,4 +74,38 @@ sloučení do `main`, mazání starých databází, produkční prostředí.
 
 ## Výsledek
 
+Hotovo 15. 11. 2026 (Claude, Opus 5.5). Ověřeno dotazy `docs/sql/24-pracovni-databaze.sql` nad `investra`.
+
+- **Oprava modulu** (souhlas Martina, mimo původní rozsah): `create_book` zakládá společnost s kontextem
+  `chart_template_load`; test simuluje odložené kroky jako commit. Bez opravy test selhal (EUR → CZK).
+- **Databáze `investra`** (`tools/demo_data/run_seed.sh investra`): 15 modulů `investra_*` bez `investra_env_banner`,
+  `l10n_cz`, `account_peppol`, čeština. http://127.0.0.1:8071 vrací přihlášení; 45 nabídek Investra (pohledy a první
+  stránka dat) se načte bez chyby (kontrola přes ORM, v prohlížeči neověřeno).
+- **Fondy:** ocenění 14 / 12 / 6 / 4 / 1, zveřejněná všechna kromě posledního u A a B (Spočteno). FK posledního
+  zveřejněného ocenění = aktiva − závazky u všech pěti fondů na haléř; MD = D v každé knize. Dluhopis Česká
+  infrastruktura 4,50/2029: fond B naběhlá hodnota, fond D FVTPL. Obchody 21, z toho 2 prodeje.
+- **Upozornění kontrol** (chyby žádné): Ocenění schvaluje druhá osoba; Úkony od minulého ocenění provedla druhá osoba;
+  Schvalovací matice se od minulého ocenění nezměnila; Úpisy a odkupy za zveřejněný kurz třídy; u B, C, D také Peníze
+  a inkasa na cestě jsou nulové a Údaje nástrojů v portfoliu se od minulého ocenění nezměnily.
+- **Krok 4a – parametry „jeden člověk“:** v knize investiční společnosti nové řádky schvalovací matice pro všechny
+  činnosti s platností od 15. 11. 2026, `second_person = no`, provádějící role podle výchozí role činnosti.
+  Výchozí řádky modulu ani testy se nezměnily. Návrat: nové řádky matice s pozdější platností a `second_person`
+  podle výchozího nastavení (v UI Schvalovací matice), nebo databázi založit znovu bez tohoto kroku.
+- **Kurzy:** smyšlené kurzy se ukládají do evidence a promítají do kurzů Odoo (`_publish`) jako při stahování;
+  výsledky fondů se tím nezměnily (porovnáno se zkušebním během bez promítnutí).
+- **Investra Services s.r.o.** (`seed_services.py`): kniha `service`, rámec 500/2002 Sb., osnova `cz`, CZK, otevření
+  19. 3. 2026. Nastavení z `investra_dev` jen čtením (`services_config.json`): účty 289 aktivních / 41 archivovaných,
+  daně 4 / 32, fiskální pozice a deníky (FA, FP, MISC, EXCH, BNK1; CABA a STJ archivované) shodně. Rozdíly: účty
+  518810 a 518950 nejsou v šabloně, skript je založil; `restrictive_audit_trail` je zapnutý (`create_book`), v
+  `investra_dev` vypnutý. Doklady srpen–říjen 2026: 5 vydaných faktur (2 neuhrazené), 5 přijatých (všechny uhrazené),
+  z toho 1 služba z EU v režimu identifikované osoby (450 EUR, daň 21 % 2 333,96 Kč na 343221 a do nákladu, kurzový
+  rozdíl 75,15 Kč), 3 bankovní výpisy, 1 dohadná položka (audit). Předvaha vyrovnaná, nic nezaúčtovaného.
+  DIČ dodavatele z EU je vzorové číslo z nápovědy Odoo (DE123456788).
+- **Nezaloženo (otevřené body Services):** mzdy a jejich účty, DIČ a kontakty Services, bankovní účet (číslo),
+  den účinnosti registrace identifikované osoby.
+- **Instance:** `investra-web` na 8071; zastavené `investra-test-web` (8071), `investra-vzhled-web` (8072) a služba
+  `odoo` (8070). Databáze `investra_dev`, `investra_test`, `investra_vzhled` i svazky zachované. Zálohy
+  `zalohy/*-2026-11-15-pred-IM13.dump` a `*-pred-zastavenim.dump` (10 788 položek, čitelné).
+- **Testy:** `tools/run_tests.sh all` na dočasné databázi: 677 testů, 0 selhání, 0 chyb; dočasné databáze smazané.
+
 ## Převzetí

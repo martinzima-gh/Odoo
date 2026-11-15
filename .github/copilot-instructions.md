@@ -129,7 +129,7 @@ Rozhodnutí 2026-11-12. Zdroj: Investra Brand manuál verze 1.0 (na úložišti 
 - Pokud uživatel žádá „zkontroluj“, nejprve pouze analyzuj; soubory neměň, pokud změna nebyla požadována.
 - Před významnější změnou stručně sděl, co se změní a proč. Prováděj malé, vratné a snadno kontrolovatelné úpravy; neměň současně nesouvisející části.
 - Po změně Docker Compose validuj příslušný soubor pomocí `docker compose -f <soubor> config --quiet` ještě před spuštěním služeb.
-- Testy Odoo (Docker, databáze, upgrade modulu) nespouštíš; spouští je Claude přes `tools/run_tests.sh` nad `investra_test` (role podle `CLAUDE.md`: Copilot jen čte a komentuje). Číst můžeš logy v `.test-logs/`. Spustit smíš jen testy v čistém Pythonu bez databáze, např. `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"`.
+- Testy Odoo (Docker, databáze, upgrade modulu) nespouštíš; spouští je Claude přes `tools/run_tests.sh` na dočasných databázích `investra_ci_*` (role podle `CLAUDE.md`: Copilot jen čte a komentuje). Číst můžeš logy v `.test-logs/`. Spustit smíš jen testy v čistém Pythonu bez databáze, např. `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"`.
 - Při chybě validace nebo testu ji výslovně uveď; neskrývej ji a nepokračuj slepě dalšími změnami.
 - Po dokončení shrň změněné soubory, účetní/provozní dopad a provedené kontroly.
 

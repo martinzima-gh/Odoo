@@ -1,0 +1,2917 @@
+{
+ "opening_date": "2026-03-19",
+ "accounts": [
+  {
+   "code": "012000",
+   "template": "chart_cz_012000",
+   "name": "Nehmotn\u00e9 v\u00fdsledky v\u00fdzkumu a v\u00fdvoje",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "013000",
+   "template": "chart_cz_013000",
+   "name": "Software",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "014000",
+   "template": "chart_cz_014000",
+   "name": "Ostatn\u00ed oceniteln\u00e1 pr\u00e1va",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "015000",
+   "template": "chart_cz_015000",
+   "name": "Dobr\u00e1 v\u016fle",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "016000",
+   "template": "chart_cz_016000",
+   "name": "Povolenky na emise",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "017000",
+   "template": "chart_cz_017000",
+   "name": "Preferen\u010dn\u00ed limity",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "019000",
+   "template": "chart_cz_019000",
+   "name": "Ostatn\u00ed dlouhodob\u00fd nehmotn\u00fd majetek",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "021000",
+   "template": "chart_cz_021000",
+   "name": "Stavby",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "022000",
+   "template": "chart_cz_022000",
+   "name": "Hmotn\u00e9 movit\u00e9 v\u011bci a jejich soubory",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "022100",
+   "template": "chart_cz_022100",
+   "name": "Technologie",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "022200",
+   "template": "chart_cz_022200",
+   "name": "Instalace",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "022300",
+   "template": "chart_cz_022300",
+   "name": "Stroje a n\u00e1stroje",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "022400",
+   "template": "chart_cz_022400",
+   "name": "N\u00e1bytek a vybaven\u00ed",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "022500",
+   "template": "chart_cz_022500",
+   "name": "Vozidlo",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "022510",
+   "template": "chart_cz_022510",
+   "name": "P\u0159\u00edslu\u0161enstv\u00ed k vozidl\u016fm",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "022900",
+   "template": "chart_cz_022900",
+   "name": "Ostatn\u00ed majetek",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "025000",
+   "template": "chart_cz_025000",
+   "name": "P\u011bstitelsk\u00e9 celky trval\u00fdch porost\u016f",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "026000",
+   "template": "chart_cz_026000",
+   "name": "Dosp\u011bl\u00e1 zv\u00ed\u0159ata a jejich skupiny",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "027000",
+   "template": "chart_cz_027000",
+   "name": "Oce\u0148ovac\u00ed rozd\u00edl k nabyt\u00e9mu majetku",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "029000",
+   "template": "chart_cz_029000",
+   "name": "Jin\u00fd dlouhodob\u00fd hmotn\u00fd majetek",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "031000",
+   "template": "chart_cz_031000",
+   "name": "Pozemky",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "032000",
+   "template": "chart_cz_032000",
+   "name": "Um\u011bleck\u00e1 d\u00edla a sb\u00edrky",
+   "account_type": "asset_fixed",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "041000",
+   "template": "chart_cz_041000",
+   "name": "Po\u0159\u00edzen\u00ed dlouhodob\u00e9ho nehmotn\u00e9ho majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "042000",
+   "template": "chart_cz_042000",
+   "name": "Po\u0159\u00edzen\u00ed dlouhodob\u00e9ho hmotn\u00e9ho majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "043000",
+   "template": "chart_cz_043000",
+   "name": "Po\u0159\u00edzen\u00ed dlouhodob\u00e9ho finan\u010dn\u00edho majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "051000",
+   "template": "chart_cz_051000",
+   "name": "Poskytnut\u00e9 z\u00e1lohy na dlouhodob\u00fd nehmotn\u00fd majetek",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "052000",
+   "template": "chart_cz_052000",
+   "name": "Poskytnut\u00e9 z\u00e1lohy na dlouhodob\u00fd hmotn\u00fd majetek",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "053000",
+   "template": "chart_cz_053000",
+   "name": "Poskytnut\u00e9 z\u00e1lohy na dlouhodob\u00fd finan\u010dn\u00ed majetek",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "061000",
+   "template": "chart_cz_061000",
+   "name": "Pod\u00edly - ovl\u00e1dan\u00e1 a ovl\u00e1dajic\u00ed osoba",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "062000",
+   "template": "chart_cz_062000",
+   "name": "Pod\u00edly v \u00fa\u010detn\u00edch jednotk\u00e1ch pod podstatn\u00fdm vplyvem",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "063000",
+   "template": "chart_cz_063000",
+   "name": "Ostatn\u00ed dlouhodob\u00e9 cenn\u00e9 pap\u00edry a pod\u00edly",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "065000",
+   "template": "chart_cz_065000",
+   "name": "Dluhov\u00e9 cenn\u00e9 pap\u00edry dr\u017een\u00e9 do splatnosti",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "066000",
+   "template": "chart_cz_066000",
+   "name": "Z\u00e1p\u016fj\u010dky a \u00fav\u011bry - ovl\u00e1dan\u00e1 neno ovl\u00e1dajic\u00ed osoba",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "067000",
+   "template": "chart_cz_067000",
+   "name": "Ostatn\u00ed z\u00e1p\u016fj\u010dky a \u00fav\u011bry",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "068000",
+   "template": "chart_cz_068000",
+   "name": "Z\u00e1p\u016fj\u010dky a \u00fav\u011bry - podstatn\u00fd vliv",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "069000",
+   "template": "chart_cz_069000",
+   "name": "Jin\u00fd dlouhodob\u00fd finan\u010dn\u00ed majetek",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "072000",
+   "template": "chart_cz_072000",
+   "name": "Opr\u00e1vky k nehmotn\u00fdm v\u00fdsledk\u016fm v\u00fdzkumu a v\u00fdvoje",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "073000",
+   "template": "chart_cz_073000",
+   "name": "Opr\u00e1vky k softwaru",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "074000",
+   "template": "chart_cz_074000",
+   "name": "Opr\u00e1vky k oceniteln\u00fdm pr\u00e1v\u016fm",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "075000",
+   "template": "chart_cz_075000",
+   "name": "Opr\u00e1vky ke goodwillu",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "079000",
+   "template": "chart_cz_079000",
+   "name": "Opr\u00e1vky k ostatn\u00edmu dlouhodob\u00e9mu nehmotn\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "081000",
+   "template": "chart_cz_081000",
+   "name": "Opr\u00e1vky k stavb\u00e1m",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "082000",
+   "template": "chart_cz_082000",
+   "name": "Opr\u00e1vky k hmotn\u00fdm movit\u00fdm v\u011bcem a jejich soubor\u016fm",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "082100",
+   "template": "chart_cz_082100",
+   "name": "Opr\u00e1vky",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "082200",
+   "template": "chart_cz_082200",
+   "name": "Opr\u00e1vky - Instalace",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "082300",
+   "template": "chart_cz_082300",
+   "name": "Opr\u00e1vky - Stroje a n\u00e1stroje",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "082400",
+   "template": "chart_cz_082400",
+   "name": "Opr\u00e1vky - N\u00e1bytek a vybaven\u00ed",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "082500",
+   "template": "chart_cz_082500",
+   "name": "Opr\u00e1vky - Vozidlo",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "082510",
+   "template": "chart_cz_082510",
+   "name": "Opr\u00e1vky - P\u0159\u00edslu\u0161enstv\u00ed k vozidl\u016fm",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "082900",
+   "template": "chart_cz_082900",
+   "name": "Opr\u00e1vky - Ostatn\u00ed majetek",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "085000",
+   "template": "chart_cz_085000",
+   "name": "Opr\u00e1vky k p\u011bstitelsk\u00fdm celk\u016fm trval\u00fdch porost\u016f",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "086000",
+   "template": "chart_cz_086000",
+   "name": "Opr\u00e1vky k dosp\u011bl\u00fdm zv\u00ed\u0159at\u016fm a jejich skupin\u00e1m",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "089000",
+   "template": "chart_cz_089000",
+   "name": "Opr\u00e1vky k jin\u00e9mu dlouhodob\u00e9mu hmotn\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "091000",
+   "template": "chart_cz_091000",
+   "name": "Opravn\u00e1 polo\u017eka k dlouhodob\u00e9mu nehmotn\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "092000",
+   "template": "chart_cz_092000",
+   "name": "Opravn\u00e1 polo\u017eka k dlouhodob\u00e9mu hmotn\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "093000",
+   "template": "chart_cz_093000",
+   "name": "Opravn\u00e1 polo\u017eka k dlouhodob\u00e9mu nedokon\u010den\u00e9mu nehmotn\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "094000",
+   "template": "chart_cz_094000",
+   "name": "Opravn\u00e1 polo\u017eka k dlouhodob\u00e9mu nedokon\u010den\u00e9mu hmotn\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "095000",
+   "template": "chart_cz_095000",
+   "name": "Opravn\u00e1 polo\u017eka k poskytnut\u00fdm z\u00e1loh\u00e1m na dlouhodob\u00fd majetek",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "096000",
+   "template": "chart_cz_096000",
+   "name": "Opravn\u00e1 polo\u017eka k dlouhodob\u00e9mu finan\u010dn\u00edmu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "097000",
+   "template": "chart_cz_097000",
+   "name": "Oce\u0148ovac\u00ed rozd\u00edl k nabyt\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "098000",
+   "template": "chart_cz_098000",
+   "name": "Opr\u00e1vky k oce\u0148ovac\u00edmu rozd\u00edlu k nabyt\u00e9mu majetku",
+   "account_type": "asset_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "111000",
+   "template": "chart_cz_111000",
+   "name": "Po\u0159\u00edzen\u00ed materi\u00e1lu",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "112000",
+   "template": "chart_cz_112000",
+   "name": "Materi\u00e1l na sklad\u011b",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "119000",
+   "template": "chart_cz_119000",
+   "name": "Materi\u00e1l na cest\u011b",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "121000",
+   "template": "chart_cz_121000",
+   "name": "Nedokon\u010den\u00e1 v\u00fdroba",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "122000",
+   "template": "chart_cz_122000",
+   "name": "Polotovary",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "123000",
+   "template": "chart_cz_123000",
+   "name": "V\u00fdrobky",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "124000",
+   "template": "chart_cz_124000",
+   "name": "Mlad\u00e1 a ostatn\u00ed zv\u00ed\u0159ata ajejich skupiny",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "131000",
+   "template": "chart_cz_131000",
+   "name": "Po\u0159\u00edzen\u00ed zbo\u017e\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "132000",
+   "template": "chart_cz_132000",
+   "name": "Zbo\u017e\u00ed na sklad\u011b a v prodejn\u00e1ch",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "139000",
+   "template": "chart_cz_139000",
+   "name": "Zbo\u017e\u00ed na cest\u011b",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "151000",
+   "template": "chart_cz_151000",
+   "name": "Poskytnut\u00e9 z\u00e1lohy na materi\u00e1l",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "152000",
+   "template": "chart_cz_152000",
+   "name": "Poskytnut\u00e9 z\u00e1lohy na zv\u00ed\u0159ata",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "153000",
+   "template": "chart_cz_153000",
+   "name": "Poskytnut\u00e9 z\u00e1lohy na zbo\u017e\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "191000",
+   "template": "chart_cz_191000",
+   "name": "Opravn\u00e1 polo\u017eka k materi\u00e1lu",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "192000",
+   "template": "chart_cz_192000",
+   "name": "Opravn\u00e1 polo\u017eka k nedokon\u010den\u00e9 v\u00fdrob\u011b",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "193000",
+   "template": "chart_cz_193000",
+   "name": "Opravn\u00e1 polo\u017eka k polotovar\u016fm",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "194000",
+   "template": "chart_cz_194000",
+   "name": "Opravn\u00e1 polo\u017eka k v\u00fdrobk\u016fm",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "195000",
+   "template": "chart_cz_195000",
+   "name": "Opravn\u00e1 polo\u017eka k mlad\u00fdm a ostatn\u00edm zv\u00ed\u0159at\u016fm a jejich skupin\u00e1m",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "196000",
+   "template": "chart_cz_196000",
+   "name": "Opravn\u00e1 polo\u017eka ke zbo\u017e\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "197000",
+   "template": "chart_cz_197000",
+   "name": "Opravn\u00e1 polo\u017eka k z\u00e1loh\u00e1m na materi\u00e1l",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "198000",
+   "template": "chart_cz_198000",
+   "name": "Opravn\u00e1 polo\u017eka k z\u00e1loh\u00e1m na zbo\u017e\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "199000",
+   "template": "chart_cz_199000",
+   "name": "Opravn\u00e1 polo\u017eka k z\u00e1loh\u00e1m na mlad\u00e1 zv\u00ed\u0159ata",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "211000",
+   "template": "chart_cz_211000",
+   "name": "Pokladna",
+   "account_type": "asset_cash",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "213000",
+   "template": "chart_cz_213000",
+   "name": "Ceniny",
+   "account_type": "asset_cash",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "221000",
+   "template": "chart_cz_221000",
+   "name": "Bankovn\u00ed \u00fa\u010dty",
+   "account_type": "asset_cash",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "221001",
+   "template": "bank_journal_default_account_323",
+   "name": "Banka",
+   "account_type": "asset_cash",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "221002",
+   "template": "account_journal_payment_debit_account_id",
+   "name": "\u010cekaj\u00edc\u00ed platby",
+   "account_type": "asset_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "221003",
+   "template": "account_journal_payment_credit_account_id",
+   "name": "\u010cekaj\u00edc\u00ed odchoz\u00ed platby",
+   "account_type": "asset_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "231000",
+   "template": "chart_cz_231000",
+   "name": "Kr\u00e1tkodob\u00e9 \u00fav\u011bry",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "232000",
+   "template": "chart_cz_232000",
+   "name": "Eskontn\u00ed \u00fav\u011bry",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "241000",
+   "template": "chart_cz_241000",
+   "name": "Emitovan\u00e9 kr\u00e1tkodob\u00e9 dluhopisy",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "249000",
+   "template": "chart_cz_249000",
+   "name": "Ostatn\u00ed kr\u00e1tkodob\u00e9 finan\u010dn\u00ed v\u00fdpomoci",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "251000",
+   "template": "chart_cz_251000",
+   "name": "Majetkov\u00e9 cenn\u00e9 pap\u00edry k obchodov\u00e1n\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "252000",
+   "template": "chart_cz_252000",
+   "name": "Vlastn\u00ed akcie a vlastn\u00ed obchodn\u00ed pod\u00edly",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "253000",
+   "template": "chart_cz_253000",
+   "name": "Dluhov\u00e9 cenn\u00e9 pap\u00edry k obchodov\u00e1n\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "254000",
+   "template": "chart_cz_254000",
+   "name": "Sm\u011bnky k inkasu",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "255000",
+   "template": "chart_cz_255000",
+   "name": "Vlastn\u00ed dluhopisy",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "256000",
+   "template": "chart_cz_256000",
+   "name": "Dluhov\u00e9 cenn\u00e9 pap\u00edry se splatnost\u00ed do jednoho roku dr\u017een\u00e9 do splatnosti",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "257000",
+   "template": "chart_cz_257000",
+   "name": "Ostatn\u00ed cenn\u00e9 pap\u00edry",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "258000",
+   "template": "chart_cz_258000",
+   "name": "Pod\u00edly - ovl\u00e1dan\u00e1 nebo ovl\u00e1daj\u00edc\u00ed osoba",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "259000",
+   "template": "chart_cz_259000",
+   "name": "Po\u0159\u00edzov\u00e1n\u00ed kr\u00e1tkodob\u00e9ho finan\u010dn\u00edho majetku",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "261000",
+   "template": "chart_cz_261000",
+   "name": "Pen\u00edze na cest\u011b",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "261001",
+   "template": "transfer_account_id",
+   "name": "Prost\u0159edky v tranzitu",
+   "account_type": "asset_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "291000",
+   "template": "chart_cz_291000",
+   "name": "Opravn\u00e1 polo\u017eka ke kr\u00e1tkodob\u00e9mu finan\u010dn\u00edmu majetku",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "311000",
+   "template": "chart_cz_311000",
+   "name": "Odb\u011bratel\u00e9",
+   "account_type": "asset_receivable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "311001",
+   "template": "chart_cz_311001",
+   "name": "Odb\u011bratel\u00e9 (POS)",
+   "account_type": "asset_receivable",
+   "reconcile": true,
+   "active": false
+  },
+  {
+   "code": "312000",
+   "template": "chart_cz_312000",
+   "name": "Sm\u011bnky k inkasu",
+   "account_type": "asset_receivable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "313000",
+   "template": "chart_cz_313000",
+   "name": "Pohled\u00e1vky za eskontovan\u00e9 cenn\u00e9 pap\u00edry",
+   "account_type": "asset_receivable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "314000",
+   "template": "chart_cz_314000",
+   "name": "Poskytnut\u00e9 provozn\u00ed z\u00e1lohy",
+   "account_type": "asset_receivable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "315000",
+   "template": "chart_cz_315000",
+   "name": "Ostatn\u00ed pohled\u00e1vky",
+   "account_type": "asset_receivable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "321000",
+   "template": "chart_cz_321000",
+   "name": "Dodavatel\u00e9",
+   "account_type": "liability_payable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "322000",
+   "template": "chart_cz_322000",
+   "name": "Sm\u011bnky k \u00fahrad\u011b",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "324000",
+   "template": "chart_cz_324000",
+   "name": "P\u0159ijat\u00e9 provozn\u00ed z\u00e1lohy",
+   "account_type": "liability_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "325000",
+   "template": "chart_cz_325000",
+   "name": "Ostatn\u00ed z\u00e1vazky",
+   "account_type": "liability_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "331000",
+   "template": "chart_cz_331000",
+   "name": "Zam\u011bstnanci",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "333000",
+   "template": "chart_cz_333000",
+   "name": "Ostatn\u00ed z\u00e1vazky v\u016f\u010di zam\u011bstnanc\u016fm",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "335000",
+   "template": "chart_cz_335000",
+   "name": "Pohled\u00e1vky za zam\u011bstnanci",
+   "account_type": "asset_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "336000",
+   "template": "chart_cz_336000",
+   "name": "Z\u00fa\u010dtov\u00e1n\u00ed s institucemi soci\u00e1ln\u00edho zabezpe\u010den\u00ed a zdravotn\u00edho poji\u0161t\u011bn\u00ed",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "341000",
+   "template": "chart_cz_341000",
+   "name": "Da\u0148 z p\u0159\u00edjm\u016f",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "342000",
+   "template": "chart_cz_342000",
+   "name": "Ostatn\u00ed p\u0159\u00edm\u00e9 dan\u011b",
+   "account_type": "liability_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "343000",
+   "template": "chart_cz_343000",
+   "name": "Da\u0148 z p\u0159idan\u00e9 hodnoty",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "343001",
+   "template": "chart_cz_343001",
+   "name": "Da\u0148ov\u00e9 pohled\u00e1vky",
+   "account_type": "asset_receivable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "343002",
+   "template": "chart_cz_343002",
+   "name": "Splatn\u00e1 da\u0148",
+   "account_type": "liability_payable",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "343112",
+   "template": "chart_cz_343112",
+   "name": "DPH sn\u00ed\u017een\u00e1 sazba vstup",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "343115",
+   "template": "chart_cz_343115",
+   "name": "DPH sn\u00ed\u017een\u00e1 sazba vstup (15 %)",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "343121",
+   "template": "chart_cz_343121",
+   "name": "DPH z\u00e1kladn\u00ed sazba vstup",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "343212",
+   "template": "chart_cz_343212",
+   "name": "DPH sn\u00ed\u017een\u00e1 sazba v\u00fdstup",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "343215",
+   "template": "chart_cz_343215",
+   "name": "DPH sn\u00ed\u017een\u00e1 sazba v\u00fdstup (15 %)",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "343221",
+   "template": "chart_cz_343221",
+   "name": "DPH z\u00e1kladn\u00ed sazba v\u00fdstup",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "345000",
+   "template": "chart_cz_345000",
+   "name": "Ostatn\u00ed dan\u011b a poplatky",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "346000",
+   "template": "chart_cz_346000",
+   "name": "Dotace ze st\u00e1tn\u00edho rozpo\u010dtu",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "347000",
+   "template": "chart_cz_347000",
+   "name": "Ostatn\u00ed dotace",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "349000",
+   "template": "chart_cz_349000",
+   "name": "Spojovac\u00ed \u00fa\u010det k DPH",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "351000",
+   "template": "chart_cz_351000",
+   "name": "Pohled\u00e1vky \u2013 ovl\u00e1dan\u00e1 nebo ovl\u00e1daj\u00edc\u00ed osoba",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "352000",
+   "template": "chart_cz_352000",
+   "name": "Pohled\u00e1vky \u2013 podstatn\u00fd vliv",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "353000",
+   "template": "chart_cz_353000",
+   "name": "Pohled\u00e1vky za upsan\u00fd z\u00e1kladn\u00ed kapit\u00e1l",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "354000",
+   "template": "chart_cz_354000",
+   "name": "Pohled\u00e1vky za spole\u010dn\u00edky p\u0159i \u00fahrad\u011b ztr\u00e1ty",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "355000",
+   "template": "chart_cz_355000",
+   "name": "Ostatn\u00ed pohled\u00e1vky za spole\u010dn\u00edky obchodn\u00ed korporace",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "358000",
+   "template": "chart_cz_358000",
+   "name": "Pohled\u00e1vky za spole\u010dn\u00edky sdru\u017een\u00fdmi ve spole\u010dnosti",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "361000",
+   "template": "chart_cz_361000",
+   "name": "Z\u00e1vazky \u2013 ovl\u00e1dan\u00e1 nebo ovl\u00e1daj\u00edc\u00ed osoba",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "362000",
+   "template": "chart_cz_362000",
+   "name": "Z\u00e1vazky - podstatn\u00fd vliv",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "364000",
+   "template": "chart_cz_364000",
+   "name": "Z\u00e1vazky ke spole\u010dn\u00edk\u016fm p\u0159i rozd\u011blov\u00e1n\u00ed zisku",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "365000",
+   "template": "chart_cz_365000",
+   "name": "Ostatn\u00ed z\u00e1vazky ke spole\u010dn\u00edk\u016fm obchodn\u00ed korporace",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "366000",
+   "template": "chart_cz_366000",
+   "name": "Z\u00e1vazky ke spole\u010dn\u00edk\u016fm a \u010dlen\u016fm dru\u017estva ze z\u00e1visl\u00e9 \u010dinnosti",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "367000",
+   "template": "chart_cz_367000",
+   "name": "Z\u00e1vazky z upsan\u00fdch nesplacen\u00fdch cenn\u00fdch pap\u00edr\u016f a vklad\u016f",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "368000",
+   "template": "chart_cz_368000",
+   "name": "Z\u00e1vazky ke spole\u010dn\u00edk\u016fm sdru\u017een\u00fdm ve spole\u010dnosti",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "371000",
+   "template": "chart_cz_371000",
+   "name": "Pohled\u00e1vky z prodeje z\u00e1vodu",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "372000",
+   "template": "chart_cz_372000",
+   "name": "Z\u00e1vazky z koup\u011b z\u00e1vodu",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "373000",
+   "template": "chart_cz_373000",
+   "name": "Pohled\u00e1vky a z\u00e1vazky z pevn\u00fdch term\u00ednov\u00fdch operac\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "374000",
+   "template": "chart_cz_374000",
+   "name": "Pohled\u00e1vky z n\u00e1jmu a pachtu",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "375000",
+   "template": "chart_cz_375000",
+   "name": "Pohled\u00e1vky z emitovan\u00fdch dluhopis\u016f",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "376000",
+   "template": "chart_cz_376000",
+   "name": "Nakoupen\u00e9 opce",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "377000",
+   "template": "chart_cz_377000",
+   "name": "Prodan\u00e9 opce",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "378000",
+   "template": "chart_cz_378000",
+   "name": "Jin\u00e9 pohled\u00e1vky",
+   "account_type": "asset_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "379000",
+   "template": "chart_cz_379000",
+   "name": "Jin\u00e9 z\u00e1vazky",
+   "account_type": "liability_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "381000",
+   "template": "chart_cz_381000",
+   "name": "N\u00e1klady p\u0159\u00ed\u0161t\u00edch obdob\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "382000",
+   "template": "chart_cz_382000",
+   "name": "Komplexn\u00ed n\u00e1klady p\u0159\u00ed\u0161t\u00edch obdob\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "383000",
+   "template": "chart_cz_383000",
+   "name": "V\u00fddaje p\u0159\u00ed\u0161t\u00edch obdob\u00ed",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "384000",
+   "template": "chart_cz_384000",
+   "name": "V\u00fdnosy p\u0159\u00ed\u0161t\u00edch obdob\u00ed",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "385000",
+   "template": "chart_cz_385000",
+   "name": "P\u0159\u00edjmy p\u0159\u00ed\u0161t\u00edch obdob\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "388000",
+   "template": "chart_cz_388000",
+   "name": "Dohadn\u00e9 \u00fa\u010dty aktivn\u00ed",
+   "account_type": "asset_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "389000",
+   "template": "chart_cz_389000",
+   "name": "Dohadn\u00e9 \u00fa\u010dty pasivn\u00ed",
+   "account_type": "liability_current",
+   "reconcile": true,
+   "active": true
+  },
+  {
+   "code": "391000",
+   "template": "chart_cz_391000",
+   "name": "Opravn\u00e1 polo\u017eka k pohled\u00e1vk\u00e1m",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "395000",
+   "template": "chart_cz_395000",
+   "name": "Vnit\u0159n\u00ed z\u00fa\u010dtov\u00e1n\u00ed",
+   "account_type": "asset_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "398000",
+   "template": "chart_cz_398000",
+   "name": "Spojovac\u00ed \u00fa\u010det p\u0159i spole\u010dnosti (sdru\u017een\u00ed)",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "411000",
+   "template": "chart_cz_411000",
+   "name": "Z\u00e1kladn\u00ed kapit\u00e1l",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "412000",
+   "template": "chart_cz_412000",
+   "name": "\u00c1\u017eio",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "413000",
+   "template": "chart_cz_413000",
+   "name": "Ostatn\u00ed kapit\u00e1lov\u00e9 fondy",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "414000",
+   "template": "chart_cz_414000",
+   "name": "Oce\u0148ovac\u00ed rozd\u00edly z p\u0159ecen\u011bn\u00ed majetku a z\u00e1vazk\u016f",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "416000",
+   "template": "chart_cz_416000",
+   "name": "Rozd\u00edly z p\u0159ecen\u011bn\u00ed p\u0159i p\u0159emen\u00e1ch obchodn\u00edch korporac\u00ed",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "417000",
+   "template": "chart_cz_417000",
+   "name": "Rozd\u00edly z p\u0159em\u011bn obchodn\u00edch korporac\u00ed",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "418000",
+   "template": "chart_cz_418000",
+   "name": "Oce\u0148ovac\u00ed rozd\u00edly z p\u0159ecen\u011bn\u00ed p\u0159i p\u0159em\u011bn\u00e1ch obchodn\u00edch korporac\u00ed",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "419000",
+   "template": "chart_cz_419000",
+   "name": "Zm\u011bny z\u00e1kladn\u00edho kapit\u00e1lu",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "421000",
+   "template": "chart_cz_421000",
+   "name": "Rezervn\u00ed fond",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "422000",
+   "template": "chart_cz_422000",
+   "name": "Ned\u011bliteln\u00fd fond",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "423000",
+   "template": "chart_cz_423000",
+   "name": "Statut\u00e1rn\u00ed fondy",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "424000",
+   "template": "chart_cz_424000",
+   "name": "Ostatn\u00ed fondy ze zisku",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "426000",
+   "template": "chart_cz_426000",
+   "name": "Jin\u00fd v\u00fdsledek hospoda\u0159en\u00ed minul\u00fdch let",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "427000",
+   "template": "chart_cz_427000",
+   "name": "Ostatn\u00ed fondy",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "428000",
+   "template": "chart_cz_428000",
+   "name": "Nerozd\u011blen\u00fd zisk minul\u00fdch let",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "429000",
+   "template": "chart_cz_429000",
+   "name": "Neuhrazen\u00e1 ztr\u00e1ta minul\u00fdch let",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "431000",
+   "template": "chart_cz_431000",
+   "name": "V\u00fdsledek hospoda\u0159en\u00ed v schvalovac\u00edm \u0159\u00edzen\u00ed",
+   "account_type": "equity_unaffected",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "432000",
+   "template": "chart_cz_432000",
+   "name": "Z\u00e1lohy na pod\u00edly na zisku",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "451000",
+   "template": "chart_cz_451000",
+   "name": "Rezervy podle zvl\u00e1\u0161tn\u00edch pr\u00e1vn\u00edch p\u0159edpis\u016f",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "452000",
+   "template": "chart_cz_452000",
+   "name": "Rezerva na d\u016fchody a podobn\u00e9 z\u00e1vazky",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "453000",
+   "template": "chart_cz_453000",
+   "name": "Rezerva na da\u0148 z p\u0159\u00edjm\u016f",
+   "account_type": "liability_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "459000",
+   "template": "chart_cz_459000",
+   "name": "Ostatn\u00ed rezervy",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "461000",
+   "template": "chart_cz_461000",
+   "name": "Dlouhodob\u00e9 \u00fav\u011bry",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "471000",
+   "template": "chart_cz_471000",
+   "name": "Dlouhodob\u00e9 z\u00e1vazky \u2013 ovl\u00e1dan\u00e1 nebo ovl\u00e1daj\u00edc\u00ed osoba",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "472000",
+   "template": "chart_cz_472000",
+   "name": "Dlouhodob\u00e9 z\u00e1vazky \u2013 podstatn\u00fd vliv",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "473000",
+   "template": "chart_cz_473000",
+   "name": "Emitovan\u00e9 dluhopisy",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "473100",
+   "template": "chart_cz_473100",
+   "name": "Vydan\u00e9 dlouhodob\u00e9 dluhopisy",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "473200",
+   "template": "chart_cz_473200",
+   "name": "Vydan\u00e9 kr\u00e1tkodob\u00e9 dluhopisy",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "474000",
+   "template": "chart_cz_474000",
+   "name": "Z\u00e1vazky z n\u00e1jmu a pachtu",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "475000",
+   "template": "chart_cz_475000",
+   "name": "Dlouhodob\u00e9 p\u0159ijat\u00e9 z\u00e1lohy",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "478000",
+   "template": "chart_cz_478000",
+   "name": "Dlouhodob\u00e9 sm\u011bnky k \u00fahrad\u011b",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "479000",
+   "template": "chart_cz_479000",
+   "name": "Ostatn\u00ed dlouhodob\u00e9 z\u00e1vazky",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "481000",
+   "template": "chart_cz_481000",
+   "name": "Odlo\u017een\u00fd da\u0148ov\u00fd z\u00e1vazek a pohled\u00e1vka",
+   "account_type": "liability_non_current",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "491000",
+   "template": "chart_cz_491000",
+   "name": "\u00da\u010det individu\u00e1ln\u00edho podnikatele",
+   "account_type": "equity",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "501000",
+   "template": "chart_cz_501000",
+   "name": "Spot\u0159eba materi\u00e1lu",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "501100",
+   "template": "chart_cz_501100",
+   "name": "Suroviny",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "501200",
+   "template": "chart_cz_501200",
+   "name": "Spot\u0159ebn\u00ed materi\u00e1l",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "501300",
+   "template": "chart_cz_501300",
+   "name": "Kancel\u00e1\u0159sk\u00e9 pot\u0159eby",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "501400",
+   "template": "chart_cz_501400",
+   "name": "Pohonn\u00e9 hmoty",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "502000",
+   "template": "chart_cz_502000",
+   "name": "Spot\u0159eba energie",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "503000",
+   "template": "chart_cz_503000",
+   "name": "Spot\u0159eba ostatn\u00edch neskladovateln\u00fdch dod\u00e1vek",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "504000",
+   "template": "chart_cz_504000",
+   "name": "Prodan\u00e9 zbo\u017e\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "511000",
+   "template": "chart_cz_511000",
+   "name": "Opravy a udr\u017eov\u00e1n\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "511100",
+   "template": "chart_cz_511100",
+   "name": "\u00dadr\u017eba kancel\u00e1\u0159e",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "511200",
+   "template": "chart_cz_511200",
+   "name": "\u00dadr\u017eba vozidla",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "512000",
+   "template": "chart_cz_512000",
+   "name": "Cestovn\u00e9",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "512100",
+   "template": "chart_cz_512100",
+   "name": "Lety",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "512200",
+   "template": "chart_cz_512200",
+   "name": "Hotely",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "512300",
+   "template": "chart_cz_512300",
+   "name": "Ve\u0159ejn\u00e1 doprava",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "512400",
+   "template": "chart_cz_512400",
+   "name": "Ostatn\u00ed cestovn\u00ed v\u00fddaje",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "513000",
+   "template": "chart_cz_513000",
+   "name": "N\u00e1klady na reprezentaci",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "513100",
+   "template": "chart_cz_513100",
+   "name": "Obchodn\u00ed dary",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "513200",
+   "template": "chart_cz_513200",
+   "name": "Bar a restaurace",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "513300",
+   "template": "chart_cz_513300",
+   "name": "J\u00eddlo: Recepce a rozvoz",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518000",
+   "template": "chart_cz_518000",
+   "name": "Ostatn\u00ed slu\u017eby",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518100",
+   "template": "chart_cz_518100",
+   "name": "Studie a pr\u00e1ce",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518200",
+   "template": "chart_cz_518200",
+   "name": "Obecn\u00e9 subdod\u00e1vky",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518300",
+   "template": "chart_cz_518300",
+   "name": "N\u00e1jem kancel\u00e1\u0159e",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518400",
+   "template": "chart_cz_518400",
+   "name": "Pron\u00e1jem vozidla",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518500",
+   "template": "chart_cz_518500",
+   "name": "Kancel\u00e1\u0159sk\u00e9 slu\u017eby",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518600",
+   "template": "chart_cz_518600",
+   "name": "\u00da\u010detnictv\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518700",
+   "template": "chart_cz_518700",
+   "name": "Pr\u00e1vn\u00ed v\u00fddaje",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518800",
+   "template": "chart_cz_518800",
+   "name": "Software",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518810",
+   "template": null,
+   "name": "Software - licence a p\u0159edplatn\u00e9",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518900",
+   "template": "chart_cz_518900",
+   "name": "Spr\u00e1vn\u00ed poplatky",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518910",
+   "template": "chart_cz_518910",
+   "name": "Telefon a internet",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518920",
+   "template": "chart_cz_518920",
+   "name": "Reklama",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518930",
+   "template": "chart_cz_518930",
+   "name": "\u0160kolen\u00ed a dokumentace",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518940",
+   "template": "chart_cz_518940",
+   "name": "Dovozn\u00ed poplatky",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "518950",
+   "template": null,
+   "name": "Audit a ov\u011b\u0159en\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "521000",
+   "template": "chart_cz_521000",
+   "name": "Mzdov\u00e9 n\u00e1klady",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "522000",
+   "template": "chart_cz_522000",
+   "name": "P\u0159\u00edjmy spole\u010dn\u00edk\u016f obchodn\u00ed korporace ze z\u00e1visl\u00e9 \u010dinnosti",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "523000",
+   "template": "chart_cz_523000",
+   "name": "Odm\u011bny \u010dlen\u016fm org\u00e1n\u016f obchodn\u00ed korporace",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "524000",
+   "template": "chart_cz_524000",
+   "name": "Z\u00e1konn\u00e9 soci\u00e1ln\u00ed a zdravotn\u00ed poji\u0161t\u011bn\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "525000",
+   "template": "chart_cz_525000",
+   "name": "Ostatn\u00ed soci\u00e1ln\u00ed poji\u0161t\u011bn\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "526000",
+   "template": "chart_cz_526000",
+   "name": "Zdravotn\u00ed a soci\u00e1ln\u00ed poji\u0161t\u011bn\u00ed individu\u00e1ln\u00edho podnikatele",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "527000",
+   "template": "chart_cz_527000",
+   "name": "Z\u00e1konn\u00e9 soci\u00e1ln\u00ed n\u00e1klady",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "528000",
+   "template": "chart_cz_528000",
+   "name": "Ostatn\u00ed soci\u00e1ln\u00ed n\u00e1klady",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "531000",
+   "template": "chart_cz_531000",
+   "name": "Da\u0148 silni\u010dn\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "532000",
+   "template": "chart_cz_532000",
+   "name": "Da\u0148 z nemovit\u00fdch v\u011bc\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "538000",
+   "template": "chart_cz_538000",
+   "name": "Ostatn\u00ed dan\u011b a poplatky",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "541000",
+   "template": "chart_cz_541000",
+   "name": "Z\u016fstatkov\u00e1 cena prodan\u00e9ho dlouhodob\u00e9ho nehmotn\u00e9ho a hmotn\u00e9ho majetku",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "542000",
+   "template": "chart_cz_542000",
+   "name": "Prodan\u00fd materi\u00e1l",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "543000",
+   "template": "chart_cz_543000",
+   "name": "Dary",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "544000",
+   "template": "chart_cz_544000",
+   "name": "Smluvn\u00ed pokuty a \u00faroky z prodlen\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "545000",
+   "template": "chart_cz_545000",
+   "name": "Ostatn\u00ed pokuty a pen\u00e1le",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "546000",
+   "template": "chart_cz_546000",
+   "name": "Odpis pohled\u00e1vky",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "547000",
+   "template": "chart_cz_547000",
+   "name": "Mimo\u0159\u00e1dn\u00e9 provozn\u00ed n\u00e1klady",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "548000",
+   "template": "chart_cz_548000",
+   "name": "Ostatn\u00ed provozn\u00ed n\u00e1klady",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "548100",
+   "template": "chart_cz_548100",
+   "name": "\u010clensk\u00e9 p\u0159\u00edsp\u011bvky",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "548200",
+   "template": "chart_cz_548200",
+   "name": "Poji\u0161t\u011bn\u00ed proti po\u017e\u00e1ru",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "548300",
+   "template": "chart_cz_548300",
+   "name": "Profesn\u00ed poji\u0161t\u011bn\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "548400",
+   "template": "chart_cz_548400",
+   "name": "Poji\u0161t\u011bn\u00ed pr\u00e1vn\u00ed ochrany",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "548500",
+   "template": "chart_cz_548500",
+   "name": "Poji\u0161t\u011bn\u00ed profesn\u00ed odpov\u011bdnosti",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "549000",
+   "template": "chart_cz_549000",
+   "name": "Manka a \u0161kody z provozn\u00ed \u010dinnosti",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "551000",
+   "template": "chart_cz_551000",
+   "name": "Odpisy dlouhodob\u00e9ho nehmotn\u00e9ho a hmotn\u00e9ho majetku",
+   "account_type": "expense_depreciation",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "552000",
+   "template": "chart_cz_552000",
+   "name": "Tvorba a z\u00fa\u010dtov\u00e1n\u00ed z\u00e1konn\u00fdch rezerv podle zvl\u00e1\u0161tn\u00edch pr\u00e1vn\u00edch p\u0159edpis\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "554000",
+   "template": "chart_cz_554000",
+   "name": "Tvorba a z\u00fa\u010dtov\u00e1n\u00ed ostatn\u00edch rezerv",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "555000",
+   "template": "chart_cz_555000",
+   "name": "Tvorba a z\u00fa\u010dtov\u00e1n\u00ed komplexn\u00edch n\u00e1klad\u016f p\u0159\u00ed\u0161t\u00edch obdob\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "557000",
+   "template": "chart_cz_557000",
+   "name": "Z\u00fa\u010dtov\u00e1n\u00ed opr\u00e1vky k oce\u0148ovac\u00edmu rozd\u00edlu k nabyt\u00e9mu majetku",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "558000",
+   "template": "chart_cz_558000",
+   "name": "Tvorba a z\u00fa\u010dtov\u00e1n\u00ed z\u00e1konn\u00fdch opravn\u00fdch polo\u017eek v provozn\u00ed \u010dinnosti",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "559000",
+   "template": "chart_cz_559000",
+   "name": "Tvorba a z\u00fa\u010dtov\u00e1n\u00ed opravn\u00fdch polo\u017eek v provozn\u00ed \u010dinnosti",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "561000",
+   "template": "chart_cz_561000",
+   "name": "Prodan\u00e9 cenn\u00e9 pap\u00edry a pod\u00edly",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "562000",
+   "template": "chart_cz_562000",
+   "name": "\u00daroky",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "563000",
+   "template": "chart_cz_563000",
+   "name": "Kurzov\u00e9 ztr\u00e1ty",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "564000",
+   "template": "chart_cz_564000",
+   "name": "N\u00e1klady na p\u0159ecen\u011bn\u00ed cenn\u00fdch pap\u00edr\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "565000",
+   "template": "chart_cz_565000",
+   "name": "Poskytnut\u00e9 dary ve finan\u010dn\u00ed oblasti",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "566000",
+   "template": "chart_cz_566000",
+   "name": "N\u00e1klady z finan\u010dn\u00edho majetku",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "567000",
+   "template": "chart_cz_567000",
+   "name": "N\u00e1klady z deriv\u00e1tov\u00fdch operac\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "568000",
+   "template": "chart_cz_568000",
+   "name": "Ostatn\u00ed finan\u010dn\u00ed n\u00e1klady",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "569000",
+   "template": "chart_cz_569000",
+   "name": "Manka a \u0161kody na finan\u010dn\u00edm majetku",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "574000",
+   "template": "chart_cz_574000",
+   "name": "Tvorba a z\u00fa\u010dtov\u00e1n\u00ed finan\u010dn\u00edch rezerv",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "579000",
+   "template": "chart_cz_579000",
+   "name": "Tvorba a z\u00fa\u010dtov\u00e1n\u00ed opravn\u00fdch polo\u017eek ve finan\u010dn\u00ed \u010dinnosti",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "581000",
+   "template": "chart_cz_581000",
+   "name": "Zm\u011bna stavu nedokon\u010den\u00e9 v\u00fdroby",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "582000",
+   "template": "chart_cz_582000",
+   "name": "Zm\u011bna stavu polotovar\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "583000",
+   "template": "chart_cz_583000",
+   "name": "Zm\u011bna stavu v\u00fdrobk\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "584000",
+   "template": "chart_cz_584000",
+   "name": "Zm\u011bna stavu mlad\u00fdch a ostatn\u00edch zv\u00ed\u0159at",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "585000",
+   "template": "chart_cz_585000",
+   "name": "Aktivace materi\u00e1lu a zbo\u017e\u00ed",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "586000",
+   "template": "chart_cz_586000",
+   "name": "Aktivace vnitropodnikov\u00fdch slu\u017eeb",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "587000",
+   "template": "chart_cz_587000",
+   "name": "Aktivace dlouhodob\u00e9ho nehmotn\u00e9ho majetku",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "588000",
+   "template": "chart_cz_588000",
+   "name": "Aktivace dlouhodob\u00e9ho hmotn\u00e9ho majetku",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "591000",
+   "template": "chart_cz_591000",
+   "name": "Da\u0148 z p\u0159\u00edjm\u016f splatn\u00e1",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "592000",
+   "template": "chart_cz_592000",
+   "name": "Da\u0148 z p\u0159\u00edjm\u016f odlo\u017een\u00e1",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "593000",
+   "template": "chart_cz_593000",
+   "name": "Da\u0148 z p\u0159\u00edjm\u016f z mimo\u0159\u00e1dn\u00e9 \u010dinnosti - splatn\u00e1",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "595000",
+   "template": "chart_cz_595000",
+   "name": "Dodate\u010dn\u00e9 odvody dan\u011b z p\u0159\u00edjm\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "596000",
+   "template": "chart_cz_596000",
+   "name": "P\u0159evod pod\u00edlu na v\u00fdsledku hospoda\u0159en\u00ed spole\u010dn\u00edk\u016fm v.o.s. a komplement\u00e1\u0159\u016fm k.s.",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "597000",
+   "template": "chart_cz_597000",
+   "name": "P\u0159evod provozn\u00edch n\u00e1klad\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "598000",
+   "template": "chart_cz_598000",
+   "name": "P\u0159evod finan\u010dn\u00edch n\u00e1klad\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "599000",
+   "template": "chart_cz_599000",
+   "name": "Zm\u011bna stavu rezervy na da\u0148 z p\u0159\u00edjm\u016f",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "601000",
+   "template": "chart_cz_601000",
+   "name": "Tr\u017eby za vlastn\u00ed v\u00fdrobky",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "602000",
+   "template": "chart_cz_602000",
+   "name": "Tr\u017eby z prodeje slu\u017eeb",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "602100",
+   "template": "chart_cz_602100",
+   "name": "Tr\u017eby z prodeje slu\u017eeb v tuzemsku",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "602200",
+   "template": "chart_cz_602200",
+   "name": "Tr\u017eby z prodeje slu\u017eeb do EU",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "602300",
+   "template": "chart_cz_602300",
+   "name": "Tr\u017eby z prodeje slu\u017eeb do t\u0159et\u00edch zem\u00ed",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "604000",
+   "template": "chart_cz_604000",
+   "name": "Tr\u017eby za zbo\u017e\u00ed",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "604100",
+   "template": "chart_cz_604100",
+   "name": "Tr\u017eby za zbo\u017e\u00ed v tuzemsku",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "604200",
+   "template": "chart_cz_604200",
+   "name": "Tr\u017eby za zbo\u017e\u00ed do ostatn\u00edch st\u00e1t\u016f EU",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "604300",
+   "template": "chart_cz_604300",
+   "name": "Tr\u017eby za zbo\u017e\u00ed do t\u0159et\u00edch zem\u00ed",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "641000",
+   "template": "chart_cz_641000",
+   "name": "Tr\u017eby z prodeje dlouhodob\u00e9ho nehmotn\u00e9ho a hmotn\u00e9ho majetku",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "642000",
+   "template": "chart_cz_642000",
+   "name": "Tr\u017eby z prodeje materi\u00e1lu",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "643000",
+   "template": "chart_cz_643000",
+   "name": "P\u0159ijat\u00e9 dary v provozn\u00ed oblasti",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "644000",
+   "template": "chart_cz_644000",
+   "name": "Smluvn\u00ed pokuty a \u00faroky z prodlen\u00ed",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "645000",
+   "template": "chart_cz_645000",
+   "name": "V\u00fdnosy z postoupen\u00fdch pohled\u00e1vek",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "646000",
+   "template": "chart_cz_646000",
+   "name": "V\u00fdnosy z odepsan\u00fdch pohled\u00e1vek",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "647000",
+   "template": "chart_cz_647000",
+   "name": "Mimo\u0159\u00e1dn\u00e9 provozn\u00ed v\u00fdnosy",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "648000",
+   "template": "chart_cz_648000",
+   "name": "Ostatn\u00ed provozn\u00ed v\u00fdnosy",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "649000",
+   "template": "chart_cz_649000",
+   "name": "Odpis z\u00e1porn\u00e9ho goodwillu a z\u00fa\u010dtov\u00e1n\u00ed opr\u00e1vky k oce\u0148. rozd\u00edlu k nabyt\u00e9mu majetku",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "661000",
+   "template": "chart_cz_661000",
+   "name": "Tr\u017eby z prodeje cenn\u00fdch pap\u00edr\u016f a pod\u00edl\u016f",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "662000",
+   "template": "chart_cz_662000",
+   "name": "\u00daroky",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "663000",
+   "template": "chart_cz_663000",
+   "name": "Kurzov\u00e9 zisky",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "664000",
+   "template": "chart_cz_664000",
+   "name": "V\u00fdnosy z p\u0159ecen\u011bn\u00ed cenn\u00fdch pap\u00edr\u016f",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "665000",
+   "template": "chart_cz_665000",
+   "name": "V\u00fdnosy z dlouhodob\u00e9ho finan\u010dn\u00edho majetku",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "666000",
+   "template": "chart_cz_666000",
+   "name": "V\u00fdnosy z kr\u00e1tkodob\u00e9ho finan\u010dn\u00edho majetku",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "667000",
+   "template": "chart_cz_667000",
+   "name": "V\u00fdnosy z deriv\u00e1tov\u00fdch operac\u00ed",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "668000",
+   "template": "chart_cz_668000",
+   "name": "Ostatn\u00ed finan\u010dn\u00ed v\u00fdnosy",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "669000",
+   "template": "chart_cz_669000",
+   "name": "P\u0159ijat\u00e9 dary ve finan\u010dn\u00ed oblasti",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "697000",
+   "template": "chart_cz_697000",
+   "name": "P\u0159evod provozn\u00edch v\u00fdnos\u016f",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "698000",
+   "template": "chart_cz_698000",
+   "name": "P\u0159evod finan\u010dn\u00edch v\u00fdnos\u016f",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "699000",
+   "template": "chart_cz_699000",
+   "name": "V\u00fdnosy hospod\u00e1\u0159sk\u00fdch st\u0159edisek",
+   "account_type": "income",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "701000",
+   "template": "chart_cz_701000",
+   "name": "Po\u010d\u00e1te\u010dn\u00ed \u00fa\u010det rozva\u017en\u00fd",
+   "account_type": "off_balance",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "702000",
+   "template": "chart_cz_702000",
+   "name": "Kone\u010dn\u00fd \u00fa\u010det rozva\u017en\u00fd",
+   "account_type": "off_balance",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "710000",
+   "template": "chart_cz_710000",
+   "name": "\u00da\u010det zisk\u016f a ztr\u00e1t",
+   "account_type": "off_balance",
+   "reconcile": false,
+   "active": false
+  },
+  {
+   "code": "999997",
+   "template": "account_journal_early_pay_discount_gain_account_id",
+   "name": "\u00da\u010det zisku z hotovostn\u00ed slevy",
+   "account_type": "income_other",
+   "reconcile": false,
+   "active": true
+  },
+  {
+   "code": "999998",
+   "template": "account_journal_early_pay_discount_loss_account_id",
+   "name": "\u00da\u010det ztr\u00e1ty z hotovostn\u00ed slevy",
+   "account_type": "expense",
+   "reconcile": false,
+   "active": true
+  }
+ ],
+ "taxes": [
+  {
+   "template": "l10n_cz_other_transaction_deduction",
+   "name": "0 % Osvobozeno",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_purchase_goods_eu",
+   "name": "12% EU G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_supply_goods_eu",
+   "name": "0% EU G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_acquisition_goods_eu",
+   "name": "21% EU G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_receipt_service_person_eu",
+   "name": "12% EU S",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_receipt_service_person_eu",
+   "name": "21% - P\u0159ijet\u00ed slu\u017eby od osoby reg. k dani v jin\u00e9m EU st\u00e1t\u011b",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_supply_service_eu",
+   "name": "0% EU S",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_import_goods",
+   "name": "21% EX G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_exempt_importation_goods",
+   "name": "0% EX G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_investment_gold",
+   "name": "0% Zlato",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_import_goods",
+   "name": "12% EX G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_receipt_service_person_non_eu",
+   "name": "21% EX S",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_receipt_service_person_non_eu",
+   "name": "12% EX S",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_acquisition_transport",
+   "name": "21% Vozidlo",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_export_goods",
+   "name": "0% EX G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_export_services",
+   "name": "0% EX G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_domestic_supplies",
+   "name": "12% G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_domestic_service",
+   "name": "12% S",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_receipt_domestic_supplies",
+   "name": "12% G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_receipt_domestic_service",
+   "name": "12% S",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_tax_reverse_charge_mode",
+   "name": "0% RC",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_tax_reverse_charge_scheme",
+   "name": "21% RC",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_other_supplies_chargeable",
+   "name": "21% ND",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_other_supplies_obligation",
+   "name": "12% ND",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_12_tax_reverse_charge_scheme",
+   "name": "12% RC",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_domestic_supplies",
+   "name": "21% G",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_domestic_services",
+   "name": "21% S",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_receipt_domestic_supplies",
+   "name": "21%",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_21_receipt_domestic_services",
+   "name": "21%",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_special_mode",
+   "name": "0% Re\u017eim",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_not_subject_vat",
+   "name": "0% NA",
+   "active": false
+  },
+  {
+   "template": "l10n_cz_import_goods_tax_authority",
+   "name": "0% EX G.Zvyk",
+   "active": false
+  },
+  {
+   "template": null,
+   "name": "21 % IO p\u0159ijat\u00e1 slu\u017eba z EU",
+   "active": true
+  },
+  {
+   "template": null,
+   "name": "12 % IO p\u0159ijat\u00e1 slu\u017eba z EU",
+   "active": true
+  },
+  {
+   "template": null,
+   "name": "21 % IO p\u0159ijat\u00e1 slu\u017eba ze t\u0159et\u00ed zem\u011b",
+   "active": true
+  },
+  {
+   "template": null,
+   "name": "12 % IO p\u0159ijat\u00e1 slu\u017eba ze t\u0159et\u00ed zem\u011b",
+   "active": true
+  }
+ ],
+ "fiscal_positions": [
+  {
+   "template": "fiscal_position_domestic_cz",
+   "name": "Domestic partners",
+   "active": true
+  },
+  {
+   "template": "fiscal_position_intra_community",
+   "name": "Intra-Community",
+   "active": false
+  },
+  {
+   "template": "fiscal_position_eu_private_cz",
+   "name": "Private trade with the EU",
+   "active": false
+  },
+  {
+   "template": "fiscal_position_extra_community",
+   "name": "Extra-Community",
+   "active": false
+  },
+  {
+   "template": null,
+   "name": "Identifikovan\u00e1 osoba \u2013 EU s DI\u010c",
+   "active": true
+  },
+  {
+   "template": null,
+   "name": "Identifikovan\u00e1 osoba \u2013 ostatn\u00ed zahrani\u010d\u00ed",
+   "active": true
+  }
+ ],
+ "journals": [
+  {
+   "template": "sale",
+   "type": "sale",
+   "code": "FA",
+   "name": "Prodej",
+   "active": true,
+   "default_account": "602000"
+  },
+  {
+   "template": "purchase",
+   "type": "purchase",
+   "code": "FP",
+   "name": "N\u00e1kup",
+   "active": true,
+   "default_account": "518000"
+  },
+  {
+   "template": "general",
+   "type": "general",
+   "code": "MISC",
+   "name": "Ostatn\u00ed \u00fa\u010detn\u00ed operace",
+   "active": true,
+   "default_account": null
+  },
+  {
+   "template": "exch",
+   "type": "general",
+   "code": "EXCH",
+   "name": "Kurzov\u00e9 rozd\u00edly",
+   "active": true,
+   "default_account": null
+  },
+  {
+   "template": "caba",
+   "type": "general",
+   "code": "CABA",
+   "name": "Dan\u011b na hotovostn\u00edm z\u00e1klad\u011b",
+   "active": false,
+   "default_account": null
+  },
+  {
+   "template": "bank",
+   "type": "bank",
+   "code": "BNK1",
+   "name": "Banka",
+   "active": true,
+   "default_account": "221001"
+  },
+  {
+   "template": "inventory_valuation",
+   "type": "general",
+   "code": "STJ",
+   "name": "Ocen\u011bn\u00ed z\u00e1sob",
+   "active": false,
+   "default_account": null
+  }
+ ]
+}

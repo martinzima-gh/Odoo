@@ -1,5 +1,6 @@
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
+from odoo.tools import mute_logger
 
 from odoo.addons.investra_instruments.tests.test_instrument import InstrumentCase
 
@@ -155,7 +156,7 @@ class TestInstrumentClassification(InstrumentCase):
     def test_wizard_requires_reason_and_change(self):
         instrument = self.confirmed()
         Wizard = self.env["investra.masterdata.change.wizard"].with_user(self.preparer)
-        with self.assertRaises(Exception):
+        with mute_logger("odoo.sql_db"), self.assertRaises(Exception):
             Wizard.create({"instrument_id": instrument.id})
         same = Wizard.create({
             "instrument_id": instrument.id, "ba0088_id": instrument.ba0088_id.id, "cfi_code": instrument.cfi_code,

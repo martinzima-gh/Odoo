@@ -1,67 +1,69 @@
 #!/usr/bin/env bash
-# Spustí testy Odoo vlastních modulů nad testovací databází investra_test.
-# Celý log uloží do .test-logs/ (mimo git), na obrazovku vypíše jen souhrn a chyby,
-# aby se při zeleném běhu nečetly tisíce řádků.
+# Spustí testy Odoo vlastních modulů na nové dočasné databázi investra_ci_<čas>.
+# Databáze se založí, moduly se do ní nainstalují (s l10n_cz a account_peppol jako pracovní databáze, bez demo dat), proběhnou testy
+# a databáze se i s filestore smaže. Pracovní databáze investra ani jiné databáze se nepoužívají.
+# Celý log uloží do .test-logs/ (mimo git), na obrazovku vypíše jen souhrn a chyby.
 #
 # Použití:
-#   tools/run_tests.sh investra_nav                 # jeden modul
+#   tools/run_tests.sh investra_nav                 # jeden modul (instalace včetně závislostí)
 #   tools/run_tests.sh investra_nav,investra_rates  # více modulů
+#   tools/run_tests.sh all                          # všechny investra_* kromě investra_env_banner
 #   TEST_TAGS=/investra_nav:TestValuation tools/run_tests.sh investra_nav   # jen vybraná třída
 #   MAX_LINES=400 tools/run_tests.sh investra_nav   # delší výpis chyb (výchozí 200)
+#   KEEP_DB=1 tools/run_tests.sh investra_nav       # databázi po testu nesmazat (k ladění; pak smazat ručně)
 #
-# Databáze je pevně investra_test; proti investra_dev se skript spustit nedá.
-# Upgrade modulu (-u) mění schéma testovací databáze, ne vývojové.
+# Migrace se tu netestují (databáze je čistá); zkouška migrace patří na dočasnou kopii ze zálohy.
 
 set -euo pipefail
 
-DB="investra_test"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MODULES="${1:-}"
+if [[ "$MODULES" == "all" ]]; then
+  MODULES="$(cd "$ROOT/addons/custom" && ls -d investra_*/ | tr -d / | grep -vx investra_env_banner | paste -sd, -)"
+fi
 if [[ -z "$MODULES" || ! "$MODULES" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then
-  echo "Použití: tools/run_tests.sh modul[,modul...]" >&2
+  echo "Použití: tools/run_tests.sh modul[,modul...] | all" >&2
   exit 2
 fi
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DB="investra_ci_$(date +%Y%m%d_%H%M%S)"
+[[ "$DB" =~ ^investra_ci_[0-9_]+$ ]] || { echo "Neplatný název dočasné databáze: $DB" >&2; exit 2; }
+
 LOG_DIR="$ROOT/.test-logs"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-${MODULES//,/+}.log"
+[[ ${#LOG} -gt 200 ]] && LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-sada.log"
 MAX_LINES="${MAX_LINES:-200}"
 
 if [[ -z "${TEST_TAGS:-}" ]]; then
   TEST_TAGS="$(echo "$MODULES" | sed 's/^/\//; s/,/,\//g')"
 fi
 
-# Pojistka proti nechtěné migraci: -u aktualizuje i moduly, které na testovaném závisejí.
-# Když se verze v kódu liší od verze v databázi, spustila by se migrace – bez ALLOW_UPGRADE=1 se skončí.
 COMPOSE=(docker compose -f "$ROOT/docker-compose.investra.yml")
-DB_VERSIONS="$("${COMPOSE[@]}" exec -T db psql -U odoo -d "$DB" -tAc \
-  "SELECT name || ' ' || coalesce(latest_version, '') FROM ir_module_module WHERE name LIKE 'investra%' AND state = 'installed'")" || {
-  echo "Nelze přečíst verze modulů z $DB (běží služba db?)." >&2; exit 2; }
-PENDING=""
-while read -r NAME DBVER; do
-  [[ -z "$NAME" ]] && continue
-  MANIFEST="$ROOT/addons/custom/$NAME/__manifest__.py"
-  [[ -f "$MANIFEST" ]] || continue
-  CODEVER="$(sed -nE "s/.*[\"']version[\"'] *: *[\"']([^\"']+)[\"'].*/\1/p" "$MANIFEST" | head -1)"
-  [[ "$CODEVER" != "$DBVER" ]] && PENDING+="  $NAME: databáze $DBVER, kód $CODEVER"$'\n'
-done <<<"$DB_VERSIONS"
-if [[ -n "$PENDING" ]]; then
-  echo "Verze modulů v $DB se liší od kódu – běh by spustil upgrade a migraci:"
-  printf '%s' "$PENDING"
-  if [[ "${ALLOW_UPGRADE:-}" != "1" ]]; then
-    echo "Zastaveno. Upgrade testovací databáze je změna dat: po dohodě a se zálohou spusť s ALLOW_UPGRADE=1." >&2
-    exit 3
-  fi
-  echo "ALLOW_UPGRADE=1 – pokračuji včetně upgradu."
-fi
+ODOO=("${COMPOSE[@]}" run --rm --no-deps -T odoo odoo)
+ADDONS="--addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom"
 
-echo "Testy: $MODULES | tagy: $TEST_TAGS | databáze: $DB"
+cleanup() {
+  if [[ "${KEEP_DB:-}" == "1" ]]; then
+    echo "KEEP_DB=1 – databáze $DB zůstala; po ladění ji smaž (i s filestore) příkazem odoo db drop."
+    return
+  fi
+  # Smaže jen tuto dočasnou databázi i s filestore (odoo db drop). Připojení se bere z proměnných kontejneru,
+  # heslo se nepředává na příkazové řádce hostitele ani nezapisuje do logu.
+  if "${COMPOSE[@]}" run --rm --no-deps -T --entrypoint sh odoo -c \
+      'odoo db --db_host "$HOST" --db_user "$USER" --db_password "$PASSWORD" drop "$1"' sh "$DB" >>"$LOG" 2>&1; then
+    echo "Dočasná databáze $DB smazána."
+  else
+    echo "POZOR: dočasnou databázi $DB se nepodařilo smazat (viz log)." >&2
+  fi
+}
+
+echo "Testy: $MODULES | tagy: $TEST_TAGS | dočasná databáze: $DB"
 START=$(date +%s)
+trap cleanup EXIT
 set +e
-"${COMPOSE[@]}" run --rm --no-deps -T odoo odoo \
-  --addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons/custom \
-  -d "$DB" --db-filter="^${DB}\$" -u "$MODULES" --test-enable --test-tags "$TEST_TAGS" \
-  --stop-after-init --no-http --max-cron-threads=0 >"$LOG" 2>&1
+"${ODOO[@]}" "$ADDONS" -d "$DB" --db-filter="^${DB}\$" -i "l10n_cz,account_peppol,$MODULES" --without-demo=all \
+  --test-enable --test-tags "$TEST_TAGS" --stop-after-init --no-http --max-cron-threads=0 >"$LOG" 2>&1
 RC=$?
 set -e
 echo "Doba: $(( $(date +%s) - START )) s | návratový kód: $RC | log: $LOG"
@@ -90,8 +92,6 @@ if [[ -n "$ERRORS" ]]; then
   echo "--- Chyby (${N} řádků, zobrazeno nejvýš ${MAX_LINES}) ---"
   echo "$ERRORS" | head -n "$MAX_LINES"
   [[ "$N" -gt "$MAX_LINES" ]] && echo "… zbytek v logu"
-  grep -q "COMPANY_OFFSET\|MissingError" "$LOG" && \
-    echo "Tip: MissingError při přípravě testů – zkontroluj res_company_id_seq (docs/prototyp-nav.md, Spuštění testů)."
 fi
 
 # Úspěch jen při nulovém kódu, souhrnu s nenulovým počtem testů a bez chyb.
