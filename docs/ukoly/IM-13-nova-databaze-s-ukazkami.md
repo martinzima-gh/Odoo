@@ -46,6 +46,16 @@ a potvrzenou klasifikací; schválená portfolia s kategorií a účetním profi
 a odkupy v několika obdobích; aspoň jeden prodej, jedna splátka jistiny a jeden kupón; úplaty podle nastavení fondu.
 Ocenění projdou celým postupem včetně schválení; schvaluje jeden uživatel (viz krok 4a). Žádná hesla v repozitáři.
 
+**Investra Services s.r.o. – ukázka servisní organizace (doplněno 15. 11. 2026, pokyn Martina):** v databázi `investra`
+bude vedle fondů i samostatná společnost Investra Services s.r.o. s osnovou pro podnikatele (vyhláška č. 500/2002 Sb.,
+`l10n_cz`) upravenou podle `docs/osnova-investra-services.md` a rozhodnutí v deníku z 2026-11-07 a 2026-11-08 (osnova,
+archivované daně a fiskální pozice, identifikovaná osoba – modul `investra_vat_identified`). Nastavení převzít ze
+stávající `investra_dev` jen čtením (porovnat účty, daně, deníky); `investra_dev` se nemění. Ukázkové doklady
+(smyšlené částky a partneři): několik vydaných faktur za služby, přijaté faktury včetně jedné služby z EU v režimu
+identifikované osoby, bankovní výpis s úhradami, jeden interní doklad; období aspoň 3 měsíce. Účetní rámce se nemíchají:
+Services účtuje podle 500/2002 Sb., fondy podle 501/2002 Sb., každá jednotka ve své společnosti. Co z nastavení Services
+není z dokumentů a `investra_dev` jasné (mzdy, DIČ, kontakty jsou otevřené body), nezakládat a vypsat ve Výsledku.
+
 **Mimo rozsah:** změny modulů (chybu, která brání naplnění, popsat a navrhnout jako zadání, neopravovat potichu),
 sloučení do `main`, mazání starých databází, produkční prostředí.
 
@@ -55,6 +65,8 @@ sloučení do `main`, mazání starých databází, produkční prostředí.
   co zkoušet).
 - Stejný dluhopis je ve fondu B a D v různých kategoriích a účtuje se podle zařazení.
 - Kontroly ocenění bez chyb (upozornění vyjmenovat ve Výsledku); rozvaha každého fondu vyrovnaná, FK = aktiva − závazky.
+- Investra Services s.r.o. je v databázi jako samostatná společnost s osnovou podle 500/2002 Sb.; obratová předvaha
+  vyrovnaná, doklady zaúčtované, počty účtů a daní souhlasí s `investra_dev` (rozdíly vyjmenovat).
 - `tools/run_tests.sh` nesáhne na `investra`; sada všech modulů na dočasné databázi: 0 selhání, 0 chyb.
 - Zálohy starých databází existují a jsou čitelné; kontejnery zastavené, databáze zachované.
 
