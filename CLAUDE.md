@@ -56,9 +56,10 @@ Rozhodnutí 2026-11-15: pracuje se vždy jen s **jednou verzí aplikace**.
 - Jedna pracovní databáze a jedna běžící instance: `investra` na http://127.0.0.1:8071 (zavádí úkol `docs/ukoly/IM-13`;
   do jeho dokončení platí tabulka Prostředí níže). Další trvalé kopie databáze se nezakládají.
 - Testy a zkoušky migrací běží jen na dočasných `investra_ci_*`, které se po testech mažou; do pracovní databáze nesahají.
-- Jediná výjimka: **Copilot** smí mít vlastní instanci pro ladění vzhledu, v jiném okně VS Code nad klonem `~/odoo-review`
-  (port 8072). Její databáze je jen kopie pracovní databáze, obnovuje se z ní před laděním, nic se v ní nezadává
-  a změny se do aplikace dostanou jen převzetím od Clauda. Když se neladí, instance neběží.
+- Jediná výjimka: **Copilot a Antigravity** (stejná úroveň) smějí mít společnou vlastní instanci pro svou práci, v jiném
+  okně VS Code nad klonem `~/odoo-review` (port 8072). Její databáze je jen kopie pracovní databáze, obnovuje se z ní
+  před prací, nic trvalého se v ní nezadává a změny se do aplikace dostanou jen převzetím od Clauda. Když se v ní
+  nepracuje, instance neběží. Do `~/odoo-dev` ani do pracovní databáze `investra` žádný z nich nezapisuje.
 - Kdo by potřeboval další verzi nebo kopii, nejdřív se zeptá Martina.
 
 ## Prostředí
