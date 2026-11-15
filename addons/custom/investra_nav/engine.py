@@ -346,6 +346,24 @@ def amortised_cost(flows, day, rate=None, basis="act365"):
     return money(sum(dec(a) / (1 + rate) ** year_fraction(day, d, basis) for d, a in remaining))
 
 
+def amortised_cost_segments(cost, segments, day, basis="act365"):
+    """Naběhlá hodnota s prospektivním přepočtem efektivní míry při změně toků (variabilní sazba, IM-11 varianta a).
+
+    segments: [(od, toky)] vzestupně; první úsek začíná pořízením, další dnem změny sazby. Toky úseku jsou kalendář
+    platný od jeho začátku. Úsek k: EIR_k z (od_k, −hodnota k od_k) a toků po od_k; hodnota ke konci úseku je současná
+    hodnota toků úseku při EIR_k. Ke dnům před od_k se hodnota nemění a v od_k nevzniká skok.
+    """
+    used = [segment for index, segment in enumerate(segments) if index == 0 or segment[0] < day]
+    value = dec(cost)
+    for index, (start, flows) in enumerate(used):
+        future = [(d, a) for d, a in flows if d > start]
+        if not future:
+            return money(ZERO)
+        end = used[index + 1][0] if index + 1 < len(used) else day
+        value = amortised_cost([(start, -value), *future], end, basis=basis)
+    return value
+
+
 def linear_accrual(purchase, redemption, start, end, day, basis="act365"):
     """Lineární rozpuštění rozdílu mezi pořizovací a splatnou částkou."""
     share = year_fraction(start, min(day, end), basis) / year_fraction(start, end, basis)

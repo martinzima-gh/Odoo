@@ -580,8 +580,55 @@ if isinstance(result, dict):
         <field name="arch" type="xml">
             <xpath expr="//field[@name='maturity_date']" position="before"><field name="principal"/><field name="start_date"/><field name="coupon_frequency"/></xpath>
             <xpath expr="//sheet" position="before">
-                <header><button name="action_generate_schedule" type="object" string="Vygenerovat kalendář" invisible="type_group not in ('money_market', 'debt', 'loan') or coupon_frequency == 'irregular'"/></header>
+                <header><button name="action_generate_schedule" type="object" string="Vygenerovat kalendář" invisible="type_group not in ('money_market', 'debt', 'loan') or coupon_frequency == 'irregular'"/>
+                    <button name="action_new_rate" type="object" string="Zadat novou sazbu" invisible="rate_type != 'variable'"
+                            groups="investra_entity.group_valuation_preparer"/></header>
             </xpath>
+            <!-- Variabilní sazba (IM-11): jen přidané prvky, stávající se nepřesouvají. -->
+            <xpath expr="//field[@name='coupon_rate']" position="before"><field name="rate_type"/></xpath>
+            <xpath expr="//field[@name='coupon_rate']" position="attributes">
+                <attribute name="readonly">rate_type == 'variable'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='cashflow_ids']/list/field[@name='amount']" position="after">
+                <field name="estimated" column_invisible="parent.rate_type != 'variable'"/>
+            </xpath>
+            <xpath expr="//field[@name='cashflow_ids']/.." position="after">
+                <page string="Období sazeb" invisible="rate_type != 'variable'">
+                    <field name="rate_period_ids" readonly="1">
+                        <list default_order="valid_from">
+                            <field name="valid_from"/><field name="rate"/><field name="note"/>
+                            <field name="create_uid" string="Zadal"/><field name="create_date" string="Kdy"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Nahrazené toky" invisible="not superseded_cashflow_ids">
+                    <field name="superseded_cashflow_ids">
+                        <list>
+                            <field name="date"/><field name="flow_type"/><field name="amount"/><field name="estimated"/>
+                            <field name="introduced_on"/><field name="superseded_on"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_instrument_rate_wizard_form" model="ir.ui.view">
+        <field name="name">investra.instrument.rate.wizard.form</field>
+        <field name="model">investra.instrument.rate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Zadat novou sazbu">
+                <group>
+                    <field name="instrument_id" readonly="1"/>
+                    <field name="valid_from"/><field name="rate"/>
+                    <field name="note" placeholder="Např. referenční sazba a marže (jen informativně)"/>
+                </group>
+                <div class="alert alert-warning" role="alert" invisible="not period_warning"><field name="period_warning" readonly="1"/></div>
+                <div class="alert alert-info" role="alert"><field name="effect" readonly="1"/></div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Zadat sazbu" class="btn-primary"/>
+                    <button string="Zrušit" special="cancel"/>
+                </footer>
+            </form>
         </field>
     </record>
     <record id="action_repayment_reverse_wizard" model="ir.actions.act_window">

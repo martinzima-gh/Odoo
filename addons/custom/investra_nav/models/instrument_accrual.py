@@ -71,26 +71,45 @@ class InvestraInstrument(models.Model):
                 [("instrument_id", "=", instrument.id), ("state", "!=", "reversed")], limit=1
             ):
                 raise UserError(self.env._("Kalendář po splacení nejde měnit: %s.", instrument.name))
+            variable = instrument.rate_type == "variable"
+            if variable and instrument.superseded_cashflow_ids:
+                # Nahrazené toky drží naběhlou hodnotu dnů před změnou sazby; přegenerování by je odtrhlo od kalendáře.
+                raise UserError(self.env._(
+                    "Kalendář s nahrazenými toky nejde přegenerovat; sazbu měňte tlačítkem Zadat novou sazbu: %s.",
+                    instrument.name,
+                ))
             principal = engine.dec(instrument.principal)
             rate = engine.dec(instrument.coupon_rate) / 100
             basis = instrument.day_count or "act365"
-            months = COUPON_MONTHS[instrument.coupon_frequency or "maturity"]
-            days = [instrument.maturity_date]
-            if months:
-                step = 1
-                while (day := instrument.maturity_date - relativedelta(months=months * step)) > instrument.start_date:
-                    days.append(day)
-                    step += 1
-            days.sort()
+            days = instrument._schedule_days()
+            periods = instrument._rate_periods() if variable else None
             commands, start = [(5,)], instrument.start_date
             for day in days:
-                interest = (principal * rate * engine.year_fraction(start, day, basis)).quantize(UNIT_AMOUNT, rounding=ROUND_HALF_UP)
+                if variable:
+                    # Variabilní sazba (IM-11): po částech podle období sazeb, období po poslední sazbě je odhad.
+                    interest = instrument._period_interest(start, day, principal, periods)
+                    extra = {"estimated": start > periods[-1][0]}
+                else:
+                    interest = (principal * rate * engine.year_fraction(start, day, basis)).quantize(UNIT_AMOUNT, rounding=ROUND_HALF_UP)
+                    extra = {}
                 if interest:
-                    commands.append((0, 0, {"date": day, "amount": float(interest), "flow_type": "interest"}))
+                    commands.append((0, 0, {"date": day, "amount": float(interest), "flow_type": "interest", **extra}))
                 start = day
             commands.append((0, 0, {"date": instrument.maturity_date, "amount": float(principal), "flow_type": "principal"}))
             instrument.cashflow_ids = commands
         return True
+
+    def _schedule_days(self):
+        """Kupónová data generátoru: od splatnosti zpět po krocích výplaty úroku, kratší první období na začátku."""
+        self.ensure_one()
+        months = COUPON_MONTHS.get(self.coupon_frequency or "maturity", 0)
+        days = [self.maturity_date]
+        if months:
+            step = 1
+            while (day := self.maturity_date - relativedelta(months=months * step)) > self.start_date:
+                days.append(day)
+                step += 1
+        return sorted(days)
 
     def _principal_per_unit(self):
         """Jistina na jednotku: součet jistiny v kalendáři, bez kalendáře pole Jistina na jednotku, jinak 1
@@ -117,6 +136,15 @@ class InvestraInstrument(models.Model):
         total = engine.ZERO
         Repayment = self.env["investra.instrument.repayment"].sudo()
         factors = {}
+        # Variabilní sazba se změnami (IM-11): kalendář platný v úsecích mezi dny změn; pevná sazba má changes = [].
+        changes, all_flows = self._flow_versions()
+
+        def position_flows(flows, after, quantity):
+            totals = {}
+            for flow in flows.filtered(lambda f: f.date > after):
+                totals[flow.date] = totals.get(flow.date, engine.ZERO) + engine.dec(flow.amount) * quantity
+            return sorted(totals.items())
+
         for trade in trades:
             if trade.portfolio_id not in factors:
                 factors[trade.portfolio_id] = Repayment._prorata_factor(fund, self, trade.portfolio_id, day)
@@ -125,16 +153,34 @@ class InvestraInstrument(models.Model):
             # Dluhopis koupený s naběhlým kupónem: zaplacený úrok je součástí pořizovací částky (rozhodnutí 2026-11-12
             # „Úrok v RH a realizovaný výsledek“).
             cost = quantity * engine.dec(trade.price) + engine.dec(trade._signed_accrued_interest()) * factor
-            totals = {}
-            for flow in self.cashflow_ids.filtered(lambda f: f.date > trade.trade_date):
-                totals[flow.date] = totals.get(flow.date, engine.ZERO) + engine.dec(flow.amount) * quantity
-            flows = sorted(totals.items())
+            starts = [trade.trade_date, *[c for c in changes if trade.trade_date < c < day]]
+            if len(starts) > 1:
+                segments = [(start, position_flows(self._flows_valid_on(all_flows, start), trade.trade_date, quantity))
+                            for start in starts]
+                flows = segments[0][1]
+            else:
+                segments = None
+                flows = position_flows(self._flows_valid_on(all_flows, trade.trade_date) if changes else self.cashflow_ids,
+                                       trade.trade_date, quantity)
             if not flows:
                 raise UserError(self.env._("Nástroj nemá smluvní peněžní toky po pořízení: %s.", self.name))
             if method == "eir":
-                total += engine.amortised_cost([(trade.trade_date, -cost), *flows], day, basis=basis)
-            elif len(flows) > 1:
+                if segments:
+                    total += engine.amortised_cost_segments(cost, segments, day, basis=basis)
+                else:
+                    total += engine.amortised_cost([(trade.trade_date, -cost), *flows], day, basis=basis)
+            elif any(len(f) > 1 for f in [flows, *[s[1] for s in segments or []]]):
                 raise UserError(self.env._("Lineární úročení zatím umí jen jednu splátku: %s.", self.name))
+            elif segments:
+                # Po změně sazby lineárně z hodnoty ke dni změny na novou splatnou částku (návrh IM-11).
+                value = cost
+                for index, (start, version) in enumerate(segments):
+                    end = segments[index + 1][0] if index + 1 < len(segments) else day
+                    if not version or end >= version[0][0]:
+                        value = engine.ZERO
+                        break
+                    value = engine.linear_accrual(value, version[0][1], start, version[0][0], end, basis)
+                total += value
             elif day < flows[0][0]:
                 total += engine.linear_accrual(cost, flows[0][1], trade.trade_date, flows[0][0], day, basis)
         return engine.money(total)
@@ -168,12 +214,32 @@ class InvestraInstrument(models.Model):
         factor_at(datum) sníží období koeficientem mimořádných splátek k jeho konci, nejpozději k datu."""
         basis = self.day_count or "act365"
         total = engine.ZERO
+        changes, all_flows = self._flow_versions()
         for start, end, amount in periods:
             if day <= start:
                 break
-            share = engine.dec(1) if day >= end else engine.year_fraction(start, day, basis) / engine.year_fraction(start, end, basis)
-            total += amount * share * (factor_at(min(day, end)) if factor_at else 1)
+            if changes and day < end:
+                earned = self._earned_by_versions(start, end, day, changes, all_flows)
+            else:
+                share = engine.dec(1) if day >= end else engine.year_fraction(start, day, basis) / engine.year_fraction(start, end, basis)
+                earned = amount * share
+            total += earned * (factor_at(min(day, end)) if factor_at else 1)
         return total
+
+    def _earned_by_versions(self, start, end, day, changes, all_flows):
+        """Vydělaný kupón běžného období u variabilní sazby (IM-11): mezi dny změn lineárně ke kupónu platnému od
+        začátku úseku. Úrok za dny před změnou se tak nemění a od změny nabíhá novou sazbou."""
+        basis = self.day_count or "act365"
+
+        def coupon(when):
+            flows = self._flows_valid_on(all_flows, when).filtered(lambda f: f.flow_type == "interest" and f.date == end)
+            return sum((engine.dec(f.amount) for f in flows), engine.ZERO)
+
+        value, cursor = engine.ZERO, start
+        for point in [*[c for c in changes if start < c < day], day]:
+            value += (coupon(cursor) - value) * engine.year_fraction(cursor, point, basis) / engine.year_fraction(cursor, end, basis)
+            cursor = point
+        return value
 
     def _accrued_coupon_unit(self, day):
         """Naběhlý kupón na jednotku k datu podle smlouvy (běžné období); předvyplnění u obchodu s dluhopisem."""

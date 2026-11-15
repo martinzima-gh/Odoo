@@ -6,3 +6,4 @@ from . import test_trade_reverse
 from . import test_posting_preview
 from . import test_price_history
 from . import test_valuation_sequence
+from . import test_variable_rate

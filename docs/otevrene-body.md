@@ -79,6 +79,7 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Vzorce pokrývají jen zjednodušenou variantu | Nepočítá s převodem hodnoty mezi třídami | Ověřit na ukázkách od zakladatelů |
 | Vstup nových investorů za starší kurz | Zvýhodnění nebo poškození stávajících investorů | Nastavení podle statutu, přehled ručních úprav |
 | Fondové moduly vyvíjené svépomocí | Trvalá práce na migracích a testech při nových verzích Odoo | Testy, minimum zásahů do core |
+| Variabilní sazba – ověřit IFRS 9 B5.4.5 a B5.4.6 (IM-11) | Prospektivní přepočet EIR při změně sazby (rozhodnutí 2026-11-15) se opírá o odstavce citované z paměti; EUR-Lex 15. 11. 2026 neodpověděl | Martin nebo auditor ověří znění přijaté EU (nařízení (EU) 2023/1803) před prvním nástrojem s variabilní sazbou ve fondu |
 | Odoo jako NAV systém | Může se ukázat méně vhodné než specializovaný systém | Ověřit prototypem před produkcí |
 | Velký počet společností | Pomalejší práce v UI, složitější souhrnné přehledy | Vlastní přehledy, ověřit v etapě zkušebních knih |
 | Celé účetnictví v Odoo od začátku | Větší rozsah: oběh dokladů, výkazy, předpisy, DORA | Postup po fázích, start na Investra Services |
