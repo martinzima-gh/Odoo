@@ -286,5 +286,6 @@ a „Schválit“ jen pro skupinu schvalování; stejná kontrola i v metodě.
 - Vazba 1443000 a 2004430 na `Z_ESA2010`.
 - Mezinárodní instituce: profil dál vyžaduje zemi (změna `required` je červená zóna).
 - `BANK_SECTORS` v `investra_counterparty` neobsahuje nerezidentní banky (2002100, 2002200): ověřit s metodikem.
-- Instalace `investra_instrument_master` do `investra_test` a `investra_vzhled`: se souhlasem uživatele a zálohou.
+- Instalace `investra_instrument_master` do `investra_test` a `investra_vzhled`: uživatel souhlasil 15. 11. 2026; provést
+  až po dokončení modulu, vždy se zálohou databáze předem a s ověřením verzí modulů (`ir_module_module`).
 - Později (červená zóna): návrh role účtu zařazení z účetního profilu; povinnost kategorie portfolia v databázi.

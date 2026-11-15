@@ -21,8 +21,9 @@ architektury nebo sporu o účetní logiku. Vzhledové doladění pohledů lze z
 Pravidla pro každou relaci:
 - Po dokončení úkolu se zastavit; další úkol až na pokyn uživatele. Úkoly IM-05 a IM-06 potřebují před začátkem
   výslovné schválení uživatele (červená zóna).
-- Testy na dočasné databázi `investra_ci_master` podle oddílu 2 plánu; `investra_test`, `investra_dev` a `investra_vzhled`
-  bez souhlasu uživatele neinstalovat ani neaktualizovat.
+- Testy na dočasné databázi `investra_ci_master` podle oddílu 2 plánu. Instalaci do `investra_test` a `investra_vzhled`
+  uživatel povolil 15. 11. 2026, ale až po dokončení modulu a se zálohou předem; jednotlivé úkoly ji nedělají.
+  `investra_dev` se neinstaluje.
 - Commit do `feature/instrument-master`, push `origin feature/instrument-master:feature/instrument-master`; do `main` ne.
 - Vzhled aplikace zachovat (oddíl 2 plánu).
 - Do sekce Výsledek svého souboru doplnit: změněné soubory, příkaz a výsledek testů s počty, co se neověřilo, odchylky.
