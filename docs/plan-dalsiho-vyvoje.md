@@ -100,16 +100,18 @@ výstup `docs/navrh-vykazy-cnb.md`, větev `etapa/vykazy-cnb`. Katalog číst je
 
 ## Etapa 4 – ECL (EC)
 
-Doporučení: PD a LGD se zadávají ručně na protistraně; tabulka ratingů až později.
+Rozhodnutí Martina 15. 11. 2026: ECL se zadává **zjednodušeně jako procento** z expozice. Procento je na protistraně
+(klientovi), s možnou výjimkou na konkrétním nástroji. PD, LGD, ratingy a scénáře se nezavádějí.
 
 | Krok | Obsah | Model | Zóna |
 |---|---|---|---|
-| EC-01 | Návrh: rozsah (dluhové AC a FVOCI; FVTPL ne), ověření opory (501/2002 Sb. a IFRS 9 část 5.5), výpočet ECL = expozice × PD × LGD (stupeň 1 dvanáctiměsíční, 2 a 3 za dobu trvání), přechody mezi stupni, role účtů, řádky ČNB | Opus | návrh |
-| EC-02 | Nastavení na protistraně (verzované: rating, stupeň, PD 12 m, PD za dobu trvání, LGD, zdroj) a výjimka na nástroji s povinným důvodem | Sonnet | oranžová |
-| EC-03 | Výpočet při ocenění, upozornění na splátky po splatnosti 30 a 90 dnů, účtování změny ECL s náhledem a storny | Opus | červená |
-| EC-04 | Přehled ECL podle fondu, protistrany a stupně; ukázka v `seed.py` | Sonnet | oranžová |
+| EC-01 | Návrh (krátký): rozsah (dluhové AC a FVOCI; FVTPL ne), ověření opory (501/2002 Sb. a IFRS 9 část 5.5) a toho, jak zjednodušení zdůvodnit v účetní politice; výpočet ECL = expozice × %; role účtů a řádky ČNB; zda evidovat stupeň 1–3 jen informativně pro přílohu a výkazy | Opus | návrh |
+| EC-02 | Protistrana: procento ECL verzované podle data (platí od, %, zdůvodnění, zadal); nástroj: vlastní procento s povinným důvodem, má přednost; formuláře a práva | Sonnet | oranžová |
+| EC-03 | Výpočet při ocenění (naběhlá hodnota před opravnou položkou × %), účtování změny proti minulému ocenění s náhledem a storny, upozornění na pozici bez procenta | Opus | červená |
+| EC-04 | Přehled ECL podle fondu a protistrany; ukázka v `seed.py` | Sonnet | oranžová |
 
-Prompt EC-01: jako DE-01, s oddílem Etapa 4 a `docs/navrh-klasifikace-ifrs9.md`; výstup `docs/navrh-ecl.md`, větev `etapa/ecl`.
+Prompt EC-01: jako DE-01, s oddílem Etapa 4 a `docs/navrh-klasifikace-ifrs9.md`; výstup `docs/navrh-ecl.md`
+(nejvýš 60 řádků), větev `etapa/ecl`.
 
 ## Etapa 5 – FVOCI do kapitálu (FO)
 
