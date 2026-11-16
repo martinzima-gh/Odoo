@@ -158,7 +158,8 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-10 | Číslo účtu hlavní knihy všude před názvem (`docs/ukoly/MN-10-cislo-uctu-v-seznamech.md`) – hotovo | Sonnet | oranžová |
 | MN-11 | Příjemce poplatku „Fond – výnos“ (`docs/ukoly/MN-11-prijemce-poplatku-fond-vynos.md`) – hotovo | Sonnet | zelená |
 | MN-12 | Zaokrouhlení a desetinná místa třídy měnitelná i po prvním pohybu (`docs/ukoly/MN-12-zaokrouhleni-trid-po-pohybu.md`) – hotovo | Opus | červená |
-| MN-13+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
+| MN-13 | Manuál kap. 4: kalendář ocenění a schvalovací matice (`docs/ukoly/MN-13-manual-kalendar-a-matice.md`) | Sonnet | zelená |
+| MN-14+ | Další poznámky z průchodu a kapitoly 5–8 manuálu | podle zóny | |
 
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
