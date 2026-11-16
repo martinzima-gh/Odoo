@@ -6,7 +6,7 @@ ani údaje z důvěrných podkladů. Zadání: `docs/ukoly/IM-13-nova-databaze-s
 | Soubor | Co dělá |
 |---|---|
 | `run_seed.sh <databáze>` | založí databázi, pokud neexistuje (všechny `investra_*` kromě `investra_env_banner`, `l10n_cz`, `account_peppol`, čeština, bez demo dat Odoo), pak spustí oba skripty níže |
-| `seed.py` | investiční společnost (matice „jeden člověk“), fondy A–E, emitenti, nástroje, portfolia, obchody, úpisy a odkupy, ocenění; kurzy uloží do evidence a promítne do Odoo |
+| `seed.py` | investiční společnost (matice „jeden člověk“), fondy A–E, emitenti, nástroje, portfolia, obchody, úpisy a odkupy, ocenění, FX swap fondu A (DE-05); kurzy uloží do evidence a promítne do Odoo |
 | `seed_services.py` | Investra Services s.r.o.: kniha 500/2002 Sb. s osnovou `cz` upravenou podle `services_config.json`, smyšlené faktury, přijatá služba z EU v režimu identifikované osoby, bankovní výpisy s úhradami, dohadná položka |
 | `services_export.sh` | znovu vytvoří `services_config.json` čtením `investra_dev` (jen SELECT v transakci jen pro čtení; účty, daně, fiskální pozice, deníky, datum otevření – žádné doklady, partneři ani DIČ) |
 
@@ -15,3 +15,11 @@ Opakované spuštění nad naplněnou databází skončí hláškou a nic nezmě
 
 Proč `account_peppol` už při založení: první načtení osnovy na čisté databázi ho jinak doinstaluje a přenačte registr
 uprostřed skriptu.
+
+## FX swap fondu A (DE-05)
+
+Smlouva `FX-SWAP-A-001` s bankou „Ukázková banka (smyšlená)“: sjednáno 28. 9. 2026, blízká noha 30. 9. (koupě 500 000 EUR,
+vypořádaná před oceněním), vzdálená noha 30. 12. (prodej 500 000 EUR, otevřená). Vzdálená noha je v RH ve dvou oceněních
+fondu A: 30. 9. (zveřejněné) a 31. 10. (rozpracované, s ruční hodnotou z banky o 2 500 Kč výš než výpočet). Ostatní fondy
+jsou beze změny (ověřeno porovnáním `docs/sql/24-pracovni-databaze.sql` před a po). SELECTy: `docs/sql/25-derivaty.sql`.
+Seed se spouští jen na nové databázi; do už naplněné `investra` se swap doplnit nedá bez znovuotevření zveřejněných ocenění.
