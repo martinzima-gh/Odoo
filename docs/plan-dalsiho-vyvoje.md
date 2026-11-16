@@ -151,10 +151,11 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-03 | Datum vzniku ve formuláři fondu, výchozí kurz nové třídy – hotovo | Sonnet | oranžová |
 | MN-04 | Odchylka mapování rolí od standardu (`docs/ukoly/MN-04-odchylka-mapovani-roli.md`) | Sonnet | oranžová |
 | MN-04 | Odchylka mapování rolí od standardu – hotovo | Sonnet | oranžová |
-| MN-05 | Oprava průvodce (chyba přístupu), formulář knihy, LEI, zrušení Zakladatele, DIČ (`docs/ukoly/MN-05-oprava-pruvodce-a-formular-knihy.md`) | Sonnet | oranžová |
-| MN-06 | Fond a třídy: zámky po prvním pohybu, pořadí a archivace tříd, nápovědy, kontrola ISIN (nálezy MN-02 3, 4, 7) | Sonnet | oranžová |
-| MN-07 | Zdroj kurzů „Neimplementováno“ pro jiné měny, přecenění bez kurzu skončí chybou | Opus | červená |
-| MN-08+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
+| MN-05 | Oprava průvodce (chyba přístupu), formulář knihy, LEI, zrušení Zakladatele – hotovo; MN-05a a MN-05b chyby prohlížeče po založení – hotovo | Sonnet | oranžová |
+| MN-06 | Identifikace společnosti: IČO, DIČ, LEI a ESA v průvodci a knize, existující kontakt, sektor z kódu ESA (`docs/ukoly/MN-06-identifikace-spolecnosti.md`) | Sonnet | oranžová |
+| MN-07 | Fond a třídy: zámky po prvním pohybu, pořadí a archivace, nápovědy, ISIN; My Company, odstranění sloupce `founder_id` (`docs/ukoly/MN-07-fond-tridy-a-uklid.md`) | Sonnet | oranžová |
+| MN-08 | Zdroj kurzů „Neimplementováno“ pro jiné měny (`docs/ukoly/MN-08-zdroj-kurzu-neimplementovano.md`) | Opus | červená |
+| MN-09+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
 
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
