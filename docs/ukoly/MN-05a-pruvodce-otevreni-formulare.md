@@ -38,6 +38,11 @@ V `investra` nic nezakládat.
 
 Doplní model, který úkol provedl.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
+- **Změněné soubory:** `addons/custom/investra_chart_fund/wizard/new_book.py` (akce `form` má `"views": [(False, "form")]`),
+  `tests/test_new_book.py` (kontrola `views` v `_create`), `__manifest__.py` (20.0.0.12.1), tento soubor, předávka.
+  Další akce přes `next`: jen `investra_nav/models/instrument_accrual.py:567` (klientská akce `soft_reload`, `views` nepotřebuje); jinde chyba není.
+- **Ověřeno (příkaz a výsledek):** `tools/run_tests.sh investra_chart_fund` → 0 failed, 0 error z 29 testů, dočasná
+  `investra_ci_20261116_133738` smazána. Záloha `zalohy/investra-2026-11-16-pred-MN05a.dump` (pg_dump -Fc, 9 MB, mimo git).
+  Upgrade `-u investra_chart_fund` v `investra` bez chyby, `investra-web` znovu spuštěna, `/web/login` vrací 200. V `investra` nic nezaloženo.
+- **Neověřeno:** chování v prohlížeči (ověří Martin dalším založením knihy). Obecná kontrola akcí v `tools/view_check`
+  se nedělala; návrh: hlídat, že každá akce v `params.next` má `views`.

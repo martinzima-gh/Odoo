@@ -91,6 +91,8 @@ class InvestraNewBookWizard(models.TransientModel):
             "res_model": "investra.entity",
             "res_id": entity.id,
             "view_mode": "form",
+            # Akce předaná klientovi přímo (params.next) musí mít views, jinak klient padá na action.views.map (MN-05a).
+            "views": [(False, "form")],
             "target": "current",
             # Kontext akce přebije kontext klienta: formulář nové knihy projde pravidlem „Knihy podle společnosti“
             # i bez ručního přepnutí firmy.

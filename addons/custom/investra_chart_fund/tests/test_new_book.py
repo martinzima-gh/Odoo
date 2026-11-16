@@ -26,6 +26,8 @@ class TestNewBookWizard(TransactionCase):
         action = action["params"]["next"]
         entity = self.env["investra.entity"].browse(action["res_id"])
         self.assertEqual(action["res_model"], "investra.entity")
+        # Klient akci z params.next nezpracovává přes server, views musí být v ní (MN-05a).
+        self.assertEqual(action["views"], [(False, "form")])
         self.assertIn(entity.company_id.id, action["context"]["allowed_company_ids"])
         return entity
 
