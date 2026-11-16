@@ -155,7 +155,10 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-07 | Fond a třídy: zámky po prvním pohybu, pořadí a archivace, nápovědy, ISIN; My Company, odstranění sloupce `founder_id` (`docs/ukoly/MN-07-fond-tridy-a-uklid.md`) | Sonnet | oranžová |
 | MN-08 | Zdroj kurzů „Neimplementováno“ pro jiné měny (`docs/ukoly/MN-08-zdroj-kurzu-neimplementovano.md`) – hotovo | Opus | červená |
 | MN-09 | Údaje protistrany bez historie, jeden profil na kontakt (`docs/ukoly/MN-09-udaje-protistrany-bez-historie.md`) | Opus | oranžová/červená |
-| MN-10+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
+| MN-10 | Číslo účtu hlavní knihy všude před názvem (`docs/ukoly/MN-10-cislo-uctu-v-seznamech.md`) | Sonnet | oranžová |
+| MN-11 | Příjemce poplatku „Fond – výnos“ (`docs/ukoly/MN-11-prijemce-poplatku-fond-vynos.md`) | Sonnet | zelená |
+| MN-12 | Zaokrouhlení a desetinná místa třídy měnitelná i po prvním pohybu (`docs/ukoly/MN-12-zaokrouhleni-trid-po-pohybu.md`) | Opus | červená |
+| MN-13+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
 
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
