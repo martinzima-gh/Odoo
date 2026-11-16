@@ -1,7 +1,7 @@
 {
     "name": "Investra Counterparty",
-    "summary": "Registr protistran a emitentů: země, sektor ESA 2010, LEI, s platností od data",
-    "version": "20.0.0.3.0",
+    "summary": "Registr protistran a emitentů: země, sektor ESA 2010, LEI; jeden záznam na kontakt, změny v historii záznamu",
+    "version": "20.0.0.4.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

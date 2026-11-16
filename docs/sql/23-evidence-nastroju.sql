@@ -4,8 +4,8 @@
 -- Názvy emitentů jsou názvy partnerů, názvy fondů názvy společností.
 SET default_transaction_read_only = on;
 
--- 1. Emitenti (aktuální verze údajů) s kódem ESA, typem emitenta, rezidentstvím a regionem
-SELECT p.name AS emitent, v.valid_from AS plati_od, co.code AS zeme, e.code AS esa_kod, e.name AS esa_nazev,
+-- 1. Emitenti (jeden záznam údajů na kontakt, MN-09) s kódem ESA, typem emitenta, rezidentstvím a regionem
+SELECT p.name AS emitent, co.code AS zeme, e.code AS esa_kod, e.name AS esa_nazev,
        a.name AS typ_emitenta, v.resident_status AS rezidentstvi, v.eu_status AS region,
        v.review_state AS stav_kontroly, v.source AS zdroj
 FROM investra_counterparty_profile v
@@ -13,15 +13,14 @@ JOIN res_partner p ON p.id = v.partner_id
 JOIN res_country co ON co.id = v.country_id
 LEFT JOIN investra_esa_code e ON e.id = v.esa_code_id
 LEFT JOIN investra_esa_aggregate_sector a ON a.id = v.issuer_type_id
-WHERE v.is_latest
 ORDER BY p.name;
 
--- 2. Emitenti bez kódu ESA (starší profily; kód se doplní novou verzí s důvodem změny)
-SELECT p.name AS emitent, v.valid_from AS plati_od, co.code AS zeme
+-- 2. Emitenti bez kódu ESA (starší záznamy; kód se doplní přepisem, u potvrzených s důvodem změny)
+SELECT p.name AS emitent, co.code AS zeme
 FROM investra_counterparty_profile v
 JOIN res_partner p ON p.id = v.partner_id
 JOIN res_country co ON co.id = v.country_id
-WHERE v.is_latest AND v.esa_code_id IS NULL
+WHERE v.esa_code_id IS NULL
 ORDER BY p.name;
 
 -- 3. Nástroje bez druhu cenného papíru BA0088 (jen typy, u kterých je druh povinný)

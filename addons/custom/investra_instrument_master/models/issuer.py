@@ -3,10 +3,13 @@ from odoo.exceptions import UserError, ValidationError
 
 CZ_CODE = "CZ"
 APPROVER_GROUP = "investra_entity.group_valuation_approver"
+# Údaje, jejichž změna vrací potvrzený záznam na „Ke kontrole“ (MN-09).
+DATA_FIELDS = ("partner_id", "country_id", "sector_id", "esa_code_id", "lei")
 
 
 class InvestraCounterpartyProfile(models.Model):
-    """Rozšíření profilu protistrany o detailní ESA kód, odvozené údaje a potvrzení verze (plán 3.3)."""
+    """Rozšíření profilu protistrany o detailní ESA kód, odvozené údaje a kontrolu (plán 3.3). Bez verzí (MN-09):
+    změna údaje potvrzeného záznamu vyžaduje důvod změny a vrací stav na „Ke kontrole“."""
 
     _inherit = "investra.counterparty.profile"
 
@@ -22,12 +25,12 @@ class InvestraCounterpartyProfile(models.Model):
     review_state = fields.Selection(
         [("draft", "Ke kontrole"), ("reviewed", "Zkontrolováno")], "Stav kontroly",
         default="draft", required=True, copy=False, tracking=True)
-    reviewed_by = fields.Many2one("res.users", "Zkontroloval", readonly=True, copy=False)
-    reviewed_on = fields.Date("Zkontrolováno dne", readonly=True, copy=False)
+    reviewed_by = fields.Many2one("res.users", "Zkontroloval", readonly=True, copy=False, tracking=True)
+    reviewed_on = fields.Date("Zkontrolováno dne", readonly=True, copy=False, tracking=True)
     change_reason = fields.Char("Důvod změny", tracking=True)
     source = fields.Selection(
-        [("manual", "Ručně"), ("import", "Import"), ("lei", "LEI"), ("sdat", "SDAT")], "Zdroj", default="manual")
-    is_latest = fields.Boolean("Aktuální verze", copy=False, index=True)
+        [("manual", "Ručně"), ("import", "Import"), ("lei", "LEI"), ("sdat", "SDAT")], "Zdroj", default="manual",
+        tracking=True)
 
     # --- odvozené údaje ---------------------------------------------------------------------------------------------
 
@@ -99,20 +102,7 @@ class InvestraCounterpartyProfile(models.Model):
             if other:
                 raise ValidationError(self.env._("LEI %s už má protistrana %s.", profile.lei, other.partner_id.display_name))
 
-    @api.constrains("esa_code_id", "change_reason", "partner_id", "valid_from")
-    def _check_change_reason(self):
-        # Jen u verzí s ESA kódem: starší profily bez ESA kódu se zakládaly bez důvodu změny.
-        for profile in self.filtered("esa_code_id"):
-            if profile.change_reason:
-                continue
-            earlier = self.sudo().search_count([
-                ("partner_id", "=", profile.partner_id.id), ("id", "!=", profile.id),
-                ("valid_from", "<", profile.valid_from)])
-            if earlier:
-                raise ValidationError(self.env._(
-                    "Protistrana %s už má dřívější verzi údajů; doplňte důvod změny.", profile.partner_id.display_name))
-
-    # --- zápis, zámek potvrzené verze, příznak aktuální verze -------------------------------------------------------
+    # --- zápis: změna potvrzeného záznamu ---------------------------------------------------------------------------
 
     @api.model
     def _sector_from_esa(self, esa_code):
@@ -128,47 +118,43 @@ class InvestraCounterpartyProfile(models.Model):
         for vals in vals_list:
             if vals.get("esa_code_id") and not vals.get("sector_id"):
                 vals["sector_id"] = self._sector_from_esa(self.env["investra.esa.code"].browse(vals["esa_code_id"]))
-        records = super().create(vals_list)
-        records._refresh_latest(records.partner_id.ids)
-        return records
+        return super().create(vals_list)
+
+    def _data_changed(self, vals):
+        """Záznamy, u kterých zápis skutečně mění některý z údajů DATA_FIELDS."""
+        fields_ = [name for name in DATA_FIELDS if name in vals]
+        if not fields_:
+            return self.browse()
+        return self.filtered(lambda p: any(
+            p._fields[name].convert_to_write(p[name], p) != (vals[name] or False) for name in fields_))
 
     def write(self, vals):
-        if not self.env.su and set(vals) - {"is_latest"} and self.filtered(lambda p: p.review_state == "reviewed"):
-            raise UserError(self.env._(
-                "Potvrzenou verzi nejde změnit. Založte novou verzi s datem „Platí od“ a důvodem změny."))
+        # Odchylka od stavu před MN-09: potvrzený záznam už není zamčený (nová verze s datem neexistuje). Změna údaje
+        # vyžaduje důvod změny a vrací stav na „Ke kontrole“; stará a nová hodnota zůstávají v historii záznamu.
         if vals.get("esa_code_id") and not vals.get("sector_id"):
             vals = dict(vals, sector_id=self._sector_from_esa(self.env["investra.esa.code"].browse(vals["esa_code_id"])))
-        partner_ids = self.partner_id.ids if {"partner_id", "valid_from"} & set(vals) else []
+        reopened = self._data_changed(vals).filtered(lambda p: p.review_state == "reviewed")
+        if reopened and not vals.get("change_reason"):
+            raise UserError(self.env._(
+                "Údaje protistrany %s jsou potvrzené; při změně doplňte nový důvod změny.",
+                ", ".join(reopened.partner_id.mapped("display_name"))))
         res = super().write(vals)
-        if partner_ids:
-            self._refresh_latest(partner_ids + self.partner_id.ids)
+        if reopened:
+            # Zápis jako superuživatel: stav kontroly a Zkontroloval nejsou pro přípravu zapisovatelné ve formuláři.
+            super(InvestraCounterpartyProfile, reopened.sudo()).write(
+                {"review_state": "draft", "reviewed_by": False, "reviewed_on": False})
         return res
 
     def unlink(self):
         if not self.env.su and self.filtered(lambda p: p.review_state == "reviewed"):
-            raise UserError(self.env._("Potvrzenou verzi nejde smazat."))
-        partner_ids = self.partner_id.ids
-        res = super().unlink()
-        self._refresh_latest(partner_ids)
-        return res
+            raise UserError(self.env._("Potvrzené údaje protistrany nejde smazat."))
+        return super().unlink()
 
-    @api.model
-    def _refresh_latest(self, partner_ids):
-        """Nejnovější verze (největší „Platí od“) každé z protistran dostane is_latest, ostatní ne."""
-        profiles = self.sudo().search([("partner_id", "in", list(set(partner_ids)))], order="valid_from desc, id desc")
-        latest, seen = profiles.browse(), set()
-        for profile in profiles:
-            if profile.partner_id.id not in seen:
-                seen.add(profile.partner_id.id)
-                latest |= profile
-        (profiles - latest).filtered("is_latest").write({"is_latest": False})
-        latest.filtered(lambda p: not p.is_latest).write({"is_latest": True})
-
-    # --- potvrzení verze --------------------------------------------------------------------------------------------
+    # --- potvrzení --------------------------------------------------------------------------------------------------
 
     def action_review(self):
         if not self.env.user.has_group(APPROVER_GROUP):
-            raise UserError(self.env._("Verzi údajů protistrany potvrzuje jen schvalovatel."))
+            raise UserError(self.env._("Údaje protistrany potvrzuje jen schvalovatel."))
         for profile in self:
             if not profile.esa_code_id:
                 raise UserError(self.env._("Před potvrzením doplňte: %s.", self.env._("kód sektoru ESA")))

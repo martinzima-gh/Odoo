@@ -136,7 +136,7 @@ def rate_at(day):
 def issuer(name, country, esa, lei_base):
     partner = UA["res.partner"].create({"name": name, "is_company": True, "country_id": env.ref(f"base.{country}").id})
     profile = UA["investra.counterparty.profile"].create({
-        "partner_id": partner.id, "valid_from": "2025-01-01", "country_id": env.ref(f"base.{country}").id,
+        "partner_id": partner.id, "country_id": env.ref(f"base.{country}").id,
         "esa_code_id": env["investra.esa.code"].search([("code", "=", esa)]).id, "lei": lei(lei_base),
     })
     profile.action_review()

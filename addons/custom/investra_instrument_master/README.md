@@ -9,7 +9,8 @@ a `investra_instruments`. Plán a rozhodnutí: `docs/navrh-evidence-nastroju.md`
   skupiny, sektory ESA (80 kódů) a typy emitenta, členství zemí v EU/EHP, oceňovací kategorie, důvody klasifikace.
   Záznamy nejdou mazat, jen deaktivovat; kód po založení nejde změnit; ruční úprava záznamu nastaví příznak „ručně změněno“.
 - **Emitent** (rozšíření údajů protistrany): kód ESA, z něj typ emitenta, rezidentství, sektor ESA 2010 a region (CZ / EU / EHP /
-  mimo EU podle členství k datu). Údaje mají verze „platí od“; potvrzenou verzi nejde měnit, změna = nová verze s důvodem.
+  mimo EU podle členství k datu). Jeden záznam na kontakt bez „platí od“ (MN-09): změna se přepíše, stará a nová hodnota
+  jsou v historii záznamu; změna potvrzených údajů vyžaduje důvod změny a vrací stav na „Ke kontrole“.
 - **Nástroj**: druh BA0088, CFI, páka, emise, nominál, kupón, podřízenost, podklad; upozornění na ISIN a CFI (neblokují);
   hlášení chybějících údajů klasifikace. Po potvrzení se druh, CFI, ISIN a emitent mění jen průvodcem s důvodem;
   změny jsou v Historii změn klasifikace. Test SPPI se posuzuje na nástroji (modul `investra_instruments`).

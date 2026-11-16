@@ -1,10 +1,11 @@
+import importlib.util
 from datetime import date
 
 from psycopg2 import IntegrityError
 
 from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
-from odoo.tools import mute_logger
+from odoo.tools import file_path, mute_logger
 
 from odoo.addons.investra_counterparty.models.counterparty import lei_is_valid
 from odoo.addons.investra_instruments.tests.test_instrument import InstrumentCase
@@ -20,29 +21,37 @@ class TestCounterparty(TransactionCase):
         cls.sectors = cls.env["investra.esa.sector"].search([], limit=2)
         cls.cz, cls.de = cls.env.ref("base.cz"), cls.env.ref("base.de")
 
-    def profile(self, day, sector=None, country=None, **vals):
+    def profile(self, sector=None, country=None, partner=None, **vals):
         return self.env["investra.counterparty.profile"].create({
-            "partner_id": self.partner.id, "valid_from": day, "country_id": (country or self.cz).id,
+            "partner_id": (partner or self.partner).id, "country_id": (country or self.cz).id,
             "sector_id": (sector or self.sectors[0]).id, **vals,
         })
 
     def test_all_esa_sectors_are_loaded(self):
         self.assertEqual(self.env["investra.esa.sector"].search_count([]), 33)
 
-    def test_profile_valid_at_date(self):
-        old = self.profile("2026-01-01")
-        new = self.profile("2026-07-01", self.sectors[1], self.de)
-        self.assertEqual(self.partner._counterparty_profile(date(2026, 6, 30)), old)
-        self.assertEqual(self.partner._counterparty_profile(date(2026, 7, 1)), new)
+    def test_single_profile_at_any_date(self):
+        """Údaje nemají platnost od data (MN-09): k libovolnému datu i bez data vrací jediný záznam."""
+        profile = self.profile()
+        for day in (date(1990, 1, 1), date(2026, 6, 30), date(2099, 12, 31), None):
+            self.assertEqual(self.partner._counterparty_profile(day), profile)
+        self.assertFalse(self.env["res.partner"].create({"name": "Bez údajů"})._counterparty_profile(date(2026, 1, 1)))
 
-    def test_no_profile_before_first_date(self):
-        self.profile("2026-01-01")
-        self.assertFalse(self.partner._counterparty_profile(date(2025, 12, 31)))
-
-    def test_duplicate_date_is_refused(self):
-        self.profile("2026-01-01")
+    def test_second_profile_is_refused(self):
+        self.profile()
         with self.assertRaises(IntegrityError), mute_logger("odoo.sql_db"), self.env.cr.savepoint():
-            self.profile("2026-01-01")
+            self.profile(self.sectors[1], self.de)
+
+    def test_change_is_tracked(self):
+        """Přepsaný sektor a LEI zůstávají v historii záznamu (stará a nová hodnota)."""
+        profile = self.profile()
+        self.env.cr.flush()  # Změna ve stejné transakci jako založení se nezaznamenává.
+        profile.write({"sector_id": self.sectors[1].id, "lei": "5493001KJTIIGC8Y1R12"})
+        self.env.cr.flush()
+        body = "".join(self.env["mail.message"].search([
+            ("model", "=", profile._name), ("res_id", "=", profile.id), ("message_type", "=", "tracking")]).mapped("body"))
+        for text in (self.sectors[0].code, self.sectors[1].code, "5493001KJTIIGC8Y1R12"):
+            self.assertIn(text, body)
 
     def test_lei_checksum(self):
         self.assertTrue(lei_is_valid("5493001KJTIIGC8Y1R12"))
@@ -51,15 +60,16 @@ class TestCounterparty(TransactionCase):
 
     def test_invalid_lei_is_refused(self):
         with self.assertRaises(ValidationError):
-            self.profile("2026-01-01", lei="5493001KJTIIGC8Y1R13")
+            self.profile(lei="5493001KJTIIGC8Y1R13")
 
     def test_instrument_issuer_profile(self):
-        profile = self.profile("2026-01-01", lei="5493001KJTIIGC8Y1R12")
+        profile = self.profile(lei="5493001KJTIIGC8Y1R12")
         instrument = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": "Dluhopis", "currency_id": self.env.ref("base.CZK").id,
             "type_id": self.env.ref("investra_instruments.type_bond").id, "issuer_id": self.partner.id,
         }))
         self.assertEqual(instrument._issuer_profile(date(2026, 2, 1)), profile)
+        self.assertEqual(instrument._issuer_profile(date(1990, 1, 1)), profile)
 
     def test_instrument_without_issuer_has_empty_profile(self):
         instrument = self.env["investra.instrument"].create(with_ids(self.env, {
@@ -76,7 +86,7 @@ class TestRepoRole(InstrumentCase):
     def repo(self, sector_code):
         partner = self.env["res.partner"].create({"name": f"Protistrana {sector_code}"})
         self.env["investra.counterparty.profile"].create({
-            "partner_id": partner.id, "valid_from": "2000-01-01", "country_id": self.env.ref("base.cz").id,
+            "partner_id": partner.id, "country_id": self.env.ref("base.cz").id,
             "sector_id": self.env["investra.esa.sector"].search([("code", "=", sector_code)]).id,
         })
         instrument = self.env["investra.instrument"].create(with_ids(self.env, {
@@ -103,15 +113,45 @@ class TestEntityIdentification(TransactionCase):
         entity = self.env["investra.entity"].create_book("Fond LEI", "fund", "cas501", czk, "cz")
         self.assertFalse(entity.lei)
         self.assertFalse(entity.esa_sector_id)
+        action = entity.action_open_counterparty_profiles()
+        self.assertEqual((action["view_mode"], action["res_id"]), ("form", False))  # zatím bez údajů: nový záznam
         sector = self.env["investra.esa.sector"].search([], limit=1)
         partner = entity.company_id.partner_id
-        self.env["investra.counterparty.profile"].create({
-            "partner_id": partner.id, "valid_from": "2020-01-01", "country_id": self.env.ref("base.cz").id,
+        profile = self.env["investra.counterparty.profile"].create({
+            "partner_id": partner.id, "country_id": self.env.ref("base.cz").id,
             "sector_id": sector.id, "lei": "5493001KJTIIGC8Y1R12",
         })
         entity.invalidate_recordset()
         self.assertEqual(entity.lei, "5493001KJTIIGC8Y1R12")
         self.assertEqual(entity.esa_sector_id, sector)
         action = entity.action_open_counterparty_profiles()
+        self.assertEqual(action["res_id"], profile.id)  # jediný záznam
         self.assertEqual(action["context"]["default_partner_id"], partner.id)
         self.assertEqual(action["context"]["default_country_id"], self.env.ref("base.cz").id)
+
+
+@tagged("post_install", "-at_install")
+class TestMergeMigration(TransactionCase):
+    """Migrace MN-09: víc záznamů téhož kontaktu se sloučí do nejnovějšího, hodnoty starších jdou do historie."""
+
+    def test_merge_duplicates(self):
+        path = file_path("investra_counterparty/migrations/20.0.0.4.0/post-migration.py")
+        spec = importlib.util.spec_from_file_location("mn09_post_migration", path)
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+        # Stav před migrací: bez omezení unique(partner_id) (DDL se na konci testu vrátí s transakcí).
+        self.env.cr.execute("ALTER TABLE investra_counterparty_profile DROP CONSTRAINT investra_counterparty_profile_partner_uniq")
+        Profile = self.env["investra.counterparty.profile"]
+        sectors = self.env["investra.esa.sector"].search([], limit=2)
+        partner, other = self.env["res.partner"].create([{"name": "Dvakrát"}, {"name": "Jednou"}])
+        vals = {"partner_id": partner.id, "country_id": self.env.ref("base.cz").id}
+        old = Profile.create({**vals, "sector_id": sectors[0].id, "lei": "5493001KJTIIGC8Y1R12"})
+        new = Profile.create({**vals, "sector_id": sectors[1].id})
+        single = Profile.create({**vals, "partner_id": other.id, "sector_id": sectors[0].id})
+        self.assertEqual(migration.merge_duplicates(self.env), 1)
+        self.assertFalse(old.exists())
+        self.assertEqual(Profile.search([("partner_id", "in", (partner | other).ids)]), new | single)
+        note = new.message_ids.filtered(lambda m: "MN-09" in (m.body or ""))
+        self.assertEqual(len(note), 1)
+        self.assertIn("5493001KJTIIGC8Y1R12", note.body)
+        self.assertFalse(single.message_ids.filtered(lambda m: "MN-09" in (m.body or "")))

@@ -32,10 +32,10 @@ scoped["investra.class.movement"].create({
     "class_id": fund_class.id, "date": "2026-09-01", "movement_type": "subscription", "amount": 10000000, "units": 10000000,
 })._book()
 
-# Emitent: údaje platné od data; sektor a země jsou to, co později potřebují výkazy.
+# Emitent: jeden záznam údajů protistrany (bez platnosti od data, MN-09); sektor a země potřebují výkazy.
 bank = env["res.partner"].create({"name": "Ukázková banka (smyšlená)", "is_company": True})
 env["investra.counterparty.profile"].create({
-    "partner_id": bank.id, "valid_from": "2026-01-01", "country_id": env.ref("base.cz").id,
+    "partner_id": bank.id, "country_id": env.ref("base.cz").id,
     "sector_id": env.ref("investra_counterparty.esa_1220000").id, "lei": "INVSTRUKAZKABANKA036",
 })
 

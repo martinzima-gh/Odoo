@@ -26,20 +26,22 @@ class InvestraEsaSector(models.Model):
 
 
 class InvestraCounterpartyProfile(models.Model):
-    """Vlastnosti protistrany platné od data; sektor se opravuje i zpětně, proto s historií změn."""
+    """Údaje protistrany: jeden záznam na kontakt bez platnosti od data; změna se přepíše a stopu drží historie
+    záznamu (tracking). Rozhodnutí 2026-11-16 „Údaje protistrany bez historie“, úkol MN-09."""
 
     _name = "investra.counterparty.profile"
     _inherit = ["mail.thread"]
     _description = "Údaje protistrany"
-    _order = "partner_id, valid_from desc"
+    _order = "partner_id"
 
-    partner_id = fields.Many2one("res.partner", required=True, ondelete="restrict", index=True, string="Protistrana")
-    valid_from = fields.Date(required=True, string="Platí od", tracking=True)
+    partner_id = fields.Many2one(
+        "res.partner", required=True, ondelete="restrict", index=True, string="Protistrana", tracking=True)
     country_id = fields.Many2one("res.country", required=True, ondelete="restrict", string="Země", tracking=True)
     sector_id = fields.Many2one("investra.esa.sector", required=True, ondelete="restrict", string="Sektor ESA 2010", tracking=True)
     lei = fields.Char(string="LEI", tracking=True)
 
-    _partner_date_uniq = models.Constraint("unique(partner_id, valid_from)", "Údaje protistrany k datu už existují.")
+    _partner_uniq = models.Constraint(
+        "unique(partner_id)", "Kontakt už má údaje protistrany; změňte stávající záznam.")
 
     @api.constrains("lei")
     def _check_lei(self):
@@ -53,12 +55,11 @@ class ResPartner(models.Model):
 
     investra_profile_ids = fields.One2many("investra.counterparty.profile", "partner_id", string="Údaje protistrany")
 
-    def _counterparty_profile(self, day):
-        """Údaje platné k datu; prázdné, pokud k datu žádné nejsou."""
+    def _counterparty_profile(self, day=None):
+        """Jediný záznam údajů kontaktu, nebo prázdný. Datum se nepoužívá (údaje nemají platnost od data, MN-09);
+        parametr zůstává, aby se nemuseli měnit volající."""
         self.ensure_one()
-        return self.env["investra.counterparty.profile"].sudo().search(
-            [("partner_id", "=", self.id), ("valid_from", "<=", day)], order="valid_from desc", limit=1
-        )
+        return self.env["investra.counterparty.profile"].sudo().search([("partner_id", "=", self.id)], limit=1)
 
 
 class InvestraInstrument(models.Model):
@@ -66,7 +67,7 @@ class InvestraInstrument(models.Model):
 
     issuer_id = fields.Many2one("res.partner", string="Emitent", ondelete="restrict", tracking=True)
 
-    def _issuer_profile(self, day):
+    def _issuer_profile(self, day=None):
         self.ensure_one()
         return self.issuer_id._counterparty_profile(day) if self.issuer_id else self.env["investra.counterparty.profile"]
 
@@ -79,25 +80,25 @@ class InvestraEntity(models.Model):
     lei = fields.Char(compute="_compute_counterparty_profile", string="LEI")
     esa_sector_id = fields.Many2one("investra.esa.sector", compute="_compute_counterparty_profile", string="Sektor ESA 2010")
 
-    @api.depends("company_id.partner_id.investra_profile_ids.lei", "company_id.partner_id.investra_profile_ids.sector_id",
-                 "company_id.partner_id.investra_profile_ids.valid_from")
+    @api.depends("company_id.partner_id.investra_profile_ids.lei", "company_id.partner_id.investra_profile_ids.sector_id")
     def _compute_counterparty_profile(self):
-        today = fields.Date.context_today(self)
         for entity in self:
-            profile = entity.company_id.partner_id._counterparty_profile(today) if entity.company_id else None
+            profile = entity.company_id.partner_id._counterparty_profile() if entity.company_id else None
             entity.lei = profile.lei if profile else False
             entity.esa_sector_id = profile.sector_id if profile else False
 
     def action_open_counterparty_profiles(self):
-        """Údaje protistrany kontaktu společnosti; nový záznam má předvyplněný kontakt a zemi."""
+        """Jediný záznam údajů protistrany kontaktu společnosti; když chybí, nový s předvyplněným kontaktem a zemí."""
         self.ensure_one()
         partner = self.company_id.partner_id
+        profile = partner._counterparty_profile()
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Údaje protistrany"),
             "res_model": "investra.counterparty.profile",
-            "view_mode": "list,form",
-            "domain": [("partner_id", "=", partner.id)],
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "res_id": profile.id or False,
             "context": {
                 "default_partner_id": partner.id,
                 "default_country_id": (partner.country_id or self.company_id.country_id).id,

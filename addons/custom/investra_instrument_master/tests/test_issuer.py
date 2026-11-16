@@ -1,7 +1,10 @@
 from datetime import date
 
+from psycopg2 import IntegrityError
+
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -21,9 +24,9 @@ class TestIssuerProfile(TransactionCase):
     def esa(self, code):
         return self.env["investra.esa.code"].search([("code", "=", code)])
 
-    def profile(self, country, esa, day="2026-01-01", partner=None, **vals):
+    def profile(self, country, esa, partner=None, **vals):
         return self.profiles.create({
-            "partner_id": (partner or self.partner).id, "valid_from": day,
+            "partner_id": (partner or self.partner).id,
             "country_id": self.env.ref(f"base.{country}").id, "esa_code_id": self.esa(esa).id, **vals})
 
     def test_derived_values(self):
@@ -78,7 +81,7 @@ class TestIssuerProfile(TransactionCase):
             {"country_id": no.id, "group": "eea", "valid_from": "2000-01-01"})
         self.assertEqual(self.profile("no", "2002212")._eu_status_at(date(2026, 1, 1)), "eea")
         old = self.profiles.create({
-            "partner_id": self.partner.id, "valid_from": "2000-01-01", "country_id": no.id,
+            "partner_id": self.env["res.partner"].create({"name": "Starší"}).id, "country_id": no.id,
             "sector_id": self.esa("2002212").esa2010_sector_id.id})
         self.assertFalse(old.derivation_note)
 
@@ -91,38 +94,53 @@ class TestIssuerProfile(TransactionCase):
             (profile.review_state, profile.reviewed_by, profile.reviewed_on),
             ("reviewed", self.approver, fields_today(self.env)))
 
-    def test_reviewed_version_is_locked(self):
+    def tracking_body(self, profile):
+        self.env.cr.flush()
+        return "".join(self.env["mail.message"].search([
+            ("model", "=", profile._name), ("res_id", "=", profile.id), ("message_type", "=", "tracking")]).mapped("body"))
+
+    def test_change_of_reviewed_profile(self):
+        """MN-09: potvrzený záznam se mění přepisem s důvodem; stav se vrací na Ke kontrole, stopa je v historii."""
         profile = self.profile("de", "2002212")
         profile.with_user(self.approver).action_review()
-        with self.assertRaisesRegex(UserError, "Potvrzenou verzi nejde změnit"):
-            profile.with_user(self.preparer).write({"lei": "5493001KJTIIGC8Y1R12"})
+        self.env.cr.flush()  # Změna ve stejné transakci jako založení se nezaznamenává.
+        with self.assertRaisesRegex(UserError, "důvod změny"):
+            profile.with_user(self.preparer).write({"esa_code_id": self.esa("2001002").id})
+        profile.with_user(self.preparer).write({"lei": profile.lei or False, "country_id": profile.country_id.id})
+        self.assertEqual(profile.review_state, "reviewed")  # beze změny hodnot zůstává potvrzeno
+        old_sector = profile.sector_id
+        profile.with_user(self.preparer).write({
+            "esa_code_id": self.esa("2001002").id, "country_id": self.env.ref("base.us").id,
+            "change_reason": "Oprava sektoru podle registru"})
+        self.assertEqual((profile.review_state, profile.reviewed_by, profile.reviewed_on), ("draft", self.env["res.users"], False))
+        body = self.tracking_body(profile)
+        for text in (old_sector.code, profile.sector_id.code, "2002212", "2001002", "Oprava sektoru podle registru",
+                     "Ke kontrole"):
+            self.assertIn(text, body)
+
+    def test_reviewed_profile_cannot_be_deleted(self):
+        profile = self.profile("de", "2002212")
+        profile.with_user(self.approver).action_review()
         with self.assertRaises(UserError):
             profile.with_user(self.preparer).unlink()
 
     def test_review_needs_esa_code(self):
         old = self.profiles.create({
-            "partner_id": self.partner.id, "valid_from": "2000-01-01", "country_id": self.env.ref("base.cz").id,
+            "partner_id": self.partner.id, "country_id": self.env.ref("base.cz").id,
             "sector_id": self.esa("1311000").esa2010_sector_id.id})
         with self.assertRaises(UserError):
             old.with_user(self.approver).action_review()
 
-    def test_second_version_needs_reason(self):
-        first = self.profile("de", "2002212")
-        with self.assertRaisesRegex(ValidationError, "důvod změny"):
-            self.profile("de", "2002212", day="2026-07-01")
-        second = self.profile("de", "2002212", day="2026-07-01", change_reason="Změna ESA po kontrole")
-        self.assertTrue(second.is_latest)
-        self.assertFalse(first.is_latest)
+    def test_second_profile_is_refused(self):
+        self.profile("de", "2002212")
+        with self.assertRaises(IntegrityError), mute_logger("odoo.sql_db"), self.env.cr.savepoint():
+            self.profile("de", "2002212", change_reason="Nová verze")
 
-    def test_is_latest_follows_changes(self):
-        first = self.profile("de", "2002212")
-        second = self.profile("de", "2002212", day="2026-07-01", change_reason="Nová verze")
-        second.unlink()
-        self.assertTrue(first.is_latest)
-        second = self.profile("de", "2002212", day="2026-07-01", change_reason="Nová verze")
-        first.write({"valid_from": "2026-12-01", "change_reason": "Přesun"})
-        self.assertTrue(first.is_latest)
-        self.assertFalse(second.is_latest)
+    def test_issuer_profile_at_any_date(self):
+        profile = self.profile("de", "2002212")
+        instrument = self.env["investra.instrument"].new({"issuer_id": self.partner.id})
+        for day in (date(2000, 1, 1), date(2026, 12, 31)):
+            self.assertEqual(instrument._issuer_profile(day), profile)
 
     def test_lei_unique_across_partners(self):
         lei = "5493001KJTIIGC8Y1R12"
@@ -130,8 +148,6 @@ class TestIssuerProfile(TransactionCase):
         other = self.env["res.partner"].create({"name": "Jiný"})
         with self.assertRaisesRegex(ValidationError, "už má protistrana"):
             self.profile("de", "2002212", partner=other, lei=lei)
-        # Nová verze téže protistrany může LEI zachovat.
-        self.profile("de", "2002212", day="2026-07-01", lei=lei, change_reason="Nová verze")
 
 
 def fields_today(env):

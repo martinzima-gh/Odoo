@@ -69,9 +69,12 @@ Podfond zakládejte až po SICAV a v poli **Nadřazená kniha** SICAV vyberte.
   u podfondu), skupina **Měna a kurzy** (funkční měna jen čtení, zdroj kurzů; pod ním text „Výkazy ČNB se vždy přepočítávají
   kurzem ČNB.“) a skupina **Identifikace** (LEI a sektor ESA, jen čtení). Nad poli je upozornění, že funkční měnu, rámec
   ani společnost nejde po prvním zaúčtování změnit. U polí jsou nápovědy (najeďte myší na popisek).
-- **LEI a sektor:** zadávají se v **údajích protistrany** kontaktu společnosti (platí od data, povinná země a sektor ESA,
-  kontrola ISO 17442). Tlačítko **Údaje protistrany** ve formuláři knihy je otevře s předvyplněným kontaktem a zemí;
-  formulář ukazuje hodnoty platné k dnešku. U podfondu je LEI nepovinné. V seznamu knih lze zapnout sloupec **LEI**.
+- **LEI a sektor:** zadávají se v **údajích protistrany** kontaktu společnosti (povinná země a sektor ESA, kontrola
+  ISO 17442). Každý kontakt má **jeden záznam** bez data „platí od“: změna se přepíše a stará i nová hodnota (kdo, kdy)
+  zůstanou v **historii záznamu** vpravo. Druhý záznam pro stejný kontakt nejde založit. Tlačítko **Údaje protistrany**
+  ve formuláři knihy otevře tento záznam, nebo nový s předvyplněným kontaktem a zemí. Změna potvrzených údajů vyžaduje
+  **Důvod změny** a vrátí stav na **Ke kontrole**; znovu je potvrdí schvalovatel. U podfondu je LEI nepovinné. V seznamu
+  knih lze zapnout sloupec **LEI**.
 - **Popisek DIČ:** u kontaktu společnosti se popisek daňového čísla řídí zemí aktivní firmy. Výchozí firma Odoo
   „My Company“ má zemi USA, proto ukazuje TIN; po nastavení země Česko je popisek DIČ.
 - **Osnova:** účty společnosti jsou v účetní části Odoo pod zvolenou společností.

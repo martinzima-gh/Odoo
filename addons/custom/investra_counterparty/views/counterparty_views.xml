@@ -3,7 +3,7 @@
     <record id="view_profile_list" model="ir.ui.view">
         <field name="name">investra.counterparty.profile.list</field><field name="model">investra.counterparty.profile</field>
         <field name="arch" type="xml">
-            <list><field name="partner_id"/><field name="valid_from"/><field name="country_id"/><field name="sector_id"/><field name="lei"/></list>
+            <list><field name="partner_id"/><field name="country_id"/><field name="sector_id"/><field name="lei"/></list>
         </field>
     </record>
     <record id="view_profile_search" model="ir.ui.view">
@@ -25,7 +25,7 @@
         <field name="name">investra.counterparty.profile.form</field><field name="model">investra.counterparty.profile</field>
         <field name="arch" type="xml">
             <form>
-                <sheet><group><field name="partner_id"/><field name="valid_from"/><field name="country_id"/><field name="sector_id"/><field name="lei"/></group></sheet>
+                <sheet><group><field name="partner_id"/><field name="country_id"/><field name="sector_id"/><field name="lei"/></group></sheet>
                 <chatter/>
             </form>
         </field>
@@ -58,7 +58,7 @@
                     <button name="action_open_counterparty_profiles" type="object" string="Údaje protistrany"
                             class="btn-secondary" colspan="2"/>
                     <div class="text-muted" colspan="2">LEI a sektor se berou z údajů protistrany kontaktu společnosti
-                        (platné k dnešku). U podfondu je LEI nepovinné.</div>
+                        (jeden záznam, změny jsou v historii záznamu). U podfondu je LEI nepovinné.</div>
                 </group>
             </xpath>
         </field>

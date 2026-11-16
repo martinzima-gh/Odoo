@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Stávající nabídka a akce protistran se přejmenují a dostanou filtr Aktuální; soubory investra_counterparty zůstávají beze změny. -->
+    <!-- Stávající nabídka a akce protistran se přejmenují; jeden záznam na kontakt, filtr Aktuální zrušen (MN-09). -->
     <record id="investra_counterparty.menu_profile" model="ir.ui.menu"><field name="name">Emitenti a protistrany</field></record>
     <record id="investra_counterparty.action_profile" model="ir.actions.act_window">
         <field name="name">Emitenti a protistrany</field>
-        <field name="context">{'search_default_latest': 1}</field>
+        <field name="context">{}</field>
     </record>
 
     <record id="view_profile_list_issuer" model="ir.ui.view">
@@ -24,7 +24,6 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='sector_id']" position="after">
                 <field name="esa_code_id"/>
-                <filter name="latest" string="Aktuální" domain="[('is_latest', '=', True)]"/>
                 <filter name="missing_esa" string="Chybí ESA" domain="[('esa_code_id', '=', False)]"/>
                 <filter name="missing_lei" string="Chybí LEI" domain="[('lei', '=', False)]"/>
                 <filter name="not_reviewed" string="Nezkontrolováno" domain="[('review_state', '=', 'draft')]"/>
@@ -43,14 +42,14 @@
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="before">
                 <header>
-                    <button name="action_review" type="object" string="Potvrdit verzi" class="btn-primary"
+                    <button name="action_review" type="object" string="Potvrdit údaje" class="btn-primary"
                             invisible="review_state != 'draft' or not id" groups="investra_entity.group_valuation_approver"/>
                     <field name="review_state" widget="statusbar" statusbar_visible="draft,reviewed"/>
                 </header>
             </xpath>
             <xpath expr="//sheet/group" position="before">
                 <div class="alert alert-warning" role="alert" invisible="review_state != 'reviewed'">
-                    Verze je potvrzená a nejde změnit. Pro změnu údajů založte novou verzi s datem „Platí od“ a důvodem změny.
+                    Údaje jsou potvrzené. Změna údaje vyžaduje nový důvod změny a vrátí stav na „Ke kontrole“; původní hodnoty zůstanou v historii záznamu.
                 </div>
             </xpath>
             <xpath expr="//sheet/group" position="inside">
@@ -62,7 +61,7 @@
                 </group>
                 <group string="Kontrola">
                     <field name="review_state"/><field name="reviewed_by"/><field name="reviewed_on"/>
-                    <field name="change_reason"/><field name="source"/><field name="is_latest"/>
+                    <field name="change_reason"/><field name="source"/>
                 </group>
             </xpath>
         </field>
