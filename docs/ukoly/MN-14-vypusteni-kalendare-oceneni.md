@@ -77,3 +77,5 @@ Provedeno 16. 11. 2026 (Sonnet), testy `all`: 808 testů, 0 selhání (`investra
 **Neověřeno:** povýšení na kopii `investra` ze zálohy (kritérium přijetí) jsem neprováděl: obnova kopie databáze je mimo mé pokyny a
 nasazení dělá hlavní relace. Před povýšením ověřit SELECTem, že `investra_valuation_calendar` je prázdná (pre-migrace jinak
 zastaví povýšení), a po povýšení, že tabulka zmizela a Přehled se otevře. Lhůta zveřejnění se nehlídá; manuál označen „ověřeno v kódu“.
+
+- **Nasazení (hlavní relace, 16. 11. 2026):** SELECT `investra_valuation_calendar` = 0 řádků; záloha `zalohy/investra-2026-11-16-pred-MN14.dump` (pg_dump -Fc, 9,2 MB, `pg_restore -l` 10 953 položek); `-u investra_fund,investra_dashboard --stop-after-init` v `investra` bez chyby (jen známé docutils k popisu modulu); tabulka a model `investra.valuation.calendar` zanikly; verze fund 20.0.0.9.0, dashboard 20.0.0.6.0; 8071 restartována (HTTP 200, bez ERROR v logu). Ověřit v prohlížeči: Martin (Přehled fondů, záložky fondu).
