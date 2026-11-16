@@ -82,8 +82,12 @@ FK = aktiva − závazky po každém kroku; podrozvaha FK nemění; opakovaný v
 
 ## Neověřeno a otevřené
 
-- Požadavek vyhlášky č. 501/2002 Sb. a ČÚS pro finanční instituce na podrozvahu a vykazování derivátů, čísla
-  účtů podle směrné účtové osnovy: ověří krok DE-03 v primárním zdroji, Martin schválí čísla účtů.
+- Ověřeno v DE-03 (16. 11. 2026): podrozvaha od sjednání v hodnotě podkladového nástroje – vyhláška č. 501/2002 Sb.
+  § 35 a § 41, ČÚS pro finanční instituce č. 110 body 7 a 8; RH v rozvaze, kladná v ostatních aktivech (§ 14 odst. 1),
+  záporná v ostatních pasivech (§ 20 odst. 1), změny do skupin 61 / 71 (ČÚS 110 body 9 a 11); spot do 2 dnů není
+  derivát (ČÚS 110 bod 1 c), třída 9 bod 7), jeho kurzové rozdíly jdou do 61 / 71 proti skupině 35 (ČÚS 105 bod 3).
+  Čísla účtů schválil Martin 16. 11. 2026, viz deník. Neověřeno: výjimka z ČÚS 110 pro jednotky podle § 2 odst. 1
+  vyhlášky (bod 37) ve vztahu k fondu, vazba § 4a vyhlášky na IFRS a novely vyhlášky po 1. 1. 2024.
 - RH bez diskontování a tržních forwardových bodů je zjednodušení proti IFRS 13 a vnitřním Pravidlům oceňování
   (Příloha 1): před prvním skutečným fondem ověřit s auditorem; do té doby jen ukázková data.
 - EMIR (nařízení (EU) č. 648/2012) a limity ZISIF a NV č. 243/2013 Sb.: dopad na evidenci neověřen, mimo první verzi.

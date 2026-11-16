@@ -61,6 +61,26 @@ ROLE_ACCOUNTS = {
     "expense_bank_fee": "ifa_612000",
     "rounding_loss": "ifa_548100",
     "expense_tax": "ifa_591000",
+    # FX spot, forward a swap (DE-03; čísla účtů schválil Martin 2026-11-16). Reálná hodnota forwardu a swapu ve skupině 31,
+    # kurzový rozdíl spotu na uspořádacím účtu 358, podrozvaha ve skupinách 94 a 95, vyrovnávací účet 992.
+    "derivative_liability": "ifa_313100",
+    "derivative_swap": "ifa_313200",
+    "derivative_swap_liability": "ifa_313300",
+    "fx_spot_asset": "ifa_358100",
+    "fx_spot_liability": "ifa_358200",
+    "gain_derivative": "ifa_719100",
+    "loss_derivative": "ifa_619100",
+    "gain_derivative_swap": "ifa_719200",
+    "loss_derivative_swap": "ifa_619200",
+    "gain_fx_spot": "ifa_716100",
+    "loss_fx_spot": "ifa_616100",
+    "offbalance_forward_receivable": "ifa_953100",
+    "offbalance_forward_payable": "ifa_954100",
+    "offbalance_swap_receivable": "ifa_953200",
+    "offbalance_swap_payable": "ifa_954200",
+    "offbalance_spot_receivable": "ifa_943000",
+    "offbalance_spot_payable": "ifa_944000",
+    "offbalance_clearing": "ifa_992000",
 }
 
 

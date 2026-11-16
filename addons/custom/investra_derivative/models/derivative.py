@@ -8,8 +8,10 @@ ONE_LEG_KINDS = ("spot", "forward")
 STATE = [("draft", "Návrh"), ("agreed", "Sjednáno"), ("settled", "Vypořádáno"), ("reversed", "Stornováno")]
 LEG_STATE = [("open", "Otevřená"), ("settled", "Vypořádaná")]
 # Stav a nástroj nastavuje jen systém (založení, sjednání, vypořádání, storno).
-SYSTEM_DERIVATIVE_FIELDS = frozenset({"state", "instrument_id"})
-SYSTEM_LEG_FIELDS = frozenset({"state"})
+SYSTEM_DERIVATIVE_FIELDS = frozenset({
+    "state", "instrument_id", "event_id", "reversal_reason", "settlement_reversal_reason",
+})
+SYSTEM_LEG_FIELDS = frozenset({"state", "b0", "buy_rate0", "sell_rate0", "settlement_event_id", "offbalance_event_id"})
 # Obchodní údaje smlouvy a nohy; od stavu Sjednáno jsou jen ke čtení.
 TERMS_FIELDS = {"fund_id", "portfolio_id", "partner_id", "kind", "trade_date", "contract_ref", "leg_ids"}
 LEG_TERMS_FIELDS = {
@@ -248,14 +250,14 @@ class InvestraDerivativeLeg(models.Model):
         if self.env.su:
             return
         if vals is not None and SYSTEM_LEG_FIELDS & set(vals):
-            raise UserError(self.env._("Stav nohy nastavuje jen vypořádání."))
+            raise UserError(self.env._("Stav nohy a údaje ze sjednání nastavuje jen systém."))
         if (vals is None or LEG_TERMS_FIELDS & set(vals)) and self.derivative_id.filtered(lambda d: d.state != "draft"):
             raise UserError(self.env._("Nohy sjednané, vypořádané ani stornované smlouvy nejde změnit; opravte ji stornem."))
 
     @api.model_create_multi
     def create(self, vals_list):
         if not self.env.su and any(SYSTEM_LEG_FIELDS & set(vals) for vals in vals_list):
-            raise UserError(self.env._("Stav nohy nastavuje jen vypořádání."))
+            raise UserError(self.env._("Stav nohy a údaje ze sjednání nastavuje jen systém."))
         legs = super().create(vals_list)
         legs._check_editable()
         legs.derivative_id._sync_instrument()
