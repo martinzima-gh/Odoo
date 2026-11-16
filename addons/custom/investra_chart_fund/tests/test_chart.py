@@ -130,3 +130,65 @@ class TestChart(TransactionCase):
         with self.assertRaises(ValidationError):
             mapping.extra_account_ids = [(4, Role.account_for(self.company, "bank").id)]
         self.assertFalse(Role.add_extra_account(self.company, "deposit", Role.account_for(self.company, "bank")))
+
+
+@tagged("post_install", "-at_install")
+class TestRoleStandard(TransactionCase):
+    """MN-04: značka odchylky mapování rolí od standardu."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.eur = cls.env.ref("base.EUR")
+        cls.eur.active = True
+        cls.fund = cls.env["investra.entity"].create_book("Fond MN04", "fund", "cas501", cls.eur, "investra_fund").company_id
+        cls.Mapping = cls.env["investra.role.account"].with_context(allowed_company_ids=cls.env["res.company"].search([]).ids)
+        cls.chart = cls.env["account.chart.template"].with_company(cls.fund)
+
+    def _mapping(self, company, code):
+        return self.Mapping.search([("company_id", "=", company.id), ("role_id.code", "=", code)])
+
+    def test_new_book_all_standard(self):
+        mappings = self.Mapping.search([("company_id", "=", self.fund.id)])
+        self.assertEqual(set(mappings.mapped("standard_state")), {"standard"})
+        self.assertEqual(self.Mapping.search_count([("company_id", "=", self.fund.id), ("standard_state", "=", "deviation")]), 0)
+
+    def test_manual_change_is_deviation(self):
+        mapping = self._mapping(self.fund, "expense_other")
+        other = self.chart.ref("ifa_661901")
+        mapping.account_id = other
+        self.assertEqual(mapping.standard_state, "deviation")
+        self.assertEqual(mapping.standard_account_id, self.chart.ref(ROLE_ACCOUNTS["expense_other"]))
+        found = self.Mapping.search([("standard_state", "=", "deviation")])
+        self.assertIn(mapping, found)
+        self.assertNotIn(self._mapping(self.fund, "bank"), found)
+        self.assertNotIn(mapping, self.Mapping.search([("standard_state", "!=", "deviation")]))
+
+    def test_extra_accounts_are_not_deviation(self):
+        self.assertTrue(self._mapping(self.fund, "cash_in_transit").extra_account_ids)
+        self.assertEqual(self._mapping(self.fund, "cash_in_transit").standard_state, "standard")
+
+    def test_other_template_has_no_standard(self):
+        company = self.env["investra.entity"].create_book("Společnost MN04", "manager", "cas501", self.eur, "cz").company_id
+        role = self.env["investra.account.role"].search([("code", "=", "bank")], limit=1)
+        account = self.env["account.account"].with_company(company).search([("company_ids", "in", company.id)], limit=1)
+        mapping = self.Mapping.create({"company_id": company.id, "role_id": role.id, "account_id": account.id})
+        self.assertEqual(mapping.standard_state, "none")
+        self.assertFalse(mapping.standard_account_id)
+        self.assertIn(mapping, self.Mapping.search([("standard_state", "=", "none")]))
+
+    def test_apply_standard_role(self):
+        """Po změně standardu se převede kniha bez odchylky; kniha s odchylkou zůstane a je vrácena."""
+        other = self.env["investra.entity"].create_book("Fond MN04 b", "fund", "cas501", self.eur, "investra_fund").company_id
+        old_xmlid, new_xmlid = "ifa_661901", ROLE_ACCOUNTS["expense_other"]
+        for company in (self.fund, other):  # oba fondy měly dřív standard = starý účet
+            self._mapping(company, "expense_other").account_id = self.env["account.chart.template"].with_company(company).ref(old_xmlid)
+        # druhý fond má opravdovou odchylku (jiný účet než starý standard)
+        deviant = self._mapping(other, "expense_other")
+        deviant.account_id = self.env["account.chart.template"].with_company(other).ref("ifa_661902")
+        result = self.Mapping._apply_standard_role("expense_other", old_xmlid=old_xmlid)
+        self.assertEqual(self._mapping(self.fund, "expense_other").account_id, self.chart.ref(new_xmlid))
+        self.assertEqual(self._mapping(self.fund, "expense_other").standard_state, "standard")
+        self.assertEqual(deviant.account_id, self.env["account.chart.template"].with_company(other).ref("ifa_661902"))
+        self.assertIn(deviant, result)
+        self.assertNotIn(self._mapping(self.fund, "expense_other"), result)

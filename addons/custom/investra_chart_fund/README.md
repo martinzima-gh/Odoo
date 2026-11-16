@@ -23,3 +23,15 @@ funkční měnu ze zadání (načtení osnovy ji nepřepíše), zdroj kurzů pod
 Před založením průvodce zkontroluje, že jsou nainstalované moduly osnovy a lokalizace země. Jinak by je Odoo
 doinstalovalo uprostřed požadavku, potvrdilo transakci a při pozdější chybě by zůstala polovičatá společnost.
 Po založení se nová společnost připojí uživateli a otevře se formulář knihy.
+
+## Odchylka mapování od standardu (MN-04)
+
+`investra.role.account` má nestorovaná pole **Standard** (Podle standardu / Odchylka / Bez standardu) a **Standardní účet**,
+v Účtech rolí je filtr Odchylka od standardu. Porovnává se jen hlavní účet; `account_for` se nemění. Seskupení podle
+Standardu nejde (pole není uložené), použijte filtry.
+
+**Změna standardu (`ROLE_ACCOUNTS`):** po změně slovníku vypadá řádek, který odpovídal starému standardu, jako odchylka.
+Migrace proto zavolá `env["investra.role.account"]._apply_standard_role(code, old_xmlid="<starý xmlid>")` (po
+`_ensure_fund_accounts`, aby nový účet v knihách byl). Řádky se starým standardním účtem převede na nový, chybějící
+vytvoří a skutečné odchylky nemění: vrátí je jako záznamy k výpisu do logu migrace. Zatím ji nic nevolá.
+

@@ -71,6 +71,22 @@ Podfond zakládejte až po SICAV a v poli **Nadřazená kniha** SICAV vyberte.
 - **Role účtů:** **Investra › Nastavení › Účtování › Účty rolí** ukazuje, který účet plní kterou roli ;
   seznam rolí je v **Role účtů** (jen čtení). Kontrolujte, že všechny role mají u nové knihy účet.
 
+## Role účtů a odchylky od standardu
+
+Každá kniha fondu má vlastní kopii mapování **role → účet** (zkopíruje se ze standardu při založení). Pravidla účtování
+berou účet z mapování knihy, proto fond smí mít u některé role jiný účet.
+
+- **Kde je to vidět:** Investra › Nastavení › Účtování › Účty rolí. Sloupec **Standard** má hodnoty *Podle standardu*,
+  *Odchylka* (řádek je zvýrazněný) a *Bez standardu* (kniha není ze šablony fondu). Sloupec **Standardní účet** ukazuje,
+  jaký účet by role měla podle šablony. Filtr **Odchylka od standardu** vypíše jen výjimky všech fondů.
+- **Co se porovnává:** jen hlavní účet role. **Další účty** (další banky, platby na cestě) jsou z povahy věci fondové
+  a odchylkou nejsou.
+- **Kdy výjimku použít:** jen když fond ze statutu nebo účetního postupu opravdu potřebuje jiný účet. Změnu proveďte
+  před prvním zaúčtováním, nebo po dohodě s účetním, a důvod poznamenejte. Při pozdější změně standardu se řádky
+  s odchylkou nepřepisují; vypíší se a rozhodnete o nich zvlášť.
+- **Vlastní analytika:** nový účet, který má plnit roli, musí být napojený na roli (jinak ho pravidla účtování
+  nepoužijí) a zařazený do převodové tabulky ČNB, aby se zobrazil ve výkazech.
+
 ## Další krok
 
 Kniha existuje, fond ještě ne. Pokračujte kapitolou 2.

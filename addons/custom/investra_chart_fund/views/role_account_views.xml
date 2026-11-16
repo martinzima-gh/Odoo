@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_role_account_list_standard" model="ir.ui.view">
+        <field name="name">investra.role.account.list.standard</field>
+        <field name="model">investra.role.account</field>
+        <field name="inherit_id" ref="investra_entity.view_role_account_list"/>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="decoration-warning">standard_state == 'deviation'</attribute>
+            </list>
+            <field name="account_id" position="after">
+                <field name="standard_state" string="Standard" widget="badge"
+                       decoration-success="standard_state == 'standard'" decoration-warning="standard_state == 'deviation'"/>
+                <field name="standard_account_id" string="Standardní účet" optional="show" options="{'no_open': True}"/>
+            </field>
+        </field>
+    </record>
+    <record id="view_role_account_search_standard" model="ir.ui.view">
+        <field name="name">investra.role.account.search.standard</field>
+        <field name="model">investra.role.account</field>
+        <field name="inherit_id" ref="investra_entity.view_role_account_search"/>
+        <field name="arch" type="xml">
+            <filter name="filter_asset" position="before">
+                <filter name="filter_deviation" string="Odchylka od standardu" domain="[('standard_state', '=', 'deviation')]"/>
+                <filter name="filter_standard" string="Podle standardu" domain="[('standard_state', '=', 'standard')]"/>
+                <filter name="filter_no_standard" string="Bez standardu" domain="[('standard_state', '=', 'none')]"/>
+                <separator/>
+            </filter>
+        </field>
+    </record>
+</odoo>
