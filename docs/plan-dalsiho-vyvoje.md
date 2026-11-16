@@ -139,6 +139,17 @@ Doporučení: vlastní sestavy v Community (potřebuje je i etapa 3); výstupem 
 Přehled operací ke zpracování; zařazení nástroje vzniká prvním nákupem; výchozí maximální stáří ceny podle typu;
 pořadí stavů ocenění v čase. Zadání píše Claude jednotlivě do `docs/ukoly/`, provádí Sonnet, vzhled Copilot nebo Antigravity.
 
+## Manuál a pročištění (MN, zadal Martin 16. 11. 2026, přednost před etapou 2)
+
+Martin zakládá v `investra` novou společnost a fond s více třídami; nálezy se opravují samostatnými úkoly MN-03 a dál.
+Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| MN-01 | Průvodce „Nová účetní kniha“ nad `create_book` (`docs/ukoly/MN-01-pruvodce-nova-kniha.md`) | Opus | oranžová |
+| MN-02 | Manuál kap. 1–3: společnost a kniha, fond, třídy (`docs/ukoly/MN-02-manual-zalozeni-fondu.md`) | Sonnet | zelená |
+| MN-03+ | Opravy z Martinova průchodu a další kapitoly (zadání píše hlavní relace) | podle zóny | |
+
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
 Zatím bez etapy a pořadí; oba začínají návrhem (Opus), který ověří předpisy v aktuálním znění, a teprve pak se zařadí.
