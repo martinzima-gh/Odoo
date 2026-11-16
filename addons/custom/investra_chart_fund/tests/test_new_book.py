@@ -20,15 +20,14 @@ class TestNewBookWizard(TransactionCase):
     def _create(self, **values):
         wizard = self.Wizard.create(values)
         action = wizard.action_create()
-        # Po založení průvodce vrátí hlášku a v ní následný formulář knihy (MN-05).
-        self.assertEqual(action["tag"], "display_notification")
-        self.assertIn("přepínači firem", action["params"]["message"])
-        action = action["params"]["next"]
-        entity = self.env["investra.entity"].browse(action["res_id"])
-        self.assertEqual(action["res_model"], "investra.entity")
-        # Klient akci z params.next nezpracovává přes server, views musí být v ní (MN-05a).
-        self.assertEqual(action["views"], [(False, "form")])
-        self.assertIn(entity.company_id.id, action["context"]["allowed_company_ids"])
+        # Po založení se načte celá stránka na formulář knihy, ať klient dostane nový seznam firem (MN-05b).
+        self.assertEqual(action["type"], "ir.actions.act_url")
+        self.assertEqual(action["target"], "self")
+        prefix = "/odoo/action-investra_entity.action_entity/"
+        self.assertTrue(action["url"].startswith(prefix))
+        entity = self.env["investra.entity"].browse(int(action["url"][len(prefix):]))
+        self.assertTrue(entity.exists())
+        self.assertEqual(entity.name, values["name"])
         return entity
 
     def _general_hashed(self, company):
@@ -71,8 +70,8 @@ class TestNewBookWizard(TransactionCase):
         self.admin.company_ids |= self.env["res.company"].create({"name": "Druhá firma testu"})
         wizard = self.Wizard.with_context(allowed_company_ids=[self.admin.company_id.id]).create(
             {"name": "Průvodce prohlížeč", "entity_type": "fund", "framework": "cas501"})
-        action = wizard.action_create()["params"]["next"]
-        entity = self.env["investra.entity"].browse(action["res_id"])
+        action = wizard.action_create()
+        entity = self.env["investra.entity"].browse(int(action["url"].rsplit("/", 1)[1]))
         self.assertTrue(entity.exists())
         self.assertEqual(entity.entity_type, "fund")
 

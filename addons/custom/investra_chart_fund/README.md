@@ -22,8 +22,9 @@ funkční měnu ze zadání (načtení osnovy ji nepřepíše), zdroj kurzů pod
 
 Před založením průvodce zkontroluje, že jsou nainstalované moduly osnovy a lokalizace země. Jinak by je Odoo
 doinstalovalo uprostřed požadavku, potvrdilo transakci a při pozdější chybě by zůstala polovičatá společnost.
-Po založení se nová společnost připojí uživateli, otevře se formulář knihy a zobrazí se hláška „Zapněte novou společnost
-v přepínači firem“ (přepínač si pamatuje prohlížeč, server ho trvale nezapne). Kniha se zakládá přes `with_company`:
+Po založení se nová společnost připojí uživateli, znovu se načte celá stránka na formulář knihy (`ir.actions.act_url`, `target: self`,
+`/odoo/action-investra_entity.action_entity/<id>`); klient tak dostane nový seznam firem a Odoo novou společnost samo zapne
+v přepínači (MN-05b). Kniha se zakládá přes `with_company`:
 prohlížeč posílá `allowed_company_ids` bez nové společnosti a pravidlo „Knihy podle společnosti“ by jinak zápis odmítlo.
 Pole Zakladatel se zrušilo (MN-05).
 

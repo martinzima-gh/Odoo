@@ -28,7 +28,7 @@ Vynechalo by zámek deníků, auditní stopu a mapování rolí účtů a mohlo 
 | **Šablona osnovy** | jen čtení | podle druhu | SICAV, fond, podfond: osnova fondu (`investra_fund`); ostatní: česká osnova (`cz`) |
 | **Zdroj kurzů** | jen čtení | podle měny | CZK – ČNB, EUR – ECB; jiná měna: ČNB |
 
-4. **Založit knihu**, potvrďte dotaz. Otevře se formulář nové knihy a zobrazí se hláška „Zapněte novou společnost v přepínači firem.“
+4. **Založit knihu**, potvrďte dotaz. Stránka se znovu načte, otevře se formulář nové knihy a nová společnost se sama zapne v přepínači firem.
 
 **Kontrola rámce:** jiná kombinace než v tabulce se odmítne před založením: „Druh jednotky a účetní rámec nejdou dohromady: pro tento druh platí …“
 Rámce se nemíchají; IFRS je v seznamu rámců, ale průvodce ho odmítne.
@@ -62,8 +62,9 @@ Podfond zakládejte až po SICAV a v poli **Nadřazená kniha** SICAV vyberte.
 
 ## Po založení
 
-- **Přepínač firem:** nová společnost se v přepínači (vpravo nahoře) trvale nezapne. Po odchodu z formuláře ji zaškrtněte,
-  jinak neuvidíte její knihy, fond ani třídy (přístup se řídí zaškrtnutými společnostmi).
+- **Přepínač firem:** po založení se stránka znovu načte a nová společnost se v přepínači (vpravo nahoře) zapne sama.
+  Kdyby zapnutá nebyla, zaškrtněte ji ručně, jinak neuvidíte její knihy, fond ani třídy (přístup se řídí zaškrtnutými
+  společnostmi).
 - **Formulář knihy** (Účetní knihy): skupina **Společnost** (společnost, druh jednotky, účetní rámec, nadřazená kniha jen
   u podfondu), skupina **Měna a kurzy** (funkční měna jen čtení, zdroj kurzů; pod ním text „Výkazy ČNB se vždy přepočítávají
   kurzem ČNB.“) a skupina **Identifikace** (LEI a sektor ESA, jen čtení). Nad poli je upozornění, že funkční měnu, rámec

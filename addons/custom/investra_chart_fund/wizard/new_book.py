@@ -86,27 +86,13 @@ class InvestraNewBookWizard(models.TransientModel):
         company = entity.company_id
         # res.company.create uživatele obvykle připojí sám; tady výslovně, ať na tom průvodce nezávisí.
         self.env.user.sudo().write({"company_ids": [Command.link(company.id)]})
-        form = {
-            "type": "ir.actions.act_window",
-            "res_model": "investra.entity",
-            "res_id": entity.id,
-            "view_mode": "form",
-            # Akce předaná klientovi přímo (params.next) musí mít views, jinak klient padá na action.views.map (MN-05a).
-            "views": [(False, "form")],
-            "target": "current",
-            # Kontext akce přebije kontext klienta: formulář nové knihy projde pravidlem „Knihy podle společnosti“
-            # i bez ručního přepnutí firmy.
-            "context": {"allowed_company_ids": self.env.companies.ids + company.ids},
-        }
-        # Přepínač firem si pamatuje prohlížeč, server nově založenou společnost trvale nezapne (MN-05, nález MN-02 9).
+        # Seznam povolených firem klient načte jen při načtení stránky (web/static/src/core/user.js, cookie cids).
+        # Proto celé načtení stránky na URL formuláře nové knihy: formulář narazí na pravidlo „Knihy podle společnosti“
+        # a Odoo samo zapne novou firmu v přepínači (form_controller onError -> activateCompanies). Odchylka od
+        # hlášky s params.next z MN-05/05a, která v klientu padala na allowedCompanies.find(...).child_ids (MN-05b).
+        # Tvar URL: router.js, /odoo/action-<xmlid>/<id>.
         return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "type": "warning",
-                "sticky": True,
-                "title": self.env._("Kniha založena"),
-                "message": self.env._("Zapněte novou společnost v přepínači firem."),
-                "next": form,
-            },
+            "type": "ir.actions.act_url",
+            "url": f"/odoo/action-investra_entity.action_entity/{entity.id}",
+            "target": "self",
         }

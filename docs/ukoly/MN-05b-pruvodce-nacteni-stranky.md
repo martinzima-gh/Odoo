@@ -48,6 +48,16 @@ v prohlížeči neověřeno (ověří Martin dalším založením knihy).
 
 Doplní model, který úkol provedl.
 
-- **Změněné soubory:**
+- **Změněné soubory:** `investra_chart_fund/wizard/new_book.py` (`action_create` vrací `ir.actions.act_url`, `target: self`,
+  URL `/odoo/action-investra_entity.action_entity/<id>`; zrušeno `display_notification` i `allowed_company_ids` v akci),
+  `tests/test_new_book.py`, `__manifest__.py` (20.0.0.12.2), `README.md` modulu, `docs/manual/01-spolecnost-a-kniha.md`
+  (krok 4 a odstavec Přepínač firem; ruční zapnutí jen jako náhradní postup), tento soubor, předávka.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
+  - Tvar URL: `web/static/src/core/browser/router.js` v kontejneru (část `action-<číslo|xml_id>` následovaná id záznamu).
+  - `tools/run_tests.sh investra_chart_fund`: 0 failed, 0 error z 29 testů; dočasná `investra_ci_20261116_134531` smazána.
+  - Záloha `zalohy/investra-2026-11-16-pred-MN-05b.dump` (pg_dump -Fc, 9 MB), `-u investra_chart_fund` v `investra` bez chyby,
+    `ir_module_module.latest_version` = 20.0.0.12.2, instance 8071 znovu běží (`/web/login` vrací 200).
+  - V `investra` nic nezaloženo.
+- **Neověřeno:** chování v prohlížeči (načtení stránky, automatické zapnutí nové firmy přes `onError` →
+  `activateCompanies`); ověří Martin dalším založením knihy. Fallback ze zadání (URL na seznam knih a ruční zapnutí)
+  nebyl potřeba, v manuálu zůstává jako náhradní postup.
