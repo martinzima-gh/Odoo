@@ -5,7 +5,7 @@
 | Položka | Hodnota |
 |---|---|
 | Zóna | oranžová (průvodce, formuláře, odvození sektoru; `create_book` jen nový nepovinný parametr kontaktu; účtování beze změny) |
-| Výchozí větev | `ukol/MN-manual` |
+| Výchozí větev | `ukol/MN-manual` (po MN-09) |
 | Větev úkolu | `ukol/MN-manual` |
 | Zadal, dne | Claude (hlavní relace), 16. 11. 2026 |
 | Navazuje na | Martinovy poznámky z průchodu zakládání 16. 11. 2026 (8–13), MN-05, MN-05b |
@@ -28,14 +28,14 @@
    sektor a kód neshodují.
 2. **Číselníky ESA (pozn. 11):** seznamy `investra.esa.sector` a `investra.esa.code` mají kód jako první sloupec; vyhledávání
    podle kódu i názvu (`_rec_names_search = ["code", "name"]`).
-3. **Historie profilu (pozn. 13):** model s platností zůstává (doporučení Clauda, viz Odpověď níže). Zjednodušit zadávání:
-   Platí od výchozí dnes; drobečková navigace „Údaje protistrany – <kontakt> – od <datum>“, u nového záznamu „Nové údaje protistrany“.
+3. **Historie profilu (pozn. 13):** Martin rozhodl historii zrušit – řeší MN-09, které běží **před** tímto úkolem (jeden profil
+   na kontakt, bez Platí od). Tady jen drobečková navigace „Údaje protistrany – <kontakt>“, u nového záznamu „Nové údaje protistrany“.
 4. **Průvodce Nová účetní kniha – skupina Identifikace (pozn. 10):** nepovinná pole IČO (`company_registry`, kontrola 8 číslic
    s kontrolní číslicí mod 11), DIČ (`vat`; u země Česko předvyplnit „CZ“ + IČO, lze přepsat), LEI, Kód sektoru ESA.
    Předvyplnění kódu podle druhu jednotky: fond, SICAV, podfond → rezidentský kód se sektorem „Fondy kolektivního investování
    (kromě FPT)“; investiční společnost → rezidentský kód se sektorem „Pomocné finanční instituce“; servisní → prázdné.
    Kódy vyhledat v číselníku, nevymýšlet; pokud jich odpovídá víc, nechat prázdné a uvést ve Výsledku. Je-li zadané LEI
-   nebo kód, průvodce po založení vytvoří profil (platí od dne založení, země z průvodce). Pole profilu přidá do průvodce
+   nebo kód, průvodce po založení vytvoří profil (země z průvodce). Pole profilu přidá do průvodce
    modul, který zná `esa_code_id` (`investra_instrument_master`) děděním průvodce, ne `investra_chart_fund`.
 5. **Existující kontakt (pozn. 8):** v průvodci nepovinné pole Kontakt. Nabízí jen kontakty-firmy, které nejsou kontaktem jiné
    společnosti (`res.company.partner_id`). Vybraný kontakt převezme nová společnost (název z kontaktu, `company_id` kontaktu
@@ -50,10 +50,8 @@
 8. **Nasazení:** povýšení dotčených modulů v `investra` se zálohou do `zalohy/` (souhlas v promptu), restart 8071. V `investra` nic nezakládat.
 9. **Manuál:** `docs/manual/01-spolecnost-a-kniha.md` – Identifikace v průvodci a knize, existující kontakt, proč má profil platnost.
 
-**Odpověď na pozn. 13 (pro manuál a Martina):** údaje protistrany mají platnost od data, protože výkazy ČNB a ocenění se
-vykazují k datu: když emitent nebo protistrana změní sektor, zemi nebo rezidentství, starší výkazy musí jít zopakovat se
-starými údaji (deník 2026-11-15 „Evidence nástrojů – rozšíření místo paralelních modelů“, profil s potvrzením verze).
-Vlastní fond je přitom také protistranou (např. když do něj investuje jiný náš fond), proto používá stejný profil.
+**Pozn. 13:** rozhodnutí 2026-11-16 „Údaje protistrany bez historie“ (MN-09). Vlastní fond je také protistranou
+(např. když do něj investuje jiný náš fond), proto používá stejný profil jako ostatní kontakty.
 
 **Rozsah souborů:** `investra_counterparty`, `investra_instrument_master` (profil, číselníky ESA, dědění průvodce), `investra_chart_fund`
 (průvodce: kontakt, IČO, DIČ), `investra_entity` (jen parametr kontaktu v `create_book` a pole IČO/DIČ ve formuláři knihy),
