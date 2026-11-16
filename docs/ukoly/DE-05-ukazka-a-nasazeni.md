@@ -78,4 +78,9 @@ Provedla hlavní relace 16. 11. 2026 (Sonnet), větev `etapa/derivaty`. **Nasaze
     vykazuje v DOFO31_22 (po smlouvách) – navazuje na otevřený bod mapování rolí v předávce. Po schválení zrušit výjimku v
     `addons/custom/investra_cnb/tests/test_cnb_map.py` (`test_every_chart_role_is_mapped`).
 
+- **Doplněno 16. 11. 2026 (volba a):** záloha `zalohy/investra-2026-11-16-pred-seed.dump` (10 927 položek), `DROP DATABASE investra`,
+  `run_seed.sh investra` bez chyb, instance 8071 → 200. `docs/sql/25-derivaty.sql` na `investra`: swap `agreed`, 2 nohy (1 vypořádaná),
+  RH 31 112,90 (30. 9.) a 120 612,90 / ruční 123 112,90 (31. 10.), změna 92 000,00, MD = D (0 nevyrovnaných), podrozvaha 0,00,
+  FK = aktiva − závazky u všech 5 fondů. **Neověřeno:** prohlídka v prohlížeči (seznam výše) – provede Martin.
+
 ## Převzetí
