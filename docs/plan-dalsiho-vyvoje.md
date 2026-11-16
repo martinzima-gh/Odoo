@@ -153,7 +153,7 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-05 | Oprava průvodce (chyba přístupu), formulář knihy, LEI, zrušení Zakladatele – hotovo; MN-05a a MN-05b chyby prohlížeče po založení – hotovo | Sonnet | oranžová |
 | MN-06 | Identifikace společnosti: IČO, DIČ, LEI a ESA v průvodci a knize, existující kontakt, sektor z kódu ESA (`docs/ukoly/MN-06-identifikace-spolecnosti.md`) | Sonnet | oranžová |
 | MN-07 | Fond a třídy: zámky po prvním pohybu, pořadí a archivace, nápovědy, ISIN; My Company, odstranění sloupce `founder_id` (`docs/ukoly/MN-07-fond-tridy-a-uklid.md`) | Sonnet | oranžová |
-| MN-08 | Zdroj kurzů „Neimplementováno“ pro jiné měny (`docs/ukoly/MN-08-zdroj-kurzu-neimplementovano.md`) | Opus | červená |
+| MN-08 | Zdroj kurzů „Neimplementováno“ pro jiné měny (`docs/ukoly/MN-08-zdroj-kurzu-neimplementovano.md`) – hotovo | Opus | červená |
 | MN-09 | Údaje protistrany bez historie, jeden profil na kontakt (`docs/ukoly/MN-09-udaje-protistrany-bez-historie.md`) | Opus | oranžová/červená |
 | MN-10+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
 

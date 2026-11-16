@@ -82,7 +82,8 @@ Provedl Claude (Opus 5.5, hlavní relace) 16. 11. 2026 podle plánu schválenéh
   - Záloha `zalohy/investra-2026-11-16-pred-MN08.dump` (pg_dump -Fc, 9 MB, `pg_restore -l` 10 953 položek);
     `-u investra_entity,investra_rates,investra_fx_revaluation,investra_chart_fund,investra_nav --stop-after-init` v `investra`
     bez ERROR; verze v `ir_module_module` odpovídají; výběr `rate_source` má cnb/ecb/none; 8071 restartována (HTTP 200).
-- **Neověřeno:** formuláře v prohlížeči (zdroj jen pro čtení, upozornění v průvodci při volbě USD) – ověří Martin. Že nativní
+- **Ověřil Martin v prohlížeči 16. 11. 2026:** formuláře (zdroj jen pro čtení, upozornění v průvodci při volbě USD).
+- **Neověřeno:** že nativní
   přepočet Odoo v knize v USD použije sdílené kurzy ČNB, je odvozeno z kódu (`_publish` zapisuje ČNB jako společné kurzy),
   testem neověřeno.
 - **Otevřené otázky a návrhy mimo rozsah:** (1) ruční kurz pro knihu bez zdroje – doporučuji zatím nepřipustit a později
