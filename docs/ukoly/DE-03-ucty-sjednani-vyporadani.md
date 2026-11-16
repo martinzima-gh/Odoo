@@ -61,7 +61,7 @@ Provedl Claude Code (hlavní relace) 16. 11. 2026, větev `etapa/derivaty`.
   `models/wizard.py`, pohledy, práva, testy `test_calc.py`, `test_posting.py`, verze 20.0.0.2.0);
   `investra_cnb/tests/test_cnb_map.py`; `docs/rozhodnuti.md`, `docs/navrh-fx-derivaty.md`, tento soubor.
 - **Ověřeno (příkaz a výsledek):** `tools/run_tests.sh investra_derivative,investra_chart_fund,investra_entity` →
-  0 failed, 0 error(s) of 51 tests; `tools/run_tests.sh all` → VÝSLEDEK_ALL. Testy: sjednání zapíše jen podrozvahu
+  0 failed, 0 error(s) of 51 tests; `tools/run_tests.sh all` → 0 failed, 0 error(s) of 720 tests (dočasné `investra_ci_*`, smazány). Testy: sjednání zapíše jen podrozvahu
   podle příkladu (MD 953100 24 900 000, D 954100 25 000 000, MD 992000 100 000) a FK se nezmění; vypořádání podle
   příkladu na haléř; náhled = doklad; swap po nohách; spot na vlastních účtech; storno smlouvy a storno vypořádání
   s nulovými zůstatky podrozvahy i RH; zámek ocenění; fond v EUR; MD = D u všech dokladů i storen.
