@@ -148,7 +148,9 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 |---|---|---|---|
 | MN-01 | Průvodce „Nová účetní kniha“ nad `create_book` (`docs/ukoly/MN-01-pruvodce-nova-kniha.md`) | Opus | oranžová |
 | MN-02 | Manuál kap. 1–3: společnost a kniha, fond, třídy (`docs/ukoly/MN-02-manual-zalozeni-fondu.md`) | Sonnet | zelená |
-| MN-03+ | Opravy z Martinova průchodu a další kapitoly (zadání píše hlavní relace) | podle zóny | |
+| MN-03 | Datum vzniku ve formuláři fondu, výchozí kurz nové třídy – hotovo | Sonnet | oranžová |
+| MN-04 | Odchylka mapování rolí od standardu (`docs/ukoly/MN-04-odchylka-mapovani-roli.md`) | Sonnet | oranžová |
+| MN-05+ | Opravy z Martinova průchodu, nálezy MN-02 3–10 a další kapitoly (zadání píše hlavní relace) | podle zóny | |
 
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
