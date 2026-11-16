@@ -1,7 +1,7 @@
 {
     "name": "Investra Dashboard",
     "summary": "Přehled fondů: stav ocenění, výjimky a termíny ČNB",
-    "version": "20.0.0.5.0",
+    "version": "20.0.0.5.1",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

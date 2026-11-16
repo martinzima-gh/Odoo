@@ -143,6 +143,21 @@ class TestDashboard(NavCase):
         self.fund.invalidate_recordset()
         self.assertIn("Kontroly s upozorněním: 1", self.fund.dashboard_exceptions)
 
+    def test_published_valuation_checks_are_hidden(self):
+        """Kontroly zveřejněného a uzamčeného ocenění karta neukazuje; před zveřejněním ano."""
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        valuation = self.valuation(self.fund, "2032-01-31")
+        self.run_to_posted(valuation)
+        self.env["investra.valuation.check"].sudo().create({
+            "valuation_id": valuation.id, "code": "test", "name": "Test", "status": "warning",
+        })
+        self.fund.invalidate_recordset()
+        self.assertIn("Kontroly s upozorněním", self.fund.dashboard_exceptions)
+        valuation.sudo().state = "published"
+        self.fund.invalidate_recordset()
+        self.assertNotIn("Kontroly s upozorněním", self.fund.dashboard_exceptions or "")
+        self.assertFalse(self.fund.action_open_checks())
+
     def test_manual_is_default_source(self):
         self.assertEqual(self.deadline(3).source, "manual")
 

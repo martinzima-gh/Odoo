@@ -139,6 +139,15 @@ Doporučení: vlastní sestavy v Community (potřebuje je i etapa 3); výstupem 
 Přehled operací ke zpracování; zařazení nástroje vzniká prvním nákupem; výchozí maximální stáří ceny podle typu;
 pořadí stavů ocenění v čase. Zadání píše Claude jednotlivě do `docs/ukoly/`, provádí Sonnet, vzhled Copilot nebo Antigravity.
 
+## Nezařazené úkoly (zadal Martin 15. 11. 2026)
+
+Zatím bez etapy a pořadí; oba začínají návrhem (Opus), který ověří předpisy v aktuálním znění, a teprve pak se zařadí.
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| PO-01 | Podrozvaha – počet podílových listů / investičních akcií: návrh, jak evidovat a účtovat počet vydaných kusů po třídách v podrozvaze (podrozvahové účty, účtování při úpisu a odkupu, vazba na evidenci kusů v ocenění a na IS, výkazy ČNB a výroční zpráva). Návrh nejdřív ověří ve vyhlášce č. 501/2002 Sb. a českých účetních standardech pro finanční instituce, zda a v jaké položce se počet kusů v podrozvaze vykazuje (podrozvaha se vede v peněžních částkách; evidence v kusech může být jen analytika nebo samostatná evidence) – výklad potvrdit s auditorem | Opus | návrh, pak červená (účtování) |
+| DA-01 | Daně fondu – daňové a nedaňové účty: návrh označení účtů (daňově účinný / neúčinný náklad a výnos), účtů a výnosů podléhajících jiné sazbě daně nebo samostatnému základu, výpočtu splatné daně, dohadu na daň v průběhu roku (dopad do NAV při každém ocenění) a odložené daně. Návrh nejdřív určí daňový režim fondu (základní investiční fond × ostatní) podle zákona č. 586/1992 Sb. v aktuálním znění a pravidla pro odloženou daň podle vyhlášky č. 501/2002 Sb. a ČÚS; rámce se nemíchají (Services podle 500/2002 Sb. zvlášť). Výklad potvrdit s daňovým poradcem a auditorem | Opus | návrh, pak červená (účtování, NAV) |
+
 ## Šablona promptu pro implementační krok
 
     Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla) a docs/ukoly/<ID>-….md a z návrhu etapy jen oddíly

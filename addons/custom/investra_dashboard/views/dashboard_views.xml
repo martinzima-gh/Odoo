@@ -44,7 +44,6 @@
                                     <span t-attf-class="o_investra_amount {{ record.dashboard_net_flow.raw_value &gt; 0 ? 'o_investra_positive' : record.dashboard_net_flow.raw_value &lt; 0 ? 'o_investra_negative' : '' }}">
                                         <t t-if="record.dashboard_net_flow.raw_value &gt; 0">+</t><field name="dashboard_net_flow"/>
                                     </span>
-                                    <field name="dashboard_result_period" class="o_investra_period"/>
                                 </t>
                                 <span t-else="" class="o_investra_amount">—</span>
                             </div>
@@ -114,8 +113,7 @@
                         <div class="o_investra_fund_row o_investra_fund_row_full">
                             <widget name="investra_fund_todo"/>
                         </div>
-                        <a t-if="record.dashboard_valuation_id.raw_value" type="object" name="action_open_valuation"
-                           class="o_investra_open_link">Otevřít ocenění →</a>
+                        <!-- Odkaz „Otevřít ocenění“ odstraněn (uživatel 2026-11-15): ocenění otevře štítek stavu. -->
                     </t>
                 </templates>
             </kanban>

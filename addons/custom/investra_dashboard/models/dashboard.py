@@ -133,7 +133,9 @@ class InvestraFund(models.Model):
             [("fund_id", "=", self.id), ("state", "=", "open")], order="due_date, id"
         )
         deadline, deadline_state, deadline_text = self._dashboard_deadline(deadlines, today)
-        danger, warning = self._dashboard_exceptions(latest, missing, deadlines, today, checked=upcoming or latest)
+        danger, warning = self._dashboard_exceptions(
+            latest, missing, deadlines, today, checked=upcoming or self._dashboard_unpublished(latest)
+        )
         todo = self._dashboard_todo(today, next_date)
         warned = warning or any(item["warn"] for item in todo)
         status = "danger" if danger else "warning" if warned else "ok" if latest else "none"
@@ -217,6 +219,11 @@ class InvestraFund(models.Model):
             text += _(" (+%s další)", len(deadlines) - 1)
         return deadline, state, text
 
+    @staticmethod
+    def _dashboard_unpublished(latest):
+        """Poslední zaúčtované ocenění, jen dokud není zveřejněné a uzamčené."""
+        return latest if latest.state != "published" else latest.browse()
+
     def _dashboard_result(self, latest):
         """Výsledek období ocenění: společná + specifická změna přes třídy (stejný zdroj jako detail ocenění).
 
@@ -245,7 +252,8 @@ class InvestraFund(models.Model):
     def _dashboard_exceptions(self, latest, missing, deadlines, today, checked=None):
         """Vrátí výjimky vyžadující zásah a upozornění jako texty.
 
-        Kontroly se berou z rozpracovaného dalšího ocenění, bez něj z posledního zaúčtovaného (`checked`).
+        Kontroly se berou z rozpracovaného dalšího ocenění, bez něj z posledního zaúčtovaného, dokud není
+        zveřejněné (`checked`); kontroly zveřejněného a uzamčeného ocenění už karta neukazuje (rozhodnutí 2026-11-15).
         """
         checked = latest if checked is None else checked
         _ = self.env._
@@ -527,9 +535,10 @@ class InvestraFund(models.Model):
         }
 
     def action_open_checks(self):
-        """Otevře kontroly ocenění, ze kterého karta bere výjimky: rozpracované další, jinak poslední zaúčtované."""
+        """Otevře kontroly ocenění, ze kterého karta bere výjimky: rozpracované další, jinak poslední zaúčtované,
+        dokud není zveřejněné."""
         self.ensure_one()
-        valuation = self.dashboard_next_valuation_id or self.dashboard_valuation_id
+        valuation = self.dashboard_next_valuation_id or self._dashboard_unpublished(self.dashboard_valuation_id)
         if not valuation:
             return False
         return {
