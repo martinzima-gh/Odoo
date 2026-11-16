@@ -343,7 +343,7 @@
             </field>
         </field>
     </record>
-    <!-- MN-07: po prvním zaúčtovaném úpisu nebo odkupu třídy jsou Kód, měna a zaokrouhlení kurzu a kusů jen pro čtení. -->
+    <!-- MN-07: po prvním zaúčtovaném úpisu nebo odkupu třídy jsou Kód a měna jen pro čtení; zaokrouhlení a místa jdou měnit (MN-12). -->
     <record id="view_fund_form_class_lock" model="ir.ui.view">
         <field name="name">investra.fund.form.class.lock</field><field name="model">investra.fund</field>
         <field name="inherit_id" ref="investra_fund.view_fund_form"/>
@@ -353,10 +353,6 @@
             </xpath>
             <xpath expr="//field[@name='class_ids']/list/field[@name='code']" position="attributes"><attribute name="readonly">movement_locked</attribute></xpath>
             <xpath expr="//field[@name='class_ids']/list/field[@name='currency_id']" position="attributes"><attribute name="readonly">movement_locked</attribute></xpath>
-            <xpath expr="//field[@name='class_ids']/list/field[@name='price_digits']" position="attributes"><attribute name="readonly">movement_locked</attribute></xpath>
-            <xpath expr="//field[@name='class_ids']/list/field[@name='unit_digits']" position="attributes"><attribute name="readonly">movement_locked</attribute></xpath>
-            <xpath expr="//field[@name='class_ids']/list/field[@name='price_rounding']" position="attributes"><attribute name="readonly">movement_locked</attribute></xpath>
-            <xpath expr="//field[@name='class_ids']/list/field[@name='unit_rounding']" position="attributes"><attribute name="readonly">movement_locked</attribute></xpath>
         </field>
     </record>
     <record id="action_valuation" model="ir.actions.act_window">

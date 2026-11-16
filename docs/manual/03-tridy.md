@@ -53,10 +53,17 @@ U třídy v jiné měně než funkční se kurz převádí kurzem ze zdroje knih
 ## Co nejde změnit po prvním pohybu
 
 Po prvním **zaúčtovaném** úpisu nebo odkupu třídy (stav Zaúčtováno; stornovaný pohyb byl zaúčtován také, zámek tedy zůstává)
-jsou ve formuláři jen pro čtení a změna skončí chybou „Třída … má zaúčtovaný úpis nebo odkup, proto nejde změnit: …“ tato pole:
-**Kód**, **Měna zveřejnění kurzu**, **Desetinná místa kurzu**, **Zaokrouhlení kurzu**, **Desetinná místa kusů**, **Zaokrouhlení kusů**.
+jsou ve formuláři jen pro čtení a změna skončí chybou „Třída … má zaúčtovaný úpis nebo odkup, proto nejde změnit: …“ pole
+**Kód** a **Měna zveřejnění kurzu**.
 Pohyb v návrhu třídu nezamyká. Měnit jde dál **Název**, **ISIN**, **Rozdělování výnosu**, **Pořadí**, **Aktivní**,
-poplatky a jejich příjemci (změna poplatků neplatí zpětně od data: starší pohyby se nepřepočítají, platnost od data zatím není).
+poplatky a jejich příjemci a také **Desetinná místa kurzu**, **Zaokrouhlení kurzu**, **Desetinná místa kusů**
+a **Zaokrouhlení kusů** (od 16. 11. 2026, úkol MN-12). Změna neplatí zpětně od data: zaúčtované pohyby (kusy, částky)
+ani uložená ocenění (kurz, kusy) se nepřepočítají. Nová místa a zaokrouhlení použije až další zaúčtovaný úpis
+nebo odkup a další výpočet ocenění; ocenění, které je spočtené a ještě nepředložené, je přepočte při novém výpočtu.
+
+Pozor při **snížení desetinných míst kusů**: odkup se při zaúčtování kontroluje na nová místa. Držitel, který má kusy
+s více místy (např. 10,123456 při nových 2 místech), nemůže odkoupit celý stav jedním pohybem. Kontrola stav
+neopravuje, změnu ani neodmítne; snižte místa jen tehdy, když to stavy držitelů dovolí.
 Zámek je u každé třídy zvlášť; třída bez pohybu zůstává volná.
 
 Chráněné je i tohle: třída s pohyby nejde smazat (vazba je chráněná); zaúčtovaný pohyb nejde změnit ani smazat, opravuje se stornem.
