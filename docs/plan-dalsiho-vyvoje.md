@@ -92,7 +92,7 @@ dokud není přístup do testovacího SDAT (`docs/navrh-sdat.md`).
 | Krok | Obsah | Model | Zóna |
 |---|---|---|---|
 | CN-01 | Návrh: které výkazy podává FKI a v jakém pořadí je stavět (podle `docs/cnb/lhuty.md` a `vykazy-*.csv`), model výkazu (fond, období, stav, hodnoty, ruční úpravy s důvodem), zdroje dat (účty přes převodovou tabulku, pozice, emitenti), kontroly z `kontroly-*.csv`, export | Opus | návrh |
-| CN-02 | Jádro: model výkazu a hodnot, plnění z účetnictví, stavy a schválení, náhled | Sonnet | oranžová |
+| CN-02 | Jádro: model výkazu a hodnot, plnění z účetnictví, stavy a schválení, náhled; **archiv odeslaného výkazu** (hodnoty a použité údaje protistran se neměnným otiskem, rozhodnutí 2026-11-16 „Údaje protistrany bez historie“) | Sonnet | oranžová |
 | CN-03 | Rozvahové a výsledkové výkazy (první sada podle CN-01) | Sonnet | oranžová |
 | CN-04 | Výkazy po pozicích (DOFOS31 a příbuzné): BA0088, ESA, země, měna, kategorie | Sonnet | oranžová |
 | CN-05 | Kontroly ČNB před schválením, přehled chyb | Sonnet | oranžová |
@@ -154,7 +154,8 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-06 | Identifikace společnosti: IČO, DIČ, LEI a ESA v průvodci a knize, existující kontakt, sektor z kódu ESA (`docs/ukoly/MN-06-identifikace-spolecnosti.md`) | Sonnet | oranžová |
 | MN-07 | Fond a třídy: zámky po prvním pohybu, pořadí a archivace, nápovědy, ISIN; My Company, odstranění sloupce `founder_id` (`docs/ukoly/MN-07-fond-tridy-a-uklid.md`) | Sonnet | oranžová |
 | MN-08 | Zdroj kurzů „Neimplementováno“ pro jiné měny (`docs/ukoly/MN-08-zdroj-kurzu-neimplementovano.md`) | Opus | červená |
-| MN-09+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
+| MN-09 | Údaje protistrany bez historie, jeden profil na kontakt (`docs/ukoly/MN-09-udaje-protistrany-bez-historie.md`) | Opus | oranžová/červená |
+| MN-10+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
 
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
