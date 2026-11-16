@@ -1,7 +1,7 @@
 {
     "name": "Investra Fund",
     "summary": "Fondy, třídy, kalendář ocenění a schvalovací matice",
-    "version": "20.0.0.8.4",
+    "version": "20.0.0.8.5",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",
