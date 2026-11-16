@@ -27,11 +27,33 @@ Vynechalo by zámek deníků, auditní stopu a mapování rolí účtů a mohlo 
 | **Země** | ano | Česko | |
 | **Šablona osnovy** | jen čtení | podle druhu | SICAV, fond, podfond: osnova fondu (`investra_fund`); ostatní: česká osnova (`cz`) |
 | **Zdroj kurzů** | jen čtení | podle měny | CZK – ČNB, EUR – ECB; jiná měna: ČNB |
+| **Existující kontakt** | ne | – | kontakt, který nová společnost převezme (viz níže) |
+| **IČO** | ne | – | 8 číslic s kontrolní číslicí; u země Česko se kontroluje: „Neplatné IČO …“ |
+| **DIČ** | ne | CZ + IČO | u země Česko se po zadání platného IČO předvyplní, lze přepsat |
+| **Kód sektoru ESA** | ne | prázdný | detailní číselník ČNB; sektor ESA 2010 se z něj doplní |
+| **LEI** | ne | – | kontrola ISO 17442 a jedinečnost; vyžaduje kód sektoru ESA |
 
 4. **Založit knihu**, potvrďte dotaz. Stránka se znovu načte, otevře se formulář nové knihy a nová společnost se sama zapne v přepínači firem.
 
 **Kontrola rámce:** jiná kombinace než v tabulce se odmítne před založením: „Druh jednotky a účetní rámec nejdou dohromady: pro tento druh platí …“
 Rámce se nemíchají; IFRS je v seznamu rámců, ale průvodce ho odmítne.
+
+### Identifikace a existující kontakt
+
+- **Skupina Identifikace** je nepovinná. Zadáte-li LEI nebo kód sektoru ESA, průvodce po založení knihy vytvoří
+  **údaje protistrany** kontaktu společnosti (země z průvodce). LEI bez kódu sektoru se odmítne před založením: profil
+  sektor potřebuje. Chybný IČO, LEI, kód nesouhlasící se zemí (rezident × nerezident) nebo LEI, které už má jiná
+  protistrana, se odmítnou před založením, nic se nezaloží.
+- **Předvyplnění kódu ESA:** průvodce nabídne rezidentský kód jen tehdy, když je v číselníku pro daný druh právě jeden
+  (fond, SICAV, podfond: sektor Fondy kolektivního investování (kromě FPT); investiční společnost: Pomocné finanční
+  instituce; servisní společnost: nic). Odpovídá-li víc kódů (veřejné, soukromé národní, pod zahraniční kontrolou),
+  zůstane pole prázdné a kód vyberete sami; hledá se podle čísla i názvu.
+- **Existující kontakt:** vyberte ho v poli **Existující kontakt**. Nabízejí se samostatné kontakty (ne osoby pod firmou),
+  které ještě nejsou kontaktem žádné společnosti. Nová společnost kontakt převezme (název se vezme z něj, kontakt se
+  přestane vázat na jednu firmu a uvidí ho všechny), druhý kontakt se nezakládá. IČO, DIČ, LEI a kód se předvyplní
+  z kontaktu a z jeho údajů protistrany; ty už se nezakládají znovu a LEI i kód se pak mění v nich.
+- Zadáte-li jen název a kontakt stejného jména existuje, průvodce nahoře upozorní a nabídne **Použít existující kontakt**.
+  Bez volby se založí nový kontakt.
 
 ## Co průvodce nastaví za vás
 
@@ -67,14 +89,21 @@ Podfond zakládejte až po SICAV a v poli **Nadřazená kniha** SICAV vyberte.
   společnostmi).
 - **Formulář knihy** (Účetní knihy): skupina **Společnost** (společnost, druh jednotky, účetní rámec, nadřazená kniha jen
   u podfondu), skupina **Měna a kurzy** (funkční měna jen čtení, zdroj kurzů; pod ním text „Výkazy ČNB se vždy přepočítávají
-  kurzem ČNB.“) a skupina **Identifikace** (LEI a sektor ESA, jen čtení). Nad poli je upozornění, že funkční měnu, rámec
+  kurzem ČNB.“) a skupina **Identifikace** (**IČO** a **DIČ** upravitelné jen pro správce, ostatní je vidí jen ke čtení;
+  LEI a sektor ESA ze záznamu údajů protistrany, jen čtení). IČO se u české společnosti kontroluje (8 číslic, kontrolní
+  číslice). Nad poli je upozornění, že funkční měnu, rámec
   ani společnost nejde po prvním zaúčtování změnit. U polí jsou nápovědy (najeďte myší na popisek).
-- **LEI a sektor:** zadávají se v **údajích protistrany** kontaktu společnosti (povinná země a sektor ESA, kontrola
-  ISO 17442). Každý kontakt má **jeden záznam** bez data „platí od“: změna se přepíše a stará i nová hodnota (kdo, kdy)
+- **LEI a sektor:** zadávají se v **údajích protistrany** kontaktu společnosti (povinná země, kód sektoru ESA a sektor
+  ESA 2010, kontrola ISO 17442). Vybíráte jen **Kód sektoru ESA**; **Sektor ESA 2010** se z něj doplní a ve formuláři je
+  jen ke čtení. Kód bez vazby na sektor: sektor zadáte ručně. Číselníky sektorů a kódů ukazují kód v prvním sloupci
+  a hledá se podle kódu i názvu. Záhlaví záznamu je „Údaje protistrany – <kontakt>“, nový záznam „Nové údaje protistrany“. Každý kontakt má **jeden záznam** bez data „platí od“: změna se přepíše a stará i nová hodnota (kdo, kdy)
   zůstanou v **historii záznamu** vpravo. Druhý záznam pro stejný kontakt nejde založit. Tlačítko **Údaje protistrany**
   ve formuláři knihy otevře tento záznam, nebo nový s předvyplněným kontaktem a zemí. Změna potvrzených údajů vyžaduje
   **Důvod změny** a vrátí stav na **Ke kontrole**; znovu je potvrdí schvalovatel. U podfondu je LEI nepovinné. V seznamu
   knih lze zapnout sloupec **LEI**.
+- **Proč profil nemá „platí od“:** údaje protistrany (země, kód, sektor, LEI) jsou jeden záznam na kontakt; dřívější
+  platnost od data se zrušila (rozhodnutí 16. 11. 2026). Co se kdy změnilo, ukazuje historie záznamu vpravo. Vlastní fond je
+  také protistranou (investuje do něj jiný náš fond), proto používá stejný záznam jako ostatní kontakty.
 - **Popisek DIČ:** u kontaktu společnosti se popisek daňového čísla řídí zemí aktivní firmy. Výchozí firma Odoo
   „My Company“ má zemi USA, proto ukazuje TIN; po nastavení země Česko je popisek DIČ.
 - **Osnova:** účty společnosti jsou v účetní části Odoo pod zvolenou společností.

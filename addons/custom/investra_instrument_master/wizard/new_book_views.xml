@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_new_book_wizard_form_identification" model="ir.ui.view">
+        <field name="name">investra.new.book.wizard.form.identification</field>
+        <field name="model">investra.new.book.wizard</field>
+        <field name="inherit_id" ref="investra_chart_fund.view_new_book_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="before">
+                <field name="same_name_partner_id" invisible="1"/>
+                <field name="partner_profile_id" invisible="1"/>
+                <div class="alert alert-info" role="alert" invisible="not same_name_partner_id">
+                    Kontakt stejného jména už existuje.
+                    <button name="action_use_same_name_partner" type="object" class="btn btn-link p-0 align-baseline"
+                            string="Použít existující kontakt"/>
+                    Jinak se založí nový kontakt.
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="partner_id" options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">partner_id</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+            <xpath expr="//group" position="after">
+                <group string="Identifikace (nepovinné)" name="group_identification">
+                    <group>
+                        <field name="company_registry"/>
+                        <field name="vat"/>
+                    </group>
+                    <group>
+                        <field name="esa_code_id" options="{'no_create': True}" readonly="partner_profile_id"/>
+                        <field name="lei" readonly="partner_profile_id"/>
+                        <div class="text-muted" colspan="2" invisible="not partner_profile_id">
+                            Kontakt už má údaje protistrany; LEI a kód sektoru se mění v nich.</div>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

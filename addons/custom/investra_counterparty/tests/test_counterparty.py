@@ -155,3 +155,25 @@ class TestMergeMigration(TransactionCase):
         self.assertEqual(len(note), 1)
         self.assertIn("5493001KJTIIGC8Y1R12", note.body)
         self.assertFalse(single.message_ids.filtered(lambda m: "MN-09" in (m.body or "")))
+
+
+@tagged("post_install", "-at_install")
+class TestSectorSearchAndName(TransactionCase):
+    """Číselník sektorů se hledá podle kódu i názvu; záznam má čitelný název (MN-06)."""
+
+    def test_sector_search_by_code_and_name(self):
+        Sector = self.env["investra.esa.sector"]
+        by_code = Sector.name_search("1240000")
+        self.assertIn("1240000", [Sector.browse(rec_id).code for rec_id, _name in by_code])
+        by_name = Sector.name_search("Pomocné finanční")
+        self.assertTrue(by_name)
+        self.assertTrue(all("Pomocné finanční" in name for _id, name in by_name))
+        self.assertEqual(Sector.search([("display_name", "ilike", "1240000")]).code, "1240000")
+
+    def test_profile_display_name(self):
+        partner = self.env["res.partner"].create({"name": "Banka názvu"})
+        profile = self.env["investra.counterparty.profile"].create({
+            "partner_id": partner.id, "country_id": self.env.ref("base.cz").id,
+            "sector_id": self.env["investra.esa.sector"].search([], limit=1).id})
+        self.assertEqual(profile.display_name, "Údaje protistrany – Banka názvu")
+        self.assertEqual(self.env["investra.counterparty.profile"].new({}).display_name, "Nové údaje protistrany")

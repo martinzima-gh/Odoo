@@ -77,12 +77,22 @@ class InvestraNewBookWizard(models.TransientModel):
                 "Nejdřív nainstalujte moduly: %s. Nic se nezaložilo.", ", ".join(missing.mapped("name")),
             ))
 
+    def _extra_book_values(self):
+        """Další nepovinné parametry pro create_book; rozšiřují je moduly s vlastními poli průvodce (MN-06)."""
+        self.ensure_one()
+        return {}
+
+    def _after_book_created(self, entity):
+        """Háček po založení knihy (identifikace, profil protistrany); základ nedělá nic."""
+        self.ensure_one()
+
     def action_create(self):
         self._check_before_create()
         entity = self.env["investra.entity"].create_book(
             self.name, self.entity_type, self.framework, self.currency_id, template_for(self.entity_type),
-            country=self.country_id, parent_id=self.parent_id.id,
+            country=self.country_id, parent_id=self.parent_id.id, **self._extra_book_values(),
         )
+        self._after_book_created(entity)
         company = entity.company_id
         # res.company.create uživatele obvykle připojí sám; tady výslovně, ať na tom průvodce nezávisí.
         self.env.user.sudo().write({"company_ids": [Command.link(company.id)]})

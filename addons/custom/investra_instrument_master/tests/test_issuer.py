@@ -46,6 +46,29 @@ class TestIssuerProfile(TransactionCase):
         profile.write({"esa_code_id": self.esa("2001002").id, "country_id": self.env.ref("base.us").id})
         self.assertEqual(profile.sector_id, self.esa("2001002").esa2010_sector_id)
 
+    def test_code_with_sector_fills_sector_on_write_without_sector(self):
+        """Formulář po výběru kódu sektor odvodí; zápis jen s kódem ho doplní také (MN-06, pozn. 12)."""
+        profile = self.profile("cz", "1311000")
+        profile.write({"esa_code_id": self.esa("1240200").id})
+        self.assertEqual(profile.sector_id, self.esa("1240200").esa2010_sector_id)
+        self.assertEqual(profile.code_sector_id, profile.sector_id)
+
+    def test_code_without_sector_keeps_existing_sector_on_write(self):
+        profile = self.profile("cz", "1311000")
+        sector = profile.sector_id
+        self.assertFalse(self.esa("1443000").esa2010_sector_id)
+        profile.write({"esa_code_id": self.esa("1443000").id})
+        self.assertEqual(profile.sector_id, sector)
+        self.assertFalse(profile.code_sector_id)
+
+    def test_form_makes_sector_readonly_when_code_determines_it(self):
+        from lxml import etree
+        arch = etree.fromstring(self.profiles.get_view(view_type="form")["arch"])
+        sector = arch.xpath("//field[@name='sector_id']")[0]
+        self.assertEqual(sector.get("readonly"), "code_sector_id")
+        names = arch.xpath("//sheet/group/field/@name")
+        self.assertLess(names.index("esa_code_id"), names.index("sector_id"))
+
     def test_explicit_sector_is_kept(self):
         sector = self.env["investra.esa.sector"].search([("code", "=", "2002500")])
         profile = self.profile("de", "2002212", sector_id=sector.id)

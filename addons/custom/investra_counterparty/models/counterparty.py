@@ -13,6 +13,7 @@ class InvestraEsaSector(models.Model):
     _name = "investra.esa.sector"
     _description = "Sektor ESA 2010"
     _order = "code"
+    _rec_names_search = ["code", "name"]
 
     code = fields.Char(required=True, string="Kód")
     name = fields.Char(required=True, string="Název")
@@ -42,6 +43,13 @@ class InvestraCounterpartyProfile(models.Model):
 
     _partner_uniq = models.Constraint(
         "unique(partner_id)", "Kontakt už má údaje protistrany; změňte stávající záznam.")
+
+    @api.depends("partner_id.display_name")
+    def _compute_display_name(self):
+        for profile in self:
+            profile.display_name = (
+                self.env._("Údaje protistrany – %s", profile.partner_id.display_name)
+                if isinstance(profile.id, int) and profile.partner_id else self.env._("Nové údaje protistrany"))
 
     @api.constrains("lei")
     def _check_lei(self):

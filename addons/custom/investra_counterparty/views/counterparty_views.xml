@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_esa_sector_list" model="ir.ui.view">
+        <field name="name">investra.esa.sector.list</field><field name="model">investra.esa.sector</field>
+        <field name="arch" type="xml"><list><field name="code"/><field name="name"/></list></field>
+    </record>
+    <record id="view_esa_sector_search" model="ir.ui.view">
+        <field name="name">investra.esa.sector.search</field><field name="model">investra.esa.sector</field>
+        <field name="arch" type="xml"><search><field name="code"/><field name="name"/></search></field>
+    </record>
     <record id="view_profile_list" model="ir.ui.view">
         <field name="name">investra.counterparty.profile.list</field><field name="model">investra.counterparty.profile</field>
         <field name="arch" type="xml">
@@ -53,6 +61,10 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='group_currency']" position="after">
                 <group string="Identifikace" name="group_identification">
+                    <field name="company_registry" groups="base.group_erp_manager"/>
+                    <field name="company_registry" readonly="1" groups="!base.group_erp_manager"/>
+                    <field name="vat" groups="base.group_erp_manager"/>
+                    <field name="vat" readonly="1" groups="!base.group_erp_manager"/>
                     <field name="lei"/>
                     <field name="esa_sector_id"/>
                     <button name="action_open_counterparty_profiles" type="object" string="Údaje protistrany"

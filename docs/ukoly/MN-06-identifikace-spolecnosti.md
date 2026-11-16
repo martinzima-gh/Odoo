@@ -64,9 +64,45 @@ a co zůstalo neověřené v prohlížeči.
 
 ## Výsledek
 
-Doplní model, který úkol provedl.
+Provedl Claude Code, 16. 11. 2026, větev `ukol/MN-manual`.
 
 - **Změněné soubory:**
+  - `investra_entity` (20.0.0.11.0): `models/entity.py` (`ico_is_valid`, pole IČO a DIČ, kontrola IČO u české společnosti,
+    parametr `partner` v `create_book`), testy.
+  - `investra_counterparty` (20.0.0.5.0): `models/counterparty.py` (`_rec_names_search` sektoru, název záznamu
+    „Údaje protistrany – kontakt“ / „Nové údaje protistrany“), `views/counterparty_views.xml` (seznam a hledání sektorů
+    s kódem, IČO a DIČ ve skupině Identifikace, jen pro čtení u ostatních než správců), testy.
+  - `investra_chart_fund` (20.0.0.12.3): `wizard/new_book.py` jen háčky `_extra_book_values` a `_after_book_created`.
+  - `investra_instrument_master` (20.0.0.8.0): závislost na `investra_chart_fund`; `models/issuer.py` (pole
+    `code_sector_id`, doplnění sektoru z kódu při zápisu), `views/issuer_views.xml` (kód před sektorem, sektor jen pro čtení,
+    když ho určuje kód), nové `wizard/new_book.py` a `wizard/new_book_views.xml` (Identifikace a Existující kontakt),
+    `tests/test_new_book_identification.py`, `tests/test_issuer.py`.
+  - `docs/manual/01-spolecnost-a-kniha.md`, tento soubor, předávka `docs/predavky/2026-11-16-mn06-identifikace.md`.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
+  - `tools/run_tests.sh investra_entity,investra_counterparty,investra_instrument_master,investra_chart_fund`: 0 selhání ze 153.
+  - `tools/run_tests.sh all`: 0 failed, 0 error ze 779 testů (208 s); dočasné `investra_ci_*` se smazaly.
+  - SELECT v `investra` před povýšením: 10 profilů, 10 s kódem ESA, **0 s neshodným sektorem**, 0 s kódem bez vazby na sektor.
+  - Záloha `zalohy/investra-2026-11-16-pred-MN06.dump` (9 MB, mimo git); `-u` všech čtyř modulů v `investra` bez chyby
+    (v logu jen RST varování popisů modulů), nové verze v `ir_module_module`, nové pohledy v databázi, `investra-web`
+    znovu spuštěna, http://127.0.0.1:8071/web/login vrací 200. V `investra` nic nezaloženo.
+  - **Kódy ESA pro předvyplnění:** hledáním v číselníku vychází pro fond, SICAV a podfond sektor 1240000 a pro investiční
+    společnost 1260000; rezidentské kódy jsou ale tři (1240100 veřejné, 1240200 soukromé národní, 1240300 pod zahraniční
+    kontrolou; 1260100, 1260200, 1260300). Podle zadání proto předvyplnění zůstává **prázdné** a kód se vybírá ručně
+    (hledá se podle čísla i názvu). Logika je hotová a předvyplní kód, jakmile bude pro druh právě jeden.
+- **Odchylky od zadání:**
+  - IČO: Odoo 20 nemá `company_registry`; IČO je v `additional_identifiers['CZ_EN']` kontaktu (čtou ho i sestavy l10n_cz).
+    Pole IČO v knize i průvodci je proto vypočtené s inverzí přes `_set_additional_identifier`. Kontrola mod 11 je naše
+    (Odoo CZ_EN nekontroluje).
+  - „Kontakty-firmy“: `is_company` je v Odoo 20 vypočtené (pravdivé jen s DIČ), fond bez DIČ by se nenabídl. Nabízejí se
+    samostatné kontakty (`parent_id` prázdné), které nejsou kontaktem společnosti.
+  - LEI bez kódu ESA průvodce odmítne před založením (profil má sektor povinný v DB); zadání to nepopisovalo.
+  - Existuje-li profil kontaktu, LEI a kód v průvodci jsou jen pro čtení; mění se v údajích protistrany.
+  - Zápis profilu s kódem bez vazby na sektor u záznamu, který už sektor má, ho ponechá (dřív chyba „zadejte sektor ručně“).
+- **Neověřeno:** chování v prohlížeči (průvodce, formulář knihy, formulář profilu, výběr sektoru a kódu, upozornění na
+  stejné jméno, tlačítko Použít existující kontakt, `force_save` u jen čteného sektoru). Konfirmační dotaz průvodce
+  a podmíněné pole IČO/DIČ pro správce × ostatní pouze podle struktury pohledu. Převzetí kontaktu s nastavenou jinou firmou
+  a vícefiremová pravidla kontaktů nejsou testovaná na skutečné databázi.
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Který ze tří rezidentských kódů předvyplnit pro fond (např. 1240200 soukromé národní) a pro investiční společnost
+    (1260200)? Rozhodnutí Martina; pak stačí upřesnit `_default_esa_code`.
+  - Přidat do seedu IČO/DIČ ukázkových knih? Teď beze změny (`create_book` bez kontaktu).

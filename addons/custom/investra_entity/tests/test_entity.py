@@ -4,6 +4,8 @@ from odoo.addons.base.models.res_company import ResCompany as BaseCompany
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
+from odoo.addons.investra_entity.models.entity import ico_is_valid
+
 
 @tagged("post_install", "-at_install")
 class TestEntity(TransactionCase):
@@ -94,3 +96,48 @@ class TestEntity(TransactionCase):
         self.assertEqual(Entity.default_get(["company_id"])["company_id"], other.id)
         field = self.Entity._fields["company_id"]
         self.assertEqual(field.domain, "[('id', 'in', allowed_company_ids)]")
+
+
+@tagged("post_install", "-at_install")
+class TestEntityIdentification(TransactionCase):
+    """IČO, DIČ a existující kontakt (MN-06)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.czk = cls.env.ref("base.CZK")
+        cls.czk.active = True
+        cls.Entity = cls.env["investra.entity"]
+
+    def test_ico_check_digit(self):
+        for valid in ("45274649", "00006947", "27082440"):
+            self.assertTrue(ico_is_valid(valid), valid)
+        for invalid in ("45274648", "4527464", "452746490", "abcdefgh", "", None, "٤٥٢٧٤٦٤٩"):
+            self.assertFalse(ico_is_valid(invalid), invalid)
+
+    def test_entity_edits_company_identification(self):
+        entity = self.Entity.create_book("Fond IČO", "fund", "cas501", self.czk, "cz")
+        entity.write({"company_registry": "45274649", "vat": "CZ45274649"})
+        partner = entity.company_id.partner_id
+        self.assertEqual(partner._get_additional_identifier("CZ_EN"), "45274649")
+        self.assertEqual(partner.vat, "CZ45274649")
+
+    def test_invalid_ico_is_refused_for_czech_company(self):
+        entity = self.Entity.create_book("Fond IČO chyba", "fund", "cas501", self.czk, "cz")
+        with self.assertRaises(ValidationError):
+            entity.company_registry = "45274648"
+
+    def test_create_book_takes_existing_partner(self):
+        partner = self.env["res.partner"].create({
+            "name": "Kontakt fondu", "additional_identifiers": {"CZ_EN": "45274649"},
+            "company_id": self.env.company.id, "country_id": self.env.ref("base.cz").id})
+        partners = self.env["res.partner"].search_count([])
+        entity = self.Entity.create_book("Kontakt fondu", "fund", "cas501", self.czk, "cz", partner=partner)
+        self.assertEqual(entity.company_id.partner_id, partner)
+        self.assertFalse(partner.company_id)
+        self.assertEqual(entity.company_registry, "45274649")
+        self.assertEqual(self.env["res.partner"].search_count([]), partners)
+
+    def test_create_book_without_partner_is_unchanged(self):
+        entity = self.Entity.create_book("Fond bez kontaktu", "fund", "cas501", self.czk, "cz")
+        self.assertEqual(entity.company_id.partner_id.name, "Fond bez kontaktu")

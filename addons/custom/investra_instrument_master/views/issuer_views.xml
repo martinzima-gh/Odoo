@@ -52,8 +52,14 @@
                     Údaje jsou potvrzené. Změna údaje vyžaduje nový důvod změny a vrátí stav na „Ke kontrole“; původní hodnoty zůstanou v historii záznamu.
                 </div>
             </xpath>
-            <xpath expr="//sheet/group" position="inside">
-                <field name="esa_code_id" required="1"/>
+            <xpath expr="//sheet/group//field[@name='sector_id']" position="before">
+                <field name="esa_code_id" required="1" options="{'no_create': True}"/>
+                <field name="code_sector_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet/group//field[@name='sector_id']" position="attributes">
+                <attribute name="readonly">code_sector_id</attribute>
+                <attribute name="force_save">1</attribute>
+                <attribute name="options">{'no_create': True}</attribute>
             </xpath>
             <xpath expr="//sheet/group" position="after">
                 <group string="Odvozené hodnoty">

@@ -15,6 +15,9 @@ class InvestraCounterpartyProfile(models.Model):
 
     # Povinnost ESA kódu je jen ve formuláři (view), ne v databázi: profily založené dříve ESA kód nemají.
     esa_code_id = fields.Many2one("investra.esa.code", "Kód sektoru ESA", ondelete="restrict", index=True, tracking=True)
+    code_sector_id = fields.Many2one(
+        related="esa_code_id.esa2010_sector_id", string="Sektor podle kódu ESA",
+        help="Sektor ESA 2010, který určuje zvolený kód. Je-li vyplněný, sektor profilu se z něj doplní a nejde ručně změnit.")
     resident_status = fields.Selection(related="esa_code_id.residency", string="Rezidentství", store=True)
     issuer_type_id = fields.Many2one(
         related="esa_code_id.aggregate_sector_id", string="Typ emitenta", store=True, index=True)
@@ -105,20 +108,21 @@ class InvestraCounterpartyProfile(models.Model):
     # --- zápis: změna potvrzeného záznamu ---------------------------------------------------------------------------
 
     @api.model
-    def _sector_from_esa(self, esa_code):
-        sector = esa_code.esa2010_sector_id
-        if not sector:
-            raise ValidationError(self.env._(
-                "ESA kód %s nemá přiřazený sektor ESA 2010; zadejte sektor ručně.", esa_code.code))
-        return sector.id
+    def _vals_with_code_sector(self, vals):
+        """Sektor ESA 2010 profilu se doplní z kódu sektoru ESA (MN-06, pozn. 12), i při importu; výslovně zadaný
+        sektor se nepřepisuje (formulář ho po výběru kódu posílá už odvozený). Kód bez vazby na sektor: sektor se
+        zadá ručně, jinak chyba."""
+        if not vals.get("esa_code_id") or vals.get("sector_id"):
+            return vals
+        code = self.env["investra.esa.code"].browse(vals["esa_code_id"])
+        if code.esa2010_sector_id:
+            return dict(vals, sector_id=code.esa2010_sector_id.id)
+        raise ValidationError(self.env._(
+            "ESA kód %s nemá přiřazený sektor ESA 2010; zadejte sektor ručně.", code.code))
 
     @api.model_create_multi
     def create(self, vals_list):
-        vals_list = [dict(vals) for vals in vals_list]
-        for vals in vals_list:
-            if vals.get("esa_code_id") and not vals.get("sector_id"):
-                vals["sector_id"] = self._sector_from_esa(self.env["investra.esa.code"].browse(vals["esa_code_id"]))
-        return super().create(vals_list)
+        return super().create([self._vals_with_code_sector(dict(vals)) for vals in vals_list])
 
     def _data_changed(self, vals):
         """Záznamy, u kterých zápis skutečně mění některý z údajů DATA_FIELDS."""
@@ -131,8 +135,10 @@ class InvestraCounterpartyProfile(models.Model):
     def write(self, vals):
         # Odchylka od stavu před MN-09: potvrzený záznam už není zamčený (nová verze s datem neexistuje). Změna údaje
         # vyžaduje důvod změny a vrací stav na „Ke kontrole“; stará a nová hodnota zůstávají v historii záznamu.
-        if vals.get("esa_code_id") and not vals.get("sector_id"):
-            vals = dict(vals, sector_id=self._sector_from_esa(self.env["investra.esa.code"].browse(vals["esa_code_id"])))
+        if vals.get("esa_code_id") and not vals.get("sector_id") and not self.env["investra.esa.code"].browse(
+                vals["esa_code_id"]).esa2010_sector_id and len(self) == 1 and self.sector_id:
+            vals = dict(vals, sector_id=self.sector_id.id)  # kód bez vazby: stávající sektor zůstává
+        vals = self._vals_with_code_sector(vals)
         reopened = self._data_changed(vals).filtered(lambda p: p.review_state == "reviewed")
         if reopened and not vals.get("change_reason"):
             raise UserError(self.env._(
