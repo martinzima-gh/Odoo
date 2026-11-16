@@ -150,7 +150,11 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-02 | Manuál kap. 1–3: společnost a kniha, fond, třídy (`docs/ukoly/MN-02-manual-zalozeni-fondu.md`) | Sonnet | zelená |
 | MN-03 | Datum vzniku ve formuláři fondu, výchozí kurz nové třídy – hotovo | Sonnet | oranžová |
 | MN-04 | Odchylka mapování rolí od standardu (`docs/ukoly/MN-04-odchylka-mapovani-roli.md`) | Sonnet | oranžová |
-| MN-05+ | Opravy z Martinova průchodu, nálezy MN-02 3–10 a další kapitoly (zadání píše hlavní relace) | podle zóny | |
+| MN-04 | Odchylka mapování rolí od standardu – hotovo | Sonnet | oranžová |
+| MN-05 | Oprava průvodce (chyba přístupu), formulář knihy, LEI, zrušení Zakladatele, DIČ (`docs/ukoly/MN-05-oprava-pruvodce-a-formular-knihy.md`) | Sonnet | oranžová |
+| MN-06 | Fond a třídy: zámky po prvním pohybu, pořadí a archivace tříd, nápovědy, kontrola ISIN (nálezy MN-02 3, 4, 7) | Sonnet | oranžová |
+| MN-07 | Zdroj kurzů „Neimplementováno“ pro jiné měny, přecenění bez kurzu skončí chybou | Opus | červená |
+| MN-08+ | Další poznámky z průchodu a kapitoly 4–8 manuálu | podle zóny | |
 
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
