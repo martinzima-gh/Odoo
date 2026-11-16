@@ -12,6 +12,14 @@ class TestFxRun(AccountTestInvoicingCommon):
     """1 000 v cizí měně při kurzu 25, přecenění při 26 a 24."""
 
     @classmethod
+    def _create_company(cls, **create_values):
+        # Testovací firma Odoo je v USD; funkční měna mimo CZK a EUR nemá zdroj kurzů (MN-08), proto CZK se zdrojem ČNB.
+        czk = cls.env.ref("base.CZK")
+        czk.active = True
+        create_values.setdefault("currency_id", czk.id)
+        return super()._create_company(**create_values)
+
+    @classmethod
     def setUpClass(cls):
         super().setUpClass()
         # Kurzy Odoo zapisuje jen systém (ochrana kurzů 2026-11-10); pomocník testů Odoo je zakládá

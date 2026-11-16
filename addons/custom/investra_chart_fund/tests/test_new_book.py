@@ -56,6 +56,17 @@ class TestNewBookWizard(TransactionCase):
         entity = self._create(name="Průvodce fond EUR", entity_type="fund", framework="cas501", currency_id=self.eur.id)
         self._assert_fund_book(entity, self.eur, "ecb")
 
+    def test_other_currency_shows_missing_rate_source(self):
+        """MN-08: průvodce ukáže pro USD zdroj Neimplementováno s upozorněním; kniha jde založit."""
+        usd = self.env.ref("base.USD")
+        usd.active = True
+        wizard = self.Wizard.new({"name": "Průvodce USD", "entity_type": "fund", "currency_id": usd.id})
+        self.assertEqual((wizard.rate_source, wizard.rate_source_missing), ("Neimplementováno", True))
+        wizard.currency_id = self.czk
+        self.assertEqual((wizard.rate_source, wizard.rate_source_missing), ("ČNB", False))
+        entity = self._create(name="Průvodce fond USD", entity_type="fund", framework="cas501", currency_id=usd.id)
+        self._assert_fund_book(entity, usd, "none")
+
     def test_manager_book(self):
         entity = self._create(name="Průvodce IS", entity_type="manager", framework="cas501")
         company = entity.company_id

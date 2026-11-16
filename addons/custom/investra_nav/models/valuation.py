@@ -7,6 +7,7 @@ from odoo import api, fields, models
 from odoo.tools import format_date, html2plaintext
 from odoo.exceptions import AccessError, UserError, ValidationError
 
+from odoo.addons.investra_entity.models.entity import RATE_SOURCE_NONE
 from odoo.addons.investra_fund.models.approval_matrix import ROLES, check_user
 
 from .. import engine
@@ -89,7 +90,7 @@ class InvestraFund(models.Model):
                 "gain_account_id": maps["gain_fx"].account_id.id if "gain_fx" in maps else False,
                 "loss_account_id": maps["loss_fx"].account_id.id if "loss_fx" in maps else False,
                 "journal_id": journal.id,
-                "rate_source": fund.entity_id.rate_source or "cnb",
+                # Zdroj kurzu doplní profil podle funkční měny (dřív záložně ČNB, MN-08).
             })
 
 
@@ -374,7 +375,7 @@ class InvestraValuation(models.Model):
         self.state = "computed"
 
     def _rate_source(self):
-        return self.fund_id.entity_id.rate_source
+        return self.fund_id.entity_id._require_rate_source()
 
     def _fx(self, currency):
         """Měna fondu za jednotku měny, jen z vyhlášeného kurzu k datu."""
@@ -1349,6 +1350,8 @@ class InvestraValuation(models.Model):
     def _manual_rates(self):
         """Ruční kurzy, které ocenění k datu použilo (měny portfolia, tříd a fondu)."""
         Rate = self.env["investra.rate"].sudo()
+        if self.fund_id.entity_id.rate_source == RATE_SOURCE_NONE:
+            return []  # kniha bez zdroje kurzů: kurz se nepoužil, jinak by ocenění skončilo chybou dřív (MN-08)
         source = self._rate_source()
         base = Rate.base_currency(source)
         currencies = self.portfolio_line_ids.currency_id | self.fund_id.class_ids.currency_id | self.fund_id.currency_id

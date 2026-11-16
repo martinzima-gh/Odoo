@@ -1,7 +1,7 @@
 from odoo import Command, api, fields, models
 from odoo.exceptions import UserError
 
-from odoo.addons.investra_entity.models.entity import RATE_SOURCE_BY_CURRENCY
+from odoo.addons.investra_entity.models.entity import RATE_SOURCE_NONE, rate_source_for
 
 FUND_TYPES = ("sicav", "fund", "subfund")
 # Rámec se odvozuje od druhu jednotky a rámce se nemíchají (servisní společnost 500/2002, ostatní 501/2002).
@@ -35,13 +35,16 @@ class InvestraNewBookWizard(models.TransientModel):
     parent_id = fields.Many2one("investra.entity", string="Nadřazená kniha", domain="[('entity_type', '=', 'sicav')]")
     template = fields.Char(compute="_compute_template", string="Šablona osnovy")
     rate_source = fields.Char(compute="_compute_template", string="Zdroj kurzů")
+    rate_source_missing = fields.Boolean(compute="_compute_template", string="Bez zdroje kurzů")
 
     @api.depends("entity_type", "currency_id")
     def _compute_template(self):
         labels = dict(self.env["investra.entity"]._fields["rate_source"].selection)
         for wizard in self:
             wizard.template = template_for(wizard.entity_type) if wizard.entity_type else False
-            wizard.rate_source = labels[RATE_SOURCE_BY_CURRENCY.get(wizard.currency_id.name, "cnb")]
+            source = rate_source_for(wizard.currency_id)
+            wizard.rate_source = labels[source]
+            wizard.rate_source_missing = source == RATE_SOURCE_NONE
 
     @api.onchange("entity_type")
     def _onchange_entity_type(self):

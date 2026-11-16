@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-from odoo.addons.investra_entity.models.entity import RATE_SOURCE_BY_CURRENCY
+from odoo.addons.investra_entity.models.entity import RATE_SOURCE_NONE, RATE_SOURCES, raise_no_rate_source, rate_source_for
 
 
 class InvestraFxProfile(models.Model):
@@ -20,13 +20,28 @@ class InvestraFxProfile(models.Model):
     journal_id = fields.Many2one(
         "account.journal", string="Deník", check_company=True, ondelete="restrict", domain="[('type', '=', 'general')]"
     )
-    rate_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb", string="Zdroj kurzu")
+    # Výchozí podle funkční měny aktivní firmy, onchange a create podle zvolené společnosti (dřív pevně ČNB, MN-08).
+    rate_source = fields.Selection(
+        RATE_SOURCES, required=True, string="Zdroj kurzu", default=lambda self: rate_source_for(self.env.company.currency_id),
+    )
+
+    @api.onchange("company_id")
+    def _onchange_company_rate_source(self):
+        for record in self:
+            record.rate_source = rate_source_for(record.company_id.currency_id)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("rate_source"):
+                company = self.env["res.company"].browse(vals.get("company_id")) if vals.get("company_id") else self.env.company
+                vals["rate_source"] = rate_source_for(company.currency_id)
+        return super().create(vals_list)
 
     @api.constrains("rate_source", "company_id")
     def _check_rate_source(self):
         for profile in self:
-            required = RATE_SOURCE_BY_CURRENCY.get(profile.company_id.currency_id.name)
-            if required and profile.rate_source != required:
+            if profile.rate_source != rate_source_for(profile.company_id.currency_id):
                 raise ValidationError(self.env._("Zdroj kurzu se řídí měnou účetnictví: %s.", profile.company_id.currency_id.name))
 
     @api.model
@@ -118,6 +133,8 @@ class InvestraFxRun(models.Model):
         profile = self.profile_id
         Rate = self.env["investra.rate"].sudo()
         source, base = profile.rate_source, self.company_id.currency_id
+        if source == RATE_SOURCE_NONE:
+            raise_no_rate_source(self.env, self.company_id.name, base)
         return float(Rate.get_rate(source, currency, self.date) / Rate.get_rate(source, base, self.date))
 
     def action_compute(self):

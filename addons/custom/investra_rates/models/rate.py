@@ -158,6 +158,9 @@ class InvestraRate(models.Model):
 
     @api.model
     def base_currency(self, source):
+        # Pojistka: zdroj bez implementace (kniha mimo CZK a EUR, MN-08) nesmí tiše spadnout do EUR ani ČNB.
+        if source not in ("cnb", "ecb"):
+            raise UserError(self.env._("Zdroj kurzů %s není implementován.", source))
         return self.env.ref("base.CZK" if source == "cnb" else "base.EUR")
 
     @api.model

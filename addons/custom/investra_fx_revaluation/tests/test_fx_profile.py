@@ -1,4 +1,6 @@
-from odoo.exceptions import AccessError, ValidationError
+from datetime import date
+
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -16,6 +18,24 @@ class TestFxProfile(TransactionCase):
         self.assertEqual(Profile.create({"name": "ČNB", "company_id": company.id}).rate_source, "cnb")
         with self.assertRaises(ValidationError):
             Profile.create({"name": "ECB", "company_id": company.id, "rate_source": "ecb"})
+
+    def test_other_currency_has_no_rate_source(self):
+        """MN-08: profil firmy v USD má zdroj Neimplementováno a přecenění skončí chybou, ne kurzem ČNB."""
+        usd = self.env.ref("base.USD")
+        usd.active = True
+        company = self.env["res.company"].create({"name": "Zdroj USD", "currency_id": usd.id})
+        Profile = self.env["investra.fx.profile"]
+        profile = Profile.create({"name": "Bez zdroje", "company_id": company.id})
+        self.assertEqual(profile.rate_source, "none")
+        with self.assertRaises(ValidationError):
+            Profile.create({"name": "ČNB", "company_id": company.id, "rate_source": "cnb"})
+        run = self.env["investra.fx.run"].create({"profile_id": profile.id, "company_id": company.id, "date": "2040-01-31"})
+        with self.assertRaisesRegex(UserError, "nemá zdroj kurzů pro funkční měnu USD"):
+            run._published_rate(self.env.ref("base.EUR"))
+
+    def test_rate_without_source_is_refused(self):
+        with self.assertRaisesRegex(UserError, "není implementován"):
+            self.env["investra.rate"].get_rate("none", self.env.ref("base.EUR"), date(2040, 1, 31))
 
 
 @tagged("post_install", "-at_install")

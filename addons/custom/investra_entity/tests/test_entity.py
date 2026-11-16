@@ -21,6 +21,18 @@ class TestEntity(TransactionCase):
         self.assertEqual(self.Entity.create_book("Fond CZK", "fund", "cas501", self.czk, "cz").rate_source, "cnb")
         self.assertEqual(self.Entity.create_book("Fond EUR zdroj", "fund", "cas501", self.eur, "cz").rate_source, "ecb")
 
+    def test_other_currency_has_no_rate_source(self):
+        """MN-08: funkční měna mimo CZK a EUR je povolená, zdroj kurzů je Neimplementováno a výpočet s kurzem zastaví."""
+        usd = self.env.ref("base.USD")
+        usd.active = True
+        entity = self.Entity.create_book("Fond USD zdroj", "fund", "cas501", usd, "cz")
+        self.assertEqual(entity.rate_source, "none")
+        with self.assertRaisesRegex(UserError, "nemá zdroj kurzů pro funkční měnu USD"):
+            entity._require_rate_source()
+        with self.assertRaises(ValidationError):
+            entity.rate_source = "cnb"
+        self.assertEqual(self.Entity.create_book("Fond CZK zdroj 2", "fund", "cas501", self.czk, "cz")._require_rate_source(), "cnb")
+
     def test_wrong_rate_source_is_refused(self):
         entity = self.Entity.create_book("Fond zdroj", "fund", "cas501", self.czk, "cz")
         with self.assertRaises(ValidationError):

@@ -26,7 +26,7 @@ Vynechalo by zámek deníků, auditní stopu a mapování rolí účtů a mohlo 
 | **Funkční měna** | ano | CZK | nabízejí se jen aktivní měny |
 | **Země** | ano | Česko | |
 | **Šablona osnovy** | jen čtení | podle druhu | SICAV, fond, podfond: osnova fondu (`investra_fund`); ostatní: česká osnova (`cz`) |
-| **Zdroj kurzů** | jen čtení | podle měny | CZK – ČNB, EUR – ECB; jiná měna: ČNB |
+| **Zdroj kurzů** | jen čtení | podle měny | CZK – ČNB, EUR – ECB; jiná měna: **Neimplementováno** (pod poli žluté upozornění) |
 | **Existující kontakt** | ne | – | kontakt, který nová společnost převezme (viz níže) |
 | **IČO** | ne | – | 8 číslic s kontrolní číslicí; u země Česko se kontroluje: „Neplatné IČO …“ |
 | **DIČ** | ne | CZ + IČO | u země Česko se po zadání platného IČO předvyplní, lze přepsat |
@@ -58,11 +58,26 @@ Rámce se nemíchají; IFRS je v seznamu rámců, ale průvodce ho odmítne.
 ## Co průvodce nastaví za vás
 
 - funkční měnu podle zadání (načtení osnovy ji nepřepíše),
-- zdroj kurzů podle měny, § 24d zákona o účetnictví,
+- zdroj kurzů podle měny, § 24d zákona o účetnictví (CZK – ČNB, EUR – ECB, jiná – Neimplementováno, viz níže),
 - zámek zápisů (auditní stopa) společnosti,
 - u SICAV, fondu a podfondu hash obecných deníků (zápisy jsou neměnné),
 - mapování rolí účtů na účty šablony,
 - přidání nové společnosti vašemu uživateli.
+
+## Funkční měna mimo CZK a EUR
+
+Knihu lze založit i ve funkční měně mimo CZK a EUR (např. USD). Zdroj kurzů je pak **Neimplementováno**: kurzy jiné
+centrální banky se nestahují (rozhodnutí 16. 11. 2026, úkol MN-08). Bez kurzu funguje vše, co ho nepotřebuje
+(např. úpis a ocenění třídy ve funkční měně). Kde kurz potřeba je, výpočet skončí chybou
+„Kniha <název> nemá zdroj kurzů pro funkční měnu <měna> (není implementováno).“ a kurz ČNB se tiše nepoužije:
+
+- pohyb (úpis, odkup) třídy v jiné měně než funkční – i s ručně zadaným kurzem,
+- ocenění fondu s třídou, pozicí nebo bankovním účtem v cizí měně,
+- přecenění cizích měn (profil přecenění má také zdroj Neimplementováno),
+- přecenění a zaúčtování derivátů v cizí měně.
+
+Ruční zadání kurzu pro takovou knihu zatím není povolené; o něm rozhodne Martin.
+Obchod s nástrojem v cizí měně se dál účtuje kurzem obchodu, který se zadává u obchodu; ocenění pozice ale skončí chybou.
 
 ## Co nejde později změnit
 
@@ -88,8 +103,8 @@ Podfond zakládejte až po SICAV a v poli **Nadřazená kniha** SICAV vyberte.
   Kdyby zapnutá nebyla, zaškrtněte ji ručně, jinak neuvidíte její knihy, fond ani třídy (přístup se řídí zaškrtnutými
   společnostmi).
 - **Formulář knihy** (Účetní knihy): skupina **Společnost** (společnost, druh jednotky, účetní rámec, nadřazená kniha jen
-  u podfondu), skupina **Měna a kurzy** (funkční měna jen čtení, zdroj kurzů; pod ním text „Výkazy ČNB se vždy přepočítávají
-  kurzem ČNB.“) a skupina **Identifikace** (**IČO** a **DIČ** upravitelné jen pro správce, ostatní je vidí jen ke čtení;
+  u podfondu), skupina **Měna a kurzy** (funkční měna a zdroj kurzů jen čtení; pod nimi text „Zdroj kurzů se řídí funkční
+  měnou: CZK – ČNB, EUR – ECB. Výkazy ČNB se vždy přepočítávají kurzem ČNB.“, u knihy bez zdroje kurzů navíc žluté upozornění) a skupina **Identifikace** (**IČO** a **DIČ** upravitelné jen pro správce, ostatní je vidí jen ke čtení;
   LEI a sektor ESA ze záznamu údajů protistrany, jen čtení). IČO se u české společnosti kontroluje (8 číslic, kontrolní
   číslice). Nad poli je upozornění, že funkční měnu, rámec
   ani společnost nejde po prvním zaúčtování změnit. U polí jsou nápovědy (najeďte myší na popisek).

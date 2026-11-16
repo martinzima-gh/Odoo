@@ -46,7 +46,7 @@ class InvestraFund(models.Model):
         if currency == self.currency_id:
             return Decimal(1)
         Rate = self.env["investra.rate"].sudo()
-        source = self.entity_id.rate_source
+        source = self.entity_id._require_rate_source()  # kniha bez zdroje kurzů výpočet zastaví (MN-08)
         return Rate.get_rate(source, currency, day) / Rate.get_rate(source, self.currency_id, day)
 
 
@@ -269,6 +269,14 @@ class InvestraClassMovement(models.Model):
         if self.filtered(lambda m: m.state != "draft" or m.event_id):
             raise UserError(self.env._("Zaúčtovaný pohyb nejde smazat; opravte ho stornem."))
         return super().unlink()
+
+    @api.constrains("class_id")
+    def _check_rate_source(self):
+        """Třída v cizí měně v knize bez zdroje kurzů: ani ručně zadaný kurz se nepřijme, dokud o ručním kurzu
+        nerozhodne Martin (MN-08)."""
+        for movement in self:
+            if movement.currency_id != movement.fund_id.currency_id:
+                movement.fund_id.entity_id._require_rate_source()
 
     @api.constrains("amount", "units", "fee_amount_class")
     def _check_positive(self):

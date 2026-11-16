@@ -5,6 +5,22 @@ from odoo.exceptions import UserError, ValidationError
 HASHED_TYPES = ("sicav", "fund", "subfund")
 # Kurz se řídí měnou účetnictví, § 24d odst. 1 zákona o účetnictví.
 RATE_SOURCE_BY_CURRENCY = {"CZK": "cnb", "EUR": "ecb"}
+# Jiná funkční měna je povolená, ale zdroj kurzů pro ni není implementován (MN-08, rozhodnutí 2026-11-16 bod 5a):
+# kde je kurz potřeba, výpočet skončí chybou a nepoužije tiše kurz ČNB.
+RATE_SOURCE_NONE = "none"
+RATE_SOURCES = [("cnb", "ČNB"), ("ecb", "ECB"), (RATE_SOURCE_NONE, "Neimplementováno")]
+
+
+def rate_source_for(currency):
+    """Zdroj kurzů podle funkční měny: CZK – ČNB, EUR – ECB, jiná – Neimplementováno."""
+    return RATE_SOURCE_BY_CURRENCY.get(currency.name, RATE_SOURCE_NONE)
+
+
+def raise_no_rate_source(env, book_name, currency):
+    raise UserError(env._(
+        "Kniha %(book)s nemá zdroj kurzů pro funkční měnu %(currency)s (není implementováno).",
+        book=book_name, currency=currency.name,
+    ))
 
 
 
@@ -69,9 +85,12 @@ class InvestraEntity(models.Model):
         help="Podle vyhlášky: servisní společnost 500/2002, investiční společnost, SICAV, fond a podfond 501/2002. "
              "Rámce se nemíchají a po prvním zaúčtování se nemění.",
     )
+    # Výchozí podle funkční měny aktivní firmy, onchange a create podle zvolené společnosti (dřív pevně ČNB, MN-08).
     rate_source = fields.Selection(
-        [("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb", string="Zdroj kurzů",
-        help="Řídí se funkční měnou knihy (§ 24d zákona o účetnictví): CZK – ČNB, EUR – ECB.",
+        RATE_SOURCES, required=True, string="Zdroj kurzů",
+        default=lambda self: rate_source_for(self.env.company.currency_id),
+        help="Řídí se funkční měnou knihy (§ 24d zákona o účetnictví): CZK – ČNB, EUR – ECB. Pro jinou funkční měnu "
+             "zdroj kurzů není implementován: přecenění, ocenění i pohyb třídy v cizí měně skončí chybou.",
     )
     parent_id = fields.Many2one(
         "investra.entity", string="Nadřazená kniha", ondelete="restrict",
@@ -90,12 +109,31 @@ class InvestraEntity(models.Model):
         for entity in self:
             entity.company_id.partner_id._set_additional_identifier(ICO_KEY, (entity.company_registry or "").strip())
 
+    @api.onchange("company_id")
+    def _onchange_company_rate_source(self):
+        for record in self:
+            record.rate_source = rate_source_for(record.company_id.currency_id)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("rate_source"):
+                company = self.env["res.company"].browse(vals.get("company_id")) if vals.get("company_id") else self.env.company
+                vals["rate_source"] = rate_source_for(company.currency_id)
+        return super().create(vals_list)
+
     @api.constrains("rate_source", "company_id")
     def _check_rate_source(self):
         for entity in self:
-            required = RATE_SOURCE_BY_CURRENCY.get(entity.company_id.currency_id.name)
-            if required and entity.rate_source != required:
+            if entity.rate_source != rate_source_for(entity.company_id.currency_id):
                 raise ValidationError(self.env._("Zdroj kurzu se řídí měnou účetnictví: %s.", entity.company_id.currency_id.name))
+
+    def _require_rate_source(self):
+        """Zdroj kurzů knihy pro výpočet s kurzem; bez implementovaného zdroje výpočet zastaví (MN-08)."""
+        self.ensure_one()
+        if self.rate_source == RATE_SOURCE_NONE:
+            raise_no_rate_source(self.env, self.name, self.company_id.currency_id)
+        return self.rate_source
 
     @api.constrains("company_registry")
     def _check_company_registry(self):
@@ -137,7 +175,7 @@ class InvestraEntity(models.Model):
         a to by po commitu přepsalo osnovu i funkční měnu. Funkční měna se nastavuje jen tady
         při založení knihy (rozhodnutí 2026-11-15).
         """
-        values.setdefault("rate_source", RATE_SOURCE_BY_CURRENCY.get(currency.name, "cnb"))
+        values.setdefault("rate_source", rate_source_for(currency))
         Company = self.env["res.company"].sudo()
         company_vals = {
             "name": name,

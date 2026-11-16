@@ -33,8 +33,15 @@
                         </group>
                         <group string="Měna a kurzy" name="group_currency">
                             <field name="currency_id"/>
-                            <field name="rate_source"/>
-                            <div class="text-muted" colspan="2">Výkazy ČNB se vždy přepočítávají kurzem ČNB.</div>
+                            <field name="rate_source" readonly="1" force_save="1"/>
+                            <div class="text-muted" colspan="2">
+                                Zdroj kurzů se řídí funkční měnou: CZK – ČNB, EUR – ECB.
+                                Výkazy ČNB se vždy přepočítávají kurzem ČNB.
+                            </div>
+                            <div class="alert alert-warning" role="alert" colspan="2" invisible="rate_source != 'none'">
+                                Pro tuto funkční měnu zdroj kurzů není implementován. Přecenění, ocenění a pohyb třídy
+                                v cizí měně skončí chybou; kurz ČNB se tiše nepoužije.
+                            </div>
                         </group>
                     </group>
                 </sheet>
