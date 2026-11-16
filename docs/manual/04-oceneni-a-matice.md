@@ -1,6 +1,6 @@
 # 4. Ocenění a schvalovací matice
 
-*Ověřeno v kódu, v prohlížeči neověřeno.*
+*Ověřeno v kódu, v prohlížeči neověřeno (Martin 16. 11. 2026 přijal bez ověření; případné nesrovnalosti se opraví při používání).*
 
 Kapitola navazuje na fond z kap. 2 a 3 (Fond Alfa Růst, obhospodařovatel Alfa Investiční společnost, a.s.). Cíl: nastavit frekvenci
 ocenění a pravidla schvalování tak, aby šlo spočítat a schválit první ocenění. Podrobný postup ocenění je v pozdější kapitole.
