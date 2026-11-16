@@ -21,5 +21,11 @@ opraven (karta s počtem 0 je vypnutá). Graf FK, řazení tabulky, karta Invest
 odložené jako poznámky v `docs/otevrene-body.md` („Přehled fondů – možná vylepšení“); otevřít jen na Martinův pokyn.
 `docs/architektura.md` nebyl po doplnění řádku v Claude Doc znovu exportován. Sloučení do `main` jen na Martinovu výzvu.
 
+**Doplněno 16. 11. 2026:** karta zhuštěna, odkaz „Otevřít ocenění“ odstraněn, kontroly jen u nezveřejněného ocenění
+(modul 0.5.1, povýšeno v `investra`, 30 testů bez chyb; vzhled po zhuštění Martin ještě nepotvrdil). Do plánu
+(`docs/plan-dalsiho-vyvoje.md`, Nezařazené úkoly) přibyly PO-01 (kusy v podrozvaze), DA-01 (daně) a OZ-01 až OZ-03
+(oprava zveřejněného ocenění, návrh `docs/navrh-oprava-zverejneneho-oceneni.md` čeká na rozhodnutí).
+První krok příště: Martin potvrdí vzhled karty a řekne, zda sloučit `etapa/derivaty` do `main`.
+
 **Soubory ke čtení:** `addons/custom/investra_dashboard/models/dashboard.py`, `views/dashboard_views.xml`,
 `static/src/fund_summary.js`, `docs/ukoly/AG-018-prehled-ovladani-karty.md`.

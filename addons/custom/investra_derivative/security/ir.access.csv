@@ -10,5 +10,3 @@ access_derivative_value_preparer,investra.derivative.value preparer,investra.der
 investra_derivative_value_company_rule,Ruční hodnoty FX derivátů podle společnosti,investra.derivative.value,,crud,"[('company_id', 'in', company_ids)]"
 access_derivative_settle_wizard,investra.derivative.settle.wizard prep,investra.derivative.settle.wizard,investra_entity.group_valuation_preparer,crud,
 access_derivative_reverse_wizard,investra.derivative.reverse.wizard prep,investra.derivative.reverse.wizard,investra_entity.group_valuation_preparer,crud,
-access_val_derivative_read,investra.valuation.derivative read,investra.valuation.derivative,account.group_account_readonly,r,
-investra_val_derivative_rule,investra.valuation.derivative company,investra.valuation.derivative,,crud,"[('company_id', 'in', company_ids)]"
