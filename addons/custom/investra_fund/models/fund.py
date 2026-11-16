@@ -20,6 +20,24 @@ FEE_PARAMS = ("entry_fee_recipient", "exit_fee_recipient")
 MOVEMENT_PARAMS = ("unit_digits", "unit_rounding", "rounding_owner", "entry_fee_rate", "exit_fee_rate") + FEE_PARAMS
 
 
+def isin_is_valid(isin):
+    """ISIN podle ISO 6166: 2 velká písmena (kód země), 9 velkých písmen nebo číslic a kontrolní číslice (Luhn).
+
+    Pomocná funkce je tady, aby ji mohly použít i nástroje (dnes kontrolují jen přítomnost ISIN); kontrolu mezer
+    a velikosti písmen neopravuje, jen ji odmítne.
+    """
+    if not isin or len(isin) != 12 or not isin.isascii() or not isin.isalnum() or isin != isin.upper():
+        return False
+    if not isin[:2].isalpha() or not isin[11].isdigit():
+        return False
+    digits = "".join(str(int(char, 36)) for char in isin)
+    total = 0
+    for index, char in enumerate(reversed(digits)):
+        number = int(char) * (2 if index % 2 == 1 else 1)
+        total += number - 9 if number > 9 else number
+    return total % 10 == 0
+
+
 class InvestraFund(models.Model):
     _name = "investra.fund"
     _description = "Fond"
@@ -36,6 +54,7 @@ class InvestraFund(models.Model):
         required=True,
         default="monthly",
         string="Frekvence ocenění",
+        help="Plánovaná četnost ocenění fondu (denně až ročně). Konkrétní data ocenění a zveřejnění lze plánovat v Kalendáři ocenění.",
     )
     # Druhou osobu určuje schvalovací matice (rozhodnutí 2026-11-11); dřívější pole second_person_required
     # převedla migrace investra_nav 20.0.0.6.0, sloupec v databázi zůstává jen pro historii.
@@ -77,9 +96,13 @@ class InvestraFund(models.Model):
         required=True,
         default="eir",
         string="Úročení nástrojů v naběhlé hodnotě",
+        help="Způsob, jakým se počítá naběhlý výnos nástrojů v naběhlé hodnotě: efektivní úroková míra, nebo lineárně. Lineární úročení vyžaduje zdůvodnění.",
     )
     accrual_note = fields.Char(string="Zdůvodnění lineárního úročení")
-    calendar_ids = fields.One2many("investra.valuation.calendar", "fund_id", string="Kalendář ocenění")
+    calendar_ids = fields.One2many(
+        "investra.valuation.calendar", "fund_id", string="Kalendář ocenění",
+        help="Plánovaná data ocenění a plánované zveřejnění; datum ocenění je v kalendáři jedinečné.",
+    )
 
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
 
@@ -109,17 +132,19 @@ class InvestraFundClass(models.Model):
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    code = fields.Char(required=True, string="Kód")
-    name = fields.Char(required=True, string="Název")
-    sequence = fields.Integer(default=10, string="Pořadí")
-    active = fields.Boolean(default=True, string="Aktivní")
+    code = fields.Char(required=True, string="Kód", help="Značka třídy, ve fondu jedinečná. Po prvním zaúčtovaném úpisu nebo odkupu třídy nejde změnit.")
+    name = fields.Char(required=True, string="Název", help="Název třídy pro uživatele; kdykoli jde změnit.")
+    sequence = fields.Integer(default=10, string="Pořadí", help="Pořadí tříd ve fondu; přetažením úchytu v seznamu se změní.")
+    active = fields.Boolean(default=True, string="Aktivní", help="Archivovaná třída se nenabízí v seznamech; účetní historie zůstává.")
     currency_id = fields.Many2one(
         "res.currency", required=True, string="Měna zveřejnění kurzu", help="V této měně se zveřejňuje kurz a probíhají úpisy a odkupy. NAV fondu a kapitál třídy zůstávají ve funkční měně."
     )
-    isin = fields.Char(string="ISIN")
+    isin = fields.Char(
+        string="ISIN", help="12 znaků: kód země (2 velká písmena), 9 znaků a kontrolní číslice podle ISO 6166. Nepovinné; formát se kontroluje.")
     price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Bez zadání platí hodnota fondu.")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kurzu", help="Bez zadání platí hodnota fondu.")
-    distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True, string="Rozdělování výnosu")
+    distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True, string="Rozdělování výnosu",
+        help="Růstová, nebo dividendová třída. U dividendové třídy účtuje Odoo hrubou dividendu, výplatu a srážky řeší IS (rozhodnutí 2026-11-04).")
     unit_digits = fields.Integer(required=True, string="Desetinná místa kusů", help="Bez zadání platí hodnota fondu.")
     unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
     rounding_owner = fields.Selection(ROUNDING_OWNER, required=True, string="Rozdíl ze zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
@@ -144,6 +169,14 @@ class InvestraFundClass(models.Model):
     def _compute_display_name(self):
         for record in self:
             record.display_name = f"{record.fund_id.name} / {record.code}"
+
+    @api.constrains("isin")
+    def _check_isin(self):
+        for record in self.filtered("isin"):
+            if not isin_is_valid(record.isin):
+                raise ValidationError(self.env._(
+                    "Neplatný ISIN třídy %(code)s: %(isin)s. Očekává se 12 znaků velkými písmeny: kód země, 9 znaků a kontrolní číslice.",
+                    code=record.code, isin=record.isin))
 
     @api.constrains("price_digits")
     def _check_digits(self):

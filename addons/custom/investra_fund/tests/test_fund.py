@@ -4,6 +4,8 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
 from odoo.tools import mute_logger
 
+from odoo.addons.investra_fund.models.fund import isin_is_valid
+
 
 @tagged("post_install", "-at_install")
 class TestFund(TransactionCase):
@@ -88,6 +90,23 @@ class TestFund(TransactionCase):
         form.save()
         record = self.fund_b.class_ids.filtered(lambda c: c.code == "N")
         self.assertEqual((record.price_digits, record.price_rounding), (5, "half_up"))
+
+    def test_isin_check(self):
+        """MN-07: ISIN podle ISO 6166 (země, 9 znaků, kontrolní číslice Luhn)."""
+        for valid in ("US0378331005", "CZ0003551251", "DE000BAY0017"):
+            self.assertTrue(isin_is_valid(valid), valid)
+        for invalid in ("US0378331006", "US037833100", "us0378331005", "1S0378331005", "US037833100A", "US 378331005", "", None):
+            self.assertFalse(isin_is_valid(invalid), invalid)
+
+    def test_class_isin_is_validated(self):
+        record = self._class(self.fund_a, "I1", isin="US0378331005")
+        self.assertEqual(record.isin, "US0378331005")
+        self.assertTrue(self._class(self.fund_a, "I2").isin is False)  # ISIN je nepovinný
+        with self.assertRaisesRegex(ValidationError, "Neplatný ISIN"):
+            record.isin = "US0378331006"
+        with self.assertRaisesRegex(ValidationError, "Neplatný ISIN"):
+            self._class(self.fund_a, "I3", isin="XX123")
+
 
 
 @tagged("post_install", "-at_install")

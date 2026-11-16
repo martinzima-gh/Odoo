@@ -4,12 +4,14 @@ from odoo.exceptions import UserError
 from odoo.addons.investra_counterparty.models.counterparty import lei_is_valid
 from odoo.addons.investra_entity.models.entity import ICO_KEY, ico_is_valid
 
-# Sektor ESA 2010, který odpovídá druhu jednotky (kód se hledá v číselníku, nevymýšlí se).
-SECTOR_XMLID_BY_TYPE = {
-    "sicav": "investra_counterparty.esa_1240000",
-    "fund": "investra_counterparty.esa_1240000",
-    "subfund": "investra_counterparty.esa_1240000",
-    "manager": "investra_counterparty.esa_1260000",
+# Předvyplněný kód sektoru ESA podle druhu jednotky (rozhodnutí Martina 16. 11. 2026): fond, SICAV a podfond
+# „soukromé národní“, investiční společnost „soukromé národní“; servisní společnost bez kódu. Kód se hledá v číselníku
+# podle hodnoty (ne podle id) a uživatel ho může přepsat.
+ESA_CODE_BY_TYPE = {
+    "sicav": "1240200",
+    "fund": "1240200",
+    "subfund": "1240200",
+    "manager": "1260200",
 }
 
 
@@ -57,13 +59,14 @@ class InvestraNewBookWizard(models.TransientModel):
 
     @api.model
     def _default_esa_code(self, entity_type):
-        """Rezidentský kód sektoru ESA podle druhu jednotky, jen když je v číselníku právě jeden; jinak prázdný."""
+        """Kód sektoru ESA podle druhu jednotky (viz ESA_CODE_BY_TYPE), jen rezidentský a jen když je v číselníku
+        právě jeden; jinak prázdný."""
         # Číselník se čte jako superuživatel: průvodce smí použít jen správce a ten nemusí mít práva k číselníkům.
         Code = self.env["investra.esa.code"].sudo()
-        sector = self.env.ref(SECTOR_XMLID_BY_TYPE.get(entity_type, ""), raise_if_not_found=False)
-        if not sector:
+        value = ESA_CODE_BY_TYPE.get(entity_type)
+        if not value:
             return Code
-        codes = Code.search([("residency", "=", "r"), ("esa2010_sector_id", "=", sector.id)])
+        codes = Code.search([("code", "=", value), ("residency", "=", "r")])
         return codes if len(codes) == 1 else Code.browse()
 
     @api.onchange("entity_type")

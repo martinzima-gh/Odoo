@@ -75,18 +75,19 @@ class TestNewBookIdentification(TransactionCase):
         german._onchange_company_registry()
         self.assertFalse(german.vat)
 
-    def test_default_code_is_only_set_when_unique(self):
-        """Kód se hledá v číselníku; odpovídá-li víc kódů, zůstane prázdný."""
+    def test_default_code_by_type(self):
+        """MN-07: fond, SICAV a podfond 1240200, investiční společnost 1260200, servisní společnost prázdné."""
         Code = self.env["investra.esa.code"]
-        sector = self.env.ref("investra_counterparty.esa_1240000")
-        matching = Code.search([("residency", "=", "r"), ("esa2010_sector_id", "=", sector.id)])
-        expected = matching if len(matching) == 1 else Code
-        self.assertEqual(self.Wizard._default_esa_code("fund"), expected)
+        for entity_type, value in (("fund", "1240200"), ("subfund", "1240200"), ("sicav", "1240200"), ("manager", "1260200")):
+            self.assertEqual(self.Wizard._default_esa_code(entity_type).code, value, entity_type)
         self.assertEqual(self.Wizard._default_esa_code("service"), Code)
-        extra = Code.search([("residency", "=", "r"), ("esa2010_sector_id", "=", sector.id)], limit=1)
-        others = matching - extra
-        others.write({"active": False})
-        self.assertEqual(self.Wizard._default_esa_code("fund"), extra)
+        # Kód se hledá podle hodnoty: zahraniční kód stejné hodnoty by se nepoužil (jen rezidentský).
+        wizard = self.Wizard.new({"entity_type": "fund"})
+        wizard._onchange_entity_type()
+        self.assertEqual(wizard.esa_code_id.code, "1240200")
+        wizard.entity_type = "service"
+        wizard._onchange_entity_type()
+        self.assertFalse(wizard.esa_code_id)
 
     def test_partner_domain_excludes_company_contacts(self):
         company = self.env["res.company"].create({"name": "Cizí společnost"})

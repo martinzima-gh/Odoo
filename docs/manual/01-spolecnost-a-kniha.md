@@ -30,7 +30,7 @@ Vynechalo by zámek deníků, auditní stopu a mapování rolí účtů a mohlo 
 | **Existující kontakt** | ne | – | kontakt, který nová společnost převezme (viz níže) |
 | **IČO** | ne | – | 8 číslic s kontrolní číslicí; u země Česko se kontroluje: „Neplatné IČO …“ |
 | **DIČ** | ne | CZ + IČO | u země Česko se po zadání platného IČO předvyplní, lze přepsat |
-| **Kód sektoru ESA** | ne | prázdný | detailní číselník ČNB; sektor ESA 2010 se z něj doplní |
+| **Kód sektoru ESA** | ne | podle druhu (viz níže) | detailní číselník ČNB; sektor ESA 2010 se z něj doplní |
 | **LEI** | ne | – | kontrola ISO 17442 a jedinečnost; vyžaduje kód sektoru ESA |
 
 4. **Založit knihu**, potvrďte dotaz. Stránka se znovu načte, otevře se formulář nové knihy a nová společnost se sama zapne v přepínači firem.
@@ -44,10 +44,10 @@ Rámce se nemíchají; IFRS je v seznamu rámců, ale průvodce ho odmítne.
   **údaje protistrany** kontaktu společnosti (země z průvodce). LEI bez kódu sektoru se odmítne před založením: profil
   sektor potřebuje. Chybný IČO, LEI, kód nesouhlasící se zemí (rezident × nerezident) nebo LEI, které už má jiná
   protistrana, se odmítnou před založením, nic se nezaloží.
-- **Předvyplnění kódu ESA:** průvodce nabídne rezidentský kód jen tehdy, když je v číselníku pro daný druh právě jeden
-  (fond, SICAV, podfond: sektor Fondy kolektivního investování (kromě FPT); investiční společnost: Pomocné finanční
-  instituce; servisní společnost: nic). Odpovídá-li víc kódů (veřejné, soukromé národní, pod zahraniční kontrolou),
-  zůstane pole prázdné a kód vyberete sami; hledá se podle čísla i názvu.
+- **Předvyplnění kódu ESA:** průvodce nabídne rezidentský kód podle druhu (rozhodnutí 16. 11. 2026): fond, SICAV a podfond
+  **1240200** (Fondy kolektivního investování – soukromé národní), investiční společnost **1260200** (Pomocné finanční
+  instituce – soukromé národní); servisní společnost: nic. Kód lze přepsat (hledá se podle čísla i názvu); chybí-li kód
+  v číselníku, pole zůstane prázdné.
 - **Existující kontakt:** vyberte ho v poli **Existující kontakt**. Nabízejí se samostatné kontakty (ne osoby pod firmou),
   které ještě nejsou kontaktem žádné společnosti. Nová společnost kontakt převezme (název se vezme z něj, kontakt se
   přestane vázat na jednu firmu a uvidí ho všechny), druhý kontakt se nezakládá. IČO, DIČ, LEI a kód se předvyplní

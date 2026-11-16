@@ -34,6 +34,12 @@ NOTE = "Ukázková data (smyšlená)"
 # --- kniha a nastavení podle investra_dev ------------------------------------------------------------------------
 book = env["investra.entity"].create_book(NAME, "service", "cas500", CZK, "cz")
 company = book.company_id
+# Smyšlené IČO řady 99 (nepřiděluje se) s platnou kontrolní číslicí mod 11 a DIČ „CZ“ + IČO (MN-07).
+_body = "9900090"
+_rest = sum(int(digit) * weight for digit, weight in zip(_body, range(8, 1, -1))) % 11
+_ico = _body + str({0: 1, 1: 0}.get(_rest, 11 - _rest))
+# Odchylka: DIČ řady 99 neprojde kontrolou formátu Odoo (české DIČ právnické osoby nesmí začínat 9), proto no_vat_validation.
+book.with_context(no_vat_validation=True).write({"company_registry": _ico, "vat": f"CZ{_ico}"})
 env.invalidate_all()
 if company.currency_id != CZK or company.chart_template != "cz":
     raise SystemExit(f"{NAME}: měna {company.currency_id.name}, osnova {company.chart_template}; zastaveno.")

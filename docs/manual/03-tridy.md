@@ -22,11 +22,11 @@ Třída I přepíše poplatky na 0 (výchozí hodnoty fondu zůstávají jiné).
 
 | Pole | Povinné | Výchozí | Význam |
 |---|---|---|---|
-| **Kód** | ano | – | ve fondu jedinečný: „Kód třídy musí být ve fondu jedinečný.“ |
+| **Kód** | ano | – | ve fondu jedinečný: „Kód třídy musí být ve fondu jedinečný.“; po prvním zaúčtovaném pohybu jen pro čtení |
 | **Název** | ano | – | |
 | **Měna zveřejnění kurzu** | ano | – | v ní se zveřejňuje kurz a probíhají úpisy a odkupy; nemění funkční měnu fondu |
 | **Desetinná místa kurzu** | ano | z fondu (nový řádek ho předvyplní) | 0 až 18: „Počet desetinných míst kurzu musí být 0 až 18.“ |
-| **ISIN** | ne | – | bez kontroly formátu |
+| **ISIN** | ne | – | 12 znaků velkými písmeny: kód země, 9 znaků a kontrolní číslice podle ISO 6166; jinak „Neplatný ISIN třídy …“ |
 | **Rozdělování výnosu** | ano | Růstová | Růstová, Dividendová |
 | **Desetinná místa kusů** | ano | z fondu | 0 až 6: „Počet desetinných míst kusů musí být 0 až 6.“ |
 | **Zaokrouhlení kurzu** | ano | z fondu | sloupec skrytý (zapnete v nabídce sloupců) |
@@ -36,7 +36,8 @@ Třída I přepíše poplatky na 0 (výchozí hodnoty fondu zůstávají jiné).
 | **Příjemce vstupního poplatku** | ano | z fondu | skrytý sloupec |
 | **Výstupní poplatek (%)** | ne | z fondu | 0 až 100 |
 | **Příjemce výstupního poplatku** | ano | z fondu | skrytý sloupec |
-| **Pořadí**, **Aktivní** | ne | 10, ano | v řádku seznamu nejsou; Aktivní = archivace třídy |
+| **Pořadí** | ne | 10 | úchyt (☰) na začátku řádku; třídy se přetažením řadí |
+| **Aktivní** | ne | ano | sloupec je skrytý (zapnete v nabídce sloupců); odškrtnutím se třída archivuje |
 
 ## Co třída dědí z fondu a co přepisuje
 
@@ -49,12 +50,18 @@ změněná třída fond nezmění. Přepis na třídě je úprava hodnoty v řá
 Měna třídy = **měna zveřejnění kurzu** (rozhodnutí 7. 11. 2026). Úpisy a odkupy se vedou v ní; kapitál třídy a NAV zůstávají ve funkční měně fondu.
 U třídy v jiné měně než funkční se kurz převádí kurzem ze zdroje knihy (CZK – ČNB, EUR – ECB). Kurzy: kap. 7.
 
-## Co nejde změnit
+## Co nejde změnit po prvním pohybu
 
-Aplikace zatím **nehlídá změnu polí třídy po prvním pohybu** (měna, desetinná místa, poplatky, kód); je to nález pro pročištění.
-Do opravy změnu po prvním pohybu nedělejte: starší zaúčtované pohyby se nepřepočítají.
-Chráněné je tohle: třída s pohyby nejde smazat (vazba je chráněná); zaúčtovaný pohyb nejde změnit ani smazat, opravuje se stornem.
-Třídu, kterou už nepotřebujete, archivujte (**Aktivní**).
+Po prvním **zaúčtovaném** úpisu nebo odkupu třídy (stav Zaúčtováno; stornovaný pohyb byl zaúčtován také, zámek tedy zůstává)
+jsou ve formuláři jen pro čtení a změna skončí chybou „Třída … má zaúčtovaný úpis nebo odkup, proto nejde změnit: …“ tato pole:
+**Kód**, **Měna zveřejnění kurzu**, **Desetinná místa kurzu**, **Zaokrouhlení kurzu**, **Desetinná místa kusů**, **Zaokrouhlení kusů**.
+Pohyb v návrhu třídu nezamyká. Měnit jde dál **Název**, **ISIN**, **Rozdělování výnosu**, **Pořadí**, **Aktivní**,
+poplatky a jejich příjemci (změna poplatků neplatí zpětně od data: starší pohyby se nepřepočítají, platnost od data zatím není).
+Zámek je u každé třídy zvlášť; třída bez pohybu zůstává volná.
+
+Chráněné je i tohle: třída s pohyby nejde smazat (vazba je chráněná); zaúčtovaný pohyb nejde změnit ani smazat, opravuje se stornem.
+Třídu, kterou už nepotřebujete, archivujte (**Aktivní**). Archivovaná třída se v seznamu na formuláři fondu nezobrazuje;
+vrátit ji do provozu jde jen přes správce (v seznamu fondu k ní není cesta).
 
 ## Další krok
 

@@ -50,6 +50,23 @@ for key, currency in CURRENCY.items():
     if env["investra.entity"].browse(BOOK_IDS[key]).company_id.currency_id.name != currency:
         raise SystemExit(f"Kniha {key}: funkční měna v databázi není {currency}; zastaveno.")
 
+def ico(number):
+    """Smyšlené IČO: řada 99xxxxx s platnou kontrolní číslicí (mod 11, jako `ico_is_valid`). Řada 99 se nepřiděluje,
+    IČO proto nepatří skutečné firmě (MN-07)."""
+    body = f"99{number:05d}"
+    remainder = sum(int(digit) * weight for digit, weight in zip(body, range(8, 1, -1))) % 11
+    return body + str({0: 1, 1: 0}.get(remainder, 11 - remainder))
+
+
+# Výchozí firma Odoo (My Company) se zemí Česko; ostatní knihy ji dostanou při založení (MN-07).
+env.ref("base.main_company").country_id = env.ref("base.cz")
+for number, book_id in enumerate(BOOK_IDS.values(), start=1):
+    registry = ico(number)
+    # Odchylka: DIČ s IČO řady 99 neprojde kontrolou formátu Odoo (stdnum: české DIČ právnické osoby nesmí začínat 9),
+    # proto se ukládá s kontextem no_vat_validation (určeným pro vkládání čísel bez kontroly). IČO se kontroluje normálně.
+    env["investra.entity"].browse(book_id).with_context(no_vat_validation=True).write(
+        {"company_registry": registry, "vat": f"CZ{registry}"})
+
 random.seed(20261115)
 TODAY = fields.Date.context_today(env.user)
 CZK, EUR = env.ref("base.CZK"), env.ref("base.EUR")

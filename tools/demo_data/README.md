@@ -16,6 +16,14 @@ Opakované spuštění nad naplněnou databází skončí hláškou a nic nezmě
 Proč `account_peppol` už při založení: první načtení osnovy na čisté databázi ho jinak doinstaluje a přenačte registr
 uprostřed skriptu.
 
+## IČO, DIČ a země (MN-07)
+
+Seed nastaví výchozí firmě Odoo (My Company) zemi Česko a všem knihám (investiční společnost, fondy A–E, Investra Services)
+smyšlené IČO řady **99xxxxxx** s platnou kontrolní číslicí (mod 11) a DIČ „CZ“ + IČO. Řada 99 se nepřiděluje, IČO proto
+nepatří skutečné firmě. Odchylka: české DIČ právnické osoby nesmí podle kontroly Odoo začínat 9, proto se DIČ ukládá
+s kontextem `no_vat_validation`; při pozdější úpravě DIČ ve formuláři ho Odoo odmítne, dokud se nezmění na platné.
+Do už naplněné `investra` se to nepromítá (seed běží jen na nové databázi).
+
 ## FX swap fondu A (DE-05)
 
 Smlouva `FX-SWAP-A-001` s bankou „Ukázková banka (smyšlená)“: sjednáno 28. 9. 2026, blízká noha 30. 9. (koupě 500 000 EUR,

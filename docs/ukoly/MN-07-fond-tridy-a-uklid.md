@@ -53,7 +53,12 @@ a My Company má Česko; Výsledek uvádí, co zůstalo neověřené v prohlíž
 
 Doplní model, který úkol provedl.
 
-- **Změněné soubory:**
+- **Změněné soubory:** `investra_fund` (`models/fund.py`: `isin_is_valid`, kontrola ISIN, nápovědy; `views/fund_views.xml`: úchyt a sloupec Aktivní; test), `investra_nav` (nový `models/fund_class.py` – zámek, `views/nav_views.xml`, `tests/test_class_lock.py`), `investra_entity` (migrace `20.0.0.12.0/pre-migration.py`), `investra_instrument_master` (`_default_esa_code`, test), `tools/demo_data/seed.py`, `seed_services.py`, README ukázek, manuál `01`–`03`, deník rozhodnutí; verze entity 12.0, fund 8.4, nav 31.0, instrument_master 8.1.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+  - `tools/run_tests.sh all` na dočasné `investra_ci_*`: 787 testů, jediná chyba byla můj test ISIN založený v nesprávné třídě; po přesunu `tools/run_tests.sh investra_fund`: 16 testů OK. Ostatní moduly po opravě znovu nespouštěny (oprava se týkala jen testu).
+  - Zámek třídy (před/po pohybu, návrh nezamyká, stornovaný drží, poplatky jdou, formulář má `readonly="movement_locked"`), ISIN (platný, špatná číslice, špatný formát), kód ESA podle druhu – testy výše.
+  - Seed přes `run_seed.sh` na dočasné databázi: My Company má zemi CZ, všech 7 knih má IČO 99000016…99000903 a DIČ CZ+IČO; databáze smazána. První běh selhal (DIČ řady 99 neprojde kontrolou Odoo) → `no_vat_validation` v seedu.
+  - Záloha `zalohy/investra-2026-11-16-pred-MN07.dump`; migrace vyzkoušena na kopii ze zálohy (do kopie jsem přidal sloupec `founder_id`, po upgradu zmizel; kopie smazána). Pak upgrade `investra_entity,investra_fund,investra_nav,investra_instrument_master` v `investra`, restart 8071 (HTTP 200).
+  - V `investra` sloupec `founder_id` neexistoval už před migrací; My Company už měla Česko (SELECT), nic jsem tedy nenastavoval ani nezakládal.
+- **Neověřeno:** chování v prohlížeči (úchyt řazení, readonly polí v řádku seznamu, skrytý sloupec Aktivní, chybová hláška při zápisu); nápovědy `help=` jsou odvozené z kódu a deníku a účinek **Frekvence ocenění** a **Kalendáře ocenění** na ocenění jsem v kódu nenašel, proto jsou popsány jen jako plánovaná četnost a plánovaná data; u **Rozdělování výnosu** je odkaz na rozhodnutí 2026-11-04. Kontrola ISIN se zatím týká jen tříd, nástroje beze změny.
+- **Otevřené otázky a návrhy mimo rozsah:** (1) Archivovanou třídu nejde ve formuláři fondu vrátit (o2m neukazuje neaktivní řádky); chce Martin samostatný seznam tříd? (2) Seed IČO: DIČ řady 99 je bez kontroly formátu, případně použít jinou řadu, ale její neexistenci nejde z repozitáře ověřit. (3) Zámek nechrání před změnou kódu přes SQL ani import s `sudo` (jen `write`).
