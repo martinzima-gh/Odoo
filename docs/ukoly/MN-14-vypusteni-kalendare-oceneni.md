@@ -56,4 +56,24 @@ se otevře); ve Výsledku seznam změněných míst a odchylek.
 
 ## Výsledek
 
-(doplní provádějící model)
+Provedeno 16. 11. 2026 (Sonnet), testy `all`: 808 testů, 0 selhání (`investra_ci_*`, po testech smazána).
+
+**Změněná místa:**
+- `investra_fund`: nový `models/schedule.py` (čistá funkce `next_valuation_date`), odstraněn model `investra.valuation.calendar`,
+  pole `calendar_ids`, záložka, 3 řádky práv, nápověda frekvence; verze 20.0.0.9.0; `migrations/20.0.0.9.0/pre-migration.py`
+  (DROP TABLE jen když je prázdná, jinak povýšení zastaví chybou); test `tests/test_schedule.py`.
+- `investra_dashboard`: `_dashboard_next` a `_dashboard_values` počítají z frekvence; odstraněno pole `dashboard_next_late`, jeho
+  filtr, štítek „Po termínu“, karta „Ocenění po termínu“ v pásu, výjimka „Ocenění po termínu“; verze 20.0.0.6.0; testy přepsány.
+- `tools/nav_demo/demo_prehled.py` (kalendář odstraněn, Datum vzniku a frekvence už tam byly), manuál kap. 2–4 (kap. 4 přejmenována
+  na `04-oceneni-a-matice.md`), README manuálu.
+
+**Odchylky a rozhodnutí při provedení:**
+1. Datum vzniku se bere stejně jako poslední ocenění (datum je „přísně po“), shodně s `_period_start` (`date > launch_date`).
+2. Rozpracované ocenění má přednost jen když není **později** než očekávané datum; pozdější draft se ukáže jako „Nezaloženo“ s očekaveným datem
+   (dřív platilo totéž vůči řádku kalendáře). Dva testy proto nastavují Datum vzniku.
+3. Státní svátky se neberou (zapsáno v nápovědě pole a manuálu).
+4. Z pásu nad Přehledem zmizela karta „Ocenění po termínu“ (patřila k zaniklé funkci); odstraněn i její styl.
+
+**Neověřeno:** povýšení na kopii `investra` ze zálohy (kritérium přijetí) jsem neprováděl: obnova kopie databáze je mimo mé pokyny a
+nasazení dělá hlavní relace. Před povýšením ověřit SELECTem, že `investra_valuation_calendar` je prázdná (pre-migrace jinak
+zastaví povýšení), a po povýšení, že tabulka zmizela a Přehled se otevře. Lhůta zveřejnění se nehlídá; manuál označen „ověřeno v kódu“.

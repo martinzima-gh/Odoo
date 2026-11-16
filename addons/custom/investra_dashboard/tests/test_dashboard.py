@@ -15,9 +15,6 @@ class TestDashboard(NavCase):
         self.fund = self.make_fund(classes=[{"code": "A"}])
         self.today = fields.Date.context_today(self.fund)
 
-    def calendar(self, days):
-        return self.env["investra.valuation.calendar"].create({"fund_id": self.fund.id, "date": self.today + timedelta(days=days)})
-
     def deadline(self, days, **vals):
         return self.env["investra.regulatory.deadline"].create({
             "fund_id": self.fund.id, "report": "TEST", "period_end": self.today, "due_date": self.today + timedelta(days=days), **vals,
@@ -46,17 +43,28 @@ class TestDashboard(NavCase):
         self.assertFalse(self.fund.dashboard_has_result)
         self.assertFalse(self.fund.dashboard_result_period)
 
-    def test_overdue_valuation_is_danger(self):
-        self.calendar(-1)
-        self.assertEqual(self.fund.dashboard_status, "danger")
-        self.assertEqual(self.fund.dashboard_next_state, "none")
-        self.assertTrue(self.fund.dashboard_next_late)
-        self.assertIn("Ocenění po termínu", self.fund.dashboard_exceptions)
-
-    def test_next_valuation(self):
-        entry = self.calendar(5)
-        self.assertEqual(self.fund.dashboard_next_valuation, entry.date)
+    def test_missed_valuation_is_not_alert(self):
+        # MN-14: lhůta zveřejnění se nehlídá, upozornění „Ocenění po termínu“ zaniklo.
+        self.fund.launch_date = self.today - timedelta(days=100)
+        self.fund.invalidate_recordset()
         self.assertEqual(self.fund.dashboard_status, "none")
+        self.assertEqual(self.fund.dashboard_next_state, "none")
+        self.assertNotIn("termínu", self.fund.dashboard_exceptions or "")
+        self.assertNotIn("dashboard_next_late", self.env["investra.fund"]._fields)
+
+    def test_next_valuation_from_launch_date(self):
+        # Fond bez ocenění: z Data vzniku (2026-12-31) a měsíční frekvence = poslední den dalšího měsíce.
+        self.assertEqual(str(self.fund.dashboard_next_valuation), "2027-01-31")
+        self.assertEqual(self.fund.dashboard_next_text, "31.01.2027")
+        self.assertEqual(self.fund.dashboard_next_state, "none")
+        self.assertFalse(self.fund.dashboard_next_valuation_id)
+        self.assertEqual(self.fund.dashboard_status, "none")
+
+    def test_fund_without_launch_date_has_no_next(self):
+        self.fund.launch_date = False
+        self.fund.invalidate_recordset()
+        self.assertFalse(self.fund.dashboard_next_valuation)
+        self.assertFalse(self.fund.dashboard_next_state)
 
     def test_deadline_soon_warns_and_overdue_is_danger(self):
         self.deadline(3)
@@ -87,6 +95,8 @@ class TestDashboard(NavCase):
 
     def test_draft_is_next_not_latest(self):
         # Poslední ocenění je jen zaúčtované; rozpracované je „další“ se stavem z modelu ocenění.
+        # Rozpracované ocenění je další, jen když není později než očekávané datum z frekvence (MN-14).
+        self.fund.launch_date = "2031-12-31"
         self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
         draft = self.valuation(self.fund, "2032-01-31")
         self.assertFalse(self.fund.dashboard_valuation_id)
@@ -97,24 +107,27 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.dashboard_next_version, 1)
         self.assertEqual(self.fund.dashboard_next_text, "31.01.2032")
 
-    def test_next_from_calendar_after_latest(self):
+    def test_next_after_latest_from_frequency(self):
         valuation = self.posted()
-        self.env["investra.valuation.calendar"].create({"fund_id": self.fund.id, "date": valuation.date})
-        entry = self.env["investra.valuation.calendar"].create({"fund_id": self.fund.id, "date": "2032-02-29"})
-        self.fund.invalidate_recordset()
-        self.assertEqual(self.fund.dashboard_next_valuation, entry.date)
+        self.assertEqual(str(self.fund.dashboard_next_valuation), "2032-02-29")
         self.assertEqual(self.fund.dashboard_next_state, "none")
         self.assertFalse(self.fund.dashboard_next_valuation_id)
-        self.assertFalse(self.fund.dashboard_next_late)  # termín 2032 je v budoucnu
+        self.fund.valuation_frequency = "quarterly"
+        self.fund.invalidate_recordset()
+        self.assertEqual(str(self.fund.dashboard_next_valuation), "2032-06-30")
+        self.fund.valuation_frequency = "monthly"
         self.fund.invalidate_recordset()
         nxt = self.valuation(self.fund, "2032-02-29")
         self.assertEqual(self.fund.dashboard_next_valuation_id, nxt)
         self.assertEqual(self.fund.dashboard_next_state, "draft")
+        self.assertGreater(nxt.date, valuation.date)
 
-    def test_next_in_future_is_not_late(self):
-        self.calendar(5)
-        self.assertEqual(self.fund.dashboard_next_state, "none")
-        self.assertFalse(self.fund.dashboard_next_late)
+    def test_extraordinary_valuation_has_priority(self):
+        self.posted()
+        extra = self.valuation(self.fund, "2032-02-15")
+        self.fund.invalidate_recordset()
+        self.assertEqual(self.fund.dashboard_next_valuation_id, extra)
+        self.assertEqual(str(self.fund.dashboard_next_valuation), "2032-02-15")
 
     def test_result_of_second_valuation(self):
         self.posted()
@@ -180,6 +193,8 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.action_open_valuation()["res_id"], valuation.id)
 
     def test_action_opens_next_valuation(self):
+        # Rozpracované ocenění je další, jen když není později než očekávané datum z frekvence (MN-14).
+        self.fund.launch_date = "2031-12-31"
         self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
         draft = self.valuation(self.fund, "2032-01-31")
         self.assertEqual(self.fund.action_open_next_valuation()["res_id"], draft.id)
@@ -239,10 +254,7 @@ class TestDashboard(NavCase):
 
     def test_filters_and_card_links(self):
         Fund = self.env["investra.fund"]
-        self.calendar(-1)
         self.deadline(-1)
-        self.assertIn(self.fund, Fund.search([("dashboard_next_late", "=", True)]))
-        self.assertNotIn(self.fund, Fund.search([("dashboard_next_late", "=", False)]))
         self.assertIn(self.fund, Fund.search([("dashboard_deadline_state", "=", "overdue")]))
         self.assertNotIn(self.fund, Fund.search([("dashboard_deadline_state", "in", ["open", "submitted"])]))
         self.assertEqual(self.fund.action_open_fund()["res_id"], self.fund.id)
@@ -274,10 +286,11 @@ class TestDashboard(NavCase):
         trade._book()
         todo = lambda: {i["key"]: i for i in self.fund.dashboard_todo}
         # Den ocenění ještě nenastal: chybějící cena se nehlásí.
-        entry = self.calendar(2)
+        self.fund.write({"launch_date": self.today, "valuation_frequency": "yearly"})
+        self.fund.invalidate_recordset()
         self.assertNotIn("missing_prices", todo())
-        entry.unlink()
-        self.calendar(-1)
+        # Denní frekvence od data před pěti dny: očekávané ocenění už nastalo.
+        self.fund.write({"launch_date": day(-5), "valuation_frequency": "daily"})
         self.fund.invalidate_recordset()
         item = todo()["missing_prices"]
         self.assertEqual((item["count"], item["warn"]), (1, True))
@@ -287,7 +300,7 @@ class TestDashboard(NavCase):
         self.assertEqual(self.fund.dashboard_todo[-1]["key"], "soon_flows")
         self.assertEqual(self.fund.dashboard_todo_count, len([i for i in self.fund.dashboard_todo if not i["info"]]))
         price = self.env["investra.instrument.price"].with_user(self.preparer).create({
-            "fund_id": self.fund.id, "instrument_id": bond.id, "date": day(-1), "price": 1000, "source": "Test",
+            "fund_id": self.fund.id, "instrument_id": bond.id, "date": self.fund.dashboard_next_valuation, "price": 1000, "source": "Test",
         })
         price.with_user(self.approver).action_approve()
         self.fund.invalidate_recordset()
@@ -310,12 +323,7 @@ class TestDashboard(NavCase):
         summary = self.env["investra.fund"].dashboard_summary()
         self.assertEqual(summary["total"], self.env["investra.fund"].search_count([]))
         self.assertEqual([c["filter"] for c in summary["cards"]],
-                         ["filter_danger", "filter_warning", "filter_next_late", "filter_my_todo"])
-        # Fond bez ocenění s prošlým termínem kalendáře se počítá do „Ocenění po termínu“.
-        other = self.make_fund(classes=[{"code": "A"}])
-        self.env["investra.valuation.calendar"].create({"fund_id": other.id, "date": self.today - timedelta(days=1)})
-        late = next(c for c in self.env["investra.fund"].dashboard_summary()["cards"] if c["key"] == "late")
-        self.assertGreaterEqual(late["count"], 1)
+                         ["filter_danger", "filter_warning", "filter_my_todo"])
 
     def test_movement_draft_is_todo(self):
         movement = self.env["investra.class.movement"].create({

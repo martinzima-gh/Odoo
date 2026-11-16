@@ -1,37 +1,38 @@
-# 4. Kalendář ocenění a schvalovací matice
+# 4. Ocenění a schvalovací matice
 
 *Ověřeno v kódu, v prohlížeči neověřeno.*
 
-Kapitola navazuje na fond z kap. 2 a 3 (Fond Alfa Růst, obhospodařovatel Alfa Investiční společnost, a.s.). Cíl: nastavit termíny
+Kapitola navazuje na fond z kap. 2 a 3 (Fond Alfa Růst, obhospodařovatel Alfa Investiční společnost, a.s.). Cíl: nastavit frekvenci
 ocenění a pravidla schvalování tak, aby šlo spočítat a schválit první ocenění. Podrobný postup ocenění je v pozdější kapitole.
 
-## 1. Kalendář ocenění
+## 1. Frekvence ocenění a další ocenění
 
-**Investra › Nastavení › Fondy › Fondy › [fond] › Kalendář ocenění.** Kalendář je záložka ve formuláři fondu; samostatnou nabídku nemá.
-Řádky se přidávají v seznamu přímo (**Přidat řádek**).
+Kalendář ocenění už neexistuje (MN-14). Den dalšího ocenění program **počítá** z údajů fondu a ukazuje ho na kartě Přehledu fondů.
+Pole jsou ve formuláři fondu (**Investra › Nastavení › Fondy › Fondy › [fond]**, kap. 2): **Datum vzniku** a **Frekvence ocenění**
+(Denně až Ročně, výchozí Měsíčně).
 
-| Pole | Povinné | Výchozí | Význam |
-|---|---|---|---|
-| **Datum ocenění** | ano | – | plánovaný den ocenění; ve fondu jedinečné („Datum ocenění je v kalendáři už uvedené.“) |
-| **Plánované zveřejnění** | ne | prázdné | den, do kdy se má ocenění zveřejnit; bez něj platí termín = datum ocenění |
+**Jak se datum počítá.** Výchozí je datum posledního zaúčtovaného ocenění, u prvního ocenění **Datum vzniku**; datum je vždy
+**po** výchozím dni:
 
-**Vztah k jiným polím:**
+| Frekvence | Další ocenění |
+|---|---|
+| Měsíčně | poslední den následujícího kalendářního měsíce |
+| Čtvrtletně | poslední den následujícího kalendářního čtvrtletí |
+| Ročně | poslední den následujícího kalendářního roku |
+| Týdně | nejbližší další pátek |
+| Denně | nejbližší další pracovní den (pondělí až pátek) |
 
-- **Frekvence ocenění** (Denně až Ročně, výchozí Měsíčně, kap. 2) je jen informace o plánované četnosti. Kalendář podle ní řádky
-  **nevytváří** a ocenění je s ní **nekontroluje**. Dny ocenění zadáváte ručně.
-- **Datum vzniku** (kap. 2) určuje začátek prvního oceňovacího období; bez něj první ocenění skončí chybou „Fond nemá datum vzniku.“
-  Kalendář s ním nesouvisí: první řádek kalendáře může být kdykoli (kontrola, že není před datem vzniku, neexistuje).
-- **Mimořádné ocenění** nemá zvláštní pole ani druh: zadá se jako další řádek kalendáře s požadovaným datem.
+Státní svátky se zatím neberou, takže denní frekvence může vyjít na svátek. Pravidla dnů jsou návrh; konkrétní dny ocenění ze statutu
+řeší pozdější úkol. Bez Data vzniku a bez zaúčtovaného ocenění se datum neukáže a karta fondu ukáže „Nezaloženo“ bez termínu.
 
-**Kde se kalendář používá:** jen v Přehledu fondů (karta fondu). Další ocenění po posledním zaúčtovaném je první datum kalendáře
-po něm. Datum, které není mezi zveřejněnými oceněními a jeho termín (Plánované zveřejnění, jinak Datum ocenění) už uplynul,
-zobrazí kartě „Ocenění po termínu“ (výjimka vyžadující zásah).
+**Rozpracované a mimořádné ocenění.** Ocenění založené k dřívějšímu dni (než vyjde výpočet) má na kartě přednost; mimořádné
+ocenění proto nepotřebuje zvláštní pole. Ocenění jde založit k libovolnému datu; frekvenci program s ním nekontroluje.
 
-**Co kalendář nehlídá:** ocenění jde založit k libovolnému datu, i mimo kalendář. Řádek kalendáře jde měnit i mazat kdykoli,
-i po prvním ocenění (v kódu žádný zámek není; ocenění se tím nemění, jen karta fondu). Kontrola kalendáře proti statutu a zákonné lhůtě, kterou předpokládá deník rozhodnutí (2026-11-04 „Interval ocenění“), v kódu není (nález 1).
+**Co se nehlídá.** Lhůta zveřejnění se nehlídá a upozornění „Ocenění po termínu“ zaniklo. Kontrola intervalu proti statutu a zákonné
+lhůtě (deník rozhodnutí 2026-11-04 „Interval ocenění“) v kódu není.
 
-**Příklad:** Fond Alfa Růst, frekvence Měsíčně, Datum vzniku 1. 1. 2027. Řádky: 31. 1. 2027 (zveřejnění 5. 2. 2027), 28. 2. 2027
-(zveřejnění 5. 3. 2027), a mimořádné ocenění 15. 3. 2027 (zveřejnění prázdné). Čísla jsou smyšlená.
+**Příklad:** Fond Alfa Růst, frekvence Měsíčně, Datum vzniku 1. 1. 2027. První další ocenění: 31. 1. 2027. Po zaúčtování
+31. 1. 2027 karta ukáže 28. 2. 2027; při frekvenci Čtvrtletně by po 31. 1. 2027 ukázala 30. 6. 2027 (poslední den druhého čtvrtletí). Čísla jsou smyšlená.
 
 ## 2. Schvalovací matice
 
@@ -145,8 +146,7 @@ druhá osoba“ (upozornění); úkony podle výchozích řádků (`Výchozí �
 
 ## 4. Minimální nastavení pro první ocenění
 
-- [ ] Fond: **Datum vzniku** vyplněné (jinak „Fond nemá datum vzniku.“), **Frekvence ocenění**, třídy (kap. 2, 3).
-- [ ] Kalendář ocenění: aspoň řádek pro první datum ocenění (není povinný pro založení ocenění, ale karta fondu jinak neukáže další ocenění).
+- [ ] Fond: **Datum vzniku** vyplněné (jinak „Fond nemá datum vzniku.“), **Frekvence ocenění**, třídy (kap. 2, 3); z Data vzniku a frekvence karta fondu spočítá další ocenění.
 - [ ] Fond: **Obhospodařovatel** vyplněný, pokud má platit matice obhospodařovatele; jinak platí výchozí řádky.
 - [ ] Schvalovací matice: výchozí řádky vznikly s modulem, takže **nic nezakládat nemusíte**. Pro vlastní pravidla založte řádky
       (činnost Schválení ocenění, případně Schválení ceny a Zveřejnění ocenění).
@@ -156,10 +156,10 @@ druhá osoba“ (upozornění); úkony podle výchozích řádků (`Výchozí �
 
 ## Nálezy pro pročištění
 
-1. Kalendář se nekontroluje proti **Frekvenci ocenění**, **Datu vzniku**, statutu ani zákonné lhůtě (deník 2026-11-04 „Interval ocenění“
-   to předpokládá); chybí i generování řádků podle frekvence.
-2. Ocenění lze založit k datu mimo kalendář; kalendář slouží jen Přehledu fondů.
-3. Mimořádné ocenění nemá vlastní druh ani pole; od řádkového data se neliší.
+1. Frekvence ocenění se nekontroluje proti statutu ani zákonné lhůtě (deník 2026-11-04 „Interval ocenění“ to předpokládá);
+   ocenění lze založit k libovolnému datu. Státní svátky a nepravidelné dny ze statutu se v dalším ocenění neberou.
+2. Mimořádné ocenění nemá vlastní druh ani pole; je to ocenění k dřívějšímu dni.
+3. Lhůta zveřejnění se nehlídá (rozhodnutí Martina 16. 11. 2026).
 4. Záložka **Zpřísnění matice** ve fondu je seznam bez možnosti přidat řádek přímo (zjištěno ze zdrojového XML, neověřeno v prohlížeči).
 5. Výchozí řádky matice (od 1. 1. 2000) nejde měnit ani mazat běžným uživatelem; pravidlo se mění jen novým řádkem pro obhospodařovatele.
 6. Seznam matice (`default_order`) i formulář nezobrazují sloupec **Výchozí řádek**, takže řádky z modulu se od vlastních

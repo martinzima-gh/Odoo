@@ -74,4 +74,4 @@ vrátit ji do provozu jde jen přes správce (v seznamu fondu k ní není cesta)
 
 ## Další krok
 
-Kalendář ocenění a schvalovací matice (kap. 4), pak uživatelé a role (kap. 5).
+Frekvence ocenění a schvalovací matice (kap. 4), pak uživatelé a role (kap. 5).

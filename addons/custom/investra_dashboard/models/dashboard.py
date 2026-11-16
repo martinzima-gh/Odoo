@@ -4,6 +4,7 @@ from odoo import api, fields, models
 from odoo.tools import format_amount
 
 from odoo.addons.investra_fund.models.approval_matrix import ROLE_RANK, user_rank
+from odoo.addons.investra_fund.models.schedule import next_valuation_date
 
 SOON_DAYS = 7
 # Stavy, ve kterých je ocenění zaúčtované; stejnou množinu bere výpočet jako předchozí ocenění.
@@ -76,9 +77,6 @@ class InvestraFund(models.Model):
         selection="_dashboard_next_state_selection", compute="_compute_dashboard", string="Stav dalšího ocenění"
     )
     dashboard_next_version = fields.Integer(compute="_compute_dashboard", string="Verze dalšího ocenění")
-    dashboard_next_late = fields.Boolean(
-        compute="_compute_dashboard", search="_search_dashboard_next_late", string="Další ocenění po termínu"
-    )
     dashboard_deadline_id = fields.Many2one(
         "investra.regulatory.deadline", compute="_compute_dashboard", string="Termín ČNB"
     )
@@ -125,16 +123,13 @@ class InvestraFund(models.Model):
             [("fund_id", "=", self.id), ("state", "in", POSTED_STATES)], order="date desc, version desc", limit=1
         )
         published = Valuation.search([("fund_id", "=", self.id), ("state", "=", "published")], order="date desc")
-        missing = self.env["investra.valuation.calendar"].search(
-            [("fund_id", "=", self.id), ("date", "not in", published.mapped("date"))], order="date"
-        )
-        upcoming, entry, next_date = self._dashboard_next(latest)
+        upcoming, next_date = self._dashboard_next(latest)
         deadlines = self.env["investra.regulatory.deadline"].search(
             [("fund_id", "=", self.id), ("state", "=", "open")], order="due_date, id"
         )
         deadline, deadline_state, deadline_text = self._dashboard_deadline(deadlines, today)
         danger, warning = self._dashboard_exceptions(
-            latest, missing, deadlines, today, checked=upcoming or self._dashboard_unpublished(latest)
+            latest, deadlines, today, checked=upcoming or self._dashboard_unpublished(latest)
         )
         todo = self._dashboard_todo(today, next_date)
         warned = warning or any(item["warn"] for item in todo)
@@ -164,8 +159,6 @@ class InvestraFund(models.Model):
             "dashboard_next_valuation_id": upcoming.id,
             "dashboard_next_state": upcoming.state if upcoming else ("none" if next_date else False),
             "dashboard_next_version": upcoming.version,
-            # Stejné pravidlo jako výjimka „Ocenění po termínu“; mimořádné ocenění mimo kalendář termín nemá.
-            "dashboard_next_late": bool(entry and (entry.published_on or entry.date) < today),
             "dashboard_deadline_id": deadline.id,
             "dashboard_deadline_state": deadline_state,
             "dashboard_next_deadline": deadline_text,
@@ -180,22 +173,21 @@ class InvestraFund(models.Model):
         }
 
     def _dashboard_next(self, latest):
-        """Další ocenění po posledním zaúčtovaném: první datum z kalendáře, mimořádné ocenění dřív má přednost.
+        """Další ocenění po posledním zaúčtovaném: očekávané datum z frekvence fondu (MN-14), dřívější
+        rozpracované nebo mimořádné ocenění má přednost.
 
-        Vrátí rozpracované ocenění k tomu datu (nejvyšší verze, která není vrácená ani stornovaná),
-        položku kalendáře a datum. Bez rozpracovaného ocenění je stav „Nezaloženo“.
+        Očekávané datum = `next_valuation_date` z data posledního zaúčtovaného ocenění, u prvního z Data
+        vzniku fondu. Vrátí rozpracované ocenění (nejvyšší verze, která není vrácená ani stornovaná) a datum.
+        Bez rozpracovaného ocenění je stav „Nezaloženo“; bez data vzniku a bez ocenění datum není.
         """
         after = [("fund_id", "=", self.id)] + ([("date", ">", latest.date)] if latest else [])
-        entry = self.env["investra.valuation.calendar"].search(after, order="date", limit=1)
         upcoming = self.env["investra.valuation"].search(
             after + [("state", "in", NEXT_STATES)], order="date, version desc", limit=1
         )
-        if entry and (not upcoming or entry.date < upcoming.date):
-            upcoming = upcoming.browse()
-        next_date = upcoming.date if upcoming else entry.date
-        if entry.date != next_date:
-            entry = entry.browse()
-        return upcoming, entry, next_date or False
+        expected = next_valuation_date(latest.date if latest else self.launch_date, self.valuation_frequency)
+        if upcoming and (not expected or upcoming.date <= expected):
+            return upcoming, upcoming.date
+        return upcoming.browse(), expected
 
     def _dashboard_deadline(self, deadlines, today):
         """Termín ČNB na kartu: nejstarší po lhůtě, jinak nejbližší otevřený, jinak poslední podaný.
@@ -249,7 +241,7 @@ class InvestraFund(models.Model):
             (1 if movement_type == "subscription" else -1) * (amount or 0.0) for movement_type, amount in groups
         ))
 
-    def _dashboard_exceptions(self, latest, missing, deadlines, today, checked=None):
+    def _dashboard_exceptions(self, latest, deadlines, today, checked=None):
         """Vrátí výjimky vyžadující zásah a upozornění jako texty.
 
         Kontroly se berou z rozpracovaného dalšího ocenění, bez něj z posledního zaúčtovaného, dokud není
@@ -258,9 +250,6 @@ class InvestraFund(models.Model):
         checked = latest if checked is None else checked
         _ = self.env._
         danger, warning = [], []
-        late = missing.filtered(lambda c: (c.published_on or c.date) < today)
-        if late:
-            danger.append(_("Ocenění po termínu: %s", len(late)))
         if self._dashboard_returned(latest):
             danger.append(_("Ocenění je vrácené"))
         stops = checked.check_ids.filtered(lambda c: c.status == "stop")
@@ -442,8 +431,6 @@ class InvestraFund(models.Model):
         values = {value} if isinstance(value, str) else set(value)
         return [("id", "in", self.search([]).filtered(lambda f: f.dashboard_status in values).ids)]
 
-    def _search_dashboard_next_late(self, operator, value):
-        return self._search_dashboard_bool("dashboard_next_late", operator, value)
 
     def _search_dashboard_deadline_state(self, operator, value):
         if operator not in ("=", "in"):
@@ -472,7 +459,6 @@ class InvestraFund(models.Model):
         cards = [
             ("danger", _("Vyžaduje zásah"), "filter_danger", lambda f: f.dashboard_status == "danger"),
             ("warning", _("Upozornění"), "filter_warning", lambda f: f.dashboard_status == "warning"),
-            ("late", _("Ocenění po termínu"), "filter_next_late", lambda f: f.dashboard_next_late),
             ("mine", _("Čeká na můj krok"), "filter_my_todo", lambda f: f.dashboard_my_todo),
         ]
         return {

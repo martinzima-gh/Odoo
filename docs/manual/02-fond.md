@@ -8,7 +8,7 @@ Předpoklad: nová společnost je zaškrtnutá v přepínači firem, jinak fond 
 
 ## Založení
 
-**Investra › Nastavení › Fondy › Fondy › Nový.** Vyplňte hlavičku a parametry, uložte. Třídy a kalendář přidáte na záložkách (kap. 3, 4).
+**Investra › Nastavení › Fondy › Fondy › Nový.** Vyplňte hlavičku a parametry, uložte. Třídy přidáte na záložce (kap. 3); další ocenění se počítá z Data vzniku a frekvence (kap. 4).
 Při uložení vznikne automaticky portfolio **Hlavní** (obchodní model Řízení na reálnou hodnotu; posouzení je potřeba doplnit, kap. 6)
 a profil FX přecenění fondu.
 
@@ -24,7 +24,7 @@ a profil FX přecenění fondu.
 
 | Pole | Povinné | Výchozí | Význam |
 |---|---|---|---|
-| **Frekvence ocenění** | ano | Měsíčně | Denně, Týdně, Měsíčně, Čtvrtletně, Ročně; určuje termíny ocenění |
+| **Frekvence ocenění** | ano | Měsíčně | Denně, Týdně, Měsíčně, Čtvrtletně, Ročně; z ní a z Data vzniku se počítá další ocenění (kap. 4) |
 | **Výchozí desetinná místa kurzu** | ano | 4 | nová třída je převezme; na třídě 0 až 18 |
 | **Výchozí zaokrouhlení kurzu** | ano | Dolů | Dolů, Matematicky, Nahoru; nová třída je převezme |
 | **Zaúčtování obchodu** | ano | Trade date accounting | alternativa Settlement date accounting (IFRS 9 odst. 3.1.2); **po prvním obchodu fondu nejde změnit** („Po prvním obchodu fondu nejde způsob zaúčtování změnit.“) |
@@ -67,7 +67,6 @@ Sazbu i příjemce lze na třídě přepsat (kap. 3).
 
 - **Třídy:** kap. 3.
 - **Zpřísnění matice:** řádky schvalovací matice zpřísňující pravidla jen pro tento fond (činnost, platnost od, role, druhá osoba, počet osob). Řádky zakládají a mění jen schvalovatelé ocenění (kap. 4).
-- **Kalendář ocenění:** řádky **Datum ocenění** (povinné, ve fondu jedinečné: „Datum ocenění je v kalendáři už uvedené.“) a **Plánované zveřejnění** (kap. 4).
 - **Obchodní modely:** portfolia fondu (kap. 6).
 - Pod formulářem je **historie** (chatter).
 

@@ -1,1 +1,1 @@
-from . import test_fund
+from . import test_fund, test_schedule

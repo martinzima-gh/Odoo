@@ -20,7 +20,7 @@
 | 1 | [01-spolecnost-a-kniha.md](01-spolecnost-a-kniha.md) | investiční společnost a účetní kniha (průvodce) | koncept |
 | 2 | [02-fond.md](02-fond.md) | formulář Fondy | koncept |
 | 3 | [03-tridy.md](03-tridy.md) | třídy fondu | koncept |
-| 4 | [04-kalendar-a-matice.md](04-kalendar-a-matice.md) | kalendář ocenění a schvalovací matice | koncept |
+| 4 | [04-oceneni-a-matice.md](04-oceneni-a-matice.md) | frekvence ocenění a schvalovací matice | koncept |
 | 5 | – | uživatelé a role | plán |
 | 6 | – | portfolia a nástroje | plán |
 | 7 | – | kurzy | plán |

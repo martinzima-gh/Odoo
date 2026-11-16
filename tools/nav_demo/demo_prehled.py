@@ -60,15 +60,12 @@ def approved_price(scoped, fund, bond, day, value, preparer, approver):
     record.with_user(approver).action_approve()
 
 
-# Beta: zářijové ocenění zveřejněné, říjnové po termínu, obchod po termínu vypořádání, termín po lhůtě.
+# Beta: zářijové ocenění zveřejněné, říjnové rozpracované, obchod po termínu vypořádání, termín po lhůtě.
 scoped, fund, preparer, approver = make_fund(BETA, "beta")
 bond = instrument(scoped, fund, "Ukázkový dluhopis Beta", "CZ0000000002")
 scoped["investra.trade"].create({"fund_id": fund.id, "instrument_id": bond.id, "trade_date": "2026-09-10", "quantity": 500, "price": 10000})._book()
 september, october = date(2026, 9, 30), date(2026, 10, 31)
-scoped["investra.valuation.calendar"].create([
-    {"fund_id": fund.id, "date": september, "published_on": "2026-10-05"},
-    {"fund_id": fund.id, "date": october, "published_on": "2026-11-05"},
-])
+# Další ocenění se počítá z Data vzniku (2026-08-31) a frekvence fondu (měsíčně); kalendář ocenění se vypustil (MN-14).
 approved_price(scoped, fund, bond, september, 10050, preparer, approver)
 first = scoped["investra.valuation"].with_user(preparer).create({"fund_id": fund.id, "date": september})
 first.action_compute()

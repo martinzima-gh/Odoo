@@ -13,7 +13,7 @@
                 <field name="dashboard_net_flow"/><field name="dashboard_lock_text"/><field name="dashboard_lock_exception_count"/>
                 <field name="dashboard_latest_published"/>
                 <field name="dashboard_next_valuation"/><field name="dashboard_next_valuation_id"/><field name="dashboard_next_state"/>
-                <field name="dashboard_next_version"/><field name="dashboard_next_late"/>
+                <field name="dashboard_next_version"/>
                 <field name="dashboard_deadline_state"/><field name="dashboard_todo"/>
                 <templates>
                     <t t-name="card">
@@ -78,7 +78,6 @@
                                         <field name="dashboard_next_state"/><t t-if="record.dashboard_next_version.raw_value &gt; 1"> · v<t t-out="record.dashboard_next_version.raw_value"/></t>
                                     </a>
                                     <span t-else="" class="o_investra_pill o_investra_pending"><field name="dashboard_next_state"/></span>
-                                    <span t-if="record.dashboard_next_late.raw_value" class="o_investra_pill o_investra_late">Po termínu</span>
                                 </div>
                                 <span t-else="">—</span>
                             </div>
@@ -130,7 +129,6 @@
                 <field name="dashboard_published" optional="show"/>
                 <field name="dashboard_next_valuation"/>
                 <field name="dashboard_next_state" widget="badge" decoration-info="dashboard_next_state in ('draft', 'computed', 'none')" decoration-warning="dashboard_next_state in ('submitted', 'approved')"/>
-                <field name="dashboard_next_late" widget="boolean" optional="hide"/>
                 <field name="dashboard_todo_count" string="Ke zpracování" optional="show"/><field name="dashboard_my_todo" string="Můj krok" widget="boolean" optional="show"/>
                 <field name="dashboard_next_deadline"/><field name="dashboard_deadline_state" widget="badge" decoration-warning="dashboard_deadline_state == 'open'" decoration-danger="dashboard_deadline_state == 'overdue'" decoration-success="dashboard_deadline_state == 'submitted'"/><field name="dashboard_exception_count"/>
             </list>
@@ -163,7 +161,6 @@
                 <filter name="filter_danger" string="Vyžaduje zásah" domain="[('dashboard_status', '=', 'danger')]"/>
                 <filter name="filter_warning" string="Upozornění" domain="[('dashboard_status', '=', 'warning')]"/>
                 <separator/>
-                <filter name="filter_next_late" string="Ocenění po termínu" domain="[('dashboard_next_late', '=', True)]"/>
                 <filter name="filter_deadline_overdue" string="Termín ČNB po lhůtě" domain="[('dashboard_deadline_state', '=', 'overdue')]"/>
                 <filter name="filter_deadline_open" string="Termín ČNB otevřený" domain="[('dashboard_deadline_state', 'in', ['open', 'overdue'])]"/>
                 <filter name="filter_none" string="Bez ocenění" domain="[('dashboard_status', '=', 'none')]"/>

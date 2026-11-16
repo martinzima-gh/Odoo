@@ -54,7 +54,7 @@ class InvestraFund(models.Model):
         required=True,
         default="monthly",
         string="Frekvence ocenění",
-        help="Plánovaná četnost ocenění fondu (denně až ročně). Konkrétní data ocenění a zveřejnění lze plánovat v Kalendáři ocenění.",
+        help="Plánovaná četnost ocenění fondu (denně až ročně). Z ní se u fondu počítá očekávané datum dalšího ocenění: měsíčně, čtvrtletně a ročně poslední den následujícího období, týdně nejbližší další pátek, denně nejbližší další pracovní den (pondělí až pátek; státní svátky se zatím neberou).",
     )
     # Druhou osobu určuje schvalovací matice (rozhodnutí 2026-11-11); dřívější pole second_person_required
     # převedla migrace investra_nav 20.0.0.6.0, sloupec v databázi zůstává jen pro historii.
@@ -99,10 +99,6 @@ class InvestraFund(models.Model):
         help="Způsob, jakým se počítá naběhlý výnos nástrojů v naběhlé hodnotě: efektivní úroková míra, nebo lineárně. Lineární úročení vyžaduje zdůvodnění.",
     )
     accrual_note = fields.Char(string="Zdůvodnění lineárního úročení")
-    calendar_ids = fields.One2many(
-        "investra.valuation.calendar", "fund_id", string="Kalendář ocenění",
-        help="Plánovaná data ocenění a plánované zveřejnění; datum ocenění je v kalendáři jedinečné.",
-    )
 
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
 
@@ -192,16 +188,3 @@ class InvestraFundClass(models.Model):
                 raise ValidationError(self.env._("Počet desetinných míst kusů musí být 0 až 6."))
             if not (0 <= record.entry_fee_rate <= 100 and 0 <= record.exit_fee_rate <= 100):
                 raise ValidationError(self.env._("Sazba poplatku musí být 0 až 100 %."))
-
-
-class InvestraValuationCalendar(models.Model):
-    _name = "investra.valuation.calendar"
-    _description = "Plánované ocenění"
-    _order = "date"
-
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="cascade", index=True, string="Fond")
-    company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    date = fields.Date(required=True, string="Datum ocenění")
-    published_on = fields.Date(string="Plánované zveřejnění")
-
-    _fund_date_uniq = models.Constraint("unique(fund_id, date)", "Datum ocenění je v kalendáři už uvedené.")

@@ -5,9 +5,6 @@ investra_fund_company_rule,Fondy podle společnosti,investra.fund,,crud,"[('comp
 access_investra_class_read,investra.fund.class read,investra.fund.class,account.group_account_readonly,r,
 access_investra_class_manager,investra.fund.class manager,investra.fund.class,account.group_account_manager,crud,
 investra_class_company_rule,Třídy podle společnosti,investra.fund.class,,crud,"[('company_id', 'in', company_ids)]"
-access_investra_calendar_read,investra.valuation.calendar read,investra.valuation.calendar,account.group_account_readonly,r,
-access_investra_calendar_manager,investra.valuation.calendar manager,investra.valuation.calendar,account.group_account_manager,crud,
-investra_calendar_company_rule,Kalendář podle společnosti,investra.valuation.calendar,,crud,"[('company_id', 'in', company_ids)]"
 access_approval_matrix_read,investra.approval.matrix read,investra.approval.matrix,account.group_account_readonly,r,
 access_approval_matrix_appr,investra.approval.matrix approver,investra.approval.matrix,investra_entity.group_valuation_approver,crud,
 access_approval_matrix_step_read,investra.approval.matrix.step read,investra.approval.matrix.step,account.group_account_readonly,r,
