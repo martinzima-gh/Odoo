@@ -39,3 +39,5 @@ Hotovo 16. 11. 2026 (Sonnet), větev `ukol/MN-manual`.
 - Verzi modulu jsem nezvyšoval (kvůli střetu s MN-10 a MN-12); povýšení `investra_fund` a restart 8071 udělá hlavní relace najednou.
 - Testy `tools/run_tests.sh all`: 796 testů, 0 failed, 0 error; dočasná `investra_ci_20261116_164352` smazána.
 - Neověřeno: zobrazení v rozbalovacím seznamu v `investra` (nasazení neprováděno) a SELECT počtu `fund` před/po (do `investra` jsem nesahal; změna popisku hodnoty neovlivňuje).
+
+- **Nasazení (hlavní relace, 16. 11. 2026, společně MN-10 až MN-12):** záloha `zalohy/investra-2026-11-16-pred-MN10-12.dump` (pg_dump -Fc, 8,7 MB, `pg_restore -l` 10 953 položek); testy `all` 801/0 selhání (`investra_ci_20261116_172931`, smazána); `-u investra_entity,investra_fund,investra_nav --stop-after-init` v `investra` bez chyby (v logu jen docutils k popisu modulů); verze entity 20.0.0.12.2, fund 20.0.0.8.5, nav 20.0.0.31.3; 8071 restartována (HTTP 200). Ověřit v prohlížeči: Martin.

@@ -61,3 +61,5 @@ Role účtů a výběry používají `display_name`/`name_search` jádra; hledá
 **Testy (bod 4):** nový `test_account_display_name_has_code_with_other_active_company` (display_name „321999 Zkušební dodavatelé“
 při aktivní společnosti účtu i jiné; name_search podle čísla i názvu). `investra_entity` 19 testů OK; sada `all`
 0 failed, 0 error z 796 testů na `investra_ci_20261116_163646` (smazána). Nezkoušeno, že nový test bez opravy selže.
+
+- **Nasazení (hlavní relace, 16. 11. 2026, společně MN-10 až MN-12):** záloha `zalohy/investra-2026-11-16-pred-MN10-12.dump` (pg_dump -Fc, 8,7 MB, `pg_restore -l` 10 953 položek); testy `all` 801/0 selhání (`investra_ci_20261116_172931`, smazána); `-u investra_entity,investra_fund,investra_nav --stop-after-init` v `investra` bez chyby (v logu jen docutils k popisu modulů); verze entity 20.0.0.12.2, fund 20.0.0.8.5, nav 20.0.0.31.3; 8071 restartována (HTTP 200). Ověřit v prohlížeči: Martin.
