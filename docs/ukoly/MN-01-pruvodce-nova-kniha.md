@@ -46,9 +46,47 @@ popis kroků v UI pro manuál (pole, výchozí hodnoty, upozornění) a co zůst
 
 ## Výsledek
 
-Doplní model, který úkol provedl.
+Provedl Claude (Opus 5.5), 16. 11. 2026. Plán dodržen; upřesnění níže.
 
-- **Změněné soubory:**
+- **Změněné soubory:** `investra_chart_fund/wizard/` (`new_book.py` – přechodný model `investra.new.book.wizard`,
+  `new_book_views.xml` – formulář, akce, tlačítko v seznamu knih, nabídka), `security/ir.access.csv` (nový, jen
+  `base.group_system`), `tests/test_new_book.py` (9 testů), `__manifest__.py` (verze 20.0.0.10.0, `data`), `README.md` (nový).
+  `create_book`, osnova, role ani seed se nezměnily; migrace není potřeba (jen nový model a pohledy).
+- **Upřesnění plánu:**
+  - Rámec se po výběru druhu předvyplní; ruční změna na jinou kombinaci (i IFRS) se odmítne chybou před založením.
+  - Bod 5 (transakce): jediné potvrzení transakce v cestě `create_book` je doinstalace modulu šablony v
+    `account.chart.template._load` (`button_immediate_install`); automatickou instalaci lokalizace při založení společnosti
+    vypíná kontext `chart_template_load`. Průvodce proto před založením zkontroluje, že modul šablony i moduly lokalizace
+    země (`uninstalled_l10n_module_ids`) jsou nainstalované, jinak skončí chybou „Nejdřív nainstalujte moduly… Nic se
+    nezaložilo.“ Ostatní chyby (název společnosti už existuje, podfond bez SICAV, rámec) se kontrolují také předem; kdyby
+    přesto něco selhalo až v `create_book`, Odoo vrátí celý požadavek (commit v cestě není).
+  - Bod 3: `res.company.create` připojí společnost uživateli sám, průvodce to dělá výslovně znovu. Vrácená akce otevře
+    formulář knihy s novou společností v `allowed_company_ids` (kontext akce přebije kontext klienta), jinak by formulář
+    zablokovalo pravidlo „Knihy podle společnosti“.
+  - Skupina `base.group_system`: Odoo načtení osnovy jiným než správcům nedovolí (`_load` → AccessError).
+- **Kroky v UI pro manuál (MN-02):** Investra › Nastavení › Fondy › Nová účetní kniha (nebo tlačítko „Nová účetní kniha“
+  v seznamu Účetní knihy; vidí jen správce). Nahoře žluté upozornění: funkční měnu, rámec ani společnost nejde po prvním
+  zaúčtování změnit; zdroj kurzů se řídí měnou (CZK – ČNB, EUR – ECB); šablona podle druhu jednotky. Pole: Název
+  společnosti, Druh jednotky (výchozí Fond), Účetní rámec (podle druhu: servisní 500/2002, ostatní 501/2002), Nadřazená
+  kniha (u podfondu povinně SICAV), Zakladatel; vpravo Funkční měna (výchozí CZK), Země (výchozí Česko) a jen pro čtení
+  Šablona osnovy a Zdroj kurzů. Tlačítko „Založit knihu“ se zeptá na potvrzení, pak se otevře formulář nové knihy.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
+  - `tools/run_tests.sh investra_chart_fund` → 0 failed, 0 error z 21 testů (9 nových: fond CZK/ČNB a EUR/ECB s hashem
+    obecných deníků, audit trailem a rolemi; investiční společnost se šablonou `cz` bez hashe; SICAV a podfond; výchozí
+    rámec a šablona; odmítnutí fond+500, servisní+501, fond+IFRS bez založené společnosti; podfond bez SICAV; duplicitní
+    název; uživatel jen s `account.group_account_manager` průvodce neotevře; admin má po založení společnost v `company_ids`).
+    Dočasná DB smazána.
+  - `tools/run_tests.sh all` → 0 failed, 0 error ze 742 testů (16 modulů); 6 varování jen z prostředí (cesta
+    `/mnt/extra-addons`, `--without-demo`, `markdown2`). Dočasná DB smazána.
+  - `investra`: záloha `zalohy/investra-2026-11-16-pred-MN01.dump` (čitelná přes `pg_restore -l`), `-u investra_chart_fund`
+    rc=0 (log `.test-logs/upgrade-investra-MN01.log`; jen předchozí hlášky: README `investra_instrument_master`, popisky polí
+    `investra_nav`), modul 20.0.0.10.0, průvodce, akce, nabídka a právo v DB; instance 8071 znovu běží (`/web/login` 200).
+  - `investra` nanečisto (`odoo shell` s rollbackem): chybějící moduly lokalizace CZ žádné, kontroly fondu + 501 projdou,
+    fond + 500 odmítnut; počet knih beze změny (7).
+- **Neověřeno:** průchod v prohlížeči (tlačítko v seznamu, nabídka, upozornění, otevření formuláře nové knihy bez
+  přepnutí firmy a viditelnost pro uživatele bez správce). V `investra` jsem žádnou knihu nezaložil.
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Nová společnost se v přepínači firem neaktivuje trvale; po odchodu z formuláře ji uživatel zaškrtne sám.
+  - Měny: nabízejí se jen aktivní; pro jinou než CZK/EUR je zdroj kurzů ČNB a pravidlo měny se nekontroluje (stav `create_book`).
+  - Nadřazená kniha u fondu a SICAV nemá omezení druhu (stav modelu); obchodní význam vazby fond → investiční společnost
+    neurčuji.

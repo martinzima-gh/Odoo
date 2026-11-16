@@ -1,0 +1,2 @@
+id,name,model_id,group_id/id,operation,domain
+access_new_book_wizard_system,investra.new.book.wizard system,investra.new.book.wizard,base.group_system,crud,

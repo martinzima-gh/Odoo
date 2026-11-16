@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_new_book_wizard_form" model="ir.ui.view">
+        <field name="name">investra.new.book.wizard.form</field>
+        <field name="model">investra.new.book.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Nová účetní kniha">
+                <div class="alert alert-warning" role="alert">
+                    Funkční měnu, účetní rámec ani společnost nejde po prvním zaúčtování změnit.
+                    Zdroj kurzů se řídí funkční měnou (CZK – ČNB, EUR – ECB). Šablona osnovy se odvozuje
+                    od druhu jednotky (SICAV, fond a podfond – osnova fondu, ostatní – česká osnova).
+                </div>
+                <group>
+                    <group>
+                        <field name="name" placeholder="např. Fond Alfa SICAV, a.s."/>
+                        <field name="entity_type"/>
+                        <field name="framework"/>
+                        <field name="parent_id" required="entity_type == 'subfund'"/>
+                        <field name="founder_id"/>
+                    </group>
+                    <group>
+                        <field name="currency_id" options="{'no_create': True}"/>
+                        <field name="country_id" options="{'no_create': True}"/>
+                        <field name="template"/>
+                        <field name="rate_source"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Založit knihu" type="object" name="action_create" class="btn-primary"
+                            confirm="Založit společnost a účetní knihu? Funkční měnu ani rámec pak nepůjde změnit."/>
+                    <button string="Zrušit" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_new_book_wizard" model="ir.actions.act_window">
+        <field name="name">Nová účetní kniha</field>
+        <field name="res_model">investra.new.book.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="group_ids" eval="[Command.link(ref('base.group_system'))]"/>
+    </record>
+    <record id="view_entity_list_new_book" model="ir.ui.view">
+        <field name="name">investra.entity.list.new.book</field>
+        <field name="model">investra.entity</field>
+        <field name="inherit_id" ref="investra_entity.view_entity_list"/>
+        <field name="arch" type="xml">
+            <list position="inside">
+                <header>
+                    <button name="%(action_new_book_wizard)d" type="action" string="Nová účetní kniha"
+                            display="always" class="btn-primary" groups="base.group_system"/>
+                </header>
+            </list>
+        </field>
+    </record>
+    <menuitem id="menu_new_book" name="Nová účetní kniha" parent="investra_entity.menu_setup_funds"
+              action="action_new_book_wizard" sequence="21" groups="base.group_system"/>
+</odoo>
