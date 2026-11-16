@@ -30,4 +30,12 @@ na úrovni fondu žádná není, takže stačí změnit popisek.
 
 ## Výsledek
 
-(doplní provádějící model)
+Hotovo 16. 11. 2026 (Sonnet), větev `ukol/MN-manual`.
+
+- `investra_fund/models/fund.py`: popisek `fund` → „Fond – výnos“ v `FEE_RECIPIENT`; nápovědy výchozích příjemců
+  „Fond – výnos: výnos celého fondu, dělí se mezi třídy poměrem.“ Hodnota `fund` a účtování beze změny.
+- `docs/manual/02-fond.md`: tabulka příjemců a věta o kapitálu. `03-tridy.md` popisek „Fond“ necituje.
+- Jiné texty citující popisek (testy, nápovědy v `investra_nav`) nenalezeny; pole pohybu a třídy berou popisek ze stejného `FEE_RECIPIENT`.
+- Verzi modulu jsem nezvyšoval (kvůli střetu s MN-10 a MN-12); povýšení `investra_fund` a restart 8071 udělá hlavní relace najednou.
+- Testy `tools/run_tests.sh all`: 796 testů, 0 failed, 0 error; dočasná `investra_ci_20261116_164352` smazána.
+- Neověřeno: zobrazení v rozbalovacím seznamu v `investra` (nasazení neprováděno) a SELECT počtu `fund` před/po (do `investra` jsem nesahal; změna popisku hodnoty neovlivňuje).

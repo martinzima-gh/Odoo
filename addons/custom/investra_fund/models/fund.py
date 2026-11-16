@@ -11,7 +11,7 @@ ROUNDING_OWNER = [("fund", "Zůstává ve fondu"), ("investor", "Vrací se inves
 # celého fondu, dělí se mezi třídy poměrem; třída = celý jen třídě pohybu, jako výnos, nebo jako kapitál třídy.
 # Fond do kapitálu nejde: kapitál je vždy kapitál třídy, poměrem se dělí jen výnosy a náklady.
 FEE_RECIPIENT = [
-    ("manager", "Obhospodařovatel"), ("distributor", "Distributor"), ("fund", "Fond"),
+    ("manager", "Obhospodařovatel"), ("distributor", "Distributor"), ("fund", "Fond – výnos"),
     ("class_income", "Třída – výnos"), ("class_capital", "Třída – kapitál"),
 ]
 CLASS_RECIPIENTS = ("class_income", "class_capital")
@@ -76,11 +76,11 @@ class InvestraFund(models.Model):
     # Dřívější společné pole fee_recipient převedla migrace investra_fund 20.0.0.7.0 (sloupec Odoo při upgradu odstranil).
     entry_fee_recipient = fields.Selection(
         FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce vstupního poplatku",
-        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
+        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond – výnos: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
     )
     exit_fee_recipient = fields.Selection(
         FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce výstupního poplatku",
-        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
+        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond – výnos: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
     )
     # Dřívější zaškrtávátka entry/exit_fee_capital převedla migrace investra_fund 20.0.0.8.0 do příjemce
     # (Třída – výnos / Třída – kapitál); sloupce Odoo při upgradu odstraní.

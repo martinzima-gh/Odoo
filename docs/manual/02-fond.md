@@ -48,11 +48,11 @@ Hodnoty se **zkopírují do nové třídy při jejím založení**; pozdější 
 | Volba | Účetní dopad |
 |---|---|
 | Obhospodařovatel, Distributor | závazek fondu, poplatek se platí ven |
-| Fond | výnos celého fondu, dělí se mezi třídy poměrem |
+| Fond – výnos | výnos celého fondu, dělí se mezi třídy poměrem |
 | Třída – výnos | celý poplatek jen třídě pohybu, jako výnos |
 | Třída – kapitál | celý poplatek jen třídě pohybu, jako kapitál třídy |
 
-Volbu řiďte statutem. Kapitál je vždy kapitál třídy, poměrem se dělí jen výnosy a náklady (proto Fond do kapitálu nejde).
+Volbu řiďte statutem. Kapitál je vždy kapitál třídy, poměrem se dělí jen výnosy a náklady (proto „Fond – kapitál“ neexistuje).
 Sazbu i příjemce lze na třídě přepsat (kap. 3).
 
 ## Úročení nástrojů
