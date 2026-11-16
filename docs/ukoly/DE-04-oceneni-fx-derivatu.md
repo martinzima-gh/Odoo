@@ -14,7 +14,7 @@
 **Cíl:** ocenění fondu spočte reálnou hodnotu otevřených smluv variantou B (nebo vezme ruční hodnotu), zaúčtuje
 změnu a přepočte podrozvahu; výsledek je vidět v ocenění a ve FK.
 
-**Schválený plán** (návrh Clauda; schválení Martina a datum doplní relace podle promptu):
+**Schválený plán** (návrh Clauda; plán schválil Martin v promptu relace 15. 11. 2026):
 
 1. **Výpočet** jako čistá funkce bez ORM (vzor výpočetního jádra ocenění), Decimal, zaokrouhlení na haléře až na
    konci: `RH(t) = V(t) − B0 × zbývající dny / dny celkem`. Vstupy (kurzy, B0, dny) se uloží k řádku ocenění.
@@ -41,11 +41,39 @@ u fondu bez derivátů shodné výsledky ocenění jako před změnou (porovnán
 
 ## Výsledek
 
-Doplní provádějící relace.
+Provedl Claude Code (hlavní relace) 16. 11. 2026, větev `etapa/derivaty`.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** jen `addons/custom/investra_derivative/`: `models/valuation.py` (rozšíření ocenění, řádek
+  `investra.valuation.derivative`, tolerance na fondu, zámek použité ruční hodnoty), `views/valuation_views.xml`
+  (záložka FX deriváty v ocenění, tolerance ve formuláři fondu), práva, `tests/test_valuation.py`, verze 20.0.0.3.0;
+  `docs/rozhodnuti.md`, tento soubor. Výpočet `calc.py` vznikl už v DE-03 (používá ho i vypořádání).
+- **Napojení na ocenění:** v `investra_nav` se **nezměnil žádný řádek**. Modul dědí `_compute_unsettled` (za ním
+  přecení deriváty), `_clear`, `_position_balance` (přidá účty RH derivátů, aby kontrola „Pozice se rovnají hlavní
+  knize“ zahrnula i zápornou RH) a `_run_checks`. Doklady „Přecenění derivátů“ a „Přepočet podrozvahy“ vznikají přes
+  `_add_event`, takže je nahrazuje opakovaný výpočet a ruší nebo stornuje stávající postup ocenění.
+- **Ověřeno (příkaz a výsledek):** `tools/run_tests.sh investra_derivative` → 0 failed, 0 error(s) of 44 tests;
+  `tools/run_tests.sh all` → 0 failed, 0 error(s) of 733 tests (dočasné `investra_ci_*`, smazány). Příklad návrhu na haléř přes dvě ocenění a vypořádání (rok 2025):
+  31. 10. MD 313000 / D 719100 166 304,35 a podrozvaha MD 954100 / D 992000 200 000; 30. 11. D 313000 166 304,35,
+  D 313100 166 304,35, MD 619100 332 608,70 a podrozvaha D 954100 / MD 992000 300 000; 31. 12. MD 619100 / D 313100
+  133 695,65, banka +24 900 000 a −25 200 000, MD 313100 300 000, podrozvaha odúčtována; součet změn −300 000,00.
+  Po každém kroku FK ocenění = aktiva − závazky z hlavní knihy a kontroly `positions_ledger` a `classes_sum` v pořádku.
+  Dále: RH = 0 v den sjednání, opakovaný výpočet nic nezdvojí, zrušení návrhu odstraní doklady, ruční hodnota má
+  přednost jen pro své datum (i v EUR), kontroly, swap po vypořádání blízké nohy, fond v EUR.
+- **Fond bez derivátů:** stávající testy ocenění (`investra_nav`, referenční scénáře s očekávanými hodnotami) prošly
+  beze změny očekávaných hodnot s nainstalovaným modulem; test `test_fund_without_derivatives_is_untouched` ověřuje,
+  že takový fond nemá žádný řádek, doklad ani kontrolu derivátů a FK je roven úpisu.
+- **Tolerance (bod 2):** parametr fondu „Tolerance ruční hodnoty derivátu (% nominálu)“, výchozí **0,10 %** nominálu
+  otevřených noh ve funkční měně (návrh Clauda; u příkladu 24 900 Kč). Nad tolerancí je upozornění, ne stop.
+- **Kontroly:** stop – nevypořádaná noha s datem vypořádání do dne ocenění, chybějící kurz, ruční hodnota bez
+  přílohy i důvodu; upozornění – rozdíl ruční a spočtené hodnoty nad tolerancí, smlouva v návrhu s datem sjednání
+  do dne ocenění. Kontroly se přidávají jen fondu, který má aspoň jednu smlouvu.
+- **Doplněno nad zadání:** ocenění dorovná na nulu zůstatky RH a podrozvahy vypořádaných a stornovaných smluv
+  (např. po stornu smlouvy přeceněné dřívějším oceněním); ruční hodnotu použitou oceněním od stavu Ke schválení
+  nejde změnit ani smazat; FX spot se oceňuje stejným vzorcem na svých účtech (358, 616 / 716).
+- **Neověřeno:** vzhled záložky v prohlížeči; storno zaúčtovaného ocenění s deriváty a oprava zveřejněného ocenění
+  nemají vlastní test (jdou stávajícím postupem přes doklady ocenění); dorovnání zůstatků stornované smlouvy dalším
+  oceněním nemá vlastní test; chování při novém ocenění k datu před vypořádáním, které už proběhlo, jen úvahou.
+- **Otevřené otázky a návrhy mimo rozsah:** tolerance 0,10 % je návrh ke schválení; řádek portfolia za smlouvu má
+  měnu fondu a kusy 1 (měnový pár je v názvu); výkazy ČNB a ukázková data jsou DE-05.
 
 ## Převzetí
