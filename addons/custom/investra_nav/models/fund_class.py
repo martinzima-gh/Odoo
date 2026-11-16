@@ -1,10 +1,13 @@
+from decimal import Decimal
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 # MN-07: po prvním zaúčtovaném pohybu třídy (úpis, odkup) nejde změnit kód a měnu zveřejnění kurzu: změna by zpětně
 # změnila význam zaúčtovaných pohybů. MN-12 (rozhodnutí 2026-11-16, Poznámky z průchodu 2, bod 3): zaokrouhlení
 # a desetinná místa kurzu a kusů jdou měnit dál; platí pro další pohyby a ocenění, zaúčtované pohyby a uložená
-# ocenění se nepřepočítají (kusy a kurz jsou na nich uložené).
+# ocenění se nepřepočítají (kusy a kurz jsou na nich uložené). Místa kusů jdou snížit jen do přesnosti zaúčtovaných
+# pohybů (`_check_unit_digits_not_below_posted`).
 LOCKED_FIELDS = ("code", "currency_id")
 
 
@@ -35,7 +38,36 @@ class InvestraFundClass(models.Model):
                         "Poplatky, příjemce, zaokrouhlení a desetinná místa změnit jde; zaúčtované pohyby se nepřepočítají.",
                         **{"class": record.display_name, "fields": ", ".join(changed)}
                     ))
+        if "unit_digits" in vals:
+            self._check_unit_digits_not_below_posted(vals["unit_digits"])
         return super().write(vals)
+
+    def _check_unit_digits_not_below_posted(self, new_digits):
+        """MN-12 (rozhodnutí Martina 2026-11-16): desetinná místa kusů nejde snížit pod přesnost zaúčtovaných pohybů.
+
+        Kontrola při zaúčtování platí i pro odkup; po snížení by kusy s více místy nešly odkoupit a stav třídy
+        by nešel vynulovat. Stornované pohyby se nepočítají, pohyby v návrhu zkontroluje zaúčtování.
+        """
+        Movement = self.env["investra.class.movement"].sudo()
+        for record in self:
+            if new_digits is None or new_digits >= record.unit_digits:
+                continue
+            for movement in Movement.search([("class_id", "=", record.id), ("state", "=", "posted")], order="date, id"):
+                used = _unit_places(movement.units)
+                if used > new_digits:
+                    raise UserError(self.env._(
+                        "Třída %(class)s: desetinná místa kusů nejde snížit na %(new)s. Zaúčtovaný pohyb %(movement)s "
+                        "má kusy %(units)s (%(used)s míst); po snížení by je nešlo odkoupit. Zvýšit místa nebo změnit "
+                        "zaokrouhlení jde.",
+                        **{"class": record.display_name, "new": new_digits, "movement": movement.display_name,
+                           "units": movement.units, "used": used}
+                    ))
+
+
+def _unit_places(units):
+    """Počet desetinných míst kusů; kusy se ukládají na 6 míst (pole `units`, digits 20,6)."""
+    value = Decimal(str(round(units, 6))).normalize()
+    return max(0, -value.as_tuple().exponent)
 
 
 def _differs(record, name, new):

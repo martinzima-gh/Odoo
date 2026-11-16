@@ -24,6 +24,12 @@ const LINE_FIELDS = [
     "redemption_amount", "dividend_amount", "shared_result", "delta", "price", "opening_price",
 ];
 
+/** Počet desetinných míst uloženého kurzu (text z výpočtu ocenění, např. "333.6666" → 4). */
+export function storedDigits(text) {
+    const match = /\.(\d+)$/.exec(text || "");
+    return match ? match[1].length : 0;
+}
+
 function toDate(value) {
     return typeof value === "string" ? DateTime.fromISO(value) : value;
 }
@@ -198,11 +204,8 @@ export class InvestraValuationSummary extends Component {
         }
         try {
             const date = toDate(data.date);
-            const [lines, fundClasses, history, previous] = await Promise.all([
+            const [lines, history, previous] = await Promise.all([
                 this.orm.searchRead("investra.valuation.class", [["valuation_id", "=", record.resId]], LINE_FIELDS),
-                this.orm.searchRead("investra.fund.class", [["fund_id", "=", data.fund_id.id]], ["price_digits"], {
-                    context: { active_test: false },
-                }),
                 this.orm.searchRead(
                     "investra.valuation.price.history",
                     [
@@ -222,7 +225,7 @@ export class InvestraValuationSummary extends Component {
             const previousIso = previous.length ? toDate(previous[0].date).toISODate() : "";
             Object.assign(this.state, {
                 lines,
-                classes: this.buildClasses(lines, fundClasses, history, date, previousDate, previousIso),
+                classes: this.buildClasses(lines, history, date, previousDate, previousIso),
                 error: false,
             });
         } catch (error) {
@@ -233,14 +236,16 @@ export class InvestraValuationSummary extends Component {
         }
     }
 
-    buildClasses(lines, fundClasses, history, date, previousDate, previousIso) {
-        const digitsById = new Map(fundClasses.map((item) => [item.id, item.price_digits]));
+    buildClasses(lines, history, date, previousDate, previousIso) {
         const isoDate = date.toISODate();
         return [...lines]
             .sort((a, b) => (a.class_code || "").localeCompare(b.class_code || ""))
             .map((line, index) => {
                 const classId = line.class_id[0];
-                const digits = digitsById.get(classId) ?? 4;
+                // MN-12: počet míst podle uloženého kurzu, ne podle dnešního nastavení třídy (místa jdou po pohybu
+                // změnit, staré ocenění se nepřepočítává). Změna kurzu má místa delšího z obou kurzů.
+                const digits = storedDigits(line.price);
+                const changeDigits = Math.max(digits, storedDigits(line.opening_price));
                 const price = parseFloat(line.price);
                 const opening = line.opening_price ? parseFloat(line.opening_price) : null;
                 const published = history.filter((row) => row.class_id[0] === classId);
@@ -254,7 +259,7 @@ export class InvestraValuationSummary extends Component {
                     code: line.class_code,
                     currency: line.currency_name,
                     price: Number.isNaN(price) ? line.price : fmt(price),
-                    change: change === null ? "" : `${change > 0 ? "▲ +" : change < 0 ? "▼ " : ""}${fmt(change)}`,
+                    change: change === null ? "" : `${change > 0 ? "▲ +" : change < 0 ? "▼ " : ""}${formatFloat(change, { digits: [16, changeDigits] })}`,
                     changePct: change === null ? "" : `(${change > 0 ? "+" : ""}${formatFloat((change / opening) * 100, { digits: [16, 2] })} %)`,
                     tone: change === null ? "" : this.tone(change),
                     since: previousDate,

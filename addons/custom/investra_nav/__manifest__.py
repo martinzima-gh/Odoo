@@ -1,7 +1,7 @@
 {
     "name": "Investra NAV",
     "summary": "Pravidla úplat, ocenění, NAV tříd, schvalování a balíček pro depozitáře",
-    "version": "20.0.0.31.2",
+    "version": "20.0.0.31.3",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

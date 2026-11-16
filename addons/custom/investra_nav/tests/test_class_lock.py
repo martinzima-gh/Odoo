@@ -100,12 +100,13 @@ class TestClassLock(NavCase):
 
     def test_next_movement_uses_new_rounding_old_unchanged(self):
         _fund, class_a, _class_b = self._locked_class()
-        # Výchozí třída: 6 míst kusů, dolů → 1000 / 0,3 = 3333,333333 (cena pod 1, aby setina kusu byla pod tolerancí zbytku).
-        first = self._priced(class_a, 1000, 3333.333333, 0.3)
+        # Výchozí třída: 6 míst kusů, dolů; 1000 / 0,25 = 4000 ks (celé kusy, snížení míst pak projde).
+        first = self._priced(class_a, 1000, 4000, 0.25)
         first.action_book()
         amounts = (first.units, first.amount, first.capital_amount, first.event_id.move_id.amount_total)
         class_a.write({"unit_digits": 2, "unit_rounding": "up"})
-        # Další úpis: nová přesnost a zaokrouhlení nahoru → 3333,34; starý počet kusů už neprojde.
+        # Další úpis: nová přesnost a zaokrouhlení nahoru → 1000 / 0,3 = 3333,34 (cena pod 1, aby setina kusu byla
+        # pod tolerancí zbytku 0,01); 6 míst ani zaokrouhlení dolů už neprojde.
         old_style = self._priced(class_a, 1000, 3333.333333, 0.3, day="2027-01-06")
         with self.assertRaisesRegex(UserError, "víc než 2 desetinných míst"):
             old_style.action_book()
@@ -137,3 +138,31 @@ class TestClassLock(NavCase):
         second = self.valuation(fund, "2027-02-28")
         second.action_compute()
         self.assertEqual(self.result(second, "A").price, "333.67")
+
+    def test_unit_digits_not_below_posted_precision(self):
+        """Rozhodnutí Martina 2026-11-16: snížit místa kusů pod přesnost zaúčtovaných pohybů nejde."""
+        _fund, class_a, class_b = self._locked_class()
+        movement = self._priced(class_a, 1000, 3333.333333, 0.3)
+        movement.action_book()
+        for digits in (5, 2, 0):
+            with self.assertRaisesRegex(UserError, "desetinná místa kusů nejde snížit"):
+                class_a.write({"unit_digits": digits})
+        self.assertEqual(class_a.unit_digits, 6)
+        # Stejná hodnota a změna zaokrouhlení jdou.
+        class_a.write({"unit_digits": 6, "unit_rounding": "half_up"})
+        # Pohyb s celými kusy dovolí snížit až na 0; pohyb v návrhu se nepočítá.
+        self.subscribe(class_b, "2027-01-01", 1000, 10)
+        self._priced(class_b, 1000, 3333.333333, 0.3, day="2027-01-06")
+        class_b.write({"unit_digits": 0})
+        self.assertEqual(class_b.unit_digits, 0)
+        class_b.write({"unit_digits": 3})  # zvýšení jde vždy
+
+    def test_reversed_movement_does_not_block_unit_digits(self):
+        _fund, class_a, _class_b = self._locked_class()
+        movement = self._priced(class_a, 1000, 3333.333333, 0.3)
+        movement.action_book()
+        with self.assertRaisesRegex(UserError, "nejde snížit"):
+            class_a.write({"unit_digits": 2})
+        movement._do_reverse("Test")
+        class_a.write({"unit_digits": 2})
+        self.assertEqual(class_a.unit_digits, 2)

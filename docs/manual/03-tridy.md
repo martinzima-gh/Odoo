@@ -61,9 +61,11 @@ a **Zaokrouhlení kusů** (od 16. 11. 2026, úkol MN-12). Změna neplatí zpětn
 ani uložená ocenění (kurz, kusy) se nepřepočítají. Nová místa a zaokrouhlení použije až další zaúčtovaný úpis
 nebo odkup a další výpočet ocenění; ocenění, které je spočtené a ještě nepředložené, je přepočte při novém výpočtu.
 
-Pozor při **snížení desetinných míst kusů**: odkup se při zaúčtování kontroluje na nová místa. Držitel, který má kusy
-s více místy (např. 10,123456 při nových 2 místech), nemůže odkoupit celý stav jedním pohybem. Kontrola stav
-neopravuje, změnu ani neodmítne; snižte místa jen tehdy, když to stavy držitelů dovolí.
+**Desetinná místa kusů** jdou snížit jen do přesnosti zaúčtovaných pohybů třídy (stornované a pohyby v návrhu se
+nepočítají). Má-li zaúčtovaný pohyb např. 10,123456 ks, snížení na 2 místa skončí chybou „Třída …: desetinná místa
+kusů nejde snížit na 2. Zaúčtovaný pohyb … má kusy … (6 míst); po snížení by je nešlo odkoupit. …“. Důvod: odkup
+se při zaúčtování kontroluje na místa třídy a kusy s více místy by nešly odkoupit. Zvýšení míst a změna zaokrouhlení
+jdou vždy. Souhrn ocenění ukazuje kurz s tolika místy, s kolika byl při ocenění uložen.
 Zámek je u každé třídy zvlášť; třída bez pohybu zůstává volná.
 
 Chráněné je i tohle: třída s pohyby nejde smazat (vazba je chráněná); zaúčtovaný pohyb nejde změnit ani smazat, opravuje se stornem.

@@ -80,3 +80,18 @@ nahoru (3333,34 projde, 3333,33 a 3333,333333 ne), starý pohyb má stejné kusy
 ocenění má po změně stejný kurz, kusy, kapitál, FK a otisk, další ocenění spočte kurz na 2 místa nahoru (333,67).
 Odchylka jen v testovacích číslech: cena 0,3 místo 3, aby setina kusu nepřekročila toleranci zbytku 0,01.
 `investra_nav`: 359 testů, 0 selhání. `all`: 799 testů, 0 selhání (`investra_ci_20261116_165511`, po testech smazána).
+
+### Doplnění po rozhodnutí Martina (16. 11. 2026)
+
+Martin schválil obě doporučení (deník 2026-11-16 „Snížení míst kusů a zobrazení kurzu (MN-12)“). `investra_nav` 20.0.0.31.3:
+
+1. `fund_class.py` `_check_unit_digits_not_below_posted`: snížení `unit_digits` se odmítne, má-li třída zaúčtovaný
+   (stav Zaúčtováno, ne stornovaný) pohyb s více desetinnými místy kusů; pohyby v návrhu kontroluje až zaúčtování.
+   Zvýšení míst a změna zaokrouhlení jdou vždy. Kurz kontrolu nemá (ukládá se s každým oceněním zvlášť).
+2. `valuation_summary.js`: počet míst kurzu z uloženého textu kurzu řádku (`storedDigits`), změna kurzu na místa
+   delšího z obou kurzů; dotaz na `price_digits` tříd odstraněn. Syntaxe ověřena `node --check` v obrazu Odoo;
+   v prohlížeči neověřeno (JS testy modul nemá) – ověří se po nasazení v souhrnu ocenění.
+
+Testy: úprava testu „další pohyb“ (první úpis celými kusy, aby snížení míst prošlo) a 2 nové (odmítnutí snížení
+5/2/0 míst při pohybu s 6 místy, celé kusy dovolí 0, návrh se nepočítá, zvýšení jde; storno pohybu snížení uvolní).
+`investra_nav`: 361 testů, 0 selhání. `all`: 801 testů, 0 selhání (`investra_ci_20261116_170928`, po testech smazána).

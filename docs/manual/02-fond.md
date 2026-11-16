@@ -82,7 +82,7 @@ protože fond má ocenění, které není stornované.“ Po stornu všech ocen�
 
 - **Zaúčtování obchodu** po prvním obchodu fondu.
 - Kniha fondu: rámec ani společnost po zaúčtovaném dokladu (kap. 1).
-- Třída po prvním zaúčtovaném úpisu nebo odkupu: kód a měna zveřejnění kurzu (kap. 3). Poplatky, zaokrouhlení a desetinná místa kurzu a kusů jdou měnit; zaúčtované pohyby a uložená ocenění se nepřepočítají.
+- Třída po prvním zaúčtovaném úpisu nebo odkupu: kód a měna zveřejnění kurzu (kap. 3). Poplatky, zaokrouhlení a desetinná místa kurzu a kusů jdou měnit (místa kusů snížit jen do přesnosti zaúčtovaných pohybů); zaúčtované pohyby a uložená ocenění se nepřepočítají.
 - Výchozí hodnoty fondu (zaokrouhlení, desetinná místa, poplatky) jdou měnit kdykoli; stávající třídy se jimi nemění.
 - Fond s třídami nejde smazat (vazba tříd na fond je chráněná).
 
