@@ -42,4 +42,22 @@ Se `formatted_display_name` se místo názvu ukazuje `name_path`.
 
 ## Výsledek
 
-(doplní provádějící model)
+**Stav:** kód a testy hotové; **nasazení do `investra` (bod 5) neprovedeno** – povýšení modulu `investra_entity` (verze 20.0.0.12.2)
+a restart 8071 čekají na Martinův souhlas. Manuál neověřován ani neupraven.
+
+**Příčina (bod 1, read-only SELECT v `investra`):** uživatel `admin` skupinu `account.group_account_readonly` má (nepřímo), takže
+nejde o skupinu. Kód účtu je v Odoo 20 závislý na společnosti (`code_store` např. `{"1": "101000"}`) a `_compute_display_name`
+jádra ukáže `kód název` jen tehdy, když má kód pro **aktivní** společnost; při pohledu na účty knihy fondu z jiné aktivní
+společnosti je kód prázdný a zobrazí se jen název. (Neověřeno v prohlížeči, jen z kódu jádra a dat.)
+
+**Oprava (bod 2):** nový `investra_entity/models/account_account.py` – po `super()` se u účtu s prázdným kódem pro aktivní
+společnost vezme kód ze společností účtu (`with_company`); formát `kód název` bez názvu společnosti, platí i pro
+`formatted_display_name`. Podmínka skupiny z jádra se nemění (kód se doplňuje jen uživateli, který ji má).
+
+**Upravená místa (bod 3):** `grep` neukázal žádné ruční skládání názvu účtu z `account_id.name`; náhled zaúčtování
+(`investra_nav/models/posting_preview.py`) i kontroly rolí už používají `display_name`, takže se oprava projeví všude bez dalších změn.
+Role účtů a výběry používají `display_name`/`name_search` jádra; hledání podle čísla i názvu ověřeno testem.
+
+**Testy (bod 4):** nový `test_account_display_name_has_code_with_other_active_company` (display_name „321999 Zkušební dodavatelé“
+při aktivní společnosti účtu i jiné; name_search podle čísla i názvu). `investra_entity` 19 testů OK; sada `all`
+0 failed, 0 error z 796 testů na `investra_ci_20261116_163646` (smazána). Nezkoušeno, že nový test bez opravy selže.

@@ -153,3 +153,26 @@ class TestEntityIdentification(TransactionCase):
     def test_create_book_without_partner_is_unchanged(self):
         entity = self.Entity.create_book("Fond bez kontaktu", "fund", "cas501", self.czk, "cz")
         self.assertEqual(entity.company_id.partner_id.name, "Fond bez kontaktu")
+
+    def test_account_display_name_has_code_with_other_active_company(self):
+        """MN-10: účet knihy ukáže `kód název` i když je aktivní jiná společnost."""
+        company = self.Entity.create_book("Fond účty", "fund", "cas501", self.czk, "cz").company_id
+        account = self.env["account.account"].with_company(company).create({
+            "name": "Zkušební dodavatelé", "code": "321999", "account_type": "liability_payable",
+            "company_ids": [(6, 0, company.ids)],
+        })
+        other = self.env["res.company"].search([("id", "!=", company.id)], limit=1)
+        self.assertTrue(other)
+        user = self.env.ref("base.user_admin")
+        user.group_ids = [(4, self.env.ref("account.group_account_readonly").id)]
+        user.company_ids = [(4, company.id)]
+        self.assertTrue(user.has_group("account.group_account_readonly"))
+        for active in (company, other):
+            acc = account.with_user(user).with_company(active)
+            self.assertEqual(acc.display_name, "321999 Zkušební dodavatelé")
+            self.assertEqual(acc.with_context(formatted_display_name=True).display_name[:7], "321999 ")
+        # hledání podle čísla i názvu dál funguje
+        found = self.env["account.account"].with_user(user).with_company(company).name_search("321999")
+        self.assertIn(account.id, [r[0] for r in found])
+        found = self.env["account.account"].with_user(user).with_company(company).name_search("Zkušební dodav")
+        self.assertIn(account.id, [r[0] for r in found])
