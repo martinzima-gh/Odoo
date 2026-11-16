@@ -1,7 +1,7 @@
 from psycopg2 import IntegrityError
 
 from odoo.exceptions import AccessError, ValidationError
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import Form, TransactionCase, tagged
 from odoo.tools import mute_logger
 
 
@@ -76,3 +76,15 @@ class TestFund(TransactionCase):
             self.env["investra.fund.class"].with_user(self.user_b).create({
                 "fund_id": self.fund_b.id, "code": "X", "name": "X", "currency_id": self.czk.id,
             })
+
+    def test_class_row_in_fund_form_gets_price_params(self):
+        """MN-03: nový řádek třídy ve formuláři fondu dostane kurz a zaokrouhlení z fondu (ne 0)."""
+        self.fund_b.write({"price_digits": 5, "price_rounding": "half_up"})
+        form = Form(self.fund_b)
+        with form.class_ids.new() as line:
+            line.code = "N"
+            line.name = "Nová"
+            line.currency_id = self.czk
+        form.save()
+        record = self.fund_b.class_ids.filtered(lambda c: c.code == "N")
+        self.assertEqual((record.price_digits, record.price_rounding), (5, "half_up"))

@@ -45,7 +45,17 @@ co zůstalo neověřené v prohlížeči.
 
 Doplní model, který úkol provedl.
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `investra_nav/models/valuation.py` (pole `launch_locked`, `write` fondu se zámkem), `investra_nav/views/nav_views.xml`
+  (pohled `view_fund_form_launch_date`), `investra_fund/views/fund_views.xml` (kontext `class_ids`), testy
+  (`investra_fund/tests/test_fund.py`, nový `investra_nav/tests/test_launch_date.py`, `__init__.py`), manifesty
+  (`investra_fund` 20.0.0.8.2, `investra_nav` 20.0.0.30.0), `docs/manual/02-fond.md`, `03-tridy.md`, tento soubor, předávka.
+- **Ověřeno (příkaz a výsledek):** `tools/run_tests.sh investra_fund,investra_nav` → 0 failed, 0 error z 357 testů (první běh
+  selhal na mém testu kvůli cache nestored compute, test opraven; kód beze změny); dočasná DB smazána. Záloha
+  `zalohy/investra-2026-11-16-pred-MN03.dump`; upgrade `-u investra_fund,investra_nav` v `investra` bez ERROR; instance 8071
+  restartována (HTTP 200); verze modulů 8.2 / 30.0; pohled `investra.fund.form.launch.date` v DB existuje; SELECT tříd s
+  `price_digits = 0` v `investra` vrátil 0 řádků.
+- **Neověřeno:** vzhled a chování v prohlížeči (pole u Frekvence ocenění, jen pro čtení po ocenění, předvyplnění nového řádku
+  třídy); `create` třídy ponechán beze změny (`setdefault` už z fondu doplňuje, jen klientem poslaná 0 se nepřepíše – řeší
+  kontext); test formuláře dokládá výchozí hodnoty přes `Form`.
+- **Otevřené otázky a návrhy mimo rozsah:** zámek hlídá i ocenění v návrhu (každé nestornované); pokud má platit až od
+  výpočtu, změnit domain. Nález MN-02 3–10 beze změny.

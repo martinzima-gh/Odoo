@@ -330,6 +330,19 @@
             <xpath expr="//sheet" position="after"><chatter/></xpath>
         </field>
     </record>
+    <!-- MN-03: Datum vzniku fondu (začátek prvního oceňovacího období); po prvním ocenění jen pro čtení. -->
+    <record id="view_fund_form_launch_date" model="ir.ui.view">
+        <field name="name">investra.fund.form.launch.date</field><field name="model">investra.fund</field>
+        <field name="inherit_id" ref="investra_fund.view_fund_form"/>
+        <field name="arch" type="xml">
+            <field name="valuation_frequency" position="after">
+                <field name="launch_locked" invisible="1"/>
+                <field name="launch_date" readonly="launch_locked"
+                       placeholder="Bez data vzniku nejde fond ocenit"
+                       help="Začátek prvního oceňovacího období. Vyplňte před prvním oceněním; po něm už nejde změnit."/>
+            </field>
+        </field>
+    </record>
     <record id="action_valuation" model="ir.actions.act_window">
         <field name="name">Ocenění</field>
         <field name="res_model">investra.valuation</field>

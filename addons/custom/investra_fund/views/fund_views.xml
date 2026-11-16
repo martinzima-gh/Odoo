@@ -58,7 +58,7 @@
                     </group>
                     <notebook>
                         <page string="Třídy">
-                            <field name="class_ids" context="{'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner, 'default_entry_fee_rate': entry_fee_rate, 'default_exit_fee_rate': exit_fee_rate, 'default_entry_fee_recipient': entry_fee_recipient, 'default_exit_fee_recipient': exit_fee_recipient}">
+                            <field name="class_ids" context="{'default_price_digits': price_digits, 'default_price_rounding': price_rounding, 'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner, 'default_entry_fee_rate': entry_fee_rate, 'default_exit_fee_rate': exit_fee_rate, 'default_entry_fee_recipient': entry_fee_recipient, 'default_exit_fee_recipient': exit_fee_recipient}">
                                 <list editable="bottom">
                                     <field name="code"/>
                                     <field name="name"/>

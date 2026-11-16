@@ -25,7 +25,7 @@ Třída I přepíše poplatky na 0 (výchozí hodnoty fondu zůstávají jiné).
 | **Kód** | ano | – | ve fondu jedinečný: „Kód třídy musí být ve fondu jedinečný.“ |
 | **Název** | ano | – | |
 | **Měna zveřejnění kurzu** | ano | – | v ní se zveřejňuje kurz a probíhají úpisy a odkupy; nemění funkční měnu fondu |
-| **Desetinná místa kurzu** | ano | z fondu při uložení (v novém řádku se může zobrazit 0, vyplňte ručně) | 0 až 18: „Počet desetinných míst kurzu musí být 0 až 18.“ |
+| **Desetinná místa kurzu** | ano | z fondu (nový řádek ho předvyplní) | 0 až 18: „Počet desetinných míst kurzu musí být 0 až 18.“ |
 | **ISIN** | ne | – | bez kontroly formátu |
 | **Rozdělování výnosu** | ano | Růstová | Růstová, Dividendová |
 | **Desetinná místa kusů** | ano | z fondu | 0 až 6: „Počet desetinných míst kusů musí být 0 až 6.“ |

@@ -34,6 +34,7 @@ class InvestraFund(models.Model):
     _inherit = ["investra.fund", "mail.thread"]
 
     launch_date = fields.Date(string="Datum vzniku", help="Začátek prvního oceňovacího období.")
+    launch_locked = fields.Boolean(compute="_compute_launch_locked", string="Datum vzniku uzamčeno")
     # Kroky schválení (dříve approval_step_ids) určuje schvalovací matice; převedla je migrace 20.0.0.6.0.
 
     @api.model_create_multi
@@ -41,6 +42,26 @@ class InvestraFund(models.Model):
         funds = super().create(vals_list)
         funds._ensure_fx_profile()
         return funds
+
+    def _compute_launch_locked(self):
+        # MN-03: po prvním ocenění, které není stornované, datum vzniku určuje první oceňovací období a nemění se.
+        locked = {
+            group[0].id
+            for group in self.env["investra.valuation"].sudo()._read_group(
+                [("fund_id", "in", self.ids), ("state", "!=", "reversed")], ["fund_id"], []
+            )
+        } if self.ids else set()
+        for fund in self:
+            fund.launch_locked = fund.id in locked
+
+    def write(self, vals):
+        if "launch_date" in vals:
+            for fund in self.filtered(lambda f: f.launch_locked and f.launch_date != fields.Date.to_date(vals["launch_date"])):
+                raise UserError(self.env._(
+                    "Datum vzniku fondu %s nejde změnit, protože fond má ocenění, které není stornované. "
+                    "Změna by posunula první oceňovací období.", fund.display_name
+                ))
+        return super().write(vals)
 
     def _ensure_fx_profile(self):
         """Profil přecenění knihy fondu (rozhodnutí 2026-11-13, varianta A): banky a závazek z úplat, rozdíl na role

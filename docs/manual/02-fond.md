@@ -73,8 +73,10 @@ Sazbu i příjemce lze na třídě přepsat (kap. 3).
 
 ## Datum vzniku
 
-Pole **Datum vzniku** (začátek prvního oceňovacího období) existuje v datovém modelu, ale **ve formuláři fondu zatím není**
-(viz nálezy MN-02). Bez něj první ocenění skončí chybou „Fond nemá datum vzniku.“ Do opravy ho nelze v UI zadat.
+Pole **Datum vzniku** (začátek prvního oceňovacího období) je ve formuláři fondu u Frekvence ocenění. Povinné není, ale
+bez něj první ocenění skončí chybou „Fond nemá datum vzniku.“, takže ho vyplňte před prvním oceněním.
+Po prvním ocenění fondu, které není stornované, je pole jen pro čtení a změna skončí chybou „Datum vzniku fondu … nejde změnit,
+protože fond má ocenění, které není stornované.“ Po stornu všech ocenění jde změnit znovu.
 
 ## Co nejde po zaúčtování nebo prvním pohybu změnit
 
