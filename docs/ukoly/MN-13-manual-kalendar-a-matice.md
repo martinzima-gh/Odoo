@@ -48,4 +48,26 @@ kontrolní seznam pro první ocenění; seznam nálezů ve Výsledku.
 
 ## Výsledek
 
-(doplní provádějící model)
+Hotovo (Sonnet, 16. 11. 2026): `docs/manual/04-kalendar-a-matice.md` (koncept, „Ověřeno v kódu, v prohlížeči neověřeno“),
+řádek kap. 4 v `README.md` přepnut na koncept. Kód, databáze ani testy se nedotkly. Zdroje: `investra_fund` (`fund.py`,
+`approval_matrix.py`, views, `data/approval_matrix.xml`, `security/ir.access.csv`), `investra_nav` `valuation.py`
+(`_period_start`, kontroly matice), `investra_dashboard` `dashboard.py` (jediné místo, kde se čte kalendář), seed.
+
+Pokrytí polí: kalendář (Datum ocenění, Plánované zveřejnění), řádek matice (všechna pole vč. vynechaných `builtin`
+a `company_id`, které se nezadávají), kroky (Pořadí, Krok, Nejnižší role, Jen tito uživatelé), žádost a její potvrzení,
+log úkonů. Seed nastavuje matici na jednoho uživatele pro obhospodařovatele (rozhodnutí 2026-11-15); kalendář seed nezakládá.
+
+Nálezy pro pročištění (nic neopraveno):
+
+1. Kalendář se nekontroluje proti Frekvenci ocenění, Datu vzniku, statutu ani zákonné lhůtě (deník 2026-11-04
+   „Interval ocenění“ to předpokládá); řádky se negenerují podle frekvence.
+2. Ocenění jde založit k datu mimo kalendář; kalendář čte jen Přehled fondů (další ocenění, „Ocenění po termínu“).
+3. Mimořádné ocenění nemá vlastní druh ani pole, je to jen další řádek kalendáře.
+4. Řádek kalendáře jde měnit a mazat kdykoli, i po prvním oceněním (žádný zámek), na rozdíl od Data vzniku.
+5. Výchozí řádky matice (od 1. 1. 2000, `noupdate`) běžný uživatel nezmění; mění se jen novým řádkem obhospodařovatele.
+6. Řádky z modulu jde od vlastních rozlišit jen poznámkou, `builtin` není v seznamu ani formuláři.
+7. Záložka fondu „Zpřísnění matice“ je needitovatelný seznam; zadání řádku z ní v prohlížeči neověřeno.
+8. Čtyři oči u ocenění, ceny a výjimky z uzamčení se potvrzují na záznamu, u ostatních činností v Žádostech ke schválení;
+   neobvyklé rozdělení, v manuálu zatím jen zmíněno (podrobně kap. 8 a pozdější).
+9. Příklad „fond zpřísní storno obchodu“ i číselné příklady v kapitole jsou z kódu, ne z prohlížeče; ověřit v UI.
+
