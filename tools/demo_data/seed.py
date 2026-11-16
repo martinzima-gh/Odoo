@@ -524,6 +524,45 @@ at("2026-04-15", SUB, A.movement, "CZK", "2026-04-15", "redemption", units=20000
 at("2026-06-15", SUB, A.movement, "EUR", "2026-06-15", "subscription", gross=200000)
 at("2026-07-08", TRADE, A.trade, "A-FV", SH_RHEIN, "2026-07-08", 1500)
 at("2026-09-15", SUB, A.movement, "EUR", "2026-09-15", "redemption", units=300)
+# FX swap fondu A (DE-05): sjednání 28. 9., blízká noha 30. 9. (vypořádaná před 1. oceněním), vzdálená 30. 12. otevřená
+# přes poslední dvě ocenění (30. 9. zveřejněné, 31. 10. rozpracované). K ocenění 31. 10. ruční hodnota z banky (rozdíl
+# v toleranci). Postup a čísla: docs/navrh-fx-derivaty.md; účtuje se jen tlačítky Sjednat a Vypořádat.
+FX_BANK = env["res.partner"].create({"name": "Ukázková banka (smyšlená)", "is_company": True})
+FX_AMOUNT, FX_POINTS = 500000, 0.15  # EUR; forwardové body CZK za EUR (smyšlené)
+
+
+def fx_swap_agree():
+    spot = D(str(rate_at(date(2026, 9, 28))))
+    leg = lambda day, buy, buy_amount, sell, sell_amount: (0, 0, {
+        "settlement_date": day, "buy_currency_id": buy.id, "buy_amount": float(buy_amount),
+        "sell_currency_id": sell.id, "sell_amount": float(sell_amount)})
+    swap = A.env["investra.derivative"].create({
+        "fund_id": A.fund.id, "partner_id": FX_BANK.id, "kind": "swap", "trade_date": "2026-09-28",
+        "contract_ref": "FX-SWAP-A-001",
+        "leg_ids": [leg("2026-09-30", EUR, FX_AMOUNT, CZK, money(FX_AMOUNT * spot)),
+                    leg("2026-12-30", CZK, money(FX_AMOUNT * (spot + D(str(FX_POINTS)))), EUR, FX_AMOUNT)]})
+    swap.action_agree()
+    A.swap = swap
+
+
+def fx_swap_settle_near():
+    A.swap.leg_ids.sorted("settlement_date")[0].action_settle()
+
+
+def fx_swap_manual_value():
+    far = A.swap.leg_ids.sorted("settlement_date")[1]
+    left, total = far._days(date(2026, 10, 31))
+    k = float(rate_at(date(2026, 10, 31)))
+    computed = far.buy_amount - far.sell_amount * k - far.b0 * left / total
+    A.env["investra.derivative.value"].create({
+        "derivative_id": A.swap.id, "date": "2026-10-31", "amount": round(computed + 2500, 2),
+        "currency_id": CZK.id, "source": "Potvrzení banky o reálné hodnotě k 31. 10. 2026 (smyšlené)",
+        "reason": "Banka oceňuje podle vlastní křivky forwardových bodů; rozdíl proti výpočtu fondu je v toleranci."})
+
+
+at("2026-09-28", TRADE, fx_swap_agree)
+at("2026-09-30", TRADE, fx_swap_settle_near)
+at("2026-10-30", 0, fx_swap_manual_value)
 A_DAYS = month_ends("2025-09-30", 14)
 for i, day in enumerate(A_DAYS):
     at(day, VAL, A.valuation, day, finish=i < len(A_DAYS) - 1)

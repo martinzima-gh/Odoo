@@ -14,8 +14,9 @@ $investra-graphite-2: #6a6967 !default;
 .o_investra_fund_kanban .o_kanban_renderer {
     // Dvě karty vedle sebe na běžném monitoru, jedna na úzkém displeji (návrh: mřížka 2 sloupce).
     --KanbanRecord-width: 560px;
-    --Card-padding-v: 20px;
-    --Card-padding-h: 22px;
+    // Zhuštěno 2026-11-15 (uživatel: řádkování bylo příliš široké): menší odsazení karty, pásů a popisků.
+    --Card-padding-v: 14px;
+    --Card-padding-h: 18px;
 
     .o_kanban_record {
         border: 1px solid $investra-petroleum-4;
@@ -23,9 +24,9 @@ $investra-graphite-2: #6a6967 !default;
     }
 
     .o_investra_fund_name {
-        margin-bottom: 18px;
+        margin-bottom: 10px;
         color: $investra-petroleum;
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
     }
 
@@ -33,8 +34,11 @@ $investra-graphite-2: #6a6967 !default;
     .o_investra_fund_row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        padding: 16px 0;
+        gap: 16px;
+        padding: 9px 0;
+
+        // Pole Odoo uvnitř pásu bez vlastního dolního odsazení, aby řádky držely u sebe.
+        .o_field_widget { margin-bottom: 0; }
         border-bottom: 1px solid $investra-petroleum-4;
 
         &:first-of-type { padding-top: 0; }
@@ -43,14 +47,14 @@ $investra-graphite-2: #6a6967 !default;
 
         > div { min-width: 0; }
         > div + div {
-            padding-left: 20px;
+            padding-left: 16px;
             border-left: 1px solid $investra-petroleum-4;
         }
     }
 
     .o_investra_label {
         display: block;
-        margin-bottom: 5px;
+        margin-bottom: 1px;
         color: $investra-graphite-2;
         font-size: 12px;
         font-weight: 500;
@@ -59,7 +63,8 @@ $investra-graphite-2: #6a6967 !default;
     .o_investra_amount {
         display: block;
         color: $investra-petroleum;
-        font-size: 21px;
+        font-size: 18px;
+        line-height: 1.25;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
@@ -172,6 +177,9 @@ $investra-graphite-2: #6a6967 !default;
 
     .o_investra_todo_warn .o_investra_todo_count { color: $investra-ember; }
 
+    // Výhledové položky (do 7 dnů) jsou jen informace: tlumeně, bez důrazu.
+    .o_investra_todo_info { opacity: 0.7; }
+
     .o_investra_todo_turn {
         padding: 0 8px;
         border: 1px solid $investra-lagoon;
@@ -182,4 +190,73 @@ $investra-graphite-2: #6a6967 !default;
         font-weight: 600;
         white-space: nowrap;
     }
+
+    .o_investra_todo_more {
+        font-size: 12px;
+        color: $investra-lagoon;
+        font-weight: 600;
+        margin-top: 4px;
+
+        &:hover { text-decoration: underline; }
+    }
+}
+
+// Styly odkazů z kroků 1–3: bez podtržení, podtržení jen při najetí (o_investra_link_control, o_investra_link_deadline).
+// Odkaz na fond (o_investra_fund_name):
+.o_investra_fund_kanban .o_kanban_renderer {
+    a.o_investra_fund_name,
+    a.o_investra_link_control,
+    a.o_investra_link_deadline {
+        // Převzetí AG-018: odkaz je řádkový prvek, dolní odsazení tříd názvu a výkazu by jinak neplatilo.
+        display: block;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+// Souhrnný pás nad kartami (komponenta InvestraFundSummary): počty fondů podle stavu, kliknutí přepne filtr.
+.o_investra_fund_kanban .o_investra_summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 4px;
+
+    .o_investra_summary_total {
+        margin-right: 6px;
+        color: $investra-graphite-2;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .o_investra_summary_card {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 6px 14px;
+        border: 1px solid $investra-petroleum-4;
+        border-radius: 6px;
+        background: #fff;
+        color: $investra-petroleum;
+
+        &:hover { border-color: $investra-lagoon; }
+    }
+
+    .o_investra_summary_count {
+        font-size: 18px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .o_investra_summary_label { font-size: 12px; }
+
+    .o_investra_summary_danger .o_investra_summary_count,
+    .o_investra_summary_late .o_investra_summary_count { color: $investra-ember; }
+    .o_investra_summary_mine .o_investra_summary_count { color: $investra-lagoon; }
+    .o_investra_summary_zero { opacity: 0.55; cursor: default; }
+    .o_investra_summary_zero:hover { border-color: $investra-petroleum-4; }
+    .o_investra_summary_zero .o_investra_summary_count { color: $investra-graphite-2; }
 }

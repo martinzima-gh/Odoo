@@ -18,6 +18,8 @@ class InvestraAccountRole(models.Model):
             ("equity", "Vlastní kapitál"),
             ("income", "Výnos"),
             ("expense", "Náklad"),
+            # Podrozvahové účty (třída 9 přílohy č. 4 vyhlášky č. 501/2002 Sb.); do FK nevstupují (DE-03).
+            ("off_balance", "Podrozvaha"),
         ],
         required=True,
         string="Druh",

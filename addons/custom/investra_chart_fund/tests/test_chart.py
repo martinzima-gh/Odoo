@@ -27,7 +27,8 @@ class TestChart(TransactionCase):
         Role = self.env["investra.account.role"]
         for role in Role.search([]):
             account = Role.account_for(self.company, role.code)
-            expected = {"asset": "asset", "liability": "liability", "equity": "equity", "income": "income", "expense": "expense"}
+            expected = {"asset": "asset", "liability": "liability", "equity": "equity", "income": "income", "expense": "expense",
+                        "off_balance": "off_balance"}
             self.assertTrue(account.account_type.startswith(expected[role.category]), role.code)
 
     def test_no_czech_trade_taxes_loaded(self):
@@ -50,7 +51,19 @@ class TestChart(TransactionCase):
             self.assertEqual(Role.with_company(self.company).account_for(self.company, role).with_company(self.company).code, code, role)
         Account = self.env["account.account"].with_company(self.company)
         codes = Account.search([("company_ids", "in", self.company.id)]).mapped("code")
-        self.assertFalse([code for code in codes if code.startswith("9")], "Třída 9 je podle vyhlášky 501 podrozvaha.")
+        # Třída 9 je podle vyhlášky 501 podrozvaha: smí v ní být jen podrozvahové účty (FX spot, forward, swap – DE-03).
+        class9 = Account.search([("company_ids", "in", self.company.id), ("code", "=like", "9%")])
+        self.assertEqual(set(class9.mapped("account_type")), {"off_balance"})
+        fx = {
+            "derivative_liability": "313100", "derivative_swap": "313200", "derivative_swap_liability": "313300",
+            "fx_spot_asset": "358100", "fx_spot_liability": "358200", "gain_derivative": "719100", "loss_derivative": "619100",
+            "gain_derivative_swap": "719200", "loss_derivative_swap": "619200", "gain_fx_spot": "716100", "loss_fx_spot": "616100",
+            "offbalance_forward_receivable": "953100", "offbalance_forward_payable": "954100",
+            "offbalance_swap_receivable": "953200", "offbalance_swap_payable": "954200",
+            "offbalance_spot_receivable": "943000", "offbalance_spot_payable": "944000", "offbalance_clearing": "992000",
+        }
+        for role, code in fx.items():
+            self.assertEqual(Role.account_for(self.company, role).with_company(self.company).code, code, role)
         self.assertIn("590000", codes)
         self.assertEqual(self.company.bank_account_code_prefix, "1311")
         self.assertFalse([code for code in codes if code.startswith(("999", "3221"))])

@@ -50,26 +50,28 @@ ST-02 až ST-04: stejný prompt s číslem kroku, bez věty o sloučení; větev
 
 ## Etapa 1 – Deriváty: FX forward a FX swap (DE)
 
-Rozsah první verze: měnový forward a měnový swap (dvě nohy), mimoburzovní, bez zajišťovacího účetnictví.
-Ostatní deriváty až podle pozic fondů. Podklady: `docs/navrh-oceneni-derivatu.md`, otevřené body „Oceňování derivátů“,
-„Podrozvaha v Odoo“, „TISIFI10 u nových smluv“; důvěrné `duverne/poznatky-derivaty.md` jen číst, nekopírovat.
+Zjednodušené řešení podle `docs/navrh-fx-derivaty.md` (zásady schválil Martin 15. 11. 2026): nominály v podrozvaze,
+reálná hodnota ze spotu s rovnoměrně rozpouštěnými forwardovými body (varianta B), ruční hodnota z banky, vypořádání
+tlačítkem. Bez zajišťovacích derivátů a přiřazení třídě, bez diskontování a sazeb měn. Větev `etapa/derivaty`.
 
 | Krok | Obsah | Model | Zóna |
 |---|---|---|---|
-| DE-01 | Návrh: evidence smlouvy (nominály obou měn, sjednaný kurz, data obou noh, protistrana, portfolio, účel: zajištění třídy / fondu / spekulace), zdroj hodnoty (ocenění protistrany nebo vlastní výpočet z forwardových bodů), účtování (podrozvaha, kladná a záporná RH, přecenění, vypořádání), přiřazení výsledku zajištění třídě, dopad do výkazů ČNB | Opus | návrh |
-| DE-02 | Model smlouvy, formulář, práva, vazba na nástroj a BA0088, kontroly | Sonnet | oranžová |
-| DE-03 | Ocenění: reálná hodnota ke dni ocenění, vstupy (spot, forwardové body nebo úrokové sazby obou měn), řádek v ocenění, kontroly stáří vstupů | Opus | červená |
-| DE-04 | Účtování: sjednání (podrozvaha), přecenění, vypořádání obou noh, storna, náhled zaúčtování | Opus | červená |
-| DE-05 | Zajištění třídy: výsledek derivátu jen do třídy, kterou zajišťuje (`investra_allocation`), přemostění tříd | Opus | červená |
-| DE-06 | Ukázka v `seed.py` (FX swap u fondu s třídou v EUR), README, SELECTy | Haiku | zelená |
+| DE-01 | Návrh – hotovo (hlavní relace) | Fable | návrh |
+| DE-02 | Modul `investra_derivative`: smlouva, nohy, ruční hodnota, formuláře, práva, kontroly | Sonnet | oranžová |
+| DE-03 | Role a účty (podrozvaha, záporná RH, výsledek), sjednání, vypořádání, storno, náhled; ověření předpisů | Opus | červená |
+| DE-04 | Ocenění: výpočet RH, ruční hodnota, přepočet podrozvahy, doklady, kontroly | Opus | červená |
+| DE-05 | Ukázka v `seed.py`, nasazení do `investra`, SELECTy, README, návrh mapování ČNB | Sonnet | oranžová |
 
-Prompt DE-01 (`/model opus`), až po ST-01, zadání `docs/ukoly/DE-01-navrh-fx-derivaty.md`:
+Kroky jdou po sobě, každý v nové relaci. Prompt DE-02 (`/model sonnet`):
 
-    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla, Etapa 1), docs/ukoly/DE-01-navrh-fx-derivaty.md,
-    docs/navrh-oceneni-derivatu.md, docs/predpisy-a-standardy.md a související otevřené body. Celý projekt neprocházej,
-    kód čti jen cíleně a neměň ho. Založ větev etapa/derivaty z main a proveď DE-01 podle zadání. Předpisy ověř
-    v primárních zdrojích, neověřené označ. Commitni, pushni do origin etapa/derivaty:etapa/derivaty, napiš mi otázky
-    k rozhodnutí a zastav se.
+    Přečti CLAUDE.md, docs/plan-dalsiho-vyvoje.md (Společná pravidla), docs/ukoly/DE-02-evidence-fx-derivatu.md
+    a z docs/navrh-fx-derivaty.md jen oddíly uvedené v úkolu. Celý projekt neprocházej. Pracuj ve větvi etapa/derivaty.
+    Soubor .env nečti ani nevypisuj. Proveď úkol, pusť testy na dočasné databázi, doplň Výsledek, commitni, pushni
+    do origin etapa/derivaty:etapa/derivaty a zastav se.
+
+Prompt DE-03 a DE-04 (`/model opus`): stejný s číslem úkolu a větou „Plán v úkolu DE-0X schvaluji (červená zóna, Martin).“;
+u DE-03 navíc „Čísla účtů mi předlož ke schválení a počkej.“ Prompt DE-05 (`/model sonnet`): stejný jako DE-02 s větou
+„Souhlasím s instalací a povýšením modulů v databázi investra se zálohou do zalohy/ (Martin).“
 
 ## Etapa 2 – Převzetí fondu (PF)
 
@@ -136,6 +138,18 @@ Doporučení: vlastní sestavy v Community (potřebuje je i etapa 3); výstupem 
 
 Přehled operací ke zpracování; zařazení nástroje vzniká prvním nákupem; výchozí maximální stáří ceny podle typu;
 pořadí stavů ocenění v čase. Zadání píše Claude jednotlivě do `docs/ukoly/`, provádí Sonnet, vzhled Copilot nebo Antigravity.
+
+## Nezařazené úkoly (zadal Martin 15. 11. 2026)
+
+Zatím bez etapy a pořadí; oba začínají návrhem (Opus), který ověří předpisy v aktuálním znění, a teprve pak se zařadí.
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| PO-01 | Podrozvaha – počet podílových listů / investičních akcií: návrh, jak evidovat a účtovat počet vydaných kusů po třídách v podrozvaze (podrozvahové účty, účtování při úpisu a odkupu, vazba na evidenci kusů v ocenění a na IS, výkazy ČNB a výroční zpráva). Návrh nejdřív ověří ve vyhlášce č. 501/2002 Sb. a českých účetních standardech pro finanční instituce, zda a v jaké položce se počet kusů v podrozvaze vykazuje (podrozvaha se vede v peněžních částkách; evidence v kusech může být jen analytika nebo samostatná evidence) – výklad potvrdit s auditorem | Opus | návrh, pak červená (účtování) |
+| DA-01 | Daně fondu – daňové a nedaňové účty: návrh označení účtů (daňově účinný / neúčinný náklad a výnos), účtů a výnosů podléhajících jiné sazbě daně nebo samostatnému základu, výpočtu splatné daně, dohadu na daň v průběhu roku (dopad do NAV při každém ocenění) a odložené daně. Návrh nejdřív určí daňový režim fondu (základní investiční fond × ostatní) podle zákona č. 586/1992 Sb. v aktuálním znění a pravidla pro odloženou daň podle vyhlášky č. 501/2002 Sb. a ČÚS; rámce se nemíchají (Services podle 500/2002 Sb. zvlášť). Výklad potvrdit s daňovým poradcem a auditorem | Opus | návrh, pak červená (účtování, NAV) |
+| OZ-01 | Oprava zveřejněného ocenění – rozhodnutí: Martin vybere variantu podle `docs/navrh-oprava-zverejneneho-oceneni.md` (doporučení C ve dvou krocích) a odpoví na pět otázek „K rozhodnutí“; před tím ověřit předpisy z oddílu „Opora v předpisech“ (ZISIF, statut, Pravidla oceňování, vyhláška č. 501/2002 Sb.) s compliance a auditorem | Opus | návrh |
+| OZ-02 | Oprava zveřejněného ocenění – krok 1: záznam „Zjištěná chyba ocenění“ (varianta A) a omezené stažení posledního zveřejněného ocenění s novou verzí (činnost matice, náhled, storna, zámek, testy) podle rozsahu v návrhu; až po OZ-01 | Opus | červená |
+| OZ-03 | Oprava zveřejněného ocenění – krok 2: plné stažení s řetězem pozdějších ocenění, práh významnosti a podklad pro kompenzace; až s napojením na IS a prvním skutečným fondem | Opus | červená |
 
 ## Šablona promptu pro implementační krok
 

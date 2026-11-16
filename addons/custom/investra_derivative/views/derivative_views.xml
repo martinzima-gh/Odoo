@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_derivative_reverse_wizard" model="ir.actions.act_window">
+        <field name="name">Storno derivátu</field>
+        <field name="res_model">investra.derivative.reverse.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <record id="view_derivative_reverse_wizard_form" model="ir.ui.view">
+        <field name="name">investra.derivative.reverse.wizard.form</field>
+        <field name="model">investra.derivative.reverse.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Storno derivátu">
+                <group>
+                    <field name="derivative_id" readonly="1"/>
+                    <field name="mode" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert"><field name="effect" readonly="1"/></div>
+                <group>
+                    <field name="reason" placeholder="Proč se smlouva nebo vypořádání stornuje (uloží se ke smlouvě)"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Potvrdit" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_derivative_settle_wizard_form" model="ir.ui.view">
+        <field name="name">investra.derivative.settle.wizard.form</field>
+        <field name="model">investra.derivative.settle.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Vypořádat nohu">
+                <group>
+                    <group>
+                        <field name="derivative_id"/>
+                        <field name="leg_id" invisible="1"/>
+                        <field name="settlement_date"/>
+                        <field name="bank_account_ids" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="buy_amount"/>
+                        <field name="buy_currency_id" invisible="1"/>
+                        <field name="buy_account_id" options="{'no_create': True}"/>
+                        <field name="sell_amount"/>
+                        <field name="sell_currency_id" invisible="1"/>
+                        <field name="sell_account_id" options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <p class="text-muted">Doklad vznikne k datu vypořádání kurzem toho dne: dopočet reálné hodnoty, oba peněžní toky, zrušení reálné hodnoty nohy a odúčtování podrozvahy.</p>
+                <field name="preview" nolabel="1" readonly="1"/>
+                <footer>
+                    <button name="action_confirm" type="object" string="Vypořádat" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_derivative_list" model="ir.ui.view">
+        <field name="name">investra.derivative.list</field><field name="model">investra.derivative</field>
+        <field name="arch" type="xml">
+            <list default_order="trade_date desc">
+                <field name="trade_date"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'agreed'" decoration-success="state == 'settled'" decoration-muted="state == 'reversed'"/>
+                <field name="name"/><field name="kind"/><field name="fund_id"/><field name="portfolio_id" optional="show"/>
+                <field name="partner_id"/><field name="contract_ref"/><field name="instrument_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_derivative_search" model="ir.ui.view">
+        <field name="name">investra.derivative.search</field><field name="model">investra.derivative</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="fund_id"/>
+                <field name="partner_id"/>
+                <field name="contract_ref"/>
+                <filter name="filter_draft" string="Návrh" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_agreed" string="Sjednáno" domain="[('state', '=', 'agreed')]"/>
+                <filter name="filter_settled" string="Vypořádáno" domain="[('state', '=', 'settled')]"/>
+                <filter name="filter_reversed" string="Stornováno" domain="[('state', '=', 'reversed')]"/>
+                <separator/>
+                <filter name="filter_spot" string="FX spot" domain="[('kind', '=', 'spot')]"/>
+                <filter name="filter_forward" string="FX forward" domain="[('kind', '=', 'forward')]"/>
+                <filter name="filter_swap" string="FX swap" domain="[('kind', '=', 'swap')]"/>
+                <separator/>
+                <filter name="filter_trade_date" date="trade_date" string="Datum sjednání"/>
+                <group>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_partner" string="Protistrana" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_kind" string="Druh" context="{'group_by': 'kind'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_derivative_form" model="ir.ui.view">
+        <field name="name">investra.derivative.form</field><field name="model">investra.derivative</field>
+        <field name="arch" type="xml">
+            <form class="o_investra_trade_form">
+                <header>
+                    <button name="action_agree" type="object" string="Sjednat" class="btn-primary" invisible="state != 'draft'"
+                            groups="investra_entity.group_valuation_preparer"
+                            confirm="Sjednáním se zapíše podrozvaha smlouvy a smlouva se uzamkne. Pokračovat?"/>
+                    <button name="action_open_settle" type="object" string="Vypořádat nohu" class="btn-primary"
+                            invisible="state != 'agreed'" groups="investra_entity.group_valuation_preparer"/>
+                    <button name="%(action_derivative_reverse_wizard)d" type="action" string="Stornovat vypořádání"
+                            context="{'default_derivative_id': id, 'default_mode': 'settlement'}"
+                            groups="investra_entity.group_valuation_preparer" invisible="state not in ('agreed', 'settled')"/>
+                    <button name="%(action_derivative_reverse_wizard)d" type="action" string="Stornovat"
+                            context="{'default_derivative_id': id, 'default_mode': 'reverse'}"
+                            groups="investra_entity.group_valuation_preparer" invisible="state not in ('agreed', 'settled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,agreed,settled"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'reversed'">
+                        Smlouva je stornovaná. Důvod: <field name="reversal_reason" readonly="1" class="d-inline"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1" placeholder="Název se doplní z noh"/></h1>
+                    </div>
+                    <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="fund_id"/>
+                            <field name="fund_id" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="portfolio_id"/>
+                            <field name="portfolio_id" nolabel="1" readonly="state != 'draft'" options="{'no_create': True}"/>
+                        </div>
+                    </div>
+                    <group class="o_investra_trade_content">
+                        <group string="Smlouva">
+                            <field name="kind" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'"/>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="contract_ref" readonly="state != 'draft'"/>
+                            <field name="trade_date" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Evidence">
+                            <field name="functional_currency_id"/>
+                            <field name="instrument_id"/>
+                            <field name="event_id"/>
+                            <field name="settlement_reversal_reason" invisible="not settlement_reversal_reason"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="legs" string="Nohy">
+                            <p class="text-muted">Spot a forward mají jednu nohu, swap blízkou a vzdálenou s opačným směrem. Jedna z měn nohy je funkční měna fondu.</p>
+                            <field name="leg_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="settlement_date"/>
+                                    <field name="buy_currency_id" options="{'no_create': True}"/>
+                                    <field name="buy_amount"/>
+                                    <field name="sell_currency_id" options="{'no_create': True}"/>
+                                    <field name="sell_amount"/>
+                                    <field name="rate"/>
+                                    <field name="b0" optional="show"/>
+                                    <field name="buy_rate0" optional="hide"/>
+                                    <field name="sell_rate0" optional="hide"/>
+                                    <field name="settlement_event_id" optional="hide"/>
+                                    <field name="offbalance_event_id" optional="hide"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'open'" decoration-success="state == 'settled'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="values" string="Ruční hodnoty">
+                            <p class="text-muted">Reálná hodnota smlouvy zadaná ručně (např. z potvrzení banky). K datu ocenění má přednost před spočtenou hodnotou.</p>
+                            <field name="value_ids" readonly="state == 'reversed'">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="amount"/>
+                                    <field name="currency_id" options="{'no_create': True}"/>
+                                    <field name="source"/>
+                                    <field name="reason"/>
+                                    <field name="document" filename="document_name" widget="binary"/>
+                                    <field name="document_name" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="posting_preview" string="Zaúčtování" invisible="not posting_preview">
+                            <field name="posting_preview" nolabel="1" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_derivative" model="ir.actions.act_window">
+        <field name="name">Deriváty</field><field name="res_model">investra.derivative</field><field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_derivative_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádný derivát</p>
+            <p>Měnové spoty, forwardy a swapy fondu vypořádané dodáním obou měn. Ke každé smlouvě vzniká nástroj typu Mimoburzovní derivát.</p>
+        </field>
+    </record>
+    <menuitem id="menu_derivative" name="Deriváty" parent="investra_instruments.menu_instruments" action="action_derivative" sequence="40"/>
+</odoo>

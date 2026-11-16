@@ -143,6 +143,21 @@ class TestDashboard(NavCase):
         self.fund.invalidate_recordset()
         self.assertIn("Kontroly s upozorněním: 1", self.fund.dashboard_exceptions)
 
+    def test_published_valuation_checks_are_hidden(self):
+        """Kontroly zveřejněného a uzamčeného ocenění karta neukazuje; před zveřejněním ano."""
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        valuation = self.valuation(self.fund, "2032-01-31")
+        self.run_to_posted(valuation)
+        self.env["investra.valuation.check"].sudo().create({
+            "valuation_id": valuation.id, "code": "test", "name": "Test", "status": "warning",
+        })
+        self.fund.invalidate_recordset()
+        self.assertIn("Kontroly s upozorněním", self.fund.dashboard_exceptions)
+        valuation.sudo().state = "published"
+        self.fund.invalidate_recordset()
+        self.assertNotIn("Kontroly s upozorněním", self.fund.dashboard_exceptions or "")
+        self.assertFalse(self.fund.action_open_checks())
+
     def test_manual_is_default_source(self):
         self.assertEqual(self.deadline(3).source, "manual")
 
@@ -187,6 +202,120 @@ class TestDashboard(NavCase):
         item = next(i for i in approver_view.dashboard_todo if i["key"] == "valuation_submitted")
         self.assertTrue(item["mine"])
         self.assertIn(self.fund, self.env["investra.fund"].with_user(self.approver).search([("dashboard_my_todo", "=", True)]))
+
+    def test_my_step_follows_matrix(self):
+        """„Můj krok“ u schválení: zadavatel se skupinou schvalovatele vlastní ocenění schválit nesmí."""
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        draft = self.valuation(self.fund, "2032-01-31")
+        draft.action_compute()
+        draft.action_submit()
+        self.assertTrue(draft.approval_ids)
+
+        def mine(user):
+            fund = self.fund.with_user(user)
+            fund.invalidate_recordset()
+            return next(i for i in fund.dashboard_todo if i["key"] == "valuation_submitted")["mine"]
+
+        self.assertTrue(mine(self.approver))
+        draft.sudo().preparer_id = self.approver
+        self.assertFalse(mine(self.approver))
+        draft.sudo().preparer_id = self.preparer
+        draft.approval_ids.sudo().allowed_user_ids = self.preparer
+        self.assertFalse(mine(self.approver))
+
+    def test_todo_sorted_my_step_first(self):
+        self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
+        draft = self.valuation(self.fund, "2032-01-31")
+        draft.action_compute()
+        draft.action_submit()
+        self.env["investra.class.movement"].create({
+            "class_id": self.cls(self.fund, "A").id, "date": "2032-02-05", "manual_reason": "Test",
+            "movement_type": "subscription", "amount": 100, "units": 1,
+        })
+        todo = self.fund.with_user(self.approver).dashboard_todo
+        self.assertGreater(len(todo), 1)
+        self.assertEqual(todo[0]["key"], "valuation_submitted")
+        self.assertEqual([i["mine"] for i in todo], sorted((i["mine"] for i in todo), reverse=True))
+
+    def test_filters_and_card_links(self):
+        Fund = self.env["investra.fund"]
+        self.calendar(-1)
+        self.deadline(-1)
+        self.assertIn(self.fund, Fund.search([("dashboard_next_late", "=", True)]))
+        self.assertNotIn(self.fund, Fund.search([("dashboard_next_late", "=", False)]))
+        self.assertIn(self.fund, Fund.search([("dashboard_deadline_state", "=", "overdue")]))
+        self.assertNotIn(self.fund, Fund.search([("dashboard_deadline_state", "in", ["open", "submitted"])]))
+        self.assertEqual(self.fund.action_open_fund()["res_id"], self.fund.id)
+        action = self.fund.action_open_deadlines()
+        self.assertEqual(action["domain"], [("fund_id", "=", self.fund.id)])
+        self.assertTrue(action["context"]["search_default_filter_open"])
+        self.assertFalse(self.fund.action_open_checks())
+        valuation = self.posted()
+        self.fund.invalidate_recordset()
+        self.assertEqual(self.fund.action_open_checks()["domain"][0], ("valuation_id", "=", valuation.id))
+
+    def test_missing_price_and_outlook(self):
+        """Držený nástroj bez ceny k nastalému dni ocenění zvedne kartu; výhled na 7 dnů je jen informace."""
+        day = lambda days: self.today + timedelta(days=days)
+        self.subscribe(self.cls(self.fund, "A"), day(-10), 50000, 500)
+        bond = self.env["investra.instrument"].create(with_ids(self.env, {
+            "name": f"Dluhopis {self.fund.id}", "currency_id": self.czk.id,
+            "type_id": self.env.ref("investra_instruments.type_bond").id, "start_date": day(-10), "day_count": "thirty360_eu",
+        }, self.fund))
+        bond.cashflow_ids = [
+            (0, 0, {"date": day(3), "amount": 30, "flow_type": "interest"}),
+            (0, 0, {"date": day(400), "amount": 1000, "flow_type": "principal"}),
+        ]
+        self.classify(self.fund, bond)
+        trade = self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": bond.id,
+            "trade_date": day(-5), "quantity": 10, "price": 1000,
+        })
+        trade._book()
+        todo = lambda: {i["key"]: i for i in self.fund.dashboard_todo}
+        # Den ocenění ještě nenastal: chybějící cena se nehlásí.
+        entry = self.calendar(2)
+        self.assertNotIn("missing_prices", todo())
+        entry.unlink()
+        self.calendar(-1)
+        self.fund.invalidate_recordset()
+        item = todo()["missing_prices"]
+        self.assertEqual((item["count"], item["warn"]), (1, True))
+        self.assertEqual(self.env[item["model"]].search(item["domain"]), bond)
+        flows = todo()["soon_flows"]
+        self.assertEqual((flows["count"], flows["info"], flows["mine"], flows["warn"]), (1, True, False, False))
+        self.assertEqual(self.fund.dashboard_todo[-1]["key"], "soon_flows")
+        self.assertEqual(self.fund.dashboard_todo_count, len([i for i in self.fund.dashboard_todo if not i["info"]]))
+        price = self.env["investra.instrument.price"].with_user(self.preparer).create({
+            "fund_id": self.fund.id, "instrument_id": bond.id, "date": day(-1), "price": 1000, "source": "Test",
+        })
+        price.with_user(self.approver).action_approve()
+        self.fund.invalidate_recordset()
+        self.assertNotIn("missing_prices", todo())
+
+    def test_net_flow_lock_and_summary(self):
+        cls = self.cls(self.fund, "A")
+        self.subscribe(cls, "2032-01-01", 1000, 10)
+        self.run_to_published(self.valuation(self.fund, "2032-01-31"))
+        self.fund.invalidate_recordset()
+        # První ocenění nemá období: úpisy − odkupy se neukazují; zveřejnění uzamklo období.
+        self.assertFalse(self.fund.dashboard_net_flow)
+        self.assertEqual(self.fund.dashboard_lock_text, "31.01.2032")
+        self.assertFalse(self.fund.dashboard_lock_exception_count)
+        self.subscribe(cls, "2032-02-10", 500, 5)
+        self.subscribe(cls, "2032-02-20", 200, 2, kind="redemption")
+        self.run_to_posted(self.valuation(self.fund, "2032-02-29"))
+        self.fund.invalidate_recordset()
+        self.assertEqual(self.fund.dashboard_net_flow, 300)
+        summary = self.env["investra.fund"].dashboard_summary()
+        self.assertEqual(summary["total"], self.env["investra.fund"].search_count([]))
+        self.assertEqual([c["filter"] for c in summary["cards"]],
+                         ["filter_danger", "filter_warning", "filter_next_late", "filter_my_todo"])
+        # Fond bez ocenění s prošlým termínem kalendáře se počítá do „Ocenění po termínu“.
+        other = self.make_fund(classes=[{"code": "A"}])
+        self.env["investra.valuation.calendar"].create({"fund_id": other.id, "date": self.today - timedelta(days=1)})
+        late = next(c for c in self.env["investra.fund"].dashboard_summary()["cards"] if c["key"] == "late")
+        self.assertGreaterEqual(late["count"], 1)
 
     def test_movement_draft_is_todo(self):
         movement = self.env["investra.class.movement"].create({
