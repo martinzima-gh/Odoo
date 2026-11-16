@@ -159,7 +159,7 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-11 | Příjemce poplatku „Fond – výnos“ (`docs/ukoly/MN-11-prijemce-poplatku-fond-vynos.md`) – hotovo | Sonnet | zelená |
 | MN-12 | Zaokrouhlení a desetinná místa třídy měnitelná i po prvním pohybu (`docs/ukoly/MN-12-zaokrouhleni-trid-po-pohybu.md`) – hotovo | Opus | červená |
 | MN-13 | Manuál kap. 4: kalendář ocenění a schvalovací matice (`docs/ukoly/MN-13-manual-kalendar-a-matice.md`) – hotovo | Sonnet | zelená |
-| MN-14 | Vypuštění kalendáře ocenění; další ocenění a zpoždění z frekvence a lhůty zveřejnění (`docs/ukoly/MN-14-vypusteni-kalendare-oceneni.md`) | Sonnet | oranžová |
+| MN-14 | Vypuštění kalendáře ocenění; další ocenění z frekvence (`docs/ukoly/MN-14-vypusteni-kalendare-oceneni.md`) | Sonnet | oranžová |
 | MN-15+ | Nálezy MN-13 5–9 (schvalovací matice), další poznámky z průchodu a kapitoly 5–8 manuálu | podle zóny | |
 
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
