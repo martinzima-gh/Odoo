@@ -5,7 +5,7 @@
 | Položka | Hodnota |
 |---|---|
 | Zóna | oranžová (zámky polí třídy, migrace odstraní prázdný sloupec; účtování beze změny) |
-| Výchozí větev | `ukol/MN-manual` (po MN-06) |
+| Výchozí větev | `ukol/MN-manual` (po MN-06 a MN-09) |
 | Větev úkolu | `ukol/MN-manual` |
 | Zadal, dne | Claude (hlavní relace), 16. 11. 2026 |
 | Navazuje na | nálezy MN-02 3, 4, 7; rozhodnutí 2026-11-16 „Poznámky ze zakládání fondu“; Martinovy souhlasy 16. 11. 2026 (My Company, sloupec `founder_id`) |
@@ -27,13 +27,22 @@
 6. **Sloupec `founder_id` (souhlas Martina se změnou schématu):** migrace `investra_entity` (`pre-migrate`,
    `ALTER TABLE investra_entity DROP COLUMN IF EXISTS founder_id`) s novou verzí modulu; ověřit na kopii `investra`
    ze zálohy (dočasná `investra_ci_*`) a pak v `investra`.
+6a. **Předvyplnění kódu ESA v průvodci (rozhodnutí Martina 16. 11. 2026):** fond, SICAV a podfond → kód **1240200**,
+   investiční společnost → **1260200** (oba „soukromé národní“), servisní společnost → prázdné; kód jde přepsat.
+   Upřesnit `_default_esa_code` (`investra_instrument_master/wizard/new_book.py`, MN-06); kód hledat v číselníku podle
+   hodnoty, ne podle id.
+6b. **IČO a DIČ v seedu (rozhodnutí Martina):** `tools/demo_data/seed.py` (a `seed_services.py` u Investra Services, pokud
+   to jde bez zásahu do `services_config.json`) doplní ukázkovým knihám smyšlené IČO s platnou kontrolní číslicí (mod 11)
+   a DIČ „CZ“ + IČO. Smyšlenost ověřit: IČO nesmí patřit skutečné firmě – použít řadu, kterou nelze zaměnit (např. začínající
+   99), a zmínit ji v README ukázek. Do `investra` se nepromítá (seed běží jen na nové databázi); ve Výsledku uvést.
 7. **Testy:** zámek třídy (před a po prvním pohybu, poplatek jde změnit i po pohybu), kontrola ISIN (platný, neplatná
-   číslice, špatný formát), seed na čisté databázi nastaví zemi My Company.
+   číslice, špatný formát), předvyplnění kódu ESA podle druhu, seed na čisté databázi nastaví zemi My Company a IČO/DIČ knih
+   (ověřit dočasnou `investra_ci_*` přes `run_seed.sh`, pak smazat).
 8. **Nasazení:** povýšení dotčených modulů v `investra` se zálohou do `zalohy/`, restart 8071.
 9. **Manuál:** `02-fond.md`, `03-tridy.md` (co nejde po prvním pohybu změnit, ISIN, řazení a archivace tříd).
 
 **Rozsah souborů:** `investra_fund`, `investra_nav` (jen zámek třídy, pokud tam patří zjištění pohybu), `investra_entity` (migrace),
-`tools/demo_data/seed.py` (jen země My Company), testy, verze, `docs/manual/02-*.md`, `03-*.md`, tento soubor, předávka.
+`tools/demo_data/seed.py` a případně `seed_services.py` (země My Company, IČO a DIČ), README ukázek, `investra_instrument_master/wizard/new_book.py` (jen `_default_esa_code`), testy, verze, `docs/manual/02-*.md`, `03-*.md`, tento soubor, předávka.
 
 **Mimo rozsah:** změna poplatků v čase s platností od data; kontrola ISIN u nástrojů; identifikace (MN-06); kurzy (MN-08).
 
