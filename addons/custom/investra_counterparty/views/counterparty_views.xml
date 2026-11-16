@@ -46,5 +46,30 @@
             </xpath>
         </field>
     </record>
+    <record id="view_entity_form_counterparty" model="ir.ui.view">
+        <field name="name">investra.entity.form.counterparty</field>
+        <field name="model">investra.entity</field>
+        <field name="inherit_id" ref="investra_entity.view_entity_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group_currency']" position="after">
+                <group string="Identifikace" name="group_identification">
+                    <field name="lei"/>
+                    <field name="esa_sector_id"/>
+                    <button name="action_open_counterparty_profiles" type="object" string="Údaje protistrany"
+                            class="btn-secondary" colspan="2"/>
+                    <div class="text-muted" colspan="2">LEI a sektor se berou z údajů protistrany kontaktu společnosti
+                        (platné k dnešku). U podfondu je LEI nepovinné.</div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_entity_list_counterparty" model="ir.ui.view">
+        <field name="name">investra.entity.list.counterparty</field>
+        <field name="model">investra.entity</field>
+        <field name="inherit_id" ref="investra_entity.view_entity_list"/>
+        <field name="arch" type="xml">
+            <field name="parent_id" position="after"><field name="lei" optional="hide"/></field>
+        </field>
+    </record>
     <menuitem id="menu_profile" name="Protistrany" parent="investra_entity.menu_setup_instruments" action="action_profile" sequence="30"/>
 </odoo>

@@ -69,3 +69,37 @@ class InvestraInstrument(models.Model):
     def _issuer_profile(self, day):
         self.ensure_one()
         return self.issuer_id._counterparty_profile(day) if self.issuer_id else self.env["investra.counterparty.profile"]
+
+
+class InvestraEntity(models.Model):
+    """LEI a sektor ESA knihy se berou z údajů protistrany kontaktu společnosti (MN-05, rozhodnutí 2026-11-16)."""
+
+    _inherit = "investra.entity"
+
+    lei = fields.Char(compute="_compute_counterparty_profile", string="LEI")
+    esa_sector_id = fields.Many2one("investra.esa.sector", compute="_compute_counterparty_profile", string="Sektor ESA 2010")
+
+    @api.depends("company_id.partner_id.investra_profile_ids.lei", "company_id.partner_id.investra_profile_ids.sector_id",
+                 "company_id.partner_id.investra_profile_ids.valid_from")
+    def _compute_counterparty_profile(self):
+        today = fields.Date.context_today(self)
+        for entity in self:
+            profile = entity.company_id.partner_id._counterparty_profile(today) if entity.company_id else None
+            entity.lei = profile.lei if profile else False
+            entity.esa_sector_id = profile.sector_id if profile else False
+
+    def action_open_counterparty_profiles(self):
+        """Údaje protistrany kontaktu společnosti; nový záznam má předvyplněný kontakt a zemi."""
+        self.ensure_one()
+        partner = self.company_id.partner_id
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Údaje protistrany"),
+            "res_model": "investra.counterparty.profile",
+            "view_mode": "list,form",
+            "domain": [("partner_id", "=", partner.id)],
+            "context": {
+                "default_partner_id": partner.id,
+                "default_country_id": (partner.country_id or self.company_id.country_id).id,
+            },
+        }

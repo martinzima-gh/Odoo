@@ -16,7 +16,7 @@ a profil FX přecenění fondu.
 
 | Pole | Povinné | Výchozí | Význam |
 |---|---|---|---|
-| **Účetní kniha** | ano | – | kniha fondu z kap. 1; po výběru se doplní funkční měna |
+| **Účetní kniha** | ano | – | kniha fondu z kap. 1 (nabízí se jen druh Fond, Podfond a SICAV); po výběru se doplní funkční měna |
 | **Funkční měna** | jen čtení | z knihy | v ní se vede účetnictví a NAV |
 | **Obhospodařovatel** | ne | prázdné | kniha druhu Investiční společnost („Obhospodařovatel musí být kniha druhu Investiční společnost.“); její schvalovací matice platí pro fond, prázdné = výchozí matice |
 

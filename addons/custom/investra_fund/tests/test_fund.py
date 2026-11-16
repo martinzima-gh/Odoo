@@ -88,3 +88,16 @@ class TestFund(TransactionCase):
         form.save()
         record = self.fund_b.class_ids.filtered(lambda c: c.code == "N")
         self.assertEqual((record.price_digits, record.price_rounding), (5, "half_up"))
+
+
+@tagged("post_install", "-at_install")
+class TestFundBookDomain(TransactionCase):
+    def test_book_field_offers_only_fund_books(self):
+        """Pole Účetní kniha ve formuláři fondu nabízí jen druh fond, podfond a SICAV (MN-05, nález MN-02 5)."""
+        from lxml import etree
+        arch = etree.fromstring(self.env["investra.fund"].get_view(view_type="form")["arch"])
+        domain = arch.xpath("//field[@name='entity_id']")[0].get("domain")
+        for entity_type in ("fund", "subfund", "sicav"):
+            self.assertIn(entity_type, domain)
+        self.assertNotIn("manager", domain)
+        self.assertNotIn("service", domain)

@@ -15,8 +15,8 @@
                         <field name="name" placeholder="např. Fond Alfa SICAV, a.s."/>
                         <field name="entity_type"/>
                         <field name="framework"/>
-                        <field name="parent_id" required="entity_type == 'subfund'"/>
-                        <field name="founder_id"/>
+                        <field name="parent_id" required="entity_type == 'subfund'" invisible="entity_type != 'subfund'"
+                               options="{'no_create': True}"/>
                     </group>
                     <group>
                         <field name="currency_id" options="{'no_create': True}"/>
@@ -53,6 +53,4 @@
             </list>
         </field>
     </record>
-    <menuitem id="menu_new_book" name="Nová účetní kniha" parent="investra_entity.menu_setup_funds"
-              action="action_new_book_wizard" sequence="21" groups="base.group_system"/>
 </odoo>

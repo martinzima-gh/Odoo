@@ -30,7 +30,7 @@
                     <div class="o_investra_fund_metadata">
                         <div class="o_investra_fund_metadata_item">
                             <label for="entity_id"/>
-                            <field name="entity_id" nolabel="1"/>
+                            <field name="entity_id" nolabel="1" domain="[('entity_type', 'in', ['fund', 'subfund', 'sicav'])]"/>
                         </div>
                         <div class="o_investra_fund_metadata_item">
                             <label for="currency_id"/>

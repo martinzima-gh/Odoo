@@ -32,8 +32,7 @@ class InvestraNewBookWizard(models.TransientModel):
         "res.currency", required=True, string="Funkční měna", default=lambda self: self.env.ref("base.CZK"),
     )
     country_id = fields.Many2one("res.country", required=True, string="Země", default=lambda self: self.env.ref("base.cz"))
-    parent_id = fields.Many2one("investra.entity", string="Nadřazená kniha")
-    founder_id = fields.Many2one("res.partner", string="Zakladatel")
+    parent_id = fields.Many2one("investra.entity", string="Nadřazená kniha", domain="[('entity_type', '=', 'sicav')]")
     template = fields.Char(compute="_compute_template", string="Šablona osnovy")
     rate_source = fields.Char(compute="_compute_template", string="Zdroj kurzů")
 
@@ -82,12 +81,12 @@ class InvestraNewBookWizard(models.TransientModel):
         self._check_before_create()
         entity = self.env["investra.entity"].create_book(
             self.name, self.entity_type, self.framework, self.currency_id, template_for(self.entity_type),
-            country=self.country_id, parent_id=self.parent_id.id, founder_id=self.founder_id.id,
+            country=self.country_id, parent_id=self.parent_id.id,
         )
         company = entity.company_id
         # res.company.create uživatele obvykle připojí sám; tady výslovně, ať na tom průvodce nezávisí.
         self.env.user.sudo().write({"company_ids": [Command.link(company.id)]})
-        return {
+        form = {
             "type": "ir.actions.act_window",
             "res_model": "investra.entity",
             "res_id": entity.id,
@@ -96,4 +95,16 @@ class InvestraNewBookWizard(models.TransientModel):
             # Kontext akce přebije kontext klienta: formulář nové knihy projde pravidlem „Knihy podle společnosti“
             # i bez ručního přepnutí firmy.
             "context": {"allowed_company_ids": self.env.companies.ids + company.ids},
+        }
+        # Přepínač firem si pamatuje prohlížeč, server nově založenou společnost trvale nezapne (MN-05, nález MN-02 9).
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "warning",
+                "sticky": True,
+                "title": self.env._("Kniha založena"),
+                "message": self.env._("Zapněte novou společnost v přepínači firem."),
+                "next": form,
+            },
         }

@@ -92,3 +92,26 @@ class TestRepoRole(InstrumentCase):
         classification = self.repo("1100000")
         self.assertEqual(classification.role_id, self.env.ref("investra_entity.role_repo_client"))
         self.assertFalse(classification.deviates_from_proposal)
+
+
+@tagged("post_install", "-at_install")
+class TestEntityIdentification(TransactionCase):
+    """LEI a sektor knihy z údajů protistrany kontaktu společnosti (MN-05)."""
+
+    def test_lei_and_sector_from_profile(self):
+        czk = self.env.ref("base.CZK")
+        entity = self.env["investra.entity"].create_book("Fond LEI", "fund", "cas501", czk, "cz")
+        self.assertFalse(entity.lei)
+        self.assertFalse(entity.esa_sector_id)
+        sector = self.env["investra.esa.sector"].search([], limit=1)
+        partner = entity.company_id.partner_id
+        self.env["investra.counterparty.profile"].create({
+            "partner_id": partner.id, "valid_from": "2020-01-01", "country_id": self.env.ref("base.cz").id,
+            "sector_id": sector.id, "lei": "5493001KJTIIGC8Y1R12",
+        })
+        entity.invalidate_recordset()
+        self.assertEqual(entity.lei, "5493001KJTIIGC8Y1R12")
+        self.assertEqual(entity.esa_sector_id, sector)
+        action = entity.action_open_counterparty_profiles()
+        self.assertEqual(action["context"]["default_partner_id"], partner.id)
+        self.assertEqual(action["context"]["default_country_id"], self.env.ref("base.cz").id)

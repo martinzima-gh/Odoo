@@ -36,6 +36,8 @@ class InvestraEntity(models.Model):
         ],
         required=True,
         string="Druh jednotky",
+        help="Servisní a investiční společnost jsou obecné jednotky; SICAV, fond a podfond mají osnovu fondu "
+             "a neměnné zápisy v deníku. Podfond patří pod SICAV.",
     )
     framework = fields.Selection(
         [
@@ -45,10 +47,18 @@ class InvestraEntity(models.Model):
         ],
         required=True,
         string="Účetní rámec",
+        help="Podle vyhlášky: servisní společnost 500/2002, investiční společnost, SICAV, fond a podfond 501/2002. "
+             "Rámce se nemíchají a po prvním zaúčtování se nemění.",
     )
-    rate_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb", string="Zdroj kurzů")
-    parent_id = fields.Many2one("investra.entity", string="Nadřazená kniha", ondelete="restrict")
-    founder_id = fields.Many2one("res.partner", string="Zakladatel")
+    rate_source = fields.Selection(
+        [("cnb", "ČNB"), ("ecb", "ECB")], required=True, default="cnb", string="Zdroj kurzů",
+        help="Řídí se funkční měnou knihy (§ 24d zákona o účetnictví): CZK – ČNB, EUR – ECB.",
+    )
+    parent_id = fields.Many2one(
+        "investra.entity", string="Nadřazená kniha", ondelete="restrict",
+        domain="[('entity_type', '=', 'sicav')]",
+        help="Jen u podfondu: SICAV, jehož je podfond součástí.",
+    )
 
     _company_uniq = models.Constraint("unique(company_id)", "Společnost může mít jen jednu knihu.")
 
@@ -104,7 +114,9 @@ class InvestraEntity(models.Model):
         if entity_type in HASHED_TYPES:
             journals = self.env["account.journal"].sudo().search([("company_id", "=", company.id)])
             journals.filtered(lambda j: j.type == "general").write({"restrict_mode_hash_table": True})
-        return self.create({
+        # Prohlížeč posílá allowed_company_ids bez nové společnosti; pravidlo „Knihy podle společnosti“ by
+        # zápis knihy odmítlo (MN-05), proto se kniha zakládá v prostředí nové společnosti.
+        return self.with_company(company).create({
             "company_id": company.id,
             "entity_type": entity_type,
             "framework": framework,

@@ -20,6 +20,10 @@ class TestNewBookWizard(TransactionCase):
     def _create(self, **values):
         wizard = self.Wizard.create(values)
         action = wizard.action_create()
+        # Po založení průvodce vrátí hlášku a v ní následný formulář knihy (MN-05).
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertIn("přepínači firem", action["params"]["message"])
+        action = action["params"]["next"]
         entity = self.env["investra.entity"].browse(action["res_id"])
         self.assertEqual(action["res_model"], "investra.entity")
         self.assertIn(entity.company_id.id, action["context"]["allowed_company_ids"])
@@ -52,15 +56,36 @@ class TestNewBookWizard(TransactionCase):
         self._assert_fund_book(entity, self.eur, "ecb")
 
     def test_manager_book(self):
-        founder = self.env["res.partner"].create({"name": "Zakladatel průvodce"})
-        entity = self._create(name="Průvodce IS", entity_type="manager", framework="cas501", founder_id=founder.id)
+        entity = self._create(name="Průvodce IS", entity_type="manager", framework="cas501")
         company = entity.company_id
         self.assertEqual(company.chart_template, "cz")
         self.assertEqual(company.currency_id, self.czk)
         self.assertTrue(company.restrictive_audit_trail)
         self.assertEqual(self._general_hashed(company), {False})
-        self.assertEqual(entity.founder_id, founder)
         self.assertIn(company, self.admin.company_ids)
+
+    def test_browser_context_without_new_company(self):
+        """Prohlížeč posílá allowed_company_ids jen s aktuální firmou a uživatel má víc firem (MN-05, bod 1)."""
+        self.admin.company_ids |= self.env["res.company"].create({"name": "Druhá firma testu"})
+        wizard = self.Wizard.with_context(allowed_company_ids=[self.admin.company_id.id]).create(
+            {"name": "Průvodce prohlížeč", "entity_type": "fund", "framework": "cas501"})
+        action = wizard.action_create()["params"]["next"]
+        entity = self.env["investra.entity"].browse(action["res_id"])
+        self.assertTrue(entity.exists())
+        self.assertEqual(entity.entity_type, "fund")
+
+    def test_founder_is_gone(self):
+        self.assertNotIn("founder_id", self.env["investra.entity"]._fields)
+        self.assertNotIn("founder_id", self.env["investra.new.book.wizard"]._fields)
+
+    def test_parent_visible_and_required_only_for_subfund(self):
+        from lxml import etree
+        for model in ("investra.new.book.wizard", "investra.entity"):
+            arch = etree.fromstring(self.env[model].get_view(view_type="form")["arch"])
+            field = arch.xpath("//field[@name='parent_id']")[0]
+            self.assertIn("subfund", field.get("invisible", ""), model)
+            self.assertIn("subfund", field.get("required", ""), model)
+            self.assertIn("sicav", self.env[model]._fields["parent_id"].domain, model)
 
     def test_subfund_under_sicav(self):
         sicav = self._create(name="Průvodce SICAV", entity_type="sicav", framework="cas501")

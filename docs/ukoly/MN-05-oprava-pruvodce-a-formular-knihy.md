@@ -67,9 +67,32 @@ v `investra` nic nezakládat); Výsledek uvádí, co zůstalo neověřené v pro
 
 ## Výsledek
 
-Doplní model, který úkol provedl.
+Provedeno 16. 11. 2026 (Claude Code, Sonnet 5.5).
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `investra_entity` (`models/entity.py`: `create_book` přes `with_company`, zrušené `founder_id`, doména a nápověda
+  nadřazené knihy, nápovědy druhu, rámce a zdroje kurzů; `views/entity_views.xml`: nový formulář, vyhledávání bez zakladatele; verze 0.10.0),
+  `investra_chart_fund` (průvodce bez zakladatele, nadřazená kniha jen u podfondu s doménou SICAV, hláška po založení; zrušená položka nabídky;
+  README, verze 0.12.0, testy), `investra_counterparty` (na knize LEI a sektor ESA z profilu kontaktu společnosti, tlačítko Údaje protistrany,
+  volitelný sloupec LEI; verze 0.3.0, test), `investra_fund` (doména pole Účetní kniha ve formuláři, verze 0.8.3, test),
+  manuál `01-spolecnost-a-kniha.md`, `02-fond.md`, tento soubor, předávka.
+- **Ověřeno:** test „prohlížeč s kontextem `allowed_company_ids` bez nové společnosti, uživatel s více firmami“ **bez opravy selže**
+  (`AccessError`: Administrator nemá přístup pro vytvořit k Účetní kniha, „Průvodce prohlížeč“) a s opravou projde. Testy dotčených modulů
+  62 OK; `tools/run_tests.sh all` 755 testů, 0 selhání, 0 chyb; dočasné `investra_ci_*` smazány (0 zbývá). Seed volá `create_book` stejně
+  (jen se změnil kontext prostředí); jeho testy (`investra_entity`, `investra_nav`, `investra_posting` a další) prošly. Záloha
+  `zalohy/investra-2026-11-16-pred-MN05.dump` (čitelný `pg_restore -l`), povýšeny `investra_entity`, `investra_chart_fund`,
+  `investra_counterparty`, `investra_fund` v `investra` (verze v DB potvrzeny, formulář a seznam existují, nabídka `menu_new_book`
+  a pole `founder_id` v `ir.model.fields` už ne), 8071 restartováno (HTTP 200). `founder_id` v `investra`: 0 vyplněných; sloupec
+  `investra_entity.founder_id` v databázi zůstává (Odoo sloupec při upgradu nemaže), je prázdný a nepoužitý.
+- **Bod 4 (DIČ):** popisek TIN nepochází z našeho modulu ani z překladu pole `vat`. Odoo bere popisek z `vat_label` země **aktivní firmy**
+  (`res.partner`: `self.env.company.country_id.vat_label`). Výchozí firma Odoo „My Company“ (id 1) má zemi USA (`vat_label` TIN);
+  všechny naše společnosti mají Česko (cs_CZ „DIČ“, en_US „VAT“). Kód jsem neměnil. Řešení je datové: nastavit u „My Company“ zemi Česko
+  (rozhodne Martin; nedělal jsem to). V anglickém rozhraní bude u české firmy popisek VAT. Popisek IČO (`company_registry`) jsem neřešil
+  zvlášť: nenašel jsem pro něj úpravu v kódu ani důvod k ní. Test popisku nejde smysluplně napsat bez změny dat.
+- **Neověřeno:** vzhled a chování v prohlížeči (formulář knihy, skrytí nadřazené knihy, hláška po založení, tlačítko Údaje protistrany,
+  nabídka pryč). Nanečisto v `odoo shell` v `investra` jsem nezakládal: `create_book` může potvrdit transakci, a rollback by tedy nebyl
+  zaručen; průvodce v kontextu prohlížeče pokrývá test na dočasné databázi. Popisek IČO.
+- **Odchylky od zadání:** hláška po založení je `display_notification` s následnou akcí na formulář (průvodce proto vrací jinou strukturu,
+  testy upraveny). Sektor ESA je ve formuláři uveden vedle LEI (zadání: „aktuální LEI a sektor“). Doména fondu je jen v pohledu, jak ukládá zadání.
+- **Otevřené otázky a návrhy mimo rozsah:** (1) Nastavit zemi Česko u „My Company“ (id 1)? (2) Prázdný sloupec `founder_id` lze po
+  schválení odstranit migrací (změna schématu, nedělal jsem). (3) Po MN-05 ve formuláři knihy zbývá nechat Martina projít v prohlížeči
+  zakládání SICAV a podfondu.

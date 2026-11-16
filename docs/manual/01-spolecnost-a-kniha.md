@@ -13,7 +13,7 @@ Vynechalo by zámek deníků, auditní stopu a mapování rolí účtů a mohlo 
 
 ## Postup založení
 
-1. **Investra › Nastavení › Fondy › Nová účetní kniha** (nebo tlačítko **Nová účetní kniha** v seznamu **Účetní knihy**).
+1. **Investra › Nastavení › Fondy › Účetní knihy**, tlačítko **Nová účetní kniha** (samostatná položka nabídky neexistuje).
 2. Přečtěte žluté upozornění: funkční měnu, účetní rámec ani společnost nejde po prvním zaúčtování změnit.
 3. Vyplňte pole:
 
@@ -22,14 +22,13 @@ Vynechalo by zámek deníků, auditní stopu a mapování rolí účtů a mohlo 
 | **Název společnosti** | ano | – | musí být jedinečný, jinak „Společnost … už existuje.“ |
 | **Druh jednotky** | ano | Fond | Servisní společnost, Investiční společnost, SICAV, Fond, Podfond; určuje osnovu a rámec |
 | **Účetní rámec** | ano | podle druhu | servisní společnost: Vyhláška 500/2002; ostatní: Vyhláška 501/2002 |
-| **Nadřazená kniha** | u podfondu | – | podfond musí mít nadřazený SICAV: „Podfond musí mít nadřazený SICAV.“ |
-| **Zakladatel** | ne | – | kontakt (partner) zakladatele |
+| **Nadřazená kniha** | jen u podfondu | – | viditelná a povinná jen u druhu Podfond, nabízí jen SICAV: „Podfond musí mít nadřazený SICAV.“ |
 | **Funkční měna** | ano | CZK | nabízejí se jen aktivní měny |
 | **Země** | ano | Česko | |
 | **Šablona osnovy** | jen čtení | podle druhu | SICAV, fond, podfond: osnova fondu (`investra_fund`); ostatní: česká osnova (`cz`) |
 | **Zdroj kurzů** | jen čtení | podle měny | CZK – ČNB, EUR – ECB; jiná měna: ČNB |
 
-4. **Založit knihu**, potvrďte dotaz. Otevře se formulář nové knihy.
+4. **Založit knihu**, potvrďte dotaz. Otevře se formulář nové knihy a zobrazí se hláška „Zapněte novou společnost v přepínači firem.“
 
 **Kontrola rámce:** jiná kombinace než v tabulce se odmítne před založením: „Druh jednotky a účetní rámec nejdou dohromady: pro tento druh platí …“
 Rámce se nemíchají; IFRS je v seznamu rámců, ale průvodce ho odmítne.
@@ -65,8 +64,15 @@ Podfond zakládejte až po SICAV a v poli **Nadřazená kniha** SICAV vyberte.
 
 - **Přepínač firem:** nová společnost se v přepínači (vpravo nahoře) trvale nezapne. Po odchodu z formuláře ji zaškrtněte,
   jinak neuvidíte její knihy, fond ani třídy (přístup se řídí zaškrtnutými společnostmi).
-- **Formulář knihy** (Účetní knihy): Společnost, Funkční měna (jen čtení), Druh jednotky, Účetní rámec, Zdroj kurzů,
-  Nadřazená kniha, Zakladatel.
+- **Formulář knihy** (Účetní knihy): skupina **Společnost** (společnost, druh jednotky, účetní rámec, nadřazená kniha jen
+  u podfondu), skupina **Měna a kurzy** (funkční měna jen čtení, zdroj kurzů; pod ním text „Výkazy ČNB se vždy přepočítávají
+  kurzem ČNB.“) a skupina **Identifikace** (LEI a sektor ESA, jen čtení). Nad poli je upozornění, že funkční měnu, rámec
+  ani společnost nejde po prvním zaúčtování změnit. U polí jsou nápovědy (najeďte myší na popisek).
+- **LEI a sektor:** zadávají se v **údajích protistrany** kontaktu společnosti (platí od data, povinná země a sektor ESA,
+  kontrola ISO 17442). Tlačítko **Údaje protistrany** ve formuláři knihy je otevře s předvyplněným kontaktem a zemí;
+  formulář ukazuje hodnoty platné k dnešku. U podfondu je LEI nepovinné. V seznamu knih lze zapnout sloupec **LEI**.
+- **Popisek DIČ:** u kontaktu společnosti se popisek daňového čísla řídí zemí aktivní firmy. Výchozí firma Odoo
+  „My Company“ má zemi USA, proto ukazuje TIN; po nastavení země Česko je popisek DIČ.
 - **Osnova:** účty společnosti jsou v účetní části Odoo pod zvolenou společností.
 - **Role účtů:** **Investra › Nastavení › Účtování › Účty rolí** ukazuje, který účet plní kterou roli ;
   seznam rolí je v **Role účtů** (jen čtení). Kontrolujte, že všechny role mají u nové knihy účet.
