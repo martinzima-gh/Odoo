@@ -10,3 +10,4 @@ from . import test_variable_rate
 from . import test_launch_date
 from . import test_no_rate_source
 from . import test_manual_fees
+from . import test_stale_compute

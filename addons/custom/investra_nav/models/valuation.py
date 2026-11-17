@@ -164,6 +164,11 @@ class InvestraValuation(models.Model):
     snapshot_hash = fields.Char(readonly=True, string="Otisk snímku")
     return_reason = fields.Text(readonly=True, string="Důvod vrácení")
     published_at = fields.Datetime(readonly=True, string="Zveřejněno")
+    # Neaktuální výpočet (rozhodnutí Martina 2026-11-17): po výpočtu se uloží otisk vstupů; změní-li se, formulář upozorní
+    # a ocenění nejde odeslat ke schválení, dokud se nespočte znovu. Čas výpočtu navíc obnoví souhrn s grafem.
+    computed_at = fields.Datetime(readonly=True, copy=False, string="Spočteno")
+    inputs_stamp = fields.Text(readonly=True, copy=False, string="Otisk vstupů výpočtu")
+    stale_note = fields.Char(compute="_compute_stale_note", string="Neaktuální výpočet")
 
     _uniq = models.Constraint("unique(fund_id, date, version)", "Verze ocenění k datu už existuje.")
 
@@ -379,6 +384,8 @@ class InvestraValuation(models.Model):
         self._apply_scheme(context)
         self._finish(context)
         self.state = "computed"
+        self.write({"computed_at": fields.Datetime.now(),
+                    "inputs_stamp": json.dumps(self._inputs_now(), ensure_ascii=False)})
 
     def _rate_source(self):
         return self.fund_id.entity_id._require_rate_source()
@@ -1399,11 +1406,65 @@ class InvestraValuation(models.Model):
                               "classes": classes, "lines": lines}, ensure_ascii=False)
         return payload, hashlib.sha256(payload.encode()).hexdigest()
 
+    def _inputs_now(self):
+        """Otisk vstupů výpočtu: počet, poslední změna a největší id záznamů po skupinách (smazání i úprava se projeví)."""
+        self.ensure_one()
+        env, fund, day = self.env, self.fund_id, self.date
+        positions = env["investra.trade"].sudo()._positions(fund, day)
+
+        def stamp(model, domain, **ctx):
+            rows = env[model].sudo().with_context(active_test=False, **ctx).search(domain)
+            return [len(rows), str(max(rows.mapped("write_date"), default="")), max(rows.ids, default=0)]
+
+        groups = {
+            self.env._("ruční úplaty"): stamp("investra.valuation.external", [("valuation_id", "=", self.id)]),
+            self.env._("pravidla úplat"): stamp("investra.fee.rule", [("fund_id", "=", fund.id)]),
+            self.env._("verze úplat"): stamp("investra.fee.version", [("rule_id.fund_id", "=", fund.id)]),
+            self.env._("třídy fondu"): stamp("investra.fund.class", [("fund_id", "=", fund.id)]),
+            self.env._("úpisy a odkupy"): stamp("investra.class.movement", [("fund_id", "=", fund.id), ("date", "<=", day)]),
+            self.env._("obchody"): stamp(
+                "investra.trade", [("fund_id", "=", fund.id), "|", ("trade_date", "<=", day), ("settlement_date", "<=", day)]),
+            self.env._("ceny nástrojů"): stamp(
+                "investra.instrument.price", [("instrument_id", "in", [i.id for i in positions]), ("date", "<=", day),
+                                             ("state", "=", "approved"), "|", ("fund_id", "=", fund.id), ("fund_id", "=", False)]),
+            self.env._("schvalovací matice"): stamp("investra.approval.matrix", []),
+        }
+        source = fund.entity_id.rate_source
+        if source and source != "none":
+            groups[self.env._("kurzy")] = stamp("investra.rate", [("source", "=", source), ("date", "<=", day)])
+        return groups
+
+    def _inputs_changed(self):
+        """Názvy skupin vstupů, které se změnily po posledním výpočtu (prázdné = výpočet je aktuální nebo není otisk)."""
+        self.ensure_one()
+        if self.state != "computed" or not self.inputs_stamp:
+            return []
+        try:
+            before = json.loads(self.inputs_stamp)
+        except ValueError:
+            return []
+        now = self._inputs_now()
+        return [name for name, value in now.items() if before.get(name) != value]
+
+    @api.depends("state", "inputs_stamp", "computed_at")
+    def _compute_stale_note(self):
+        for record in self:
+            changed = record._inputs_changed() if record.id else []
+            record.stale_note = (
+                self.env._("Vstupy výpočtu se změnily po posledním výpočtu (%s). Stiskněte Spočítat; do té doby nejde ocenění odeslat ke schválení.",
+                           ", ".join(changed)) if changed else False
+            )
+
     def action_submit(self):
         """Zamkne návrhy a uloží snímek."""
         self._require(PREPARER)
         self._require_state("computed")
         for record in self.sudo():
+            changed = record._inputs_changed()
+            if changed:
+                raise UserError(self.env._(
+                    "Výpočet ocenění není aktuální, po výpočtu se změnilo: %s. Stiskněte Spočítat a ocenění odešlete znovu.",
+                    ", ".join(changed)))
             stops = record.check_ids.filtered(lambda c: c.status in STOPPING)
             if stops:
                 raise UserError(self.env._("Ocenění má nesplněné kontroly: %s", ", ".join(stops.mapped("name"))))

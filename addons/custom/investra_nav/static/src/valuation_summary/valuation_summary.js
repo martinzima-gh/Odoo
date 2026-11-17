@@ -187,7 +187,8 @@ export class InvestraValuationSummary extends Component {
 
     recordKey(record) {
         const data = record.data || {};
-        return JSON.stringify([record.resId, String(data.date), data.state, data.fund_id && data.fund_id.id]);
+        // computed_at: po každém Spočítat se souhrn a graf načtou znovu (stav zůstává Spočteno).
+        return JSON.stringify([record.resId, String(data.date), data.state, data.fund_id && data.fund_id.id, String(data.computed_at)]);
     }
 
     async reload(record) {

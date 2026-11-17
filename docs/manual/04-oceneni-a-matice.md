@@ -177,6 +177,11 @@ Náhled zaúčtování v ocenění ukáže tytéž řádky jako doklad po zaúč
 **Příklad (smyšlený):** fond v CZK, třídy A a B po 1 000 CZK, ruční úplata celého fondu 4 EUR, kurz 25,000 k datu ocenění → MD ostatní náklady 100 CZK,
 D závazek z úplat 100 CZK; fond kapitál 2 000 → 1 900.
 
+**Neaktuální výpočet.** Změní-li se po stisknutí **Spočítat** vstupy výpočtu (ruční úplata, pravidlo nebo verze úplaty, třída, úpis či odkup, obchod,
+schválená cena, schvalovací matice, kurzy), formulář ocenění ukáže žlutý pruh „Vstupy výpočtu se změnily po posledním výpočtu (…)“ a ocenění nejde odeslat
+ke schválení („Výpočet ocenění není aktuální, po výpočtu se změnilo: …“), dokud ho nespočtete znovu. Hlídají se jen uvedené vstupy. Souhrn s grafem kurzu tříd
+se po každém Spočítat načte znovu.
+
 ## 5. Minimální nastavení pro první ocenění
 
 - [ ] Fond: **Datum vzniku** vyplněné (jinak „Fond nemá datum vzniku.“), **Frekvence ocenění**, třídy (kap. 2, 3); z Data vzniku a frekvence karta fondu spočítá další ocenění.

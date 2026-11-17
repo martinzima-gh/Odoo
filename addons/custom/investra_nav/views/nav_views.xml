@@ -283,6 +283,7 @@
                         <field name="date"/>
                     </div>
                 </div>
+                <div class="alert alert-warning" role="alert" invisible="not stale_note"><field name="stale_note" nolabel="1"/></div>
                 <widget name="investra_valuation_summary"/>
             </xpath>
             <xpath expr="//sheet/group" position="replace">
@@ -292,6 +293,7 @@
                     <field name="previous_id"/>
                     <field name="preparer_id"/>
                     <field name="fund_capital"/>
+                    <field name="computed_at"/>
                     <field name="currency_id"/>
                     <field name="package_name"/>
                     <field name="package_id"/>
