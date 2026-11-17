@@ -45,4 +45,4 @@
 
 ## Převzetí
 
-Claude 17. 11. 2026: převzato jako zápis revize. Bez zásadních nálezů; dvě LOW doporučení (grep kritérium MN-14 – povolit migraci, test nepřítomnosti a manuál; chybí test platného data s prázdnou frekvencí) zatím nezapracována, viz otevřené kroky v předávce.
+Claude 17. 11. 2026: převzato jako zápis revize. Bez zásadních nálezů; dvě LOW doporučení (grep kritérium MN-14 – povolit migraci, test nepřítomnosti a manuál; chybí test platného data s prázdnou frekvencí) druhé zapracováno 17. 11. 2026 (test prázdné frekvence v `test_schedule.py`, `investra_fund` 22 testů OK); první čeká na rozhodnutí.

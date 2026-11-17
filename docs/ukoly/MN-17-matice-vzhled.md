@@ -28,4 +28,4 @@
 
 ## Převzetí
 
-Claude 17. 11. 2026: zóna zelená (jen views XML, `builtin` existuje v modelu, Python beze změny); `check_views.py` 0 chyb. Do `investra` zatím nenasazeno – vyžaduje upgrade `investra_fund` (čeká na souhlas Martina). Vzhled v prohlížeči neověřen.
+Claude 17. 11. 2026: zóna zelená (jen views XML, `builtin` existuje v modelu, Python beze změny); `check_views.py` 0 chyb. Nasazeno 17. 11. 2026 se souhlasem Martina: záloha `zalohy/investra-2026-11-17-pred-MN17.dump`, `-u investra_fund` bez chyby, 8071 restartována (HTTP 200, bez ERROR), pohled v databázi ověřen SELECTem. Vzhled v prohlížeči neověřen.

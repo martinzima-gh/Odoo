@@ -41,3 +41,6 @@ class TestSchedule(TransactionCase):
     def test_missing_input(self):
         self.assertFalse(next_valuation_date(False, "monthly"))
         self.assertFalse(next_valuation_date(date(2026, 1, 1), "unknown"))
+        # prázdná frekvence (False, None, "") při platném datu – nález revize CP-MN14, bod 5
+        for empty in (False, None, ""):
+            self.assertFalse(next_valuation_date(date(2026, 1, 1), empty))
