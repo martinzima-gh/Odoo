@@ -405,12 +405,24 @@ class InvestraValuation(models.Model):
         self._compute_unsettled()
         # Pevné pořadí podle druhu (ZJ-06 bod 7, rozhodnutí 2026-11-17; nahrazuje pořadí pravidel z 2026-11-05):
         # časově rozlišené a ručně doložené úplaty → výkonnostní odměna (po nich, před sebou) → daň nakonec.
+        # Výkonnostní odměna má základ před úplatami, po úplatách, nebo po dani; „po dani“ se počítá až po dani
+        # a daň se pak ve stejném ocenění doúčtuje o odměnu, která šla do výsledku (rozhodnutí 2026-11-17).
         rules = self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)])
+        performance = rules.filtered(lambda r: r.kind == "performance")
+        taxes = rules.filtered(lambda r: r.kind == "tax")
+        before_fees = {fund_class: self._class_value(fund_class, context) for fund_class in context} \
+            if any(rule.perf_base == "before_fees" for rule in performance) else {}
         self._apply_periodic_fees(rules.filtered(lambda r: r.kind == "periodic"), context)
-        for rule in rules.filtered(lambda r: r.kind == "performance"):
-            self._apply_performance(rule, context)
-        for rule in rules.filtered(lambda r: r.kind == "tax"):
+        for rule in performance.filtered(lambda r: r.perf_base != "after_tax"):
+            self._apply_performance(rule, context, before_fees)
+        for rule in taxes:
             self._apply_tax(rule)
+        late = performance.filtered(lambda r: r.perf_base == "after_tax")
+        for rule in late:
+            self._apply_performance(rule, context, before_fees)
+        if late:
+            for rule in taxes:
+                self._apply_tax(rule, correction=True)
         self._apply_scheme(context)
         self._finish(context)
         self.state = "computed"
@@ -990,12 +1002,15 @@ class InvestraValuation(models.Model):
             return month_end and day.month == 12
         return False
 
-    def _apply_performance(self, rule, context):
+    def _apply_performance(self, rule, context, before_fees=None):
         version = rule._version_at(self.date)
         for fund_class in rule.class_ids:
             row = context[fund_class]
             reference, hwm, accrued, base_date = self._performance_state(rule, fund_class, row, version)
-            gross = self._class_value(fund_class, context) + accrued
+            # Základ „před úplatami“ = hodnota třídy před úplatami tohoto ocenění; jinak aktuální stav knihy
+            # (po úplatách, u „po dani“ i po dani). Naběhlá odměna se přičítá zpět: odměna počítá před sebou samou.
+            value = before_fees[fund_class] if rule.perf_base == "before_fees" else self._class_value(fund_class, context)
+            gross = value + accrued
             flows = []
             if version.perf_measure == "capital":
                 movements = self.env["investra.class.movement"].sudo().search([
@@ -1037,8 +1052,12 @@ class InvestraValuation(models.Model):
                 self._add_event(f"cover:{rule.id}:{fund_class.id}", f"Krytí {rule.name}", lines)
                 self._fee_record(rule, -covered, fund_class, {"covered_by": rule.cover_class_id.code})
 
-    def _apply_tax(self, rule):
-        """Očekávaná daň jako doplatek do požadovaného zůstatku; základ je výsledek od začátku roku."""
+    def _apply_tax(self, rule, correction=False):
+        """Očekávaná daň jako doplatek do požadovaného zůstatku; základ je výsledek od začátku roku.
+
+        `correction` = doúčtování daně po výkonnostní odměně se základem po dani (rozhodnutí 2026-11-17): výsledek
+        už obsahuje odměnu, která šla do výsledovky; podíl převedený třídám výsledek nemění.
+        """
         version = rule._version_at(self.date)
         year_start = date_type(self.date.year, 1, 1)
         tax_account = self.env["investra.account.role"].account_for(self.company_id, "expense_tax")
@@ -1049,8 +1068,10 @@ class InvestraValuation(models.Model):
         required = engine.money(max(result, Decimal(0)) * d(version.rate))
         booked = self._sum(("date", ">=", year_start), ("account_id", "=", tax_account.id))
         move = required - booked
-        self._fee_record(rule, move, None, {"base": result, "required": required, "booked": booked})
-        self._add_event(f"tax:{rule.id}", rule.name, [
+        self._fee_record(rule, move, None, {"base": result, "required": required, "booked": booked, "correction": correction})
+        suffix = ":perf" if correction else ""
+        name = self.env._("%s – doúčtování po výkonnostní odměně", rule.name) if correction else rule.name
+        self._add_event(f"tax:{rule.id}{suffix}", name, [
             {"role": "expense_tax", "amount": move, "movement_type": "fee"},
             {"role": "tax_payable", "amount": -move, "movement_type": "fee"},
         ])

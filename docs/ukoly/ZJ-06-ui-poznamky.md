@@ -108,3 +108,9 @@ zaniká jen kaskádou se zrušeným návrhem). Zápis z `create` (u verze 2+ poz
 žádost podle matice (`_matrix_gate`), vrácení, zaúčtování, odeslání a potvrzení depozitáři, vrácení depozitářem, storno, zveřejnění. Záložka Historie ve formuláři;
 pole `preparer_id` přejmenováno na „Spočítal“ (logika čtyř očí beze změny), přidáno „Založil“ (`create_uid`). Manuál 04 doplněn. Testy `test_valuation_steps.py` (4);
 `tools/run_tests.sh all` 864 testů, 0 chyb. Nasazení do `investra` čeká na Martinův souhlas.
+
+**Bod 7b – základ výkonnostní odměny (Claude, 17. 11. 2026, rozhodnutí téhož dne):** pole `perf_base` u pravidla: Před úplatami (hodnota třídy před úplatami ocenění),
+Po úplatách (výchozí, jako dosud), Po dani. Pořadí: úplaty → ručně doložené → odměna před/po úplatách → daň → odměna po dani → doúčtování daně (`_apply_tax(correction=True)`,
+událost `tax:<id>:perf`). Daň je doplatek do zůstatku od začátku roku, doúčtování proto zachytí jen tu část odměny, která šla do výsledovky; kruh nevzniká
+(odměna počítá z daně před doúčtováním). Testy: před úplatami 20,00 / po úplatách 19,81; odměna před daní 20,00 a daň 4,00; po dani odměna 19,00 a daň 5,00 − 0,95 = 4,05.
+`run_tests.sh investra_nav` 398 testů, 0 chyb.

@@ -439,6 +439,7 @@
                         <field name="base_source" invisible="kind == 'tax'"/>
                         <field name="base_mode" invisible="kind != 'periodic' or base_source not in ('fk', 'class_fk')"/>
                         <field name="expense_role"/>
+                        <field name="perf_base" invisible="kind != 'performance'"/>
                         <field name="crystallisation" invisible="kind != 'performance'"/>
                     </group>
                 </group>

@@ -128,6 +128,47 @@ class TestFees(NavCase):
         # Kurz 109, přebytek nad 108 je 1: 0,2 × 1 × 10 = 2
         self.assertAlmostEqual(second.fee_line_ids.amount, 2, places=2)
 
+    def perf_case(self, perf_base, periodic=False, tax=False):
+        # Třída A 1 000 / 10 kusů, výsledek 100 → kurz 110 před odměnou; odměna 20 % nad 100, bez krystalizace
+        fund = self.make_fund(classes=[{"code": "A"}], launch="2026-12-31")
+        self.subscribe(self.cls(fund, "A"), "2027-01-01", 1000, 10)
+        self.common_result(fund, "v1", "2027-01-20", 100)
+        if periodic:
+            self.Rule.create({"fund_id": fund.id, "name": "Úplata", "kind": "periodic",
+                              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
+        self.Rule.create({"fund_id": fund.id, "name": "Odměna", "kind": "performance", "crystallisation": "none",
+                          "perf_base": perf_base, "class_ids": [(6, 0, self.cls(fund, "A").ids)],
+                          "expense_role": "expense_performance",
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit",
+                                                  "initial_reference": 100})]})
+        if tax:
+            self.Rule.create({"fund_id": fund.id, "name": "Daň", "kind": "tax",
+                              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+        valuation = self.valuation(fund, date(2027, 1, 31))
+        valuation.action_compute()
+        fees = valuation.fee_line_ids
+        return (fees.filtered(lambda f: f.rule_id.name == "Odměna").amount,
+                sum(fees.filtered(lambda f: f.rule_id.name == "Daň").mapped("amount")))
+
+    def test_perf_base_before_or_after_fees(self):
+        # Úplata 1 % z 1 100 za 31 dní = 0,93. Před úplatami: 0,2 × 10 × 10 = 20,00;
+        # po úplatách: kurz 109,907 → 0,2 × 9,907 × 10 = 19,81
+        self.assertAlmostEqual(self.perf_case("before_fees", periodic=True)[0], 20.00, places=2)
+        self.assertAlmostEqual(self.perf_case("after_fees", periodic=True)[0], 19.81, places=2)
+
+    def test_perf_before_tax_is_in_tax(self):
+        # Odměna 20,00 jde do daně: 0,05 × (100 − 20) = 4,00
+        perf, tax = self.perf_case("after_fees", tax=True)
+        self.assertAlmostEqual(perf, 20.00, places=2)
+        self.assertAlmostEqual(tax, 4.00, places=2)
+
+    def test_perf_after_tax_then_tax_is_topped_up(self):
+        # Daň 0,05 × 100 = 5,00; kurz 109,5 → odměna 0,2 × 9,5 × 10 = 19,00; doúčtování daně
+        # na 0,05 × (100 − 19) = 4,05, tj. −0,95; obě kroky daně jsou v ocenění
+        fund_perf, tax = self.perf_case("after_tax", tax=True)
+        self.assertAlmostEqual(fund_perf, 19.00, places=2)
+        self.assertAlmostEqual(tax, 4.05, places=2)
+
     def test_waterfall_gives_priority_class_target_and_junior_the_rest(self):
         # 365 dní, PIA 1 000 s cílem 6 %, VIA 100; výnos 110: PIA 60, VIA 50
         fund = self.make_fund(classes=[{"code": "PIA"}, {"code": "VIA"}])

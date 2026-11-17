@@ -75,6 +75,13 @@ class InvestraFeeRule(models.Model):
              "úplatami v ocenění. Po všech úplatách: stav po všech časově rozlišených a ručně doložených úplatách včetně "
              "této; úplaty se dopočtou společně. Výkonnostní odměna se počítá vždy po úplatách, daň nakonec.",
     )
+    perf_base = fields.Selection(
+        [("before_fees", "Před úplatami"), ("after_fees", "Po úplatách"), ("after_tax", "Po dani")],
+        required=True, default="after_fees", string="Základ výkonnostní odměny",
+        help="Jen výkonnostní odměna. Před úplatami: hodnota třídy před úplatami tohoto ocenění. Po úplatách: po časově "
+             "rozlišených a ručně doložených úplatách. Po dani: navíc po očekávané dani; daň se ve stejném ocenění "
+             "doúčtuje o odměnu, která jde do výsledku. Odměna se vždy počítá před sebou samou.",
+    )
     class_ids = fields.Many2many("investra.fund.class", string="Platí třídy",
         help="Třídy téhož fondu, které úplatu nesou. Prázdné znamená společný náklad celého fondu (dělí se poměrem kapitálu). "
              "Třída nesmí být zároveň přijímající.")
