@@ -25,6 +25,11 @@ Odoo vede účetnictví, instrumenty, portfolio, ocenění, NAV, výkazy ČNB a 
   Platí pro nové operace automaticky (rozhodnutí 2026-11-12); obchod, splátka a úpis/odkup ho mají ze společného
   abstraktního modelu `investra.posting.preview` (rozhodnutí 2026-11-13), nová operace ho dědí a dodá jen své doklady.
 - Rozhodnutí navrhovat s variantami a doporučením; rozhoduje uživatel.
+- **Sledování změn** (rozhodnutí 2026-11-18): model nastavení a kmenových dat dědí `mail.thread`, jeho pole bez výpočtu mají
+  `tracking=True` a formulář má `<chatter/>` (vestavěné sledování Odoo 20; modul `mail_tracking` se neinstaluje). Řádkové modely zapisují
+  změny do chatteru rodiče. Výjimky: nezměnitelné záznamy a záznamy s vlastní historií, vypočtená a technická pole, hromadně plněné
+  záznamy (kurzy, ceny, importy), průvodci a pohledy. Nové pole nastavení bez sledování se při revizi nepřijme. Stopa není verze „Platí od“ ani
+  auditní důkaz. Provedení: `docs/ukoly/ZJ-10`.
 
 ## Role agentů
 

@@ -62,7 +62,7 @@ nová pole typu „Platí od“; úprava výpočtu NAV.
 - Komentář ve `fund.py` a věta v ZJ-03 jsou opraveny.
 - Pracovní databáze `investra` se při vývoji nemění; upgrade modulů v ní provede Claude po zálohách.
 
-**Schválený plán:** fáze 1 – čeká na Claude; fáze 2 – čeká na plán a schválení Martina.
+**Schválený plán:** Martin schválil 18. 11. 2026 rozdělení na fáze 1 a 2, rozsah modelů a pravidlo (v `CLAUDE.md`, deník „Sledování změn nastavení“). Fáze 1: po schválení Clauda může začít. Fáze 2 (červená): řešitel nejdřív předloží plán změn kódu (soubory, pole, otázky z bodu 6) a Martin ho potvrdí; teprve pak kód.
 
 ## Výsledek
 
