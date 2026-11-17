@@ -12,7 +12,8 @@ Synchronizace mění jen tyto skupiny (a skupinu účtování, viz níže); osta
 
 Příznak role „Účtuje ručně v hlavní knize“ (rozhodnutí 2026-11-17 po ZJ-01) odvozuje `account.group_account_user`.
 Odebere se jen tehdy, když ho nedává jiná role uživatele a uživatel není správce systému ani správce účetnictví
-(jejich skupiny ho implikují a nesmí o něj přijít).
+(rozhodnutí 2026-11-17 „Ruční účtování: správci“). Pozor: v Odoo 20 ho žádná z těchto skupin neimplikuje;
+správce si ho jen ponechá, má-li ho přidělený.
 """
 
 from odoo import api, fields, models

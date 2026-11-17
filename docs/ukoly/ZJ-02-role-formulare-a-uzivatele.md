@@ -42,7 +42,7 @@ Provedl Claude (Sonnet) 17. 11. 2026 ve větvi `ukol/ZJ-zjednoduseni`; do `inves
 
 | Soubor | Změna |
 |---|---|
-| `investra_fund/models/role.py` | příznak `manual_posting` („Účtuje ručně v hlavní knize“) odvozuje `account.group_account_user`; odebere se jen když ho nedává jiná role uživatele a uživatel není správce systému ani správce účetnictví (jejich skupiny ho implikují) |
+| `investra_fund/models/role.py` | příznak `manual_posting` („Účtuje ručně v hlavní knize“) odvozuje `account.group_account_user`; odebere se jen když ho nedává jiná role uživatele a uživatel není správce systému ani správce účetnictví (ti si ho ponechají, mají-li ho přidělený; oprava při převzetí: skupiny ho v Odoo 20 neimplikují) |
 | `investra_fund/models/approval_matrix.py`, `security/ir.access.csv` | matici a její kroky mění jen úroveň Správa nebo `base.group_system` (`_check_manage` v `create` i `_check_editable`); práva crud pro skupinu správy a správce systému místo skupiny schvalování |
 | `investra_fund/views/role_views.xml` (nový, verze 0.11.0) | Nastavení → Uživatelé a role → Role (seznam, hledání, formulář s úrovní, příznakem účtování, tabulkou činností Provádí / Schvaluje, uživateli, poznámkou, chatter); záložka Role Investra ve formuláři uživatele Odoo; nabídka i záložka jen pro Správu a správce systému |
 | formulář matice a fondu | beze změny: bez obhospodařovatele, zpřísnění a jmenovitých uživatelů, záložka Zpřísnění matice ve fondu už po ZJ-01 není |
@@ -74,8 +74,8 @@ Převzal Claude (Opus, hlavní relace) 17. 11. 2026; práce je už ve větvi `uk
   `seed_users.py`, `run_seed.sh`, testy). Kód odpovídá rozhodnutím 2026-11-17, nálezy, které by bránily převzetí, žádné.
 - **Doověřeno:** čtení hesla z `.env` v `run_seed.sh` (pod `set -euo pipefail`) dává neprázdnou hodnotu; hodnota se nevypisovala.
 - **Opraveno při převzetí:** docstring `seed_users.py` uváděl spuštění jen po seed.py, ve skutečnosti běží před i po.
-- **Schváleno jako výklad (k potvrzení Martinem):** skupinu účtování si ponechá i správce účetnictví
-  (`account.group_account_manager`), nejen správce systému; dvojí spuštění `seed_users.py` v `run_seed.sh`.
+- **Potvrdil Martin 17. 11. 2026** (deník: „Ruční účtování: správci“): skupinu účtování si ponechá i správce účetnictví
+  (`account.group_account_manager`), nejen správce systému. Dvojí spuštění `seed_users.py` v `run_seed.sh` je technická nutnost.
 - **Pro ZJ-04 (nasazení do `investra`):**
   - `seed_users.py` nastaví uživateli `admin` jen roli Admin (`(6, …)`); jiné role, které mu tam případně přiřadilo ZJ-01, odebere.
   - Synchronizace rolí nově odebírá `account.group_account_user` uživatelům, jejichž role nemají příznak ručního účtování
