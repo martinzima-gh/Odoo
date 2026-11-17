@@ -16,6 +16,8 @@
    Ověřit přihlášení `ucetni`, `schvalovatel`, `view`, `admin` (heslo zadá Martin, ne agent).
 2a. Po upgradu založit v UI (jako `admin`) řádek matice **Ruční zadání úpisu a odkupu – jeden člověk** s „Platí od“ dnes
    (rozhodnutí Martina 17. 11. 2026: po sloučení řádků ZJ-01 by jinak platily čtyři oči z globálního řádku 17. 11.).
+   Matice je jedinečná podle (činnost, Platí od): při nasazení 17. 11. nový řádek nejde, místo toho se změní globální
+   řádek ze 17. 11. (dnešní řádek jde ještě měnit) na „Ne – stačí jeden člověk“.
 3. SELECT do `docs/sql/`: role, jejich činnosti a uživatelé; řádky matice.
 4. Manuál: kap. 4 (matice bez fondů a jmenovitých uživatelů), kap. 5 (role a činnosti, ukázkoví uživatelé bez hesla),
    kap. 2 (záložka Úplaty, bez zpřísnění matice a fondových vstupních poplatků), kap. 3 (vstupní a výstupní poplatek
