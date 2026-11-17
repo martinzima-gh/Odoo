@@ -82,12 +82,42 @@ nová pole typu „Platí od“; úprava výpočtu NAV.
 
 ## Výsledek
 
-Doplní řešitel.
+Proveden krok **1a**:
 
 - **Změněné soubory:**
+  - `addons/custom/investra_fund/models/line_tracking_mixin.py` (nový soubor): společný mixin `investra.line.tracking.mixin` pro řádkové One2many modely, který ve `create`/`write`/`unlink` řádku zapisuje strukturovanou zprávu do chatteru rodiče (`<ul><li>...</li></ul>`). Respektuje kontexty `tracking_disable=True` a `mail_create_nolog=True`.
+  - `addons/custom/investra_fund/models/__init__.py`: registrace `line_tracking_mixin`.
+  - `addons/custom/investra_fund/models/fund.py`:
+    - `investra.fund` dědí `mail.thread`, doplněn `tracking=True` na 6 polích bez výpočtu (`entity_id`, `valuation_frequency`, `manager_id`, `trade_recognition`, `accrual_method`, `accrual_note`).
+    - `investra.fund.class` doplněn `tracking=True` na 12 polích bez výpočtu (`fund_id`, `code`, `name`, `active`, `currency_id`, `isin`, `price_digits`, `price_rounding`, `distribution`, `unit_digits`, `unit_rounding`, `rounding_owner`). Pole poplatků (`entry_fee_*`, `exit_fee_*`) zůstala bez `tracking=True` kvůli nezdvojení zpráv (mají vlastní ruční zápis).
+    - opraven komentář na třídě o `mail_tracking` podle ověření ze 17. 11. 2026.
+    - ve `write()` třídy doplněna ochrana `tracking_disable`.
+  - `addons/custom/investra_fund/models/role.py`: `investra.role.line` dědí `investra.line.tracking.mixin`, nastaven `_line_tracking_parent = "role_id"`, `tracking=True` na `activity`, `perform`, `approve`, doplněna metoda `_line_tracking_desc()`.
+  - `addons/custom/investra_fund/models/approval_matrix.py`: `investra.approval.matrix.step` dědí `investra.line.tracking.mixin`, nastaven `_line_tracking_parent = "matrix_id"`, `tracking=True` na `name`, `role_id`, doplněna metoda `_line_tracking_desc()`, v `_touch()` odstraněna stará duplicitní zpráva `message_post` (ponechán posun data změny).
+  - `addons/custom/investra_fund/views/fund_views.xml`: doplněn `<chatter/>` do formuláře `view_fund_form`.
+  - `addons/custom/investra_fund/tests/test_tracking.py` (nový soubor): nová sada testů ověřující tracking fondu, třídy, nezdvojení poplatků třídy, tracking řádků rolí přes mixin, kroků matice přes mixin a potlačení přes `tracking_disable` (bez `cr.commit()`, s `flush_tracking()`).
+  - `addons/custom/investra_fund/tests/__init__.py`: registrace `test_tracking`.
+  - `docs/ukoly/ZJ-03-poplatky-a-rucni-uplaty.md`: opravena nepřesná věta o `tracking=True` a `mail_tracking` v sekci Odchylky a upozornění.
+  - `docs/ukoly/ZJ-10-sledovani-zmen-nastaveni.md`: tato sekce Výsledek.
+
+- **Hromadné zápisy a kontexty (bod 5):**
+  - Mixin i ruční zápis na třídě plně respektují kontexty `tracking_disable=True` a `mail_create_nolog=True`.
+  - Nalezena místa hromadného zápisu:
+    - `tools/demo_data/seed_users.py`: zakládání rolí a řádků činností – doporučeno volat s kontextem `tracking_disable=True`.
+    - `tools/demo_data/seed.py`: zakládání fondů a tříd fondu – doporučeno volat s `mail_create_nolog=True, tracking_disable=True`.
+    - `addons/custom/investra_instrument_master/wizard/codelist_import.py:129`: pro fázi 1b doplnit do kontextu `tracking_disable=True, mail_create_nolog=True`.
+
 - **Ověřeno (příkaz a výsledek):**
+  - `python3 -m py_compile` na všechny upravené i vytvořené python soubory: skončilo bez chyb (kód 0).
+  - `python3 tools/view_check/check_views.py`: `Zkontrolováno souborů: 25, chyb: 0`.
+  - `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" addons/custom/investra_fund/views/fund_views.xml`: validní XML.
+
 - **Neověřeno:**
+  - Běh testů Odoo (`tools/run_tests.sh investra_fund`), vyžaduje instanci databáze Odoo – spustí Claude při převzetí.
+  - Vzhled v živém webovém prohlížeči.
+
 - **Otevřené otázky a návrhy mimo rozsah:**
+  - Ve fázi 1b použít `investra.line.tracking.mixin` na další řádkové modely a ošetřit `codelist_import.py`.
 
 ## Převzetí
 

@@ -79,8 +79,9 @@ výkonnostní odměna je proto 65,34 místo 75,34.
 
 **Odchylky a upozornění**
 
-- **Historie třídy:** `tracking=True` v Odoo 20 bez modulu `mail_tracking` (není nainstalovaný) změny polí neukládá, jen „vytvořeno“
-  (ověřeno testem). Změny poplatků zapisuje `write()` třídy do historie sama („staré → nové“).
+- **Historie třídy:** původní poznámka, že `tracking=True` v Odoo 20 bez modulu `mail_tracking` neukládá změny polí, byla nepřesná
+  (ověřeno 17. 11. 2026: vestavěné sledování Odoo 20 funguje v samostatné transakci i bez modulu `mail_tracking`). Změny poplatků
+  zapisuje `write()` třídy do historie sama („staré → nové“), pole poplatků proto nemají `tracking=True`, aby se zprávy nezdvojovaly (ZJ-10).
 - **XLS:** list Úplaty bere název z rozpisu (`line.name`), jinak by u ruční úplaty zapsal FALSE. Jiná změna XLS není.
 - `investra_posting` se nemění; vlastní účet nese řádek v `extra` jako u derivátů.
 - Povinnost účtu a poznámky ruční úplaty hlídá kontrola v Pythonu a formulář, ne NOT NULL ve sloupci (staré řádky smaže až post-migrace).

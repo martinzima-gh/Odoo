@@ -322,24 +322,29 @@ class InvestraApprovalMatrix(models.Model):
 
 class InvestraApprovalMatrixStep(models.Model):
     _name = "investra.approval.matrix.step"
+    _inherit = ["investra.line.tracking.mixin"]
     _description = "Schvalovatel v řádku matice"
     _order = "matrix_id, sequence, id"
 
+    _line_tracking_parent = "matrix_id"
+
     matrix_id = fields.Many2one("investra.approval.matrix", required=True, ondelete="cascade", index=True)
     sequence = fields.Integer(default=10, string="Pořadí")
-    name = fields.Char(required=True, default=DEFAULT_STEP, string="Krok")
+    name = fields.Char(required=True, default=DEFAULT_STEP, tracking=True, string="Krok")
     role_id = fields.Many2one(
-        "investra.role", ondelete="restrict", string="Role",
+        "investra.role", ondelete="restrict", tracking=True, string="Role",
         help="Prázdné = kdokoli s rolí, která má činnost s příznakem Schvaluje.",
     )
 
+    def _line_tracking_desc(self):
+        role_label = self.role_id.name or "kdokoli, kdo schvaluje"
+        return f"{self.name} ({role_label})"
+
     def _touch(self, rows):
-        # Změna kroku je změnou řádku: posune datum změny (kontrola „změna matice“) a zapíše se do historie.
+        # Změna kroku je změnou řádku: posune datum změny (kontrola „změna matice“).
+        # Detailní zprávu o změně schvalovatele zapisuje mixin line tracking.
         for row in rows:
             row.sudo().write({"note": row.note})
-            row.message_post(body=self.env._("Změněni schvalovatelé: %s", ", ".join(
-                f"{s.name} ({s.role_id.name or 'kdokoli, kdo schvaluje'})" for s in row.step_ids.sorted("sequence"))
-                or "žádní"))
 
     @api.model_create_multi
     def create(self, vals_list):

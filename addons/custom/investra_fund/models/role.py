@@ -127,15 +127,22 @@ class InvestraRole(models.Model):
 
 class InvestraRoleLine(models.Model):
     _name = "investra.role.line"
+    _inherit = ["investra.line.tracking.mixin"]
     _description = "Činnost v roli"
     _order = "role_id, activity"
 
+    _line_tracking_parent = "role_id"
+
     role_id = fields.Many2one("investra.role", required=True, ondelete="cascade", index=True, string="Role")
-    activity = fields.Selection(ACTIVITIES, required=True, string="Činnost")
-    perform = fields.Boolean(default=True, string="Provádí")
-    approve = fields.Boolean(string="Schvaluje")
+    activity = fields.Selection(ACTIVITIES, required=True, tracking=True, string="Činnost")
+    perform = fields.Boolean(default=True, tracking=True, string="Provádí")
+    approve = fields.Boolean(tracking=True, string="Schvaluje")
 
     _activity_uniq = models.Constraint("UNIQUE (role_id, activity)", "Činnost je v roli dvakrát.")
+
+    def _line_tracking_desc(self):
+        act_label = dict(self._fields["activity"]._description_selection(self.env)).get(self.activity, self.activity or "")
+        return f"Činnost {act_label}"
 
     @api.constrains("perform", "approve")
     def _check_flags(self):

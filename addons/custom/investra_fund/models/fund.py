@@ -55,6 +55,7 @@ def isin_is_valid(isin):
 
 class InvestraFund(models.Model):
     _name = "investra.fund"
+    _inherit = ["mail.thread"]
     _description = "Fond"
     _order = "name"
 
@@ -74,7 +75,7 @@ class InvestraFund(models.Model):
     _check_company_auto = True
 
     name = fields.Char(related="entity_id.name", store=True)
-    entity_id = fields.Many2one("investra.entity", required=True, ondelete="restrict", string="Účetní kniha")
+    entity_id = fields.Many2one("investra.entity", required=True, ondelete="restrict", string="Účetní kniha", tracking=True)
     company_id = fields.Many2one(related="entity_id.company_id", store=True, index=True)
     currency_id = fields.Many2one(related="entity_id.currency_id")
     class_ids = fields.One2many("investra.fund.class", "fund_id", string="Třídy")
@@ -82,6 +83,7 @@ class InvestraFund(models.Model):
         [("daily", "Denně"), ("weekly", "Týdně"), ("monthly", "Měsíčně"), ("quarterly", "Čtvrtletně"), ("yearly", "Ročně")],
         required=True,
         default="monthly",
+        tracking=True,
         string="Frekvence ocenění",
         help="Plánovaná četnost ocenění fondu (denně až ročně). Z ní se u fondu počítá očekávané datum dalšího ocenění: měsíčně, čtvrtletně a ročně poslední den následujícího období, týdně nejbližší další pátek, denně nejbližší další pracovní den (pondělí až pátek; státní svátky se zatím neberou).",
     )
@@ -89,6 +91,7 @@ class InvestraFund(models.Model):
     # převedla migrace investra_nav 20.0.0.6.0, sloupec v databázi zůstává jen pro historii.
     manager_id = fields.Many2one(
         "investra.entity", ondelete="restrict", domain=[("entity_type", "=", "manager")], string="Obhospodařovatel",
+        tracking=True,
         help="Investiční společnost, která fond obhospodařuje (údaj o fondu). Schvalovací matice je společná a na obhospodařovateli nezávisí.",
     )
     # Výchozí desetinná místa a zaokrouhlení kurzu a kusů fondu zrušeny (rozhodnutí 2026-11-17): platí jen na třídě,
@@ -100,6 +103,7 @@ class InvestraFund(models.Model):
         [("trade_date", "Trade date accounting"), ("settlement_date", "Settlement date accounting")],
         required=True,
         default="trade_date",
+        tracking=True,
         string="Zaúčtování obchodu",
         help="IFRS 9 odst. 3.1.2. Po prvním obchodu fondu nejde změnit.",
     )
@@ -107,10 +111,11 @@ class InvestraFund(models.Model):
         [("eir", "Efektivní úroková míra"), ("linear", "Lineárně")],
         required=True,
         default="eir",
+        tracking=True,
         string="Úročení nástrojů v naběhlé hodnotě",
         help="Způsob, jakým se počítá naběhlý výnos nástrojů v naběhlé hodnotě: efektivní úroková míra, nebo lineárně. Lineární úročení vyžaduje zdůvodnění.",
     )
-    accrual_note = fields.Char(string="Zdůvodnění lineárního úročení")
+    accrual_note = fields.Char(string="Zdůvodnění lineárního úročení", tracking=True)
 
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
 
@@ -139,26 +144,27 @@ class InvestraFundClass(models.Model):
     _description = "Třída fondu"
     _order = "fund_id, sequence, code"
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, tracking=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    code = fields.Char(required=True, string="Kód", help="Značka třídy, ve fondu jedinečná. Po prvním zaúčtovaném úpisu nebo odkupu třídy nejde změnit.")
-    name = fields.Char(required=True, string="Název", help="Název třídy pro uživatele; kdykoli jde změnit.")
+    code = fields.Char(required=True, tracking=True, string="Kód", help="Značka třídy, ve fondu jedinečná. Po prvním zaúčtovaném úpisu nebo odkupu třídy nejde změnit.")
+    name = fields.Char(required=True, tracking=True, string="Název", help="Název třídy pro uživatele; kdykoli jde změnit.")
     sequence = fields.Integer(default=10, string="Pořadí", help="Pořadí tříd ve fondu; přetažením úchytu v seznamu se změní.")
-    active = fields.Boolean(default=True, string="Aktivní", help="Archivovaná třída se nenabízí v seznamech; účetní historie zůstává.")
+    active = fields.Boolean(default=True, tracking=True, string="Aktivní", help="Archivovaná třída se nenabízí v seznamech; účetní historie zůstává.")
     currency_id = fields.Many2one(
-        "res.currency", required=True, string="Měna zveřejnění kurzu", help="V této měně se zveřejňuje kurz a probíhají úpisy a odkupy. NAV fondu a kapitál třídy zůstávají ve funkční měně."
+        "res.currency", required=True, tracking=True, string="Měna zveřejnění kurzu", help="V této měně se zveřejňuje kurz a probíhají úpisy a odkupy. NAV fondu a kapitál třídy zůstávají ve funkční měně."
     )
     isin = fields.Char(
-        string="ISIN", help="12 znaků: kód země (2 velká písmena), 9 znaků a kontrolní číslice podle ISO 6166. Nepovinné; formát se kontroluje.")
-    price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
-    price_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kurzu", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
-    distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True, string="Rozdělování výnosu",
+        string="ISIN", tracking=True, help="12 znaků: kód země (2 velká písmena), 9 znaků a kontrolní číslice podle ISO 6166. Nepovinné; formát se kontroluje.")
+    price_digits = fields.Integer(required=True, tracking=True, string="Desetinná místa kurzu", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    price_rounding = fields.Selection(PRICE_ROUNDING, required=True, tracking=True, string="Zaokrouhlení kurzu", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True, tracking=True, string="Rozdělování výnosu",
         help="Růstová, nebo dividendová třída. U dividendové třídy účtuje Odoo hrubou dividendu, výplatu a srážky řeší IS (rozhodnutí 2026-11-04).")
-    unit_digits = fields.Integer(required=True, string="Desetinná místa kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
-    unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
-    rounding_owner = fields.Selection(ROUNDING_OWNER, required=True, string="Rozdíl ze zaokrouhlení kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    unit_digits = fields.Integer(required=True, tracking=True, string="Desetinná místa kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, tracking=True, string="Zaokrouhlení kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    rounding_owner = fields.Selection(ROUNDING_OWNER, required=True, tracking=True, string="Rozdíl ze zaokrouhlení kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
     # Poplatky jen na třídě (ZJ-03); změny sazby, příjemce, článku statutu a poznámky zapíše write() do historie
-    # třídy, bez verzí. Atribut tracking Odoo 20 bez modulu mail_tracking změny polí neukládá (ověřeno testem).
+    # třídy ve strukturované podobě, bez verzí. Pole poplatků nemají tracking=True, aby se zprávy nezdvojovaly
+    # s vestavěným sledováním Odoo 20 (které funguje i bez modulu mail_tracking).
     entry_fee_rate = fields.Float(digits=(7, 4), required=True, default=0.0, string="Vstupní poplatek (%)",
                                   help="Sazba z hrubé platby úpisu.")
     entry_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager",
@@ -202,6 +208,8 @@ class InvestraFundClass(models.Model):
         return super().unlink()
 
     def write(self, vals):
+        if self.env.context.get("tracking_disable"):
+            return super().write(vals)
         changed = [name for name in FEE_FIELDS if name in vals]
         before = {record.id: {name: record._fee_value(name) for name in changed} for record in self} if changed else {}
         result = super().write(vals)
