@@ -11,3 +11,4 @@ from . import test_launch_date
 from . import test_no_rate_source
 from . import test_manual_fees
 from . import test_stale_compute
+from . import test_fee_rule_zj06

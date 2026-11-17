@@ -881,6 +881,9 @@ class InvestraValuation(models.Model):
     def _is_crystallisation(self, rule):
         day = self.date
         month_end = (day + timedelta(days=1)).day == 1
+        if rule.crystallisation == "valuation":
+            # ZJ-06 bod 10b: k datu každého ocenění (podmínku „odměna je kladná“ doplní volající jako u ostatních voleb).
+            return True
         if rule.crystallisation == "month":
             return month_end
         if rule.crystallisation == "quarter":

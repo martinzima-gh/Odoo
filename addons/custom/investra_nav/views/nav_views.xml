@@ -401,7 +401,7 @@
             <list>
                 <field name="fund_id"/><field name="sequence"/><field name="name"/><field name="kind"/><field name="expense_role"/>
                 <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
-                <field name="note" optional="hide"/><field name="overlap_warning" string="Souběh" optional="show"/>
+                <field name="overlap_warning" string="Souběh" optional="show"/>
                 <field name="active" optional="hide"/>
                 <field name="id" optional="hide"/>
             </list>
@@ -428,7 +428,7 @@
                     <field name="overlap_warning" nolabel="1"/>
                 </div>
                 <group>
-                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind"/><field name="sequence"/><field name="statute_ref"/><field name="note"/></group>
+                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind"/><field name="sequence"/><field name="statute_ref"/></group>
                     <!-- ZJ-06 bod 10: co k druhu úplaty nepatří, se neukazuje. Daň konvenci dnů a základ nepoužívá. -->
                     <group>
                         <field name="basis" invisible="kind == 'tax'"/>
@@ -439,14 +439,18 @@
                     </group>
                 </group>
                 <group>
-                    <field name="class_ids" widget="many2many_tags" options="{'no_create': True}"/>
-                    <field name="recipient_share"/><field name="recipient_class_ids" widget="many2many_tags" options="{'no_create': True}"/>
-                    <field name="cover_class_id" invisible="kind != 'performance'" options="{'no_create': True}"/>
+                    <field name="class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
+                    <field name="recipient_share"/>
+                    <field name="recipient_class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
+                    <field name="cover_class_id" invisible="kind != 'performance'" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
                 </group>
                 <!-- ZJ-06 bod 11: v tabulce jen hlavní sloupce podle druhu, ostatní ve formuláři verze. -->
                 <field name="version_ids">
-                    <list>
-                        <field name="valid_from"/><field name="decision_ref"/><field name="rate"/>
+                    <!-- ZJ-06 bod 8: ukončená verze šedě, budoucí modře; „Platí do“ se neukazuje (platí do dne před další verzí). -->
+                    <list decoration-muted="validity_state == 'ended'" decoration-info="validity_state == 'future'">
+                        <field name="valid_from"/><field name="validity_state" widget="badge" string="Stav"
+                               decoration-muted="validity_state == 'ended'" decoration-info="validity_state == 'future'" decoration-success="validity_state == 'current'"/>
+                        <field name="decision_ref"/><field name="rate"/>
                         <field name="threshold" column_invisible="parent.kind != 'periodic'"/>
                         <field name="fixed_monthly" column_invisible="parent.kind != 'periodic'"/>
                         <field name="min_annual" column_invisible="parent.kind != 'periodic'"/>
