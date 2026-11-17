@@ -26,8 +26,14 @@
 
 ## Výsledek
 
-Doplní provádějící agent.
+- **Hotovo:** vytvořena kapitola [05-uzivatele-a-role.md](../manual/05-uzivatele-a-role.md) a řádek kap. 5 v osnově [README.md](../manual/README.md) má stav „koncept“.
+- Popsány tři vlastní skupiny z `res.groups`, jejich implikace, vestavěné skupiny z ACL, přiřazení rolí uživateli, přístup ke společnosti, podmínka čtyř očí a kontroly s texty chyb.
+- **Nálezy / neověřeno:**
+  1. Zobrazované názvy vestavěných skupin Odoo nejsou definované ve vlastních XML; v kapitole jsou proto uvedena jejich stabilní technická ID.
+  2. Cesta v běžné správě uživatelů Odoo není definovaná ve vlastních pohledech a nebyla ověřena v prohlížeči. Celá kapitola je označená „Ověřeno v kódu, v prohlížeči neověřeno“.
+- **Nesrovnalosti v oprávněních:** žádné další potvrzené.
+- **Testy:** podle zadání nebyly spuštěny; kód, databáze a Odoo pohledy se v MN-15 neměnily.
 
 ## Převzetí
 
-Doplní Claude.
+Claude 17. 11. 2026: zóna zelená (jen docs/manual, docs/ukoly). Ověřeno proti kódu: názvy tří skupin a implikace (`implied_ids` na `account.group_account_readonly`) odpovídají `security/*.xml`. Kapitola nezačleněna do nasazení (jen dokumentace).

@@ -22,8 +22,12 @@
 
 ## Výsledek
 
-Doplní provádějící agent.
+- **Hotovo:** vytvořeny kapitoly [06-portfolia-a-nastroje.md](../manual/06-portfolia-a-nastroje.md) a [07-kurzy.md](../manual/07-kurzy.md); řádky 6 a 7 v osnově [README.md](../manual/README.md) mají stav „koncept“.
+- Kapitola 6 popisuje formuláře portfolia, zařazení nástroje, nástroj a jeho rozšířená kmenová data, včetně podmíněných, odvozených a systémových polí, peněžních toků a proměnné sazby.
+- Kapitola 7 popisuje evidenci kurzů, ruční kurz/přepis a platnost; pro funkční měny mimo CZK a EUR výslovně uvádí „Neimplementováno“.
+- **Nálezy / neověřeno:** názvy a chování polí byly ověřeny v kódu. Zobrazení a cesty nabídek nebylo možné ověřit v prohlížeči; obě kapitoly nesou příslušný štítek. Účetní politiku ani vhodnost konkrétní klasifikace manuál nepředpokládá.
+- **Testy:** Odoo testy ani databázové operace nebyly provedeny; šlo o dokumentační změnu.
 
 ## Převzetí
 
-Doplní Claude.
+Claude 17. 11. 2026: zóna zelená. Namátkou ověřeno: cesty nabídek (Obchodní modely, Nástroje, Kurzy měn, Platnost kurzů) existují v XML; kap. 7 odpovídá rozhodnutí MN-08. Kap. 6 jen vzorkem, ne celá pole po poli.

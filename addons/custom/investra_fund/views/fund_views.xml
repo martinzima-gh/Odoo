@@ -80,6 +80,11 @@
                             </field>
                         </page>
                         <page string="Zpřísnění matice">
+                            <div class="text-muted">
+                                Zobrazené jsou jen řádky matice přiřazené tomuto fondu; nejde o výchozí pravidla ani pravidla
+                                obhospodařovatele. Nový řádek založte v Investra › Nastavení › Fondy › Schvalovací matice
+                                vyplněním pole „Zpřísnění pro fond“. Fond smí základní pravidlo jen zpřísnit.
+                            </div>
                             <field name="approval_matrix_ids">
                                 <list>
                                     <field name="activity"/><field name="valid_from"/><field name="performer_role"/>

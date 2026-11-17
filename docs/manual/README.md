@@ -21,9 +21,9 @@
 | 2 | [02-fond.md](02-fond.md) | formulář Fondy | koncept |
 | 3 | [03-tridy.md](03-tridy.md) | třídy fondu | koncept |
 | 4 | [04-oceneni-a-matice.md](04-oceneni-a-matice.md) | frekvence ocenění a schvalovací matice | koncept |
-| 5 | – | uživatelé a role | plán |
-| 6 | – | portfolia a nástroje | plán |
-| 7 | – | kurzy | plán |
+| 5 | [05-uzivatele-a-role.md](05-uzivatele-a-role.md) | uživatelé a role | koncept |
+| 6 | [06-portfolia-a-nastroje.md](06-portfolia-a-nastroje.md) | portfolia a nástroje | koncept |
+| 7 | [07-kurzy.md](07-kurzy.md) | kurzy | koncept |
 | 8 | – | první úpis nebo převzetí fondu | plán |
 
 Pořadí práce při založení od nuly: kap. 1 (společnost obhospodařovatele) → kap. 1 (kniha fondu) → kap. 2 (fond) → kap. 3 (třídy).

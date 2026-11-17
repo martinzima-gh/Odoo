@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <list default_order="activity asc">
                 <field name="activity"/>
+                <field name="builtin" string="Výchozí (modul)" optional="show"/>
                 <field name="manager_id"/>
                 <field name="fund_id" optional="show"/>
                 <field name="valid_from"/>
@@ -46,6 +47,10 @@
                     <group>
                         <group>
                             <field name="activity"/>
+                            <field name="builtin" string="Výchozí řádek (z modulu)" readonly="1"/>
+                            <div class="text-muted" colspan="2">
+                                Zaškrtnuto: výchozí pravidlo dodané modulem. Nezaškrtnuto: vlastní řádek matice.
+                            </div>
                             <field name="manager_id" invisible="fund_id"/>
                             <field name="fund_id" invisible="manager_id"/>
                             <field name="valid_from"/>

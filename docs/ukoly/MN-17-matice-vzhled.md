@@ -20,8 +20,12 @@
 
 ## Výsledek
 
-Doplní provádějící agent.
+- **Hotovo:** v seznamu a formuláři řádku matice je vidět pole `builtin` jako „Výchozí (modul)“ / „Výchozí řádek (z modulu)“; pole je ve formuláři jen pro čtení a je doplněno vysvětlení rozdílu mezi řádkem z modulu a vlastním řádkem.
+- Na záložce fondu „Zpřísnění matice“ je popis, že obsahuje fondové řádky (nikoli výchozí či obhospodařovatele), kde řádek založit a že fondové pravidlo může základní pravidlo pouze zpřísnit. Oprávnění a způsob editace řádků se neměnily.
+- **Změněné soubory:** `addons/custom/investra_fund/views/approval_matrix_views.xml`, `addons/custom/investra_fund/views/fund_views.xml`.
+- **Ověřeno:** `python3 tools/view_check/check_views.py addons/custom/investra_fund/views/approval_matrix_views.xml addons/custom/investra_fund/views/fund_views.xml` — 2 soubory, 0 chyb; `git diff --check` — bez chyb.
+- **Neověřeno:** prohlížeč na portu 8072 nebyl dostupný, proto nebyl ověřen vzhled ani skutečné texty po načtení Odoo. Služba nebyla spuštěna ani restartována; modul ani databáze nebyly měněny.
 
 ## Převzetí
 
-Doplní Claude.
+Claude 17. 11. 2026: zóna zelená (jen views XML, `builtin` existuje v modelu, Python beze změny); `check_views.py` 0 chyb. Do `investra` zatím nenasazeno – vyžaduje upgrade `investra_fund` (čeká na souhlas Martina). Vzhled v prohlížeči neověřen.
