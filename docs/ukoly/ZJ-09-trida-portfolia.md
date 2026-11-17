@@ -28,13 +28,17 @@ Portfolio i bankovní účet jsou **buď společné pro všechny třídy, nebo p
    z plateb, výpisů a vypořádání obchodů; automatické vnitřní zúčtování, když se třída banky liší od třídy protistrany (společné portfolio, jiná třída);
    úpisy a odkupy třídy z IS (vypořádání na banku třídy i na společnou banku); párování výpisů. Varianty a doporučení, kde vnitřní zúčtování vzniká
    (při zaúčtování dokladu obecně, nebo v každém zdroji zvlášť).
+2c. Každý bankovní účet = vlastní analytický účet hlavní knihy (deník banky, `default_account_id`). Dnes obchody, úpisy a odkupy účtují vždy na hlavní
+   účet role `bank` (221100), jen deriváty vybírají podle měny. Nově: obchod, úpis, odkup, vypořádání derivátu a platba úplaty mají pole Bankovní účet
+   (deník), předvyplněné podle třídy a měny – obchod podle třídy portfolia, úpis a odkup podle upisované třídy; účet třídy v měně, jinak společný účet
+   v měně; víc kandidátů → první podle pořadí deníků, před zaúčtováním jde změnit. IS číslo účtu fondu posílat nemusí. Třída bankovního řádku = třída deníku.
 3. Kurzové přecenění (`investra_fx_revaluation`) po třídách, aby se třída na zůstatcích neztratila.
 4. Náhled zaúčtování (`investra.posting.preview`) ukazuje třídu na řádcích.
 5. Zrušení pole Třída na nástroji (data v `investra` ověřit SELECTem; při zrušení pole Odoo sloupec smaže).
 6. Výkazy ČNB a přehledy portfolia: součet přes portfolia beze změny – ověřit.
 7. Manuál: portfolio = obchodní model IFRS 9 a zároveň „kapsa“ třídy; třída se dvěma obchodními modely má dvě portfolia.
 8. Testy: zajištění třídy B forwardem (přecenění jen do ΔT třídy B), stejný nástroj ve společném portfoliu a v portfoliu třídy,
-   storno obchodu v portfoliu třídy, úrok a splátka, kurzové přecenění, nákup do společného portfolia placený z banky třídy, úpis třídy na banku třídy; referenční scénáře beze změny.
+   storno obchodu v portfoliu třídy, úrok a splátka, kurzové přecenění, nákup do společného portfolia placený z banky třídy, úpis třídy na banku třídy, výběr účtu podle třídy a měny, dva účty fondu ve stejné měně (zůstatky po účtech odpovídají pohybům); referenční scénáře beze změny.
 
 ## Výsledek
 
