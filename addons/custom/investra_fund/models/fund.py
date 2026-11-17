@@ -71,7 +71,7 @@ class InvestraFund(models.Model):
     # převedla migrace investra_nav 20.0.0.6.0, sloupec v databázi zůstává jen pro historii.
     manager_id = fields.Many2one(
         "investra.entity", ondelete="restrict", domain=[("entity_type", "=", "manager")], string="Obhospodařovatel",
-        help="Investiční společnost; její schvalovací matice platí pro fond. Prázdné = výchozí matice.",
+        help="Investiční společnost, která fond obhospodařuje (údaj o fondu). Schvalovací matice je společná a na obhospodařovateli nezávisí.",
     )
     price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")

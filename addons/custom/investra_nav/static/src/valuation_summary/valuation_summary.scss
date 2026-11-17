@@ -203,3 +203,14 @@ $investra-graphite-2: #6a6967 !default;
         &.text-danger { color: $investra-ember !important; }
     }
 }
+
+// Pruh „Neaktuální výpočet“ ve formuláři ocenění (ZJ-05): tučně, oranžová Investry, orámování a podbarvení.
+.alert.o_investra_stale {
+    background-color: rgba($investra-ember, 0.12);
+    border: 2px solid $investra-ember;
+    border-left-width: 8px;
+    color: $investra-ember;
+    font-size: 1.15rem; // velké tučné písmo drží kontrast oranžové na světlém podkladu
+    font-weight: 700;
+    .o_field_widget { font-weight: 700; color: inherit; }
+}

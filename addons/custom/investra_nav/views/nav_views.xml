@@ -283,7 +283,7 @@
                         <field name="date"/>
                     </div>
                 </div>
-                <div class="alert alert-warning" role="alert" invisible="not stale_note"><field name="stale_note" nolabel="1"/></div>
+                <div class="alert o_investra_stale" role="alert" invisible="not stale_note"><field name="stale_note" nolabel="1"/></div>
                 <widget name="investra_valuation_summary"/>
             </xpath>
             <xpath expr="//sheet/group" position="replace">
