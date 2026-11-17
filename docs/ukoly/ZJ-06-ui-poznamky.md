@@ -52,6 +52,13 @@ Oranžová
     se posune srovnávací hodnota a HWM a naběhlá odměna se vynuluje. Krystalizace při odkupu mimo rozsah (rozhodnutí 2026-11-17).
 11. Nápovědy polí verze sazby v modelu.
 
+12. Historie kroků ocenění (varianta A, rozhodnutí 2026-11-17): nový model kroků ocenění chráněný proti změně a smazání (`investra.record.guard`),
+    zápis kdo, kdy, krok, u vrácení a storna důvod, u Spočítat FK a kurzy tříd. Kroky: založení, Spočítat, odeslání ke schválení, schválení (každý krok),
+    vrácení, zaúčtování, storno, vrácení depozitářem, odeslání depozitáři, potvrzení, zveřejnění, žádost podle matice. Ve formuláři záložka Historie.
+    Pole „Zadal“ (`preparer_id`, přepisuje se při každém Spočítat) rozdělit na „Založil“ (`create_uid`) a „Naposledy počítal“; nápověda podle skutečnosti.
+    Stará ocenění historii nemají (zpětně se nedoplňuje). Odkaz mezi verzemi se nedělá (verze jsou dohledatelné v seznamu ocenění).
+    Testy: každý krok zapíše řádek se správným uživatelem; řádek nejde změnit ani smazat; vrácení zapíše důvod. Model Opus 5.5.
+
 **Nasazení do `investra`:** až po výslovném souhlasu Martina, se zálohou (postup jako ZJ-05 krok 1); po upgradu znovu spočítat rozpracovaná ocenění.
 Zveřejněná ocenění se nemění. U ukázkových fondů vyjde administrace mírně jinak (dnes počítá z FK po obhospodařování).
 
@@ -90,3 +97,8 @@ Testy `tools/run_tests.sh all` po obou balících: 848 a 856 testů, 0 chyb (do�
 (c) Výjimky z uzamčení pro `group_valuation_preparer`, `group_valuation_approver` a admina. Varianta 0: nic neměnit, protože právo čtení je záměrné (přehled rozhodnutí pro audit). Doporučení: varianta 0, dokud Martin nerozhodne, kdo má matici vidět.
 
 ## Převzetí
+
+Převzal Claude (Opus 5.5) 17. 11. 2026: revize diffu `ee786e6..abaef56` (modely `fee_rule.py`, `valuation.py`, `dashboard.py`, nápovědy ověřeny proti `engine.py`),
+`tools/run_tests.sh all` 856 testů, 0 chyb (varování v logu jen dřívější). SELECT na `investra`: žádné z 13 pravidel neporušuje nové kontroly tříd.
+Bod 5: Martin rozhodl ponechat stávající práva (matici vidí každý, mění Správa), nabídky se neomezují. Osiřelý sloupec `note` se odstraní při příští migraci (otevřený bod).
+Formuláře projde Martin v UI po nasazení. Zbývá bod 7 a bod 12 (Claude).
