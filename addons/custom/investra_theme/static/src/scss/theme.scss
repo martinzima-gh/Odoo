@@ -357,3 +357,10 @@ $investra-badge-states: (
     &.text-success { color: $investra-lagoon !important; }
     &.text-danger { color: $investra-ember !important; }
 }
+
+// Chatter vedle formuláře (ZJ-10, Martin 2026-11-18): Odoo 20 mu dává nejméně 530 px a roztahuje ho (flex-grow 1);
+// zprávy o změnách jsou krátké, proto pevná užší šířka a zbytek místa dostane formulář.
+.o-mail-Form-chatter.o-aside {
+    flex-grow: 0;
+    width: calc(400px + var(--Chatter-asideExtraWidth));
+}
