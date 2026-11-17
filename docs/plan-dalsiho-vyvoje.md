@@ -169,6 +169,22 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | CP-MN19 | Nezávislá revize kap. 8, jen čtení (`docs/ukoly/CP-MN19-revize.md`) | Copilot | revize |
 | (Martin) | Nález 9: příklady kap. 4 v prohlížeči – neověřovat, přijato; opraví se při používání (Martin 16. 11. 2026) | – | uzavřeno |
 
+## Zjednodušení rolí, matice a poplatků (ZJ, zadal Martin 17. 11. 2026, přednost před etapou 2)
+
+Rozhodnutí v `docs/rozhodnuti.md` (2026-11-17). Větev `ukol/ZJ-zjednoduseni`, kroky jdou po sobě, každý v nové relaci.
+Zadání v `docs/ukoly/ZJ-*.md` jsou zároveň plán; u červené zóny ho Martin schvaluje větou v promptu.
+
+| Krok | Obsah | Model | Zóna |
+|---|---|---|---|
+| ZJ-01 | Role skládané z činností (Provádí / Schvaluje), úroveň přístupu odvozuje skupiny Odoo; matice pro celou aplikaci bez fondů a jmenovitých uživatelů; migrace, testy (`docs/ukoly/ZJ-01-role-a-matice.md`) | Opus | červená |
+| ZJ-02 | Formuláře rolí a matice, záložka rolí u uživatele, ukázkové role a uživatelé (heslo jen z `.env`) (`docs/ukoly/ZJ-02-role-formulare-a-uzivatele.md`) | Sonnet | oranžová |
+| ZJ-03 | Poplatky: poznámka, upozornění souběhu fond/třída, vstupní a výstupní poplatek jen na třídě, záložka Úplaty ve fondu; ručně doložené úplaty bez pravidla (účet, měna, kurz k datu ocenění, protiúčet závazek) (`docs/ukoly/ZJ-03-poplatky-a-rucni-uplaty.md`) | Opus | červená |
+| ZJ-04 | Nasazení do `investra` se zálohou (po souhlasu), uživatelé, SELECTy, manuál kap. 2–5 (`docs/ukoly/ZJ-04-nasazeni-a-manual.md`) | Sonnet (manuál Haiku) | oranžová/zelená |
+
+Prompt ZJ-01 a ZJ-03 (`/model opus`): šablona promptu níže s číslem úkolu a větou „Plán v úkolu ZJ-0X schvaluji
+(červená zóna, Martin).“ Prompt ZJ-02 (`/model sonnet`): šablona bez věty o schválení. Prompt ZJ-04 (`/model sonnet`):
+šablona a „Zálohu a upgrade modulů v investra schvaluji.“
+
 ## Nezařazené úkoly (zadal Martin 15. 11. 2026)
 
 Zatím bez etapy a pořadí; oba začínají návrhem (Opus), který ověří předpisy v aktuálním znění, a teprve pak se zařadí.
