@@ -11,6 +11,13 @@
 | Navazuje na | ZJ-01, rozhodnutí 2026-11-17 „Ukázkoví uživatelé“ |
 | Model | Sonnet |
 
+**Rozhodnutí Martina 17. 11. 2026 po ZJ-01** (deník: „Ruční účtování a správa matice“):
+- Role dostane příznak **Účtuje ručně v hlavní knize**; zapnutý odvodí `account.group_account_user` (synchronizace jako
+  ostatní skupiny v `investra_fund/models/role.py`, odebrání jen pokud ho nedává jiná role a uživatel není admin).
+  Zapnout rolím Admin, Účetní a Schvalovatel; Náhled ne.
+- **Schvalovací matici i role mění jen úroveň Správa** (nebo `base.group_system`); změnit kontrolu v `approval_matrix.py`
+  (`create`, `_check_editable`) a pravidla v `ir.access.csv`; upravit testy, které matici mění skupinou schvalování.
+
 **Postup:**
 1. Nabídka **Nastavení → Uživatelé a role → Role** (seznam, formulář: úroveň přístupu, tabulka činností s Provádí /
    Schvaluje, uživatelé). Ve formuláři uživatele Odoo záložka **Role Investra** (M2M rolí). Zápis jen úroveň Správa.

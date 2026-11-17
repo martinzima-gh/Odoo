@@ -14,6 +14,8 @@
    v promptu**. Log upgradu bez ERROR.
 2. Kontrola, že `.env` má `INVESTRA_DEMO_USER_PASSWORD` (jen existence, hodnotu nečíst); spustit skript uživatelů a rolí.
    Ověřit přihlášení `ucetni`, `schvalovatel`, `view`, `admin` (heslo zadá Martin, ne agent).
+2a. Po upgradu založit v UI (jako `admin`) řádek matice **Ruční zadání úpisu a odkupu – jeden člověk** s „Platí od“ dnes
+   (rozhodnutí Martina 17. 11. 2026: po sloučení řádků ZJ-01 by jinak platily čtyři oči z globálního řádku 17. 11.).
 3. SELECT do `docs/sql/`: role, jejich činnosti a uživatelé; řádky matice.
 4. Manuál: kap. 4 (matice bez fondů a jmenovitých uživatelů), kap. 5 (role a činnosti, ukázkoví uživatelé bez hesla),
    kap. 2 (záložka Úplaty, bez zpřísnění matice a fondových vstupních poplatků), kap. 3 (vstupní a výstupní poplatek
