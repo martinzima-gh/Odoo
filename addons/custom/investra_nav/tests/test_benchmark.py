@@ -19,14 +19,14 @@ class TestBenchmark(NavCase):
         for fund_class in fund.class_ids:
             self.subscribe(fund_class, "2036-01-01", 10000000, 100000)
         Rule = self.env["investra.fee.rule"]
-        for sequence, role in enumerate(("expense_management", "expense_administration", "expense_depositary")):
+        for role in ("expense_management", "expense_administration", "expense_depositary"):
             Rule.create({
-                "fund_id": fund.id, "name": role, "sequence": sequence, "kind": "periodic", "expense_role": role,
+                "fund_id": fund.id, "name": role, "kind": "periodic", "expense_role": role,
                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})],
             })
         for fund_class in fund.class_ids:
             Rule.create({
-                "fund_id": fund.id, "name": f"Odměna {fund_class.code}", "sequence": 50, "kind": "performance",
+                "fund_id": fund.id, "name": f"Odměna {fund_class.code}", "kind": "performance",
                 "expense_role": "expense_performance", "class_ids": [(6, 0, fund_class.ids)], "crystallisation": "year",
                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit", "initial_reference": 1})],
             })

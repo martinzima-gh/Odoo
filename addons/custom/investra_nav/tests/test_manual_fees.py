@@ -97,7 +97,7 @@ class TestManualFees(NavCase):
         # třídy A 10 sníží hrubou hodnotu na 1 090 před odměnou, odměna je proto 65,34 a třída A končí na cíli 1 024,66.
         fund = self.two_class_fund()
         self.common_result(fund, "v", "2027-06-15", 200)
-        self.Rule.create({"fund_id": fund.id, "name": "Odměna", "kind": "performance", "sequence": 1,
+        self.Rule.create({"fund_id": fund.id, "name": "Odměna", "kind": "performance",
                           "class_ids": [(6, 0, self.cls(fund, "A").ids)], "expense_role": "expense_performance",
                           "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 1.0, "initial_reference": 0,
                                                   "perf_use_hwm": False, "hurdle_kind": "fixed", "hurdle_rate": 0.05})]})

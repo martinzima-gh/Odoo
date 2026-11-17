@@ -26,13 +26,13 @@ class TestScenarios(NavCase):
         if any(v.get("mgmt_fee") for v in data["valuations"]):
             fee = first["mgmt_fee"]
             rules["mgmt"] = Rule.create({
-                "fund_id": fund.id, "name": "Úplata", "sequence": 10, "kind": "periodic", "basis": "act365",
+                "fund_id": fund.id, "name": "Úplata", "kind": "periodic", "basis": "act365",
                 "base_mode": fee.get("base", "before"), "expense_role": "expense_management",
                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": float(fee["rate"])})],
             })
         for code, fee in first.get("perf_fee", {}).items():
             Rule.create({
-                "fund_id": fund.id, "name": f"Odměna {code}", "sequence": 20, "kind": "performance",
+                "fund_id": fund.id, "name": f"Odměna {code}", "kind": "performance",
                 "class_ids": [(6, 0, self.cls(fund, code).ids)], "expense_role": "expense_performance",
                 "crystallisation": "none",
                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": float(fee["rate"]), "perf_measure": "unit",
@@ -40,7 +40,7 @@ class TestScenarios(NavCase):
             })
         if first.get("tax"):
             Rule.create({
-                "fund_id": fund.id, "name": "Daň", "sequence": 30, "kind": "tax",
+                "fund_id": fund.id, "name": "Daň", "kind": "tax",
                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": float(first["tax"]["rate"])})],
             })
         for index, (val, expected) in enumerate(zip(data["valuations"], data["expected"])):

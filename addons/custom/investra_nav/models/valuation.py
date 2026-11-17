@@ -366,21 +366,14 @@ class InvestraValuation(models.Model):
         self._compute_portfolio()
         self._compute_bank_fx()
         self._compute_unsettled()
-        # Ručně doložené úplaty (ZJ-03, rozhodnutí 2026-11-17) patří k ostatním úplatám: zaúčtují se před první
-        # výkonnostní odměnou nebo daní, jinak po všech úplatách.
-        manual_done = False
-        for rule in self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)]):
-            if rule.kind in ("performance", "tax") and not manual_done:
-                self._apply_manual_fees()
-                manual_done = True
-            if rule.kind == "periodic":
-                self._apply_periodic(rule, context)
-            elif rule.kind == "performance":
-                self._apply_performance(rule, context)
-            elif rule.kind == "tax":
-                self._apply_tax(rule)
-        if not manual_done:
-            self._apply_manual_fees()
+        # Pevné pořadí podle druhu (ZJ-06 bod 7, rozhodnutí 2026-11-17; nahrazuje pořadí pravidel z 2026-11-05):
+        # časově rozlišené a ručně doložené úplaty → výkonnostní odměna (po nich, před sebou) → daň nakonec.
+        rules = self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)])
+        self._apply_periodic_fees(rules.filtered(lambda r: r.kind == "periodic"), context)
+        for rule in rules.filtered(lambda r: r.kind == "performance"):
+            self._apply_performance(rule, context)
+        for rule in rules.filtered(lambda r: r.kind == "tax"):
+            self._apply_tax(rule)
         self._apply_scheme(context)
         self._finish(context)
         self.state = "computed"
@@ -837,15 +830,18 @@ class InvestraValuation(models.Model):
             lines.append({"role": "internal_clearing", "amount": amount, "class_id": fund_class.id, "movement_type": "class_transfer"})
         return lines
 
-    def _apply_average(self, rule):
-        """Úplata z průměrného FK: nárok od začátku roku minus to, co už je v tomto roce naúčtované."""
+    def _apply_average(self, rule, current):
+        """Úplata z průměrného FK: nárok od začátku roku minus to, co už je v tomto roce naúčtované.
+
+        `current` = FK k datu ocenění před všemi úplatami (ZJ-06 bod 7); dřívější ocenění vstupují zveřejněným FK.
+        """
         year_start = date_type(self.date.year - 1, 12, 31)
         start = max(year_start, self.fund_id.launch_date or year_start)
         earlier = self.search([
             ("fund_id", "=", self.fund_id.id), ("date", ">", year_start), ("date", "<", self.date),
             ("state", "in", ("posted", "sent", "confirmed", "published")),
         ])
-        capitals = [d(v.fund_capital) for v in earlier] + [self._net_assets()]
+        capitals = [d(v.fund_capital) for v in earlier] + [current]
         average = sum(capitals) / len(capitals)
         result = engine.periodic_fee(
             rule._engine_rule(start, self.date), start, self.date, average, classes_count=len(self.fund_id.class_ids)
@@ -857,18 +853,83 @@ class InvestraValuation(models.Model):
         self._fee_record(rule, amount, None, {"average": average, "booked": booked, **result})
         self._book_fee(rule, amount, None)
 
-    def _apply_periodic(self, rule, context):
-        if rule.base_source == "average_fk":
-            return self._apply_average(rule)
+    def _periodic_amount(self, rule, base):
+        """Částka časově rozlišené úplaty z daného základu; základ před/po řeší volající, ne engine."""
         start, end = self._period_start(), self.date
-        payers = rule.class_ids or [None]
-        for fund_class in payers:
-            base = self._fee_base(rule, context, fund_class)
-            result = engine.periodic_fee(
-                rule._engine_rule(start, end), start, end, base, classes_count=len(self.fund_id.class_ids)
-            )
-            self._fee_record(rule, result["amount"], fund_class, {"base": base, **result})
+        spec = dict(rule._engine_rule(start, end), base_mode="before")
+        return engine.periodic_fee(spec, start, end, base, classes_count=len(self.fund_id.class_ids))
+
+    def _apply_periodic_fees(self, rules, context):
+        """Časově rozlišené a ručně doložené úplaty (ZJ-06 bod 7, rozhodnutí 2026-11-17).
+
+        Základ „před“ = stav před všemi úplatami v ocenění (snímek před první úplatou); úplaty se navzájem neovlivňují.
+        Základ „po“ = stav po všech časově rozlišených a ručně doložených úplatách včetně počítané; úplaty „po“ se
+        dopočtou společně opakováním do ustálení. Průměrný FK, Aktiva a Bez základu volbu nemají (počítají jako „před“).
+        Ručně doložené úplaty (ZJ-03) mají pevnou částku; zaúčtují se po úplatách „před“ a před dopočtem úplat „po“.
+        """
+        payers = [(rule, fund_class) for rule in rules for fund_class in (rule.class_ids or [None])]
+        after = [key for key in payers if key[0].base_mode == "after" and key[0].base_source in ("fk", "class_fk")]
+        # Snímek před první úplatou: základy úplat „před“ a váhy přijímajících tříd pro odhad dopadu úplat „po“.
+        fund_before = self._net_assets()
+        class_before = {fund_class: self._class_value(fund_class, context) for fund_class in context} if after else {}
+        bases = {key: self._fee_base(key[0], context, key[1]) for key in payers
+                 if key not in after and key[0].base_source != "average_fk"}
+        for rule, fund_class in payers:
+            if (rule, fund_class) in after:
+                continue
+            if rule.base_source == "average_fk":
+                self._apply_average(rule, fund_before)
+                continue
+            base = bases[(rule, fund_class)]
+            result = self._periodic_amount(rule, base)
+            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_mode": "before", **result})
             self._book_fee(rule, result["amount"], fund_class)
+        self._apply_manual_fees()
+        if not after:
+            return
+        # Stav knihy po úplatách „před“ a ručně doložených úplatách; od něj se odečítají úplaty „po“ (včetně sebe).
+        current = {key: self._fee_base(key[0], context, key[1]) for key in after}
+        exact = dict.fromkeys(after, Decimal(0))
+        for _step in range(100):
+            updated = {
+                key: self._periodic_amount(key[0], current[key] - self._after_effect(key, exact, context, class_before))["exact"]
+                for key in after
+            }
+            settled = all(abs(updated[key] - exact[key]) < Decimal("0.000001") for key in after)
+            exact = updated
+            if settled:
+                break
+        else:
+            raise UserError(self.env._("Výpočet úplat se základem po všech úplatách se neustálil."))
+        for key in after:
+            rule, fund_class = key
+            base = current[key] - self._after_effect(key, exact, context, class_before)
+            result = self._periodic_amount(rule, base)
+            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_mode": "after", **result})
+            self._book_fee(rule, result["amount"], fund_class)
+
+    def _after_effect(self, key, amounts, context, class_before):
+        """O kolik úplaty „po“ (ještě nezaúčtované) sníží základ pravidla `key`.
+
+        Fondový kapitál: náklad mimo fond (bez podílu přijímajícím třídám). Kapitál třídy: úplaty té třídy celé,
+        úplaty celého fondu poměrem třídy, a naopak podíl, který třída z úplat dostane (váhy podle kapitálu před úplatami).
+        """
+        rule, fund_class = key
+        total = Decimal(0)
+        for (other, payer), amount in amounts.items():
+            share = d(other.recipient_share) if other.recipient_class_ids else Decimal(0)
+            if rule.base_source == "fk" or fund_class is None:
+                total += amount * (1 - share)
+                continue
+            if payer == fund_class:
+                total += amount
+            elif not payer:
+                total += amount * context[fund_class]["ratio"]
+            if share and fund_class in other.recipient_class_ids:
+                weights = {c: max(class_before[c], Decimal(0)) for c in other.recipient_class_ids}
+                if sum(weights.values()):
+                    total -= amount * share * weights[fund_class] / sum(weights.values())
+        return total
 
     def _performance_state(self, rule, fund_class, row, version):
         """Srovnávací hodnoty, naběhlá odměna a období od poslední krystalizace."""

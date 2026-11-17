@@ -415,9 +415,9 @@ class Fund:
 
 def standard_fees(f, management, admin_monthly, extra=()):
     f.fees([
-        {"name": "Úplata za obhospodařování", "sequence": 10, "kind": "periodic", "expense_role": "expense_management",
+        {"name": "Úplata za obhospodařování", "kind": "periodic", "expense_role": "expense_management",
          "statute_ref": "čl. 8.1 statutu (smyšlený)", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": management})]},
-        {"name": "Úplata za administraci", "sequence": 20, "kind": "periodic", "expense_role": "expense_administration",
+        {"name": "Úplata za administraci", "kind": "periodic", "expense_role": "expense_administration",
          "statute_ref": "čl. 8.2 statutu (smyšlený)",
          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "fixed_monthly": admin_monthly, "fixed_mode": "started_month",
                                  "rate": 0.0005, "threshold": 200000000})]},
@@ -432,10 +432,10 @@ A.portfolio("A-FV", "Akcie a fondy", "fvtpl", "fair_value", "mandatory_fvtpl",
 for instrument in (SH_ENERGIE, SH_STROJ, SH_RHEIN, FUND_UNIT):
     A.classify("A-FV", instrument)
 standard_fees(A, 0.015, 45000, [
-    {"name": "Výkonnostní odměna třídy CZK", "sequence": 30, "kind": "performance", "expense_role": "expense_performance",
+    {"name": "Výkonnostní odměna třídy CZK", "kind": "performance", "expense_role": "expense_performance",
      "class_ids": [(6, 0, A.classes["CZK"].ids)], "crystallisation": "year", "statute_ref": "čl. 8.3 statutu (smyšlený)",
      "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.15, "perf_measure": "unit", "initial_reference": 1})]},
-    {"name": "Očekávaná daň", "sequence": 40, "kind": "tax", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]},
+    {"name": "Očekávaná daň", "kind": "tax", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]},
 ])
 
 # Fond B: dluhopisy, portfolia AC a FVTPL, 12 měsíčních ocenění.
@@ -447,7 +447,7 @@ B.portfolio("B-AC", "Dluhopisy držené do splatnosti", "ac", "hold_to_collect",
 for portfolio, instrument in (("B-AC", BOND_SHARED), ("B-AC", BOND_IRREGULAR), ("B-FV", BOND_VARIABLE), ("B-FV", BOND_STATE)):
     B.classify(portfolio, instrument)
 standard_fees(B, 0.01, 35000, [
-    {"name": "Očekávaná daň", "sequence": 40, "kind": "tax", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]},
+    {"name": "Očekávaná daň", "kind": "tax", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]},
 ])
 
 # Fond C: úvěry a vklady v naběhlé hodnotě, funkční měna EUR, 6 ocenění.

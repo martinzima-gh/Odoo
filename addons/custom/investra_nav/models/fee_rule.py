@@ -15,13 +15,12 @@ class InvestraFeeRule(models.Model):
 
     _name = "investra.fee.rule"
     _description = "Pravidlo úplaty"
-    _order = "fund_id, sequence, id"
+    # Pořadí výpočtu je pevné podle druhu (ZJ-06 bod 7); pole Pořadí zrušeno.
+    _order = "fund_id, id"
 
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     name = fields.Char(required=True, string="Název")
-    # Pole sequence zruší bod 7 ZJ-06 (pevné pořadí podle druhu); do té doby zůstává beze změny.
-    sequence = fields.Integer(default=10, help="Pořadí výpočtu podle statutu.", string="Pořadí")
     active = fields.Boolean(default=True, string="Aktivní")
     # ZJ-06 bod 6: jedno pole místo „Článek statutu“ (Char) a „Poznámka“ (Text, pole note zrušeno; ve všech pravidlech bylo prázdné).
     statute_ref = fields.Text(
@@ -69,9 +68,13 @@ class InvestraFeeRule(models.Model):
         help="Z čeho se úplata počítá: fondový kapitál, jeho průměr od začátku roku, kapitál třídy, aktiva, nebo bez základu "
              "(jen pevná částka). U očekávané daně se nepoužívá.",
     )
-    base_mode = fields.Selection([("before", "Před úplatou"), ("after", "Po úplatě")], required=True, default="before", string="Základ před/po úplatě",
-        help="Před úplatou: základ je stav před úplatou. Po úplatě: základ se sníží o samotnou úplatu a výpočet se opakuje do ustálení. "
-             "U očekávané daně se nepoužívá.")
+    base_mode = fields.Selection(
+        [("before", "Před úplatami"), ("after", "Po všech úplatách")], required=True, default="before",
+        string="Základ před/po úplatách",
+        help="Jen časově rozlišená úplata ze základu Fondový kapitál nebo Kapitál třídy. Před úplatami: stav před všemi "
+             "úplatami v ocenění. Po všech úplatách: stav po všech časově rozlišených a ručně doložených úplatách včetně "
+             "této; úplaty se dopočtou společně. Výkonnostní odměna se počítá vždy po úplatách, daň nakonec.",
+    )
     class_ids = fields.Many2many("investra.fund.class", string="Platí třídy",
         help="Třídy téhož fondu, které úplatu nesou. Prázdné znamená společný náklad celého fondu (dělí se poměrem kapitálu). "
              "Třída nesmí být zároveň přijímající.")

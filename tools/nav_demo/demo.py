@@ -56,14 +56,14 @@ for instrument in (bond, share):
 for instrument, quantity, price, fx in ((bond, 3000, 10000, 1), (share, 10000, 100, 25)):
     E_["investra.trade"].create({"fund_id": fund.id, "instrument_id": instrument.id, "trade_date": "2027-01-06", "quantity": quantity, "price": price, "fx_rate": fx})._book()
 Rule = E_["investra.fee.rule"]
-Rule.create({"fund_id": fund.id, "name": "Úplata za obhospodařování", "sequence": 10, "kind": "periodic", "expense_role": "expense_management",
+Rule.create({"fund_id": fund.id, "name": "Úplata za obhospodařování", "kind": "periodic", "expense_role": "expense_management",
              "statute_ref": "čl. 7.1", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.015}), (0, 0, {"valid_from": "2027-02-15", "rate": 0.012, "decision_ref": "Rozhodnutí 2/2027"})]})
-Rule.create({"fund_id": fund.id, "name": "Úplata za administraci", "sequence": 20, "kind": "periodic", "expense_role": "expense_administration", "statute_ref": "čl. 7.2",
+Rule.create({"fund_id": fund.id, "name": "Úplata za administraci", "kind": "periodic", "expense_role": "expense_administration", "statute_ref": "čl. 7.2",
              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "fixed_monthly": 58000, "fixed_mode": "started_month", "rate": 0.0008, "threshold": 280000000})]})
-Rule.create({"fund_id": fund.id, "name": "Výkonnostní odměna třídy CZK", "sequence": 30, "kind": "performance", "expense_role": "expense_performance",
+Rule.create({"fund_id": fund.id, "name": "Výkonnostní odměna třídy CZK", "kind": "performance", "expense_role": "expense_performance",
              "class_ids": [(6, 0, A.ids)], "crystallisation": "year", "statute_ref": "čl. 7.3",
              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit", "initial_reference": 1})]})
-Rule.create({"fund_id": fund.id, "name": "Očekávaná daň", "sequence": 40, "kind": "tax", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+Rule.create({"fund_id": fund.id, "name": "Očekávaná daň", "kind": "tax", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
 
 
 def price(instrument, day, value):

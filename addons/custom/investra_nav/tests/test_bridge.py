@@ -82,12 +82,12 @@ class TestBridge(NavCase):
         self.subscribe(self.cls(fund, "B"), "2027-01-01", 1000000, 1000)
         Rule = self.env["investra.fee.rule"]
         Rule.create({
-            "fund_id": fund.id, "name": "Úplata", "sequence": 10, "kind": "periodic", "basis": "act365",
+            "fund_id": fund.id, "name": "Úplata", "kind": "periodic", "basis": "act365",
             "base_mode": "before", "expense_role": "expense_management",
             "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.02})],
         })
         Rule.create({
-            "fund_id": fund.id, "name": "Odměna A", "sequence": 20, "kind": "performance",
+            "fund_id": fund.id, "name": "Odměna A", "kind": "performance",
             "class_ids": [(6, 0, self.cls(fund, "A").ids)], "expense_role": "expense_performance",
             "crystallisation": "none",
             "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit",

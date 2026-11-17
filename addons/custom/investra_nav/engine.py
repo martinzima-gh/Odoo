@@ -162,7 +162,8 @@ def periodic_fee(rule, start, end, base, classes_count=1, max_steps=100):
             amount = updated
         else:
             raise ValueError("Výpočet úplaty se neustálil.")
-    return {"amount": money(amount), "steps": steps, "segments": rows}
+    # „exact“ = částka před zaokrouhlením; ocenění na ní ustaluje společný dopočet úplat „po všech úplatách“ (ZJ-06 bod 7).
+    return {"amount": money(amount), "exact": amount, "steps": steps, "segments": rows}
 
 
 def growth_factor(start, end, spec):

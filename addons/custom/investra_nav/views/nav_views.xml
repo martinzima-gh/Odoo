@@ -384,7 +384,6 @@
                 <page string="Úplaty" name="fee_rules">
                     <field name="fee_rule_ids" context="{'default_fund_id': id, 'investra_lock_fund': True}">
                         <list>
-                            <field name="sequence" widget="handle"/>
                             <field name="name"/><field name="kind"/><field name="expense_role"/>
                             <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
                             <field name="overlap_warning" string="Souběh" optional="show"/>
@@ -399,7 +398,7 @@
         <field name="model">investra.fee.rule</field>
         <field name="arch" type="xml">
             <list>
-                <field name="fund_id"/><field name="sequence"/><field name="name"/><field name="kind"/><field name="expense_role"/>
+                <field name="fund_id"/><field name="name"/><field name="kind"/><field name="base_mode" optional="show"/><field name="expense_role"/>
                 <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
                 <field name="overlap_warning" string="Souběh" optional="show"/>
                 <field name="active" optional="hide"/>
@@ -428,12 +427,12 @@
                     <field name="overlap_warning" nolabel="1"/>
                 </div>
                 <group>
-                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind"/><field name="sequence"/><field name="statute_ref"/></group>
+                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind"/><field name="statute_ref"/></group>
                     <!-- ZJ-06 bod 10: co k druhu úplaty nepatří, se neukazuje. Daň konvenci dnů a základ nepoužívá. -->
                     <group>
                         <field name="basis" invisible="kind == 'tax'"/>
                         <field name="base_source" invisible="kind == 'tax'"/>
-                        <field name="base_mode" invisible="kind == 'tax'"/>
+                        <field name="base_mode" invisible="kind != 'periodic' or base_source not in ('fk', 'class_fk')"/>
                         <field name="expense_role"/>
                         <field name="crystallisation" invisible="kind != 'performance'"/>
                     </group>

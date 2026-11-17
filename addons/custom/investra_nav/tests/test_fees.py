@@ -335,15 +335,57 @@ class TestRuleFields(NavCase):
         self.assertAlmostEqual(self.result(valuation, "P").capital, 337.5, places=2)
         self.assertAlmostEqual(self.result(valuation, "V").capital, 162.5, places=2)
 
-    def test_rule_order_changes_base(self):
-        # Pořadí podle statutu: druhá úplata má základ po první
-        fund = self.fund(1000000)
-        self.Rule.create({"fund_id": fund.id, "name": "První", "kind": "periodic", "sequence": 1,
-                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.1})]})
-        self.Rule.create({"fund_id": fund.id, "name": "Druhá", "kind": "periodic", "sequence": 2,
-                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.1})]})
+    def two_fees(self, fund, management="before", administration="before"):
+        # ZJ-06 bod 7: obhospodařování 1 %, administrace 0,1 % ročně; pořadí pravidel nerozhoduje
+        self.Rule.create({"fund_id": fund.id, "name": "Obhospodařování", "kind": "periodic", "base_mode": management,
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
+        self.Rule.create({"fund_id": fund.id, "name": "Administrace", "kind": "periodic", "base_mode": administration,
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.001})]})
         valuation = self.valuation(fund, date(2027, 12, 31))
         valuation.action_compute()
-        amounts = valuation.fee_line_ids.sorted("id").mapped("amount")
-        self.assertAlmostEqual(amounts[0], 100000, places=2)
-        self.assertAlmostEqual(amounts[1], 90000, places=2)
+        fees = valuation.fee_line_ids.filtered("rule_id")
+        return [fees.filtered(lambda f: f.rule_id.name == name).amount for name in ("Obhospodařování", "Administrace")]
+
+    def test_base_before_all_fees(self):
+        # Obě z FK před úplatami: 1 000 000 × 1 % a × 0,1 %, úplaty se navzájem neovlivní
+        management, administration = self.two_fees(self.fund(1000000))
+        self.assertAlmostEqual(management, 10000.00, places=2)
+        self.assertAlmostEqual(administration, 1000.00, places=2)
+
+    def test_base_after_all_fees(self):
+        # Obě po všech úplatách: S = 0,011 × (F − S) → S = 11 000 / 1,011 = 10 880,3165; F − S = 989 119,6835
+        management, administration = self.two_fees(self.fund(1000000), "after", "after")
+        self.assertAlmostEqual(management, 9891.20, places=2)
+        self.assertAlmostEqual(administration, 989.12, places=2)
+
+    def test_base_mixed(self):
+        # Obhospodařování před (10 000), administrace po: a = 0,001 × (990 000 − a) → a = 989,01
+        management, administration = self.two_fees(self.fund(1000000), "before", "after")
+        self.assertAlmostEqual(management, 10000.00, places=2)
+        self.assertAlmostEqual(administration, 989.01, places=2)
+
+    def test_manual_fee_lowers_base_after_not_before(self):
+        # Ručně doložená úplata 10 000: „po“ 1 % = 990 000 × 0,01 / 1,01 = 9 801,98; „před“ 1 % zůstává 10 000
+        for mode, expected in (("after", 9801.98), ("before", 10000.00)):
+            fund = self.fund(1000000)
+            self.Rule.create({"fund_id": fund.id, "name": "Úplata", "kind": "periodic", "base_mode": mode,
+                              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
+            valuation = self.valuation(fund, date(2027, 12, 31))
+            self.manual_fee(valuation, 10000)
+            valuation.action_compute()
+            self.assertAlmostEqual(valuation.fee_line_ids.filtered("rule_id").amount, expected, places=2)
+
+    def test_class_base_after_fees_includes_share_of_fund_fee(self):
+        # Fond 2 × 1 000 000 (A, B). Úplata fondu před 1 % = 20 000, třída A nese 10 000.
+        # Úplata třídy A z kapitálu třídy po všech úplatách 1 %: a = 0,01 × (990 000 − a) = 9 801,98
+        fund = self.fund(1000000, classes=("A", "B"))
+        self.Rule.create({"fund_id": fund.id, "name": "Fond", "kind": "periodic",
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
+        self.Rule.create({"fund_id": fund.id, "name": "Třída A", "kind": "periodic", "base_source": "class_fk",
+                          "base_mode": "after", "class_ids": [(6, 0, self.cls(fund, "A").ids)],
+                          "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
+        valuation = self.valuation(fund, date(2027, 12, 31))
+        valuation.action_compute()
+        fees = valuation.fee_line_ids
+        self.assertAlmostEqual(fees.filtered(lambda f: f.rule_id.name == "Fond").amount, 20000.00, places=2)
+        self.assertAlmostEqual(fees.filtered(lambda f: f.rule_id.name == "Třída A").amount, 9801.98, places=2)
