@@ -47,6 +47,9 @@ Oranžová
 8. Verze sazby: dopočtené (neukládané) pole stavu verze; ukončená šedě, budoucí modře, sloupec „Platí do“ ne.
 9. Třídy pravidla: v pohledu jen třídy fondu pravidla (po změně fondu vymazat); kontroly v modelu: třídy z fondu pravidla, třída nesmí být platící
    i přijímající, třída krytí nesmí být platící (smí být přijímající). Nápovědy polí.
+10b. Krystalizace výkonnostní odměny: do výběru `crystallisation` přidat „Při každém ocenění“ (`valuation`; `_is_crystallisation` vrátí pravdu
+    k datu každého ocenění); kalendářní volby měsíčně, čtvrtletně, ročně a „Nekrystalizuje“ beze změny. Test: dvě po sobě jdoucí ocenění, po prvním
+    se posune srovnávací hodnota a HWM a naběhlá odměna se vynuluje. Krystalizace při odkupu mimo rozsah (rozhodnutí 2026-11-17).
 11. Nápovědy polí verze sazby v modelu.
 
 **Nasazení do `investra`:** až po výslovném souhlasu Martina, se zálohou (postup jako ZJ-05 krok 1); po upgradu znovu spočítat rozpracovaná ocenění.
