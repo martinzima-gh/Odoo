@@ -1,6 +1,7 @@
 """Ukázkové role a uživatelé Investry (úkol ZJ-02, rozhodnutí 2026-11-17).
 
-Spouští se přes tools/demo_data/run_seed.sh (po seed.py a seed_services.py), jen v `investra` nebo `investra_ci_*`.
+Spouští se přes tools/demo_data/run_seed.sh dvakrát: před seed.py (ruční úpis v seedu potřebuje roli s činností)
+a po seed_services.py (doplní přístup ke všem knihám); jen v `investra` nebo `investra_ci_*`.
 Role (úroveň přístupu, činnosti Provádí / Schvaluje, příznak „Účtuje ručně v hlavní knize“):
   Admin        Správa,      všechny činnosti Provádí i Schvaluje, účtuje ručně
   Účetní       Zpracování,  všechny činnosti Provádí,             účtuje ručně

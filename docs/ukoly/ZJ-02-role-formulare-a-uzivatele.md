@@ -67,3 +67,17 @@ Provedl Claude (Sonnet) 17. 11. 2026 ve větvi `ukol/ZJ-zjednoduseni`; do `inves
 **Zbývá pro ZJ-04:** nasazení do `investra` se zálohou, spuštění `run_seed.sh investra` (role a uživatelé; `seed.py` nad naplněnou databází nic nezmění), nový řádek matice „jeden člověk“ pro ruční úpis.
 
 ## Převzetí
+
+Převzal Claude (Opus, hlavní relace) 17. 11. 2026; práce je už ve větvi `ukol/ZJ-zjednoduseni` (commit `fb15797`).
+
+- **Zóna:** oranžová podle zadání; revize diffu provedena (`role.py`, `approval_matrix.py`, `ir.access.csv`, `role_views.xml`,
+  `seed_users.py`, `run_seed.sh`, testy). Kód odpovídá rozhodnutím 2026-11-17, nálezy, které by bránily převzetí, žádné.
+- **Doověřeno:** čtení hesla z `.env` v `run_seed.sh` (pod `set -euo pipefail`) dává neprázdnou hodnotu; hodnota se nevypisovala.
+- **Opraveno při převzetí:** docstring `seed_users.py` uváděl spuštění jen po seed.py, ve skutečnosti běží před i po.
+- **Schváleno jako výklad (k potvrzení Martinem):** skupinu účtování si ponechá i správce účetnictví
+  (`account.group_account_manager`), nejen správce systému; dvojí spuštění `seed_users.py` v `run_seed.sh`.
+- **Pro ZJ-04 (nasazení do `investra`):**
+  - `seed_users.py` nastaví uživateli `admin` jen roli Admin (`(6, …)`); jiné role, které mu tam případně přiřadilo ZJ-01, odebere.
+  - Synchronizace rolí nově odebírá `account.group_account_user` uživatelům, jejichž role nemají příznak ručního účtování
+    (kromě správce systému a správce účetnictví). Před nasazením vypsat uživatele `investra` s rolí a se skupinou účtování.
+  - Formuláře ručně v prohlížeči zkontrolovat po nasazení (zatím jen testy a `Form`).
