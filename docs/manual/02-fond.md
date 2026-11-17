@@ -18,7 +18,7 @@ a profil FX přecenění fondu.
 |---|---|---|---|
 | **Účetní kniha** | ano | – | kniha fondu z kap. 1 (nabízí se jen druh Fond, Podfond a SICAV); po výběru se doplní funkční měna |
 | **Funkční měna** | jen čtení | z knihy | v ní se vede účetnictví a NAV |
-| **Obhospodařovatel** | ne | prázdné | kniha druhu Investiční společnost („Obhospodařovatel musí být kniha druhu Investiční společnost.“); její schvalovací matice platí pro fond, prázdné = výchozí matice |
+| **Obhospodařovatel** | ne | prázdné | kniha druhu Investiční společnost („Obhospodařovatel musí být kniha druhu Investiční společnost.“); schvalovací matici neovlivňuje, ta je od zjednodušení (ZJ-01) jedna pro celou aplikaci (kap. 4) |
 
 ## Základní parametry
 
@@ -38,22 +38,9 @@ Hodnoty se **zkopírují do nové třídy při jejím založení**; pozdější 
 | **Výchozí desetinná místa kusů** | ano | 6 | na třídě 0 až 6 (kusy se ukládají nejvýš na 6 míst) |
 | **Výchozí zaokrouhlení kusů** | ano | Dolů | Dolů, Matematicky, Nahoru |
 | **Výchozí: rozdíl ze zaokrouhlení kusů** | ano | Zůstává ve fondu | Zůstává ve fondu = kapitál třídy; Vrací se investorovi = závazek, výplatu zadává IS |
-| **Výchozí vstupní poplatek (%)** | ne | 0 | sazba z hrubé platby úpisu; 0 až 100 |
-| **Výchozí příjemce vstupního poplatku** | ano | Obhospodařovatel | viz níže |
-| **Výchozí výstupní poplatek (%)** | ne | 0 | sazba z hrubé částky odkupu (kusy × cena); 0 až 100 |
-| **Výchozí příjemce výstupního poplatku** | ano | Obhospodařovatel | viz níže |
 
-**Příjemce poplatku:**
-
-| Volba | Účetní dopad |
-|---|---|
-| Obhospodařovatel, Distributor | závazek fondu, poplatek se platí ven |
-| Fond – výnos | výnos celého fondu, dělí se mezi třídy poměrem |
-| Třída – výnos | celý poplatek jen třídě pohybu, jako výnos |
-| Třída – kapitál | celý poplatek jen třídě pohybu, jako kapitál třídy |
-
-Volbu řiďte statutem. Kapitál je vždy kapitál třídy, poměrem se dělí jen výnosy a náklady (proto „Fond – kapitál“ neexistuje).
-Sazbu i příjemce lze na třídě přepsat (kap. 3).
+**Vstupní a výstupní poplatek ve fondu už není.** Sazbu, příjemce, článek statutu a poznámku zadáváte jen na třídě (kap. 3);
+výchozí hodnoty ve fondu zrušilo ZJ-03 (rozhodnutí 2026-11-17 „Poplatky fondu a tříd“), nová třída začíná na 0 % a příjemci Obhospodařovatel.
 
 ## Úročení nástrojů
 
@@ -66,7 +53,11 @@ Sazbu i příjemce lze na třídě přepsat (kap. 3).
 ## Záložky
 
 - **Třídy:** kap. 3.
-- **Zpřísnění matice:** řádky schvalovací matice zpřísňující pravidla jen pro tento fond (činnost, platnost od, role, druhá osoba, počet osob). Řádky zakládají a mění jen schvalovatelé ocenění (kap. 4).
+- **Úplaty:** pravidla úplat fondu (správa, depozitář, výkonnostní odměna ad.) – sloupce Název, Druh, Nákladová role, Třídy,
+  Článek statutu a **Souběh**. Pravidlo se otevře šipkou na řádku; formulář má Článek statutu a **Poznámku** (později se ukážou i v XLS
+  pro depozitáře, otevřený bod). Souběh jen **upozorní** (žlutý pruh ve formuláři pravidla, sloupec Souběh a kontrola ocenění „Úplaty téže role
+  nejsou zároveň na fondu a na třídách“ jako varování): úplata téže nákladové role je na celém fondu i na třídě, nebo má třída dvě pravidla téže role.
+  Uložení ani výpočet se nezastaví; daň se neposuzuje. Úplatu, kterou Odoo nespočte, zadáte v ocenění jako ručně doloženou (kap. 4, část 5).
 - **Obchodní modely:** portfolia fondu (kap. 6).
 - Pod formulářem je **historie** (chatter).
 
@@ -81,8 +72,8 @@ protože fond má ocenění, které není stornované.“ Po stornu všech ocen�
 
 - **Zaúčtování obchodu** po prvním obchodu fondu.
 - Kniha fondu: rámec ani společnost po zaúčtovaném dokladu (kap. 1).
-- Třída po prvním zaúčtovaném úpisu nebo odkupu: kód a měna zveřejnění kurzu (kap. 3). Poplatky, zaokrouhlení a desetinná místa kurzu a kusů jdou měnit (místa kusů snížit jen do přesnosti zaúčtovaných pohybů); zaúčtované pohyby a uložená ocenění se nepřepočítají.
-- Výchozí hodnoty fondu (zaokrouhlení, desetinná místa, poplatky) jdou měnit kdykoli; stávající třídy se jimi nemění.
+- Třída po prvním zaúčtovaném úpisu nebo odkupu: kód a měna zveřejnění kurzu (kap. 3). Poplatky třídy, zaokrouhlení a desetinná místa kurzu a kusů jdou měnit (místa kusů snížit jen do přesnosti zaúčtovaných pohybů); zaúčtované pohyby a uložená ocenění se nepřepočítají.
+- Výchozí hodnoty fondu (zaokrouhlení, desetinná místa) jdou měnit kdykoli; stávající třídy se jimi nemění.
 - Fond s třídami nejde smazat (vazba tříd na fond je chráněná).
 
 ## Další krok

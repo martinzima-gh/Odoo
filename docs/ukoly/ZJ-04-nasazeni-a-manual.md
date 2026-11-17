@@ -42,4 +42,28 @@ Krok 2a původního zadání (řádek matice ruční úpis „jeden člověk“)
 
 ## Výsledek
 
+Provedl Claude (Sonnet) 17. 11. 2026 ve větvi `ukol/ZJ-zjednoduseni`; nasazení se souhlasem Martina v promptu (záloha, smazání, nové založení).
+
+**Postup a ověření**
+
+1. Zkouška `run_seed.sh investra_ci_zj04`: log 0 ERROR, 0 Traceback. SELECTem: 5 fondů (A–E; zadání uvádělo 6, seed zakládá 5 + obhospodařovatel + Services,
+   tedy 7 knih), 37 ocenění, 21 obchodů, 17 pohybů tříd, 20 řádků matice (10 výchozích + 10 „jeden člověk“ od 17. 11.), 4 role (Admin 10 činností,
+   Schvalovatel 10, Účetní 10 bez schvalování, Náhled 0), uživatelé `admin`, `ucetni`, `schvalovatel`, `view` se skupinami Investry podle ZJ-02. Databáze smazána (`odoo db drop`).
+2. `.env` nečten; `grep -c` proměnné `INVESTRA_DEMO_USER_PASSWORD` = 1.
+3. Záloha `zalohy/investra-2026-11-17-pred-ZJ.dump` (mimo git): 9,3 MB, `pg_restore -l` 10 913 položek. Záloha je jen databáze; filestore `investra` nezálohován (ukázková data bez příloh).
+4. `investra-web` zastaven a odstraněn, `investra` smazána (`odoo db drop`, volumes nedotčeny), `run_seed.sh investra` znovu (log 0 ERROR).
+   Stav shodný se zkouškou: 5 fondů + 1 obhospodařovatel + 1 Services, 37 ocenění, 21 obchodů, 17 pohybů, 20 řádků matice.
+5. `investra-web` spuštěn příkazem z README; `/web/login` HTTP 200.
+6. Nové `docs/sql/26-role-matice-uplaty.sql` (role, činnosti, uživatelé, matice, ruční úplaty), ověřeno na `investra`; ruční úplaty: 0 řádků (nové databáze).
+7. Manuál: kap. 2 (záložka Úplaty, bez zpřísnění matice a fondových poplatků), kap. 3 (poplatky třídy, článek statutu, poznámka, historie), kap. 4 (matice bez
+   fondů a jmenovitých uživatelů, nová část o ručně doložených úplatách), kap. 5 (role a činnosti, ukázkoví uživatelé bez hesel). Ověřeno v kódu a SELECTem, v prohlížeči ne.
+8. Otevřený bod „Poznámky k poplatkům v XLS pro depozitáře“ potvrzen v `docs/otevrene-body.md`.
+
+**Upozornění**
+
+- `admin` má výchozí heslo Odoo: Martin si ho změní sám. Hesla ukázkových uživatelů jsou z `.env` (nikam se nevypisují); přihlášení ověří Martin.
+- Účet `dbeaver_ro` nemá v nové `investra` práva na tabulky (`has_table_privilege` = false); obnoví je `tools/db/dbeaver_ro_grants.sql` až po souhlasu Martina.
+- Zbytková nápověda pole **Obhospodařovatel** ve fondu („její schvalovací matice platí pro fond“) je po ZJ-01 zastaralá (kód matice pole nečte); opravit v dalším úkolu.
+- Mimo zadání: nezkoušeno v prohlížeči (formuláře rolí, třídy, ruční úplata); přepočet ocenění Fondu A k 31. 10. není potřeba (databáze nová).
+
 ## Převzetí

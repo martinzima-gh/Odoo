@@ -16,7 +16,7 @@ Fond Alfa Růst (funkční měna CZK), tři třídy:
 | I | Třída I institucionální CZK | CZK | 4 | Růstová | 0 % / 0 % |
 
 Třída B je v EUR při funkční měně fondu CZK: kurz se zveřejňuje v EUR, kapitál třídy a NAV zůstávají v CZK.
-Třída I přepíše poplatky na 0 (výchozí hodnoty fondu zůstávají jiné). Čísla jsou smyšlená.
+Třída I má oba poplatky 0 %. Čísla jsou smyšlená.
 
 ## Pole třídy
 
@@ -32,18 +32,40 @@ Třída I přepíše poplatky na 0 (výchozí hodnoty fondu zůstávají jiné).
 | **Zaokrouhlení kurzu** | ano | z fondu | sloupec skrytý (zapnete v nabídce sloupců) |
 | **Zaokrouhlení kusů** | ano | z fondu | skrytý sloupec |
 | **Rozdíl ze zaokrouhlení kusů** | ano | z fondu | skrytý sloupec; Zůstává ve fondu / Vrací se investorovi |
-| **Vstupní poplatek (%)** | ne | z fondu | 0 až 100: „Sazba poplatku musí být 0 až 100 %.“ |
-| **Příjemce vstupního poplatku** | ano | z fondu | skrytý sloupec |
-| **Výstupní poplatek (%)** | ne | z fondu | 0 až 100 |
-| **Příjemce výstupního poplatku** | ano | z fondu | skrytý sloupec |
+| **Vstupní poplatek (%)** | ano | 0 | sazba z hrubé platby úpisu; 0 až 100: „Sazba poplatku musí být 0 až 100 %.“ |
+| **Příjemce vstupního poplatku** | ano | Obhospodařovatel | skrytý sloupec; viz Poplatky třídy |
+| **Výstupní poplatek (%)** | ano | 0 | sazba z hrubé částky odkupu (kusy × cena); 0 až 100 |
+| **Příjemce výstupního poplatku** | ano | Obhospodařovatel | skrytý sloupec |
+| **Článek statutu**, **Poznámka** | ne | – | zvlášť u vstupního a výstupního poplatku; jen ve formuláři třídy |
 | **Pořadí** | ne | 10 | úchyt (☰) na začátku řádku; třídy se přetažením řadí |
 | **Aktivní** | ne | ano | sloupec je skrytý (zapnete v nabídce sloupců); odškrtnutím se třída archivuje |
 
 ## Co třída dědí z fondu a co přepisuje
 
 Při **založení** třídy se z fondu zkopírují: desetinná místa a zaokrouhlení kurzu, desetinná místa a zaokrouhlení kusů,
-vlastník rozdílu ze zaokrouhlení, oba poplatky a oba příjemci. Nápověda „Bez zadání platí hodnota fondu“ platí jen při založení. Třída je pak samostatná: později změněný fond ji nepřepíše,
+vlastník rozdílu ze zaokrouhlení. Poplatky se nekopírují: třída začíná na 0 % s příjemcem Obhospodařovatel. Nápověda „Bez zadání platí hodnota fondu“ platí jen při založení. Třída je pak samostatná: později změněný fond ji nepřepíše,
 změněná třída fond nezmění. Přepis na třídě je úprava hodnoty v řádku.
+
+## Poplatky třídy
+
+Vstupní a výstupní poplatek se zadává **jen na třídě** (ve fondu už výchozí hodnoty nejsou). Formulář třídy otevřete **šipkou na začátku řádku**
+v seznamu tříd (v řádku seznamu je jen sazba). Vstupní i výstupní poplatek mají **Sazbu (%)**, **Příjemce**, **Článek statutu**
+a **Poznámku**; článek a poznámka jsou pro vás a pro depozitáře (do XLS se zatím nepřenášejí, otevřený bod).
+
+**Příjemce poplatku:**
+
+| Volba | Účetní dopad |
+|---|---|
+| Obhospodařovatel, Distributor | závazek fondu, poplatek se platí ven |
+| Fond – výnos | výnos celého fondu, dělí se mezi třídy poměrem |
+| Třída – výnos | celý poplatek jen třídě pohybu, jako výnos |
+| Třída – kapitál | celý poplatek jen třídě pohybu, jako kapitál třídy |
+
+Volbu řiďte statutem. Kapitál je vždy kapitál třídy, poměrem se dělí jen výnosy a náklady (proto „Fond – kapitál“ neexistuje).
+
+**Historie změn.** Formulář třídy má dole historii (chatter). Změna sazby, příjemce, článku statutu nebo poznámky poplatku se do ní zapíše
+jako „staré → nové“ (vlastní kód třídy; modul `mail_tracking` se neinstaluje). Poplatky jdou měnit i po zaúčtovaném pohybu; zaúčtované pohyby
+a uložená ocenění se nepřepočítají.
 
 ## Měna třídy
 
