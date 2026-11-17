@@ -314,7 +314,7 @@ class InvestraInstrumentRepayment(models.Model):
     """
 
     _name = "investra.instrument.repayment"
-    _inherit = ["investra.record.guard", "investra.posting.preview"]
+    _inherit = ["investra.record.guard", "investra.posting.preview", "investra.approval.pending.mixin"]
     _description = "Splátka nástroje"
     _order = "date desc, id desc"
     _book_fields = ("fund_id",)

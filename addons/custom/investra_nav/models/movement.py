@@ -54,7 +54,7 @@ class InvestraClassMovement(models.Model):
     """Úpis nebo odkup ze závěrky IS. Do napojení IS se pořizuje ručně a v testech."""
 
     _name = "investra.class.movement"
-    _inherit = ["investra.record.guard", "mail.thread", "investra.posting.preview"]
+    _inherit = ["investra.record.guard", "mail.thread", "investra.posting.preview", "investra.approval.pending.mixin"]
     _description = "Pohyb kapitálu třídy"
     _order = "date, id"
     _book_fields = ("class_id",)

@@ -16,7 +16,8 @@ from odoo.exceptions import UserError
 
 
 class InvestraTradeReverse(models.Model):
-    _inherit = "investra.trade"
+    _name = "investra.trade"
+    _inherit = ["investra.trade", "investra.approval.pending.mixin"]
 
     # --- kontroly --------------------------------------------------------------------------------------------
 

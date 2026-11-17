@@ -199,6 +199,11 @@ class InvestraApprovalMatrix(models.Model):
             return
         if not self.env.user.has_group(ROLE_GROUPS["approver"]):
             raise AccessError(self.env._("Schvalovací matici mění jen skupina schvalování ocenění."))
+        # MN-18 (nález MN-13 č. 5): výchozí řádek z modulu má vlastní, srozumitelnější hlášení než obecný platný řádek.
+        if self.filtered("builtin"):
+            raise UserError(self.env._(
+                "Výchozí řádek z modulu nejde měnit ani smazat; zadejte nový řádek s pozdějším „Platí od“."
+            ))
         today = fields.Date.context_today(self)
         if self.filtered(lambda r: r.valid_from < today):
             raise UserError(self.env._(

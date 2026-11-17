@@ -105,7 +105,7 @@ class InvestraValuation(models.Model):
     """Jedno ocenění fondu k datu ve verzi. Stavy vedou přes schválení k zaúčtování a zveřejnění."""
 
     _name = "investra.valuation"
-    _inherit = ["investra.record.guard"]
+    _inherit = ["investra.record.guard", "investra.approval.pending.mixin"]
     _description = "Ocenění"
     _order = "fund_id, date desc, version desc"
     _book_fields = ("fund_id",)

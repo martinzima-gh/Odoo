@@ -36,7 +36,7 @@ PREPARER = "investra_entity.group_valuation_preparer"
 
 class InvestraDerivative(models.Model):
     _name = "investra.derivative"
-    _inherit = ["investra.derivative", "investra.posting.preview"]
+    _inherit = ["investra.derivative", "investra.posting.preview", "investra.approval.pending.mixin"]
 
     event_id = fields.Many2one("investra.accounting.event", readonly=True, copy=False, string="Událost sjednání")
     reversal_reason = fields.Text(readonly=True, copy=False, string="Důvod storna")

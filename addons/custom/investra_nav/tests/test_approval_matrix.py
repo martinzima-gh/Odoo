@@ -1,5 +1,6 @@
 from datetime import date
 
+from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 
@@ -145,6 +146,57 @@ class TestApprovalMatrix(NavCase):
         self.assertEqual(new.step_ids.role, "approver")
         self.assertEqual(self.Matrix._rule("valuation_publish", self.fund).persons, 2)
         self.assertEqual(row.second_person, "no")
+
+    # --- MN-18: výchozí řádky z modulu a upozornění na čekající žádost ----------------------------
+
+    def _builtin(self, activity="valuation_publish"):
+        row = self.Matrix.search([("activity", "=", activity), ("builtin", "=", True)], limit=1)
+        self.assertTrue(row)
+        return row
+
+    def test_builtin_row_has_own_error(self):
+        row = self._builtin()
+        for call in (lambda: row.with_user(self.approver).write({"note": "x"}),
+                     lambda: row.with_user(self.approver).unlink(),
+                     lambda: row.step_ids.with_user(self.approver).unlink() if row.step_ids else row.with_user(self.approver).write({"valid_from": "2030-01-01"})):
+            with self.assertRaises(UserError) as ctx:
+                call()
+            self.assertIn("Výchozí řádek z modulu", str(ctx.exception))
+        self.assertTrue(row.exists())
+
+    def test_builtin_row_sudo_unchanged(self):
+        row = self._builtin()
+        row.sudo().write({"note": "sudo"})
+        self.assertEqual(row.note, "sudo")
+
+    def test_custom_row_with_later_valid_from_allowed(self):
+        new = self.Matrix.with_user(self.approver).create({
+            "activity": "valuation_publish", "second_person": "no", "performer_role": "approver",
+        })
+        self.assertFalse(new.builtin)
+        self.assertEqual(new.valid_from, fields.Date.context_today(new))
+
+    def test_custom_valid_row_keeps_original_error(self):
+        row = self.matrix("valuation_publish", "no", performer="approver")
+        row.sudo().valid_from = date(2020, 1, 1)
+        with self.assertRaises(UserError) as ctx:
+            row.with_user(self.approver).write({"note": "x"})
+        self.assertIn("Platný řádek matice", str(ctx.exception))
+        self.assertNotIn("Výchozí řádek z modulu", str(ctx.exception))
+
+    def test_pending_request_shown_on_record(self):
+        self.matrix("valuation_publish", "yes", performer="approver")
+        valuation = self.confirmed()
+        self.assertFalse(valuation.pending_request_id)
+        self.assertFalse(valuation.action_open_pending_request())
+        action = valuation.with_user(self.approver).action_publish()
+        request = self.env["investra.approval.request"].browse(action["res_id"])
+        valuation.invalidate_recordset(["pending_request_id"])
+        self.assertEqual(valuation.pending_request_id, request)
+        self.assertEqual(valuation.action_open_pending_request()["res_id"], request.id)
+        request.with_user(self.approver2).action_approve()
+        valuation.invalidate_recordset(["pending_request_id"])
+        self.assertFalse(valuation.pending_request_id)
 
     # --- jednorázové úkony přes žádost ------------------------------------------------------------
 

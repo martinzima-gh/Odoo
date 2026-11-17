@@ -399,6 +399,12 @@
                             context="{'default_classification_id': id}" invisible="not id"/>
                 </header>
                 <sheet>
+                    <!-- MN-18: upozornění na čekající žádost (mixin investra.approval.pending.mixin) -->
+                    <field name="pending_request_id" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="not pending_request_id">
+                        <strong>Čeká na potvrzení v Žádostech ke schválení.</strong>
+                        <button name="action_open_pending_request" type="object" class="btn btn-link p-0 ms-2" string="Otevřít žádost"/>
+                    </div>
                     <group>
                         <group string="Pozice">
                             <field name="portfolio_id" options="{'no_create': True}"/><field name="fund_id"/>

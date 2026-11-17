@@ -44,6 +44,14 @@
                         context="{'default_trade_id': id, 'default_mode': 'reverse'}"
                         groups="investra_entity.group_valuation_preparer" invisible="state not in ('unsettled', 'settled')"/>
             </xpath>
+            <xpath expr="//sheet/*[1]" position="before">
+                <!-- MN-18: upozornění na čekající žádost (mixin investra.approval.pending.mixin) -->
+                <field name="pending_request_id" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="not pending_request_id">
+                    <strong>Čeká na potvrzení v Žádostech ke schválení.</strong>
+                    <button name="action_open_pending_request" type="object" class="btn btn-link p-0 ms-2" string="Otevřít žádost"/>
+                </div>
+            </xpath>
             <xpath expr="//sheet/group" position="before">
                 <div class="alert alert-warning" role="alert" invisible="not calendar_note">
                     <field name="calendar_note" readonly="1"/>

@@ -216,7 +216,7 @@ class InvestraPortfolioClassification(models.Model):
     """
 
     _name = "investra.portfolio.classification"
-    _inherit = ["investra.record.guard", "mail.thread"]
+    _inherit = ["investra.record.guard", "mail.thread", "investra.approval.pending.mixin"]
     _description = "Zařazení nástroje"
     _order = "fund_id, portfolio_id, instrument_id, valid_from desc"
     _book_fields = ("portfolio_id",)
