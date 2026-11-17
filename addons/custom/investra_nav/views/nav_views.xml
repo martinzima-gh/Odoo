@@ -337,6 +337,26 @@
             </xpath>
         </field>
     </record>
+    <!-- ZJ-06: pohled s pravidly úplat musí být první z dědění formuláře fondu, aby se při upgradu přepsal dřív, než Odoo
+         ověří formulář fondu (jinak validace narazí na starou verzi s polem sequence). -->
+    <!-- ZJ-03: pravidla úplat ve formuláři fondu; nabídka Pravidla úplat zůstává jako přehled. -->
+    <record id="view_fund_form_fee_rules" model="ir.ui.view">
+        <field name="name">investra.fund.form.fee.rules</field><field name="model">investra.fund</field>
+        <field name="inherit_id" ref="investra_fund.view_fund_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[1]" position="after">
+                <page string="Úplaty" name="fee_rules">
+                    <field name="fee_rule_ids" context="{'default_fund_id': id, 'investra_lock_fund': True}">
+                        <list>
+                            <field name="name"/><field name="kind"/><field name="expense_role"/>
+                            <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
+                            <field name="overlap_warning" string="Souběh" optional="show"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
     <!-- Historie fondu: zápis o zrušení návrhu ocenění (OC-01). -->
     <record id="view_fund_form_history" model="ir.ui.view">
         <field name="name">investra.fund.form.history</field><field name="model">investra.fund</field>
@@ -378,24 +398,6 @@
             <field name="code" position="before"><field name="movement_locked" invisible="1"/></field>
             <field name="code" position="attributes"><attribute name="readonly">movement_locked</attribute></field>
             <field name="currency_id" position="attributes"><attribute name="readonly">movement_locked</attribute></field>
-        </field>
-    </record>
-    <!-- ZJ-03: pravidla úplat ve formuláři fondu; nabídka Pravidla úplat zůstává jako přehled. -->
-    <record id="view_fund_form_fee_rules" model="ir.ui.view">
-        <field name="name">investra.fund.form.fee.rules</field><field name="model">investra.fund</field>
-        <field name="inherit_id" ref="investra_fund.view_fund_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//notebook/page[1]" position="after">
-                <page string="Úplaty" name="fee_rules">
-                    <field name="fee_rule_ids" context="{'default_fund_id': id, 'investra_lock_fund': True}">
-                        <list>
-                            <field name="name"/><field name="kind"/><field name="expense_role"/>
-                            <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
-                            <field name="overlap_warning" string="Souběh" optional="show"/>
-                        </list>
-                    </field>
-                </page>
-            </xpath>
         </field>
     </record>
     <record id="view_fee_rule_list" model="ir.ui.view">

@@ -114,3 +114,9 @@ Po úplatách (výchozí, jako dosud), Po dani. Pořadí: úplaty → ručně do
 událost `tax:<id>:perf`). Daň je doplatek do zůstatku od začátku roku, doúčtování proto zachytí jen tu část odměny, která šla do výsledovky; kruh nevzniká
 (odměna počítá z daně před doúčtováním). Testy: před úplatami 20,00 / po úplatách 19,81; odměna před daní 20,00 a daň 4,00; po dani odměna 19,00 a daň 5,00 − 0,95 = 4,05.
 `run_tests.sh investra_nav` 398 testů, 0 chyb.
+
+**Nasazení do `investra` (17. 11. 2026, se souhlasem Martina):** záloha `zalohy/investra-2026-11-17-pred-ZJ06.dump` (485 tabulek, ověřeno `pg_restore -l`).
+První upgrade 12 změněných modulů selhal na validaci formuláře fondu (stará verze dědičného pohledu s pravidly úplat v databázi ještě obsahovala `sequence`);
+oprava: pohled `view_fund_form_fee_rules` přesunut v `nav_views.xml` před ostatní dědění formuláře fondu. Upgrade ověřen na kopii ze zálohy (`investra_ci_upg_zj06`,
+poté smazána), pak proveden na `investra` bez chyb; `investra_nav` 0.35.0, 13 pravidel, 11 hodnot „Statut a poznámka“ zachováno; `investra-web` běží, `/web/login` 200.
+Ocenění Fondu A k 31. 10. 2026 v2 (id 38, Odesláno) je spočtené původní logikou a nemá historii kroků. Zbývá: Martin projde formuláře v UI.
