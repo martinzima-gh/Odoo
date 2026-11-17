@@ -4,28 +4,39 @@
 
 | Položka | Hodnota |
 |---|---|
-| Zóna | oranžová (nasazení se souhlasem), zelená (manuál) |
+| Zóna | oranžová (nové založení `investra` se souhlasem), zelená (manuál) |
 | Výchozí větev | `ukol/ZJ-zjednoduseni` (po ZJ-03) |
 | Zadal, dne | Claude (hlavní relace), 17. 11. 2026 |
 | Model | Sonnet (nasazení), manuál Haiku nebo Sonnet |
 
+**Změna 17. 11. 2026 (Martin): místo upgradu se `investra` založí znovu čistá z ukázkového skriptu (varianta B).**
+V `investra` jsou jen ukázková data ze 16. 11. a ruční zkoušky Martina ze 17. 11., které si zadá znovu. Migrace ZJ-01 až
+ZJ-03 jsou ověřené na kopii (ZJ-03, Výsledek). Smazání `investra` je nevratné: **jen se souhlasem Martina v promptu**
+a jen po ověřené záloze.
+
 **Postup:**
-1. Záloha `investra` (`zalohy/investra-<datum>-pred-ZJ.dump`), upgrade dotčených modulů – **jen po souhlasu Martina
-   v promptu**. Log upgradu bez ERROR.
-   **Upgrade od `investra_entity`** (`-u investra_entity`; závislé moduly se povýší s ním). `investra` má moduly ještě před
-   ZJ-01 a `-u investra_fund,investra_nav` selže na chybějící skupině Správa (zkouška na kopii v ZJ-03). Migrace ZJ-03 smaže
-   1 ruční úplatu a 1 pravidlo „mimo Odoo“ a vrátí ocenění Fondu A k 31. 10. 2026 k přepočtu; po upgradu ho přepočítat.
-2. Kontrola, že `.env` má `INVESTRA_DEMO_USER_PASSWORD` (jen existence, hodnotu nečíst); spustit skript uživatelů a rolí.
-   Ověřit přihlášení `ucetni`, `schvalovatel`, `view`, `admin` (heslo zadá Martin, ne agent).
-2a. Po upgradu založit v UI (jako `admin`) řádek matice **Ruční zadání úpisu a odkupu – jeden člověk** s „Platí od“ dnes
-   (rozhodnutí Martina 17. 11. 2026: po sloučení řádků ZJ-01 by jinak platily čtyři oči z globálního řádku 17. 11.).
-   Matice je jedinečná podle (činnost, Platí od): při nasazení 17. 11. nový řádek nejde, místo toho se změní globální
-   řádek ze 17. 11. (dnešní řádek jde ještě měnit) na „Ne – stačí jeden člověk“.
-3. SELECT do `docs/sql/`: role, jejich činnosti a uživatelé; řádky matice.
-4. Manuál: kap. 4 (matice bez fondů a jmenovitých uživatelů), kap. 5 (role a činnosti, ukázkoví uživatelé bez hesla),
+1. **Zkouška nanečisto:** `tools/demo_data/run_seed.sh investra_ci_zj04` (založí dočasnou databázi se všemi moduly).
+   Log bez ERROR (řádky `ERROR/3` z popisů modulů nejsou chyba). SELECTem ověřit: 6 fondů, ocenění, obchody, pohyby,
+   role Admin, Účetní, Schvalovatel, Náhled, uživatelé `admin`, `ucetni`, `schvalovatel`, `view` se skupinami podle
+   Výsledku ZJ-02, řádky matice „jeden člověk“. Pak dočasnou databázi smazat (`odoo db drop`, i s filestore).
+   Selže-li cokoli, zastavit a hlásit; `investra` se nemění.
+2. `.env` existuje, **nečíst ho**; jen `grep -c '^INVESTRA_DEMO_USER_PASSWORD=' .env` (bez ní seed uživatelů skončí chybou).
+3. **Záloha:** `pg_dump -Fc investra` do `zalohy/investra-2026-11-17-pred-ZJ.dump`; ověřit `pg_restore -l` (počet položek)
+   a velikost. Bez ověřené zálohy dál nepokračovat.
+4. `docker stop investra-web && docker rm investra-web`; smazat `investra` přes `odoo db drop` (i filestore; postup jako
+   úklid v `tools/run_tests.sh`, heslo jen z proměnných kontejneru). Docker volumes nemazat.
+5. `tools/demo_data/run_seed.sh investra`; log bez ERROR; stejné SELECTy jako v kroku 1.
+6. Spustit `investra-web` příkazem z README (8071) a ověřit odpověď `/web/login`.
+7. Uživatel `admin` má po založení výchozí heslo Odoo: říct Martinovi, ať si ho hned změní. Heslo agent nenastavuje
+   ani nevypisuje. Hesla ukázkových uživatelů jsou z `.env`.
+8. SELECT do `docs/sql/`: role, jejich činnosti a uživatelé; řádky matice; ručně doložené úplaty ocenění.
+9. Manuál: kap. 4 (matice bez fondů a jmenovitých uživatelů), kap. 5 (role a činnosti, ukázkoví uživatelé bez hesla),
    kap. 2 (záložka Úplaty, bez zpřísnění matice a fondových vstupních poplatků), kap. 3 (vstupní a výstupní poplatek
-   třídy, článek statutu, poznámka); nová krátká část o ručně doložených úplatách v ocenění.
-5. Otevřený bod „Poznámky k poplatkům v XLS pro depozitáře“ potvrdit v `docs/otevrene-body.md`; předávka.
+   třídy, článek statutu, poznámka, historie změn), nová krátká část o ručně doložených úplatách v ocenění.
+10. Otevřený bod „Poznámky k poplatkům v XLS pro depozitáře“ potvrdit v `docs/otevrene-body.md`; předávka.
+
+Krok 2a původního zadání (řádek matice ruční úpis „jeden člověk“) odpadá: ukázkový skript zakládá pro všechny činnosti
+řádek „jeden člověk“ platný ode dne založení (pokyn 15. 11. 2026). Čtyři oči si Martin případně nastaví v UI.
 
 **Kritéria přijetí:** Martin v UI ověří čtyři uživatele a jednu ruční úplatu v návrhu ocenění; sekce Výsledek.
 
