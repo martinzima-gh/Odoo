@@ -182,6 +182,11 @@ schválená cena, schvalovací matice, kurzy), formulář ocenění ukáže žlu
 ke schválení („Výpočet ocenění není aktuální, po výpočtu se změnilo: …“), dokud ho nespočtete znovu. Hlídají se jen uvedené vstupy. Souhrn s grafem kurzu tříd
 se po každém Spočítat načte znovu.
 
+**Historie kroků.** Záložka **Historie** ve formuláři ocenění ukazuje každý krok: založení (u další verze „Verze 2“ atd.), každé Spočítat
+s FK a kurzy tříd, odeslání ke schválení, schválení po krocích, žádost podle matice, vrácení a storno s důvodem, zaúčtování, odeslání a potvrzení
+depozitáři, zveřejnění. U kroku je, kdo a kdy ho provedl. Záznam nejde změnit ani smazat. Pole **Založil** je autor ocenění, **Spočítal** je ten,
+kdo ocenění naposledy spočítal; ten ho nesmí schválit. Ocenění založená před zavedením historie mají jen kroky od nasazení.
+
 ## 5. Minimální nastavení pro první ocenění
 
 - [ ] Fond: **Datum vzniku** vyplněné (jinak „Fond nemá datum vzniku.“), **Frekvence ocenění**, třídy (kap. 2, 3); z Data vzniku a frekvence karta fondu spočítá další ocenění.

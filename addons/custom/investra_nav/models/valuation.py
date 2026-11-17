@@ -21,8 +21,24 @@ PRICE_ROUNDING = {"down": ROUND_DOWN, "half_up": ROUND_HALF_UP, "up": ROUND_UP}
 SYSTEM_FIELDS = {
     "state", "previous_id", "preparer_id", "fund_capital", "neutral_capital", "class_line_ids", "fee_line_ids",
     "portfolio_line_ids", "check_ids", "approval_ids", "event_ids", "snapshot", "snapshot_hash", "return_reason",
-    "published_at", "package_id", "package_checksum",
+    "published_at", "package_id", "package_checksum", "step_ids",
 }
+
+# Historie kroků ocenění (ZJ-06 bod 12, rozhodnutí 2026-11-17): nezměnitelná auditní stopa.
+VALUATION_STEPS = [
+    ("created", "Založení"),
+    ("computed", "Spočítání"),
+    ("submitted", "Odeslání ke schválení"),
+    ("approved", "Schválení"),
+    ("request", "Žádost podle schvalovací matice"),
+    ("returned", "Vrácení"),
+    ("posted", "Zaúčtování"),
+    ("sent", "Odeslání depozitáři"),
+    ("confirmed", "Potvrzení depozitářem"),
+    ("depositary_returned", "Vrácení depozitářem"),
+    ("reversed", "Storno"),
+    ("published", "Zveřejnění"),
+]
 
 
 def d(value):
@@ -140,7 +156,11 @@ class InvestraValuation(models.Model):
         string="Stav",
     )
     previous_id = fields.Many2one("investra.valuation", readonly=True, string="Předchozí ocenění")
-    preparer_id = fields.Many2one("res.users", readonly=True, string="Zadal")
+    # ZJ-06 bod 12: pole se přepíše při každém Spočítat; tento uživatel nesmí ocenění schválit (čtyři oči).
+    # Kdo ocenění založil, je create_uid; celý sled kroků je v historii (step_ids).
+    preparer_id = fields.Many2one("res.users", readonly=True, string="Spočítal",
+                                  help="Kdo ocenění naposledy spočítal. Ocenění nesmí schválit (čtyři oči).")
+    step_ids = fields.One2many("investra.valuation.step", "valuation_id", readonly=True, string="Historie")
     # Bez součtu ve skupinách: FK a NFK jsou stavové veličiny k datu; součet přes data a verze nedává smysl
     # (rozhodnutí 2026-11-14).
     fund_capital = fields.Monetary(readonly=True, string="FK", aggregator=None)
@@ -204,7 +224,23 @@ class InvestraValuation(models.Model):
     def _matrix_gate(self, activity, method, summary, **kwargs):
         """Jednorázový úkon podle schvalovací matice; vrátí žádost, má-li úkon počkat na potvrzení."""
         self.ensure_one()
-        return self.env["investra.approval.matrix"]._gate(activity, self, method, kwargs, summary=summary)
+        request = self.env["investra.approval.matrix"]._gate(activity, self, method, kwargs, summary=summary)
+        if request:
+            self._log_step("request", summary)
+        return request
+
+    def _log_step(self, step, note=False):
+        """Zapíše krok do historie ocenění (ZJ-06 bod 12): kdo (přihlášený uživatel, i při sudo), kdy, co, poznámka."""
+        self.env["investra.valuation.step"].sudo().create([
+            {"valuation_id": record.id, "step": step, "user_id": self.env.uid, "note": note or False} for record in self
+        ])
+
+    def _compute_note(self):
+        """Souhrn výpočtu do historie: FK a kurzy tříd."""
+        self.ensure_one()
+        prices = ", ".join(f"{line.class_id.code} {line.price}" for line in self.class_line_ids)
+        return self.env._("FK %(fk).2f %(currency)s; kurzy tříd: %(prices)s",
+                          fk=self.fund_capital, currency=self.currency_id.name or "", prices=prices or "-")
 
     def _require_state(self, *states):
         for record in self:
@@ -290,6 +326,7 @@ class InvestraValuation(models.Model):
         self._require_state("draft", "computed")
         for record in self.sudo():
             record._compute_all()
+            record._log_step("computed", record._compute_note())
         return True
 
     def _find_previous(self):
@@ -1535,6 +1572,7 @@ class InvestraValuation(models.Model):
             record.event_ids._lock_events()
             payload, digest = record._fingerprint()
             record.write({"snapshot": payload, "snapshot_hash": digest, "state": "submitted"})
+            record._log_step("submitted")
             # Kroky schválení podle schvalovací matice platné v okamžiku předložení (rozhodnutí 2026-11-11).
             rule = self.env["investra.approval.matrix"]._rule("valuation_approve")
             rule.check_performer(self.env)
@@ -1568,6 +1606,7 @@ class InvestraValuation(models.Model):
                 if user in record.approval_ids.user_id:
                     raise UserError(self.env._("Jeden člověk nemůže schválit dva kroky."))
             step.write({"user_id": user.id, "approved_at": fields.Datetime.now()})
+            record._log_step("approved", step.name)
             if step.alone and user == record.preparer_id:
                 Matrix = self.env["investra.approval.matrix"]
                 rule = Matrix._row_rule(step.matrix_id) if step.matrix_id else Matrix._builtin_rule("valuation_approve")
@@ -1588,6 +1627,7 @@ class InvestraValuation(models.Model):
         record = self.sudo()
         record.event_ids.filtered(lambda e: e.state in ("draft", "locked"))._discard_events()
         record.write({"state": "returned", "return_reason": reason})
+        record._log_step("returned", reason)
         return record._new_version()
 
     def action_cancel_draft(self):
@@ -1626,18 +1666,21 @@ class InvestraValuation(models.Model):
                 raise UserError(self.env._("Stav se od schválení změnil, ocenění se musí přepočítat."))
             record.event_ids.filtered(lambda e: e.state == "locked").sorted("id")._post_events()
             record.state = "posted"
+            record._log_step("posted")
         return True
 
     def action_send_depositary(self):
         self._require(PREPARER)
         self._require_state("posted")
         self.sudo().state = "sent"
+        self._log_step("sent")
         return True
 
     def action_depositary_confirm(self):
         self._require(APPROVER)
         self._require_state("sent")
         self.sudo().state = "confirmed"
+        self._log_step("confirmed")
         return True
 
     def action_depositary_return(self, reason):
@@ -1677,6 +1720,7 @@ class InvestraValuation(models.Model):
             ))
         record.event_ids.filtered(lambda e: e.state == "posted").sorted("id", reverse=True)._reverse_events()
         record.write({"state": "reversed", "return_reason": reason})
+        record._log_step("depositary_returned" if method == "action_depositary_return" else "reversed", reason)
         return record._new_version()
 
     def action_publish(self):
@@ -1698,6 +1742,7 @@ class InvestraValuation(models.Model):
             if not company.fiscalyear_lock_date or company.fiscalyear_lock_date < record.date:
                 company.fiscalyear_lock_date = record.date
             record.write({"state": "published", "published_at": fields.Datetime.now()})
+            record._log_step("published")
         return requests[:1]._action_open() if requests else True
 
     @api.model_create_multi
@@ -1707,6 +1752,8 @@ class InvestraValuation(models.Model):
         records = super().create(vals_list)
         records._check_previous_published()
         records._check_no_later_valuation()
+        for record in records:
+            record._log_step("created", self.env._("Verze %s", record.version) if record.version > 1 else False)
         return records
 
     def write(self, vals):
@@ -1963,6 +2010,32 @@ class InvestraValuationExternal(models.Model):
     def unlink(self):
         self._check_open()
         return super().unlink()
+
+
+class InvestraValuationStep(models.Model):
+    """Krok ocenění (ZJ-06 bod 12, rozhodnutí 2026-11-17): kdo, kdy a co s oceněním udělal.
+
+    Auditní stopa NAV: zapisuje jen postup ocenění (sudo), záznam nejde změnit ani smazat. Zaniká jen se zrušeným
+    návrhem ocenění (kaskáda v databázi); zrušení se zapisuje do historie fondu.
+    """
+
+    _name = "investra.valuation.step"
+    _description = "Krok ocenění"
+    _order = "valuation_id, id desc"
+
+    valuation_id = fields.Many2one("investra.valuation", required=True, readonly=True, ondelete="cascade", index=True,
+                                   string="Ocenění")
+    company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
+    step = fields.Selection(VALUATION_STEPS, required=True, readonly=True, string="Krok")
+    user_id = fields.Many2one("res.users", required=True, readonly=True, ondelete="restrict", string="Provedl")
+    done_at = fields.Datetime(required=True, readonly=True, default=fields.Datetime.now, string="Kdy")
+    note = fields.Text(readonly=True, string="Poznámka", help="Důvod vrácení nebo storna, název kroku schválení, souhrn výpočtu.")
+
+    def write(self, vals):
+        raise UserError(self.env._("Krok ocenění nejde měnit."))
+
+    def unlink(self):
+        raise UserError(self.env._("Krok ocenění nejde smazat."))
 
 
 class InvestraValuationPortfolio(models.Model):

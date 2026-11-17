@@ -194,7 +194,8 @@
                         <group string="Ocenění">
                             <field name="version"/>
                             <field name="previous_id"/>
-                            <field name="preparer_id" string="Zadal" help="Uživatel, který ocenění založil."/>
+                            <field name="create_uid" string="Založil" readonly="1"/>
+                            <field name="preparer_id"/>
                         </group>
                         <group string="Výsledek">
                             <field name="fund_capital"/>
@@ -260,6 +261,10 @@
                         <page string="Kontroly"><field name="check_ids"><list><field name="name"/><field name="status"/><field name="detail"/></list></field></page>
                         <page string="Schválení"><field name="approval_ids"><list><field name="name"/><field name="role_id"/><field name="min_role" optional="hide"/><field name="alone" optional="show"/><field name="user_id"/><field name="approved_at"/><field name="matrix_id" optional="hide"/></list></field></page>
                         <page string="Doklady"><field name="event_ids"><list><field name="name"/><field name="state" widget="badge" decoration-info="state in ('draft', 'locked')" decoration-success="state == 'posted'" decoration-muted="state in ('reversed', 'discarded')"/><field name="move_id"/></list></field></page>
+                        <!-- ZJ-06 bod 12: nezměnitelná historie kroků ocenění (kdo, kdy, co, důvod). -->
+                        <page string="Historie" name="steps"><field name="step_ids"><list create="0" delete="0">
+                            <field name="done_at"/><field name="step"/><field name="user_id"/><field name="note"/>
+                        </list></field></page>
                     </notebook>
                 </sheet>
             </form>

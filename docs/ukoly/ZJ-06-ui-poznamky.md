@@ -102,3 +102,9 @@ Převzal Claude (Opus 5.5) 17. 11. 2026: revize diffu `ee786e6..abaef56` (modely
 `tools/run_tests.sh all` 856 testů, 0 chyb (varování v logu jen dřívější). SELECT na `investra`: žádné z 13 pravidel neporušuje nové kontroly tříd.
 Bod 5: Martin rozhodl ponechat stávající práva (matici vidí každý, mění Správa), nabídky se neomezují. Osiřelý sloupec `note` se odstraní při příští migraci (otevřený bod).
 Formuláře projde Martin v UI po nasazení. Zbývá bod 7 a bod 12 (Claude).
+
+**Bod 12 (Claude, 17. 11. 2026):** model `investra.valuation.step` (krok, kdo, kdy, poznámka; `write` i `unlink` odmítne, čtení pro všechny, zápis jen postup ocenění přes sudo,
+zaniká jen kaskádou se zrušeným návrhem). Zápis z `create` (u verze 2+ poznámka „Verze N“), `action_compute` (FK a kurzy tříd), odeslání, každý krok schválení,
+žádost podle matice (`_matrix_gate`), vrácení, zaúčtování, odeslání a potvrzení depozitáři, vrácení depozitářem, storno, zveřejnění. Záložka Historie ve formuláři;
+pole `preparer_id` přejmenováno na „Spočítal“ (logika čtyř očí beze změny), přidáno „Založil“ (`create_uid`). Manuál 04 doplněn. Testy `test_valuation_steps.py` (4);
+`tools/run_tests.sh all` 864 testů, 0 chyb. Nasazení do `investra` čeká na Martinův souhlas.
