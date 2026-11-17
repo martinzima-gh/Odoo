@@ -137,3 +137,7 @@ Body 1–9 prošel Martin v UI, vše v pořádku s těmito nálezy:
 - **Návrh pro Opusa (červená zóna, neprovedeno):** fond nejde smazat ani archivovat (pole Aktivní má jen třída; tracking bez `mail_tracking` změny neukládá).
   Doporučení: tlačítko „Archivovat fond“ s povinným důvodem, zápis kdo/kdy/proč do nezměnitelné historie (`investra.record.guard`), odmítnout u fondu s rozpracovaným oceněním.
   Varianta B (smazání úplně prázdného fondu i s jeho jedinou třídou) jen na výslovné přání.
+
+**Nasazení oprav z průchodu UI (17. 11. 2026, se souhlasem Martina):** záloha `zalohy/investra-2026-11-17-pred-ZJ06ui.dump` (ověřeno `pg_restore -l`), upgrade 11 modulů
+nejdřív na kopii ze zálohy (poté smazána), pak na `investra` bez chyb; `/web/login` 200. Martin ověřil v UI: seznamy (ID první), Účetní knihy bez Nové, dialog verze sazby, body 1–9.
+Ocenění 38 (v2) vrátil Martin sám, v3 (id 39) je Návrh, nespočtená; výpočet úplat u Fondu A Martin ověří po Spočítat.
