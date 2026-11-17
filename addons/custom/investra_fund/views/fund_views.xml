@@ -75,7 +75,7 @@
                         </page>
                     </notebook>
                 </sheet>
-                <chatter/>
+                <!-- Chatter fondu přidává investra_nav (view_fund_form_history); druhý by se zobrazil dvakrát (ZJ-10). -->
             </form>
         </field>
     </record>
