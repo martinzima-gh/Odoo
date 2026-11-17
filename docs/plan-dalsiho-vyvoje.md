@@ -164,7 +164,7 @@ Manuál v `docs/manual/`, kapitola na soubor. Větev `ukol/MN-manual`.
 | MN-15 | Manuál kap. 5: uživatelé a role (`docs/ukoly/MN-15-manual-uzivatele-a-role.md`) | Copilot (nebo Sonnet) | zelená |
 | MN-16 | Manuál kap. 6 a 7: portfolia a nástroje, kurzy (`docs/ukoly/MN-16-manual-portfolia-a-kurzy.md`) | Copilot (nebo Sonnet) | zelená |
 | MN-17 | Matice: odlišit řádky z modulu, záložka Zpřísnění (nálezy 6, 7) (`docs/ukoly/MN-17-matice-vzhled.md`) | Copilot | zelená |
-| MN-18 | Matice: práva k výchozím řádkům a potvrzení (nálezy 5, 8); nejdřív návrh a rozhodnutí Martina (`docs/ukoly/MN-18-matice-prava-a-potvrzeni.md`) | Sonnet | oranžová |
+| MN-18 | Matice: práva k výchozím řádkům a potvrzení (nálezy 5, 8); rozhodnuto 17. 11. 2026 (5 = B, 8 = A i B), zadání doplněno (`docs/ukoly/MN-18-matice-prava-a-potvrzeni.md`) | Sonnet | oranžová |
 | MN-19 | Manuál kap. 8: první úpis a převzetí fondu (`docs/ukoly/MN-19-manual-prvni-upis-a-prevzeti.md`) | Sonnet | zelená |
 | (Martin) | Nález 9: příklady kap. 4 v prohlížeči – neověřovat, přijato; opraví se při používání (Martin 16. 11. 2026) | – | uzavřeno |
 
