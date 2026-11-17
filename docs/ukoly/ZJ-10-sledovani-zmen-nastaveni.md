@@ -126,4 +126,15 @@ Proveden krok **1a** (včetně opravy po revizi testů Odoo):
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+**Krok 1a** – převzal Claude (Opus 5.5) 18. 11. 2026; commity Antigravity `c0c0ad4` a `82f0ec0`, sloučeno fast-forward do `ukol/ZJ-zjednoduseni`.
+
+- **Revize diffu:** rozsah jen `investra_fund` a dokumenty úkolu; zprávy escapované přes `Markup %`; poplatky třídy bez `tracking=True` (nezdvojují se);
+  duplicitní zpráva v `_touch()` matice odstraněna (na text „Změněni schvalovatelé“ nic jiného nezávisí). Fond má jen 6 sledovatelných polí –
+  „13 polí“ v zadání byl chybný odhad (ostatní jsou related nebo One2many).
+- **První běh testů (vráceno):** 4 selhání v `test_tracking.py` – Odoo 20 bez `mail_tracking` nemá `tracking_value_ids`, změna je v těle zprávy
+  (`stará → <b>nová</b> <i>(Popisek)</i>`); dva chybné očekávané texty; varování „unknown parameter 'tracking'“ u řádkových modelů.
+  Antigravity opravil (`82f0ec0`, mixin povoluje parametr `tracking` přes `_valid_field_parameter`).
+- **Testy Odoo:** `tools/run_tests.sh all` → 0 failed, 0 error(s) of 879 tests; varování „unknown parameter 'tracking'“ 0; ostatních 9 varování
+  stejných jako v běhu 17. 11. (nesouvisí). Dočasná DB smazána.
+- **Neověřeno:** vzhled chatteru ve formuláři fondu v prohlížeči; pracovní databáze `investra` zatím není povýšená (upgrade `investra_fund` po záloze, na Martinův pokyn).
+- **Další krok:** 1b (ostatní modely z bodu 3 s mixinem z 1a, hromadné zápisy z bodu 5).
