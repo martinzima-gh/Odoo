@@ -2,6 +2,8 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tools import mute_logger
 
+from odoo.addons.investra_fund.tests.common import grant_legacy
+
 from .test_instrument import InstrumentCase
 from .common import manager_book, with_ids
 
@@ -92,7 +94,7 @@ class TestSharedPrice(InstrumentCase):
         self.approve(price)
         self.assertEqual((price.state, price.price), ("approved", 11))
         # Kdo cenu opravil, ji neschválí (schvalovatel s přípravou, jinak cenu měnit nesmí).
-        self.approver.group_ids |= self.env.ref("investra_entity.group_valuation_preparer")
+        grant_legacy(self.env, self.approver, preparer=True)
         price.with_user(self.approver).with_context(allowed_company_ids=self.both).write({"price": 12})
         with self.assertRaises(UserError):
             self.approve(price)

@@ -88,20 +88,17 @@ class InvestraLockExceptionRequest(models.Model):
     confirmed_at = fields.Datetime(readonly=True, string="Potvrzeno dne")
     exception_id = fields.Many2one("account.lock_exception", readonly=True, string="Výjimka Odoo")
 
-    def _funds(self, company=None):
-        return self.env["investra.fund"].sudo().search([("company_id", "=", (company or self.company_id).id)])
-
-    def _require_approver(self, company=None):
+    def _require_approver(self):
         """Žádat, zamítnout a ukončit smí ten, kdo podle schvalovací matice smí o výjimku požádat."""
         if self.env.su:
             return
-        rule = self.env["investra.approval.matrix"]._rule("lock_exception", self._funds(company))
+        rule = self.env["investra.approval.matrix"]._rule("lock_exception")
         rule.check_performer(self.env)
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            self._require_approver(self.env["res.company"].browse(vals.get("company_id") or self.env.company.id))
+            self._require_approver()
         for vals in vals_list:
             vals.pop("requested_by", None)
             vals["state"] = "draft"
@@ -142,7 +139,7 @@ class InvestraLockExceptionRequest(models.Model):
             if record.state != "draft":
                 raise UserError(self.env._("Potvrdit lze jen čekající žádost."))
             record._validate()
-            if not Matrix._approve_step("lock_exception", record, record._funds(), record.requested_by):
+            if not Matrix._approve_step("lock_exception", record, record.requested_by):
                 continue
             exception = self.env["account.lock_exception"].sudo().with_context(investra_lock_exception=_ALLOW).create({
                 "company_id": record.company_id.id,

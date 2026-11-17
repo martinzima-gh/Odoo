@@ -2,6 +2,7 @@ from datetime import date
 
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
+from odoo.addons.investra_fund.tests.common import grant_legacy
 from odoo.addons.investra_instruments.tests.common import assess_sppi, with_ids
 
 
@@ -22,10 +23,11 @@ class InstrumentCase(TransactionCase):
         cls.classify(cls.fund, cls.instrument)
 
         def user(login, group):
-            return cls.env["res.users"].create({
+            # Od ZJ-01 rozhodují o úkonech matice role; testová role odpovídá dřívější skupině.
+            return grant_legacy(cls.env, cls.env["res.users"].create({
                 "name": login, "login": login, "company_id": cls.company.id, "company_ids": [(6, 0, [cls.company.id])],
                 "group_ids": [(6, 0, [cls.env.ref("base.group_user").id, cls.env.ref(group).id])],
-            })
+            }))
 
         cls.preparer = user("inst_prep", "investra_entity.group_valuation_preparer")
         cls.approver = user("inst_appr", "investra_entity.group_valuation_approver")
@@ -64,7 +66,7 @@ class TestInstrument(InstrumentCase):
         self.assertEqual(price.approved_by, self.approver)
 
     def test_entered_by_cannot_approve_own(self):
-        self.approver.group_ids |= self.env.ref("investra_entity.group_valuation_preparer")
+        grant_legacy(self.env, self.approver, preparer=True)
         price = self.price(self.approver)
         with self.assertRaises(UserError):
             price.with_user(self.approver).action_approve()
@@ -92,7 +94,7 @@ class TestInstrument(InstrumentCase):
             })
 
     def test_editor_of_draft_cannot_approve(self):
-        self.approver.group_ids |= self.env.ref("investra_entity.group_valuation_preparer")
+        grant_legacy(self.env, self.approver, preparer=True)
         price = self.price()
         price.with_user(self.approver).write({"price": 150})
         self.assertEqual(price.entered_by, self.approver)
@@ -100,7 +102,7 @@ class TestInstrument(InstrumentCase):
             price.with_user(self.approver).action_approve()
 
     def test_creator_cannot_approve_when_entered_by_differs(self):
-        self.approver.group_ids |= self.env.ref("investra_entity.group_valuation_preparer")
+        grant_legacy(self.env, self.approver, preparer=True)
         price = self.price(self.approver)
         price.sudo().entered_by = self.preparer
         with self.assertRaises(UserError):

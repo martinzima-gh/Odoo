@@ -277,7 +277,7 @@ class InvestraDerivative(models.Model):
             raise UserError(self.env._("Smlouva nemá vypořádanou nohu."))
         self._check_reason(reason)
         request = self.env["investra.approval.matrix"]._gate(
-            "trade_reverse", self, "action_reverse_settlement", self.sudo().fund_id, {"reason": reason},
+            "trade_reverse", self, "action_reverse_settlement", {"reason": reason},
             summary=self.env._("Storno vypořádání nohy derivátu: %s", reason),
         )
         if request:
@@ -293,7 +293,7 @@ class InvestraDerivative(models.Model):
             raise UserError(self.env._("Stornovat lze jen sjednanou nebo vypořádanou smlouvu."))
         self._check_reason(reason)
         request = self.env["investra.approval.matrix"]._gate(
-            "trade_reverse", self, "action_reverse", self.sudo().fund_id, {"reason": reason},
+            "trade_reverse", self, "action_reverse", {"reason": reason},
             summary=self.env._("Storno derivátu: %s", reason),
         )
         if request:

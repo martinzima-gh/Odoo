@@ -8,7 +8,7 @@ from odoo.tools import format_date, html2plaintext
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from odoo.addons.investra_entity.models.entity import RATE_SOURCE_NONE
-from odoo.addons.investra_fund.models.approval_matrix import ROLES, check_user
+from odoo.addons.investra_fund.models.approval_matrix import APPROVE, PERFORM, check_user
 
 from .. import engine
 
@@ -197,9 +197,7 @@ class InvestraValuation(models.Model):
     def _matrix_gate(self, activity, method, summary, **kwargs):
         """Jednorázový úkon podle schvalovací matice; vrátí žádost, má-li úkon počkat na potvrzení."""
         self.ensure_one()
-        return self.env["investra.approval.matrix"]._gate(
-            activity, self, method, self.sudo().fund_id, kwargs, summary=summary,
-        )
+        return self.env["investra.approval.matrix"]._gate(activity, self, method, kwargs, summary=summary)
 
     def _require_state(self, *states):
         for record in self:
@@ -1241,7 +1239,7 @@ class InvestraValuation(models.Model):
         self._check("price_fund_deviation", "Fond používá sdílené tržní ceny", not deviating, "; ".join(deviating),
                     severity="warning")
         # Schvalovací matice (rozhodnutí 2026-11-11): vypnutí druhé osoby musí vidět schvalovatel, depozitář i auditor.
-        rule = self.env["investra.approval.matrix"]._rule("valuation_approve", self.fund_id)
+        rule = self.env["investra.approval.matrix"]._rule("valuation_approve")
         self._check("matrix_valuation", "Ocenění schvaluje druhá osoba", rule.persons > 1,
                     rule.row.display_name or "", severity="warning")
         alone = self._acts_without_second_person()
@@ -1276,16 +1274,11 @@ class InvestraValuation(models.Model):
                 for log in logs]
 
     def _matrix_changes(self):
-        """Řádky matice platné pro fond, které vznikly nebo se změnily od minulého ocenění."""
+        """Řádky matice (od ZJ-01 společné pro celou aplikaci), které vznikly nebo se změnily od minulého ocenění."""
         since = self._since_previous()
         if not since:
             return []
-        fund = self.fund_id
-        rows = self.env["investra.approval.matrix"].sudo().search([
-            ("write_date", ">=", since),
-            "|", ("fund_id", "=", fund.id),
-            "&", ("fund_id", "=", False), ("manager_id", "in", [False] + fund.manager_id.ids),
-        ], order="id")
+        rows = self.env["investra.approval.matrix"].sudo().search([("write_date", ">=", since)], order="id")
         return rows.mapped("display_name")
 
     def _instrument_changes(self):
@@ -1389,13 +1382,12 @@ class InvestraValuation(models.Model):
             payload, digest = record._fingerprint()
             record.write({"snapshot": payload, "snapshot_hash": digest, "state": "submitted"})
             # Kroky schválení podle schvalovací matice platné v okamžiku předložení (rozhodnutí 2026-11-11).
-            rule = self.env["investra.approval.matrix"]._rule("valuation_approve", record.fund_id)
+            rule = self.env["investra.approval.matrix"]._rule("valuation_approve")
             rule.check_performer(self.env)
             if rule.persons == 1:
-                steps = [{"name": "Schválení (bez druhé osoby)", "min_role": rule.performer_role,
-                          "allowed_user_ids": [(6, 0, rule.performer_users.ids)], "alone": True}]
+                steps = [{"name": "Schválení (bez druhé osoby)", "alone": True}]
             else:
-                steps = [{"name": step.name, "min_role": step.role, "allowed_user_ids": [(6, 0, step.users.ids)]}
+                steps = [{"name": step.name, "role_id": step.role.id, "min_role": step.role.name or False}
                          for step in rule.steps]
             record.env["investra.valuation.approval"].create([
                 {"valuation_id": record.id, "sequence": index, "matrix_id": rule.row.id, **step}
@@ -1414,7 +1406,8 @@ class InvestraValuation(models.Model):
         user = self.env.user
         for record in self.sudo():
             step = record.approval_ids.filtered(lambda a: not a.user_id).sorted("sequence")[:1]
-            check_user(self.env, user, step.min_role, step.allowed_user_ids, self.env._("Schválení ocenění"))
+            # Krok bez druhé osoby schválí ten, kdo ocenění smí schvalovat sám (Provádí); jinak role se Schvaluje.
+            check_user(self.env, user, "valuation_approve", PERFORM if step.alone else APPROVE, step.role_id)
             if not step.alone:
                 if record.preparer_id == user:
                     raise UserError(self.env._("Zadavatel nemůže schválit vlastní ocenění."))
@@ -1847,36 +1840,33 @@ class InvestraValuationApproval(models.Model):
     approved_at = fields.Datetime(readonly=True, string="Schváleno dne")
     # Požadavek kroku ze schvalovací matice v okamžiku předložení.
     matrix_id = fields.Many2one("investra.approval.matrix", readonly=True, ondelete="restrict", string="Řádek matice")
-    min_role = fields.Selection(ROLES, default="approver", readonly=True, string="Nejnižší role")
-    allowed_user_ids = fields.Many2many("res.users", readonly=True, string="Jen tito uživatelé")
+    role_id = fields.Many2one("investra.role", readonly=True, ondelete="restrict", string="Role kroku")
+    # Text role v okamžiku předložení; u kroků před ZJ-01 název tehdejší nejnižší role (převedeno migrací).
+    min_role = fields.Char(readonly=True, string="Role (text)")
     alone = fields.Boolean(readonly=True, string="Bez druhé osoby")
 
 
 class InvestraRate(models.Model):
     """Ruční kurz se nesmí dotknout už schváleného ocenění (rozhodnutí 2026-11-10 „Ochrana kurzů“).
 
-    Kdo kurz zadá a zda ho potvrdí druhá osoba, určuje schvalovací matice (rozhodnutí 2026-11-11). Kurz zdroje
-    se týká všech fondů s tímto zdrojem, proto platí nejpřísnější pravidlo z nich.
+    Kdo kurz zadá a zda ho potvrdí druhá osoba, určuje schvalovací matice (rozhodnutí 2026-11-11); matice platí
+    pro celou aplikaci (ZJ-01).
     """
 
     _inherit = "investra.rate"
-
-    @api.model
-    def _rate_funds(self, source):
-        return self.env["investra.fund"].sudo().search([("entity_id.rate_source", "=", source)])
 
     @api.model
     def _check_manual_access(self, source):
         Matrix = self.env["investra.approval.matrix"]
         if self.env.su or Matrix._passing("manual_rate", self.browse()):
             return
-        Matrix._rule("manual_rate", self._rate_funds(source)).check_performer(self.env)
+        Matrix._rule("manual_rate").check_performer(self.env)
 
     @api.model
     def _manual_pending(self, origin, source, currency, day, quantity, rate, reason):
         kind = dict(self._fields["origin"].selection).get(origin, origin)
         return self.env["investra.approval.matrix"]._gate(
-            "manual_rate", self.browse(), "_matrix_create_manual", self._rate_funds(source),
+            "manual_rate", self.browse(), "_matrix_create_manual",
             {"origin": origin, "source": source, "currency_id": currency.id, "day": str(day),
              "quantity": quantity, "rate": rate, "reason": reason},
             summary=f"{kind} {currency.name} k {day}: {quantity} = {rate} ({reason})",

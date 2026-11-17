@@ -180,7 +180,7 @@ class TestLockException(LockCase):
     def test_matrix_without_second_person_lets_requester_confirm(self):
         # Schvalovací matice (rozhodnutí 2026-11-11): výjimka podle matice, i bez druhé osoby; zapíše se.
         self.env["investra.approval.matrix"].create({
-            "activity": "lock_exception", "second_person": "no", "performer_role": "approver",
+            "activity": "lock_exception", "second_person": "no",
         })
         request = self.request()
         request.with_user(self.approver).action_confirm()

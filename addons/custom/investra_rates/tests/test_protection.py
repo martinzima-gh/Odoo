@@ -37,10 +37,16 @@ class TestRateProtection(TransactionCase):
 
     @classmethod
     def _user(cls, login, group):
-        return cls.env["res.users"].create({
+        user = cls.env["res.users"].create({
             "name": login, "login": login,
             "group_ids": [(6, 0, [cls.env.ref("base.group_user").id, cls.env.ref(group).id])],
         })
+        # S nainstalovaným investra_nav řídí ruční kurz schvalovací matice a od ZJ-01 rozhodují role;
+        # investra_rates na investra_fund nezávisí, proto se testová role přiřadí jen tehdy, když modul je.
+        if "investra.role" in cls.env:
+            from odoo.addons.investra_fund.tests.common import grant_legacy
+            grant_legacy(cls.env, user)
+        return user
 
     def odoo_rate(self, currency, day):
         return self.env["res.currency.rate"].search(

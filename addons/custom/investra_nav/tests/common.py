@@ -5,6 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from odoo.tests import TransactionCase
+from odoo.addons.investra_fund.tests.common import grant_legacy
 from odoo.addons.investra_instruments.tests.common import assess_sppi
 
 SCENARIOS = Path(__file__).parent / "scenarios"
@@ -35,10 +36,11 @@ class NavCase(TransactionCase):
 
     @classmethod
     def _make_user(cls, login, group):
-        return cls.env["res.users"].create({
+        # Od ZJ-01 rozhodují o úkonech matice role; testová role odpovídá dřívější skupině (grant_legacy).
+        return grant_legacy(cls.env, cls.env["res.users"].create({
             "name": login, "login": login,
             "group_ids": [(6, 0, [cls.env.ref("base.group_user").id, cls.env.ref(group).id])],
-        })
+        }))
 
     def make_fund(self, currency=None, launch="2026-12-31", classes=()):
         book = self.env["investra.entity"].create_book(

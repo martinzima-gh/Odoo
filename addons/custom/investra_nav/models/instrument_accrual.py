@@ -805,7 +805,7 @@ class InvestraInstrumentRepayment(models.Model):
         """Storno zaúčtované splátky k jejímu datu; pozice nástroje se tím znovu otevře."""
         self._check_reversible(reason, self.env._("Stornovat"))
         request = self.env["investra.approval.matrix"]._gate(
-            "repayment_reverse", self, "action_reverse", self.sudo().fund_id, {"reason": reason},
+            "repayment_reverse", self, "action_reverse", {"reason": reason},
             summary=self.env._("Storno splátky: %s", reason),
         )
         if request:
@@ -817,7 +817,7 @@ class InvestraInstrumentRepayment(models.Model):
         """Oprava = storno a nová splátka v návrhu s odkazem na opravovanou."""
         self._check_reversible(reason, self.env._("Opravit"))
         request = self.env["investra.approval.matrix"]._gate(
-            "repayment_reverse", self, "action_correct", self.sudo().fund_id, {"reason": reason},
+            "repayment_reverse", self, "action_correct", {"reason": reason},
             summary=self.env._("Oprava splátky: %s", reason),
         )
         if request:

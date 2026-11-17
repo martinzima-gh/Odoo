@@ -16,3 +16,9 @@ investra_approval_done_rule,investra.approval.done company,investra.approval.don
 access_approval_request_read,investra.approval.request read,investra.approval.request,account.group_account_readonly,r,
 investra_approval_request_rule,investra.approval.request company,investra.approval.request,,crud,"['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]"
 access_approval_request_line_read,investra.approval.request.line read,investra.approval.request.line,account.group_account_readonly,r,
+access_investra_role_user,investra.role read,investra.role,base.group_user,r,
+access_investra_role_admin,investra.role admin,investra.role,investra_entity.group_investra_admin,crud,
+access_investra_role_system,investra.role system,investra.role,base.group_system,crud,
+access_investra_role_line_user,investra.role.line read,investra.role.line,base.group_user,r,
+access_investra_role_line_admin,investra.role.line admin,investra.role.line,investra_entity.group_investra_admin,crud,
+access_investra_role_line_system,investra.role.line system,investra.role.line,base.group_system,crud,

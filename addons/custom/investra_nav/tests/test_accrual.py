@@ -202,8 +202,8 @@ class TestAccrual(NavCase):
 
     def test_reverse_with_second_person_goes_through_request(self):
         self.env["investra.approval.matrix"].create({
-            "activity": "repayment_reverse", "second_person": "yes", "performer_role": "preparer",
-            "valid_from": "2001-01-01", "step_ids": [(0, 0, {"sequence": 0, "name": "Kontrola", "role": "approver"})],
+            "activity": "repayment_reverse", "second_person": "yes",
+            "valid_from": "2001-01-01", "step_ids": [(0, 0, {"sequence": 0, "name": "Kontrola"})],
         })
         repayment = self.booked_repayment()
         request = repayment.with_user(self.preparer).action_reverse("Chybná částka")

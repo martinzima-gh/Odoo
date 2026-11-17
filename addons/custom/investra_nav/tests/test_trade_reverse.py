@@ -174,8 +174,8 @@ class TestTradeReverse(NavCase):
 
     def test_reverse_with_second_person_goes_through_request(self):
         self.env["investra.approval.matrix"].create({
-            "activity": "trade_reverse", "second_person": "yes", "performer_role": "preparer",
-            "valid_from": "2001-01-01", "step_ids": [(0, 0, {"sequence": 0, "name": "Kontrola", "role": "approver"})],
+            "activity": "trade_reverse", "second_person": "yes",
+            "valid_from": "2001-01-01", "step_ids": [(0, 0, {"sequence": 0, "name": "Kontrola"})],
         })
         trade = self.settled(self.instrument())
         request = trade.with_user(self.preparer).action_reverse_settlement("Chybný kurz")

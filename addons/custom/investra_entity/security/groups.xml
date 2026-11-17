@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Skupiny se uživateli odvozují z rolí Investry (investra.role, rozhodnutí 2026-11-17); ručně se nenastavují.
+         Úroveň přístupu role: Čtení → group_investra_read, Zpracování → group_valuation_preparer,
+         Správa → group_investra_admin; příznak Schvaluje v některé roli → group_valuation_approver. -->
+    <record id="group_investra_read" model="res.groups">
+        <field name="name">Investra: čtení</field>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
     <record id="group_valuation_preparer" model="res.groups">
         <field name="name">Investra: příprava ocenění</field>
-        <field name="implied_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_readonly')), (4, ref('group_investra_read'))]"/>
     </record>
     <record id="group_valuation_approver" model="res.groups">
         <field name="name">Investra: schvalování ocenění</field>
-        <field name="implied_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_readonly')), (4, ref('group_investra_read'))]"/>
+    </record>
+    <record id="group_investra_admin" model="res.groups">
+        <field name="name">Investra: správa</field>
+        <field name="implied_ids" eval="[(4, ref('group_valuation_preparer'))]"/>
     </record>
 </odoo>

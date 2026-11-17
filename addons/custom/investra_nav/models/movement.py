@@ -395,7 +395,7 @@ class InvestraClassMovement(models.Model):
             movement._check_booking()
             if movement.source == "manual":
                 request = Matrix._gate(
-                    "subscription_manual", movement, "action_book", movement.sudo().fund_id,
+                    "subscription_manual", movement, "action_book",
                     summary=self.env._("Zaúčtování: %s", movement.display_name),
                 )
                 if request:
@@ -505,7 +505,7 @@ class InvestraClassMovement(models.Model):
         if not (reason or "").strip():
             raise UserError(self.env._("Uveďte důvod storna."))
         request = self.env["investra.approval.matrix"]._gate(
-            "subscription_manual", self, "action_reverse", self.sudo().fund_id, {"reason": reason},
+            "subscription_manual", self, "action_reverse", {"reason": reason},
             summary=self.env._("Storno: %s", reason),
         )
         if request:
@@ -522,7 +522,7 @@ class InvestraClassMovement(models.Model):
         if not (reason or "").strip():
             raise UserError(self.env._("Uveďte důvod opravy."))
         request = self.env["investra.approval.matrix"]._gate(
-            "subscription_manual", self, "action_correct", self.sudo().fund_id, {"reason": reason},
+            "subscription_manual", self, "action_correct", {"reason": reason},
             summary=self.env._("Oprava: %s", reason),
         )
         if request:

@@ -86,7 +86,7 @@ class InvestraTradeReverse(models.Model):
         """Storno vypořádání; obchod zpět do stavu Sjednáno, nevypořádáno."""
         self._check_settlement_reversible(reason)
         request = self.env["investra.approval.matrix"]._gate(
-            "trade_reverse", self, "action_reverse_settlement", self.sudo().fund_id, {"reason": reason},
+            "trade_reverse", self, "action_reverse_settlement", {"reason": reason},
             summary=self.env._("Storno vypořádání obchodu: %s", reason),
         )
         if request:
@@ -98,7 +98,7 @@ class InvestraTradeReverse(models.Model):
         """Storno obchodu k datům jeho dokladů; obchod se přestane počítat do pozic."""
         self._check_reversible(reason, self.env._("Stornovat"))
         request = self.env["investra.approval.matrix"]._gate(
-            "trade_reverse", self, "action_reverse", self.sudo().fund_id, {"reason": reason},
+            "trade_reverse", self, "action_reverse", {"reason": reason},
             summary=self.env._("Storno obchodu: %s", reason),
         )
         if request:
@@ -110,7 +110,7 @@ class InvestraTradeReverse(models.Model):
         """Oprava = storno a nový obchod v návrhu s odkazem na opravovaný."""
         self._check_reversible(reason, self.env._("Opravit"))
         request = self.env["investra.approval.matrix"]._gate(
-            "trade_reverse", self, "action_correct", self.sudo().fund_id, {"reason": reason},
+            "trade_reverse", self, "action_correct", {"reason": reason},
             summary=self.env._("Oprava obchodu: %s", reason),
         )
         if request:

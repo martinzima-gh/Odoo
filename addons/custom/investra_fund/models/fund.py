@@ -62,7 +62,6 @@ class InvestraFund(models.Model):
         "investra.entity", ondelete="restrict", domain=[("entity_type", "=", "manager")], string="Obhospodařovatel",
         help="Investiční společnost; její schvalovací matice platí pro fond. Prázdné = výchozí matice.",
     )
-    approval_matrix_ids = fields.One2many("investra.approval.matrix", "fund_id", string="Zpřísnění matice")
     price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
     price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")
     unit_digits = fields.Integer(default=6, required=True, string="Výchozí desetinná místa kusů")

@@ -397,12 +397,12 @@ class InvestraPortfolioClassification(models.Model):
             return self.env.ref("investra_entity.role_participation_fv")
         return role
 
-    def _override_gate(self, funds, record=None):
+    def _override_gate(self):
         """Ruční kategorie podle matice: jeden člověk = zapíše se; čtyři oči = jen žádostí („Ruční kategorie…“)."""
         if self.env.su or self.env.context.get("investra_override") is _OVERRIDE_OK:
             return
         Matrix = self.env["investra.approval.matrix"]
-        rule = Matrix._rule("classification_override", funds)
+        rule = Matrix._rule("classification_override")
         rule.check_performer(self.env)
         if rule.persons > 1:
             raise UserError(self.env._(
@@ -422,7 +422,7 @@ class InvestraPortfolioClassification(models.Model):
         Matrix = self.env["investra.approval.matrix"]
         label = dict(IFRS9_CATEGORY).get(category_override, category_override or "bez ruční kategorie")
         request = Matrix._gate(
-            "classification_override", self, "request_category_override", self.sudo().fund_id,
+            "classification_override", self, "request_category_override",
             {"category_override": category_override, "override_note": override_note},
             summary=self.env._("Ruční kategorie %(cat)s: %(note)s", cat=label, note=override_note or ""),
         )
@@ -437,8 +437,7 @@ class InvestraPortfolioClassification(models.Model):
     def create(self, vals_list):
         overrides = [vals for vals in vals_list if vals.get("category_override")]
         if overrides:
-            portfolios = self.env["investra.fund.portfolio"].sudo().browse([v.get("portfolio_id") for v in overrides])
-            rule = self._override_gate(portfolios.fund_id)
+            rule = self._override_gate()
         for vals in vals_list:
             if COMPUTED_CLASSIFICATION & set(vals):
                 raise UserError(self.env._("Klasifikace se určuje z povahy nástroje, testu SPPI, obchodního modelu a určení."))
@@ -587,7 +586,7 @@ class InvestraPortfolioClassification(models.Model):
             ))
         # Nastavení nebo změna ruční kategorie jde podle matice; zrušení (návrat k rozhodovacímu stromu) ne.
         changed = vals.get("category_override") and self.filtered(lambda r: r.category_override != vals["category_override"])
-        rule = changed and self._override_gate(self.sudo().fund_id)
+        rule = changed and self._override_gate()
         result = super().write(vals)
         if changed:
             changed._log_override(rule)

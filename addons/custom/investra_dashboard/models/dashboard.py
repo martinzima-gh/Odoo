@@ -3,7 +3,7 @@ from datetime import timedelta
 from odoo import api, fields, models
 from odoo.tools import format_amount
 
-from odoo.addons.investra_fund.models.approval_matrix import ROLE_RANK, user_rank
+from odoo.addons.investra_fund.models.approval_matrix import APPROVE, PERFORM, user_can
 from odoo.addons.investra_fund.models.schedule import next_valuation_date
 
 SOON_DAYS = 7
@@ -355,12 +355,12 @@ class InvestraFund(models.Model):
                + [("settlement_date", leaf[1], leaf[2]) for leaf in soon], "preparer", info=True)
         simple("soon_maturities", _("Splatnost nástrojů do %s dnů", SOON_DAYS), "investra.instrument",
                [("id", "in", held)] + [("maturity_date", leaf[1], leaf[2]) for leaf in soon], "preparer", info=True)
-        # „Můj krok“ u kroků řízených schvalovací maticí: rozhoduje pravidlo matice (nejnižší role, jmenovití
-        # uživatelé, jiná osoba než zadavatel), ne jen skupina. Ostatní kroky zůstávají podle skupiny.
+        # „Můj krok“ u kroků řízených schvalovací maticí: rozhodují role uživatele (Provádí / Schvaluje, role kroku)
+        # a jiná osoba než zadavatel, ne jen skupina. Ostatní kroky zůstávají podle skupiny.
         matrix = {
             "valuation_submitted": lambda records: any(self._dashboard_can_approve(v, user) for v in records),
             "valuation_confirmed": lambda records: self._dashboard_can_perform(
-                Matrix._rule("valuation_publish", self), user),
+                Matrix._rule("valuation_publish"), user),
             "prices": lambda records: any(self._dashboard_can_approve_price(p, user) for p in records),
             "requests": lambda records: any(self._dashboard_can_confirm(r, user) for r in records),
         }
@@ -391,37 +391,33 @@ class InvestraFund(models.Model):
                 found.add(instrument.id)
         return sorted(found)
 
-    @staticmethod
-    def _dashboard_allowed(user, role, users):
-        """Splňuje uživatel nejnižší roli stupně a výčet uživatelů? Stejné pravidlo jako `check_user` matice, bez výjimky."""
-        return user_rank(user) >= ROLE_RANK[role or "approver"] and (not users or user in users)
-
     def _dashboard_can_perform(self, rule, user):
-        return self._dashboard_allowed(user, rule.performer_role, rule.performer_users)
+        """Má uživatel roli s činností pravidla a příznakem Provádí? Stejné pravidlo jako `check_user` matice."""
+        return user_can(self.env, user, rule.activity, PERFORM)
 
     def _dashboard_can_approve(self, valuation, user):
         """Smí uživatel schválit další krok ocenění? Podmínky jako `investra.valuation.action_approve`."""
         step = valuation.approval_ids.filtered(lambda a: not a.user_id).sorted("sequence")[:1]
-        if not step or not self._dashboard_allowed(user, step.min_role, step.allowed_user_ids):
+        if not step or not user_can(self.env, user, "valuation_approve", PERFORM if step.alone else APPROVE, step.role_id):
             return False
         return step.alone or (valuation.preparer_id != user and user not in valuation.approval_ids.user_id)
 
     def _dashboard_can_approve_price(self, price, user):
         """Smí uživatel schválit cenu? Podmínky jako `investra.approval.matrix._approve_step`."""
-        funds = price.fund_id or self.env["investra.fund"].search([])
-        rule = self.env["investra.approval.matrix"]._rule("price_approve", funds)
+        rule = self.env["investra.approval.matrix"]._rule("price_approve")
         if rule.persons == 1:
             return self._dashboard_can_perform(rule, user)
         done = self.env["investra.approval.done"].search([("res_model", "=", price._name), ("res_id", "=", price.id)])
         step = rule.steps[min(len(done), len(rule.steps) - 1)]
         performers = price.entered_by | price.create_uid
-        return self._dashboard_allowed(user, step.role, step.users) and user not in performers and user not in done.user_id
+        return (user_can(self.env, user, "price_approve", APPROVE, step.role)
+                and user not in performers and user not in done.user_id)
 
     def _dashboard_can_confirm(self, request, user):
         """Smí uživatel potvrdit žádost? Podmínky jako `investra.approval.request.action_approve`."""
         lines = request.line_ids.sorted("sequence")
         line = lines.filtered(lambda l: not l.user_id)[:1]
-        if not line or not self._dashboard_allowed(user, line.role, line.user_ids):
+        if not line or not user_can(self.env, user, request.activity, APPROVE, line.role_id):
             return False
         return user != request.requested_by and user not in lines.user_id
 

@@ -17,7 +17,7 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 from dateutil.relativedelta import relativedelta
 
 from odoo import fields
-from odoo.addons.investra_fund.models.approval_matrix import ACTIVITIES, BUILTIN
+from odoo.addons.investra_fund.models.approval_matrix import ACTIVITIES
 
 DB = env.cr.dbname
 if DB != "investra" and not DB.startswith("investra_ci_"):
@@ -124,7 +124,7 @@ manager = env["investra.entity"].browse(BOOK_IDS["M"])
 admin.write({"company_ids": [(4, manager.company_id.id)], "company_id": manager.company_id.id})
 UA = UA(context=dict(UA.context, allowed_company_ids=[manager.company_id.id]))
 UA["investra.approval.matrix"].create([{
-    "activity": activity, "manager_id": manager.id, "valid_from": TODAY, "performer_role": BUILTIN[activity][0],
+    "activity": activity, "valid_from": TODAY,
     "second_person": "no", "note": "Pracovní databáze: schvaluje jeden uživatel (pokyn 15. 11. 2026)",
 } for activity, _label in ACTIVITIES])
 

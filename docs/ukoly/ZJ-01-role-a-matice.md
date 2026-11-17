@@ -45,4 +45,50 @@ sekce Výsledek s přehledem změněných souborů a tím, co zbývá pro ZJ-02.
 
 ## Výsledek
 
+Provedl Claude (Opus) 17. 11. 2026 ve větvi `ukol/ZJ-zjednoduseni`; do `investra` se nenasazovalo (ZJ-04).
+
+**Co se změnilo**
+
+| Soubor | Změna |
+|---|---|
+| `investra_entity/security/groups.xml` (verze 0.13.0) | nové skupiny `group_investra_read` (Čtení) a `group_investra_admin` (Správa, implikuje přípravu); příprava i schvalování implikují Čtení |
+| `investra_fund/models/role.py` | `investra.role` (název, úroveň přístupu, činnosti s Provádí / Schvaluje, uživatelé, aktivní, historie), `investra.role.line`, pole `res.users.investra_role_ids`; zakládá a mění jen Správa nebo `base.group_system`; synchronizace skupin při změně role, činnosti, archivaci i přiřazení z uživatele (mění jen 4 skupiny Investry) |
+| `investra_fund/models/approval_matrix.py` | bez `ROLES`, `ROLE_RANK`, `manager_id`, `fund_id`, `company_id`, `performer_role`, `performer_user_ids`, `user_ids` kroků, `Rule.covers`/`key`; kontrola `user_can`/`check_user` podle rolí; krok má volitelně `role_id`; unikátnost `(activity, valid_from)`; `_rule(activity, day)`, `_gate(...)` a `_approve_step(...)` bez parametru fondů; `BUILTIN` = počet schvalovatelů (počty beze změny); řádek žádosti: `role_id` + `role` jako text |
+| `investra_fund` data, formuláře, `fund.py`, `ir.access.csv` | výchozí řádky bez rolí; z formulářů matice a fondu odstraněna zrušená pole a záložka „Zpřísnění matice“ (jen nutné minimum, plné formuláře ZJ-02); práva k rolím |
+| `investra_nav` (verze 0.32.0): `valuation.py` (i kontrola „změna matice“ bez filtru fondu), `movement.py`, `trade_reverse.py`, `instrument_accrual.py`, `lock_exception.py`, `nav_views.xml` | volání matice bez fondů; krok schválení ocenění má `role_id`, `min_role` je text, `allowed_user_ids` zrušeno; krok „bez druhé osoby“ vyžaduje Provádí, ostatní Schvaluje (případně roli kroku) |
+| `investra_instruments` (cena, ruční kategorie), `investra_derivative`, `investra_dashboard` | volání matice bez fondů; „můj krok“ v dashboardu podle rolí |
+| `investra_fund/zj01_migration.py`, `migrations/20.0.0.10.0`, `investra_nav/migrations/20.0.0.32.0` | pre-migrace: řádek fondu převod zastaví; řádky obhospodařovatele → globální, kolize (činnost, den) → ponechán novější id, odkazy převedeny, ohlášeno; kódy rolí v žádostech a krocích ocenění → text |
+| `investra_nav/migrations/20.0.0.6.0` | historický převod kroků fondu jen ohlásí (všechny databáze jsou za touto verzí) |
+| `tools/demo_data/seed.py` | jen odstraněna zrušená pole matice (seed jako celek upraví ZJ-02) |
+| testy | nové `investra_fund/tests/test_role.py` (skupiny z rolí, Provádí/Schvaluje, schvalovatel ≠ žadatel, kroky s rolí, text role v žádosti, migrace); `investra_fund/tests/common.py` – testové role napodobující skupiny před ZJ-01, použité v testech nav, instrumentů a dashboardu; upraveny testy matice (místo zpřísnění fondu a jmenovitých uživatelů krok s rolí) |
+
+**Ověření**
+
+- Testy: `tools/run_tests.sh all` na dočasné `investra_ci_20261117_113150` (po testu smazána): 824 testů, 0 failed, 0 error.
+  První běh odhalil zbylý filtr podle fondu v kontrole „změna matice“ (`valuation._matrix_changes`, opraveno) a chybějící
+  testovou roli v `investra_rates/tests/test_protection.py` (při instalaci s `investra_nav`, doplněno podmíněně).
+- Zkouška migrace na dočasné kopii `investra` (`investra_ci_mig_*`, pg_dump → restore → `-u investra_entity,investra_fund`, pak smazána): rc 0;
+  10 řádků obhospodařovatele (id 11–20, od 16. 11.) převedeno na globální, kolize data žádná; unikátnost `UNIQUE (activity, valid_from)`;
+  35 kroků schválení ocenění má text „Příprava ocenění“; skupiny uživatelů beze změny. Odoo 20 zrušené sloupce matice samo odstraní,
+  proto převod běží v pre-migraci.
+- SELECTem v `investra` před změnou: řádky zpřísnění fondu 0, jmenovití uživatelé 0, čekající žádosti 0.
+- Grep: `ROLE_RANK`, `manager_id` ani `fund_id` matice v kódu nezůstaly (jen v migraci a jejím testu); 94 odkazů na skupiny
+  přípravy a schvalování kontroluje skupinu přímo, pořadí rolí předpokládal jen odstraněný `ROLE_RANK`.
+
+**Odchylky a upozornění**
+
+- `account.group_account_user` (ruční účtování v hlavní knize) se z rolí **neodvozuje**. Ověřeno v Odoo 20: skupina přípravy
+  implikuje jen `group_account_readonly`, ruční doklad v hlavní knize vyžaduje `group_account_user`. Automatické přidělení
+  by dalo všem se Zpracováním plné účtování mimo náhled a matici, proto je to rozhodnutí pro Martina (návrh: ZJ-02 jako
+  samostatný příznak role „Účtuje ručně v hlavní knize“, nebo ručně jen uživateli `ucetni`).
+- Po nasazení (ZJ-04) nikdo nemá roli, takže úkony podle matice nikdo neprovede, dokud se nepřiřadí role. Skupiny uživatelů
+  zůstávají, ale samy úkon matice nepovolí.
+- Sloučení řádků obhospodařovatele mění chování v `investra`: např. `subscription_manual` měl u obhospodařovatele od 16. 11.
+  „jeden člověk“, globální řádek od 17. 11. „čtyři oči“; po sloučení platí novější globální řádek (čtyři oči).
+- Matici dál mění skupina schvalování (beze změny); jestli ji má měnit jen Správa, rozhodne Martin v ZJ-02.
+
+**Zbývá pro ZJ-02:** formuláře a nabídka rolí (řádky činností s Provádí / Schvaluje), pole Role u kroku matice, záložka
+rolí u uživatele (`investra_role_ids`), ukázkové role a uživatelé `admin` / `ucetni` / `schvalovatel` / `view`, úprava seedu
+(řádky matice „jeden člověk“ už bez obhospodařovatele), rozhodnutí o `group_account_user` a o tom, kdo mění matici.
+
 ## Převzetí

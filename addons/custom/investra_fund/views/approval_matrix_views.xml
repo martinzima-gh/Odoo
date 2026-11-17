@@ -8,10 +8,7 @@
             <list default_order="activity asc">
                 <field name="activity"/>
                 <field name="builtin" string="Výchozí (modul)" optional="show"/>
-                <field name="manager_id"/>
-                <field name="fund_id" optional="show"/>
                 <field name="valid_from"/>
-                <field name="performer_role"/>
                 <field name="second_person" widget="badge" decoration-warning="second_person == 'no'"/>
                 <field name="persons" optional="hide"/>
                 <field name="note" optional="show"/>
@@ -24,12 +21,9 @@
         <field name="arch" type="xml">
             <search>
                 <field name="activity"/>
-                <field name="manager_id"/>
-                <field name="fund_id"/>
                 <filter name="alone" string="Bez druhé osoby" domain="[('second_person', '=', 'no')]"/>
                 <group>
                     <filter name="group_activity" string="Činnost" context="{'group_by': 'activity'}"/>
-                    <filter name="group_manager" string="Obhospodařovatel" context="{'group_by': 'manager_id'}"/>
                 </group>
             </search>
         </field>
@@ -51,13 +45,9 @@
                             <div class="text-muted" colspan="2">
                                 Zaškrtnuto: výchozí pravidlo dodané modulem. Nezaškrtnuto: vlastní řádek matice.
                             </div>
-                            <field name="manager_id" invisible="fund_id"/>
-                            <field name="fund_id" invisible="manager_id"/>
                             <field name="valid_from"/>
                         </group>
                         <group>
-                            <field name="performer_role"/>
-                            <field name="performer_user_ids" widget="many2many_tags"/>
                             <field name="second_person"/>
                             <field name="persons"/>
                         </group>
@@ -66,8 +56,7 @@
                         <list editable="bottom">
                             <field name="sequence" widget="handle"/>
                             <field name="name"/>
-                            <field name="role"/>
-                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="role_id" placeholder="kdokoli, kdo schvaluje"/>
                         </list>
                     </field>
                     <field name="note" placeholder="Poznámka, např. odkaz na vnitřní předpis"/>
@@ -82,7 +71,7 @@
         <field name="view_mode">list,form</field>
         <field name="context">{'search_default_group_activity': 1}</field>
         <field name="help" type="html">
-            <p>Pro každou činnost: kolik lidí ji provede a jakou nejnižší roli musí mít každý stupeň.
+            <p>Pro každou činnost: kolik lidí ji provede (jeden, čtyři oči, kroky). Kdo smí činnost provést a schválit, určují role.
                Změna = nový řádek s pozdějším „Platí od“; platný řádek se nepřepisuje.</p>
         </field>
     </record>
@@ -134,7 +123,7 @@
                     <field name="summary"/>
                     <field name="line_ids">
                         <list>
-                            <field name="name"/><field name="role"/><field name="user_ids" widget="many2many_tags"/>
+                            <field name="name"/><field name="role_id"/><field name="role" optional="hide"/>
                             <field name="user_id"/><field name="approved_at"/>
                         </list>
                     </field>

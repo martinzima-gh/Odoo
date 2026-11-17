@@ -235,8 +235,14 @@ class TestDashboard(NavCase):
         draft.sudo().preparer_id = self.approver
         self.assertFalse(mine(self.approver))
         draft.sudo().preparer_id = self.preparer
-        draft.approval_ids.sudo().allowed_user_ids = self.preparer
+        # Krok s rolí (ZJ-01), kterou schvalovatel nemá: není to jeho krok.
+        board = self.env["investra.role"].create({
+            "name": "Vedení", "access_level": "read", "user_ids": [(6, 0, self.approver2.ids)],
+            "line_ids": [(0, 0, {"activity": "valuation_approve", "perform": False, "approve": True})],
+        })
+        draft.approval_ids.sudo().role_id = board
         self.assertFalse(mine(self.approver))
+        self.assertTrue(mine(self.approver2))
 
     def test_todo_sorted_my_step_first(self):
         self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)

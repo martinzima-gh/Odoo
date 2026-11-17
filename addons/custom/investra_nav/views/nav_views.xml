@@ -256,7 +256,7 @@
                             <field name="document" filename="document_name"/>
                         </list></field></page>
                         <page string="Kontroly"><field name="check_ids"><list><field name="name"/><field name="status"/><field name="detail"/></list></field></page>
-                        <page string="Schválení"><field name="approval_ids"><list><field name="name"/><field name="min_role"/><field name="alone" optional="show"/><field name="user_id"/><field name="approved_at"/><field name="matrix_id" optional="hide"/></list></field></page>
+                        <page string="Schválení"><field name="approval_ids"><list><field name="name"/><field name="role_id"/><field name="min_role" optional="hide"/><field name="alone" optional="show"/><field name="user_id"/><field name="approved_at"/><field name="matrix_id" optional="hide"/></list></field></page>
                         <page string="Doklady"><field name="event_ids"><list><field name="name"/><field name="state" widget="badge" decoration-info="state in ('draft', 'locked')" decoration-success="state == 'posted'" decoration-muted="state in ('reversed', 'discarded')"/><field name="move_id"/></list></field></page>
                     </notebook>
                 </sheet>

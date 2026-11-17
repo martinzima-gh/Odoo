@@ -1,7 +1,7 @@
 {
     "name": "Investra Entity",
     "summary": "Registr účetních knih a role účtů",
-    "version": "20.0.0.12.2",
+    "version": "20.0.0.13.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

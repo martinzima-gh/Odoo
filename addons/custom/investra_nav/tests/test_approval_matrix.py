@@ -1,8 +1,11 @@
 from datetime import date
 
+from psycopg2 import IntegrityError
+
 from odoo import fields
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import Form, tagged
+from odoo.tools import mute_logger
 
 from .common import NavCase
 from odoo.addons.investra_instruments.tests.common import with_ids
@@ -10,9 +13,10 @@ from odoo.addons.investra_instruments.tests.common import with_ids
 
 @tagged("post_install", "-at_install")
 class TestApprovalMatrix(NavCase):
-    """Schvalovací matice obhospodařovatele (rozhodnutí 2026-11-11, docs/navrh-schvalovaci-matice.md).
+    """Schvalovací matice pro celou aplikaci (rozhodnutí 2026-11-11, zjednodušení 2026-11-17, ZJ-01).
 
-    Automatické testy běží s výchozí maticí (druhá osoba jako dřív) a tady i bez druhé osoby.
+    Automatické testy běží s výchozí maticí (druhá osoba jako dřív) a tady i bez druhé osoby. Uživatelé mají
+    testové role se stejným chováním jako skupiny před ZJ-01 (`investra_fund/tests/common.py`).
     Rok 2041 je pro kurzy jen těchto testů.
     """
 
@@ -25,11 +29,11 @@ class TestApprovalMatrix(NavCase):
         self.Matrix = self.env["investra.approval.matrix"]
         self.Log = self.env["investra.approval.log"]
 
-    def matrix(self, activity, second_person="no", performer="preparer", fund=None, steps=None):
-        vals = {"activity": activity, "second_person": second_person, "performer_role": performer,
-                "fund_id": fund.id if fund else False}
+    def matrix(self, activity, second_person="no", steps=None, role=None):
+        vals = {"activity": activity, "second_person": second_person}
         if steps:
-            vals["step_ids"] = [(0, 0, {"sequence": i, "name": name, "role": "approver"}) for i, name in enumerate(steps)]
+            vals["step_ids"] = [(0, 0, {"sequence": i, "name": name, "role_id": role.id if role else False})
+                                for i, name in enumerate(steps)]
         return self.Matrix.create(vals)
 
     def check(self, valuation, code):
@@ -96,7 +100,7 @@ class TestApprovalMatrix(NavCase):
         valuation.action_send_depositary()
         valuation.with_user(self.approver).action_depositary_confirm()
         valuation.with_user(self.approver).action_publish()
-        self.matrix("valuation_return", "yes", performer="approver")
+        self.matrix("valuation_return", "yes")
         following = self.valuation(self.fund, date(2027, 2, 28))
         following.action_compute()
         check = self.check(following, "matrix_change")
@@ -104,31 +108,29 @@ class TestApprovalMatrix(NavCase):
         self.assertIn("Vrácení a storno ocenění", check.detail)
         self.assertEqual(self.check(following, "second_person").status, "ok")
 
-    def test_fund_row_cannot_weaken(self):
-        with self.assertRaises(ValidationError):
-            self.matrix("valuation_approve", fund=self.fund)
-
-    def test_fund_row_keeps_second_person_when_default_is_relaxed(self):
-        self.matrix("valuation_approve")
-        self.matrix("valuation_approve", "yes", fund=self.fund)
+    def test_step_with_role_only(self):
+        """Krok s rolí (ZJ-01): schválí jen člen té role s příznakem Schvaluje, ne jiný schvalovatel."""
+        board = self.env["investra.role"].create({
+            "name": "Vedení", "access_level": "read", "user_ids": [(6, 0, self.approver2.ids)],
+            "line_ids": [(0, 0, {"activity": "valuation_approve", "perform": False, "approve": True})],
+        })
+        self.matrix("valuation_approve", "yes", steps=["Vedení"], role=board)
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()
         valuation.action_submit()
-        with self.assertRaises(UserError):
-            valuation.action_approve()
-        valuation.with_user(self.approver).action_approve()
-        self.assertEqual(valuation.state, "approved")
-
-    def test_named_approver_only(self):
-        row = self.matrix("valuation_approve", "yes", performer="preparer")
-        row.step_ids.user_ids = self.approver2
-        valuation = self.valuation(self.fund, self.day)
-        valuation.action_compute()
-        valuation.action_submit()
+        self.assertEqual((valuation.approval_ids.role_id, valuation.approval_ids.min_role), (board, "Vedení"))
         with self.assertRaises(AccessError):
             valuation.with_user(self.approver).action_approve()
         valuation.with_user(self.approver2).action_approve()
         self.assertEqual(valuation.state, "approved")
+
+    def test_matrix_has_no_fund_or_manager(self):
+        """ZJ-01: matice je jedna pro celou aplikaci; pro činnost a den smí být jen jeden řádek."""
+        for name in ("manager_id", "fund_id", "performer_role", "performer_user_ids", "company_id"):
+            self.assertNotIn(name, self.Matrix._fields)
+        self.matrix("valuation_publish", "yes")
+        with self.assertRaises(IntegrityError), mute_logger("odoo.sql_db"), self.cr.savepoint():
+            self.matrix("valuation_publish", "no")
 
     # --- řádky matice ----------------------------------------------------------------------------
 
@@ -143,8 +145,8 @@ class TestApprovalMatrix(NavCase):
                 "activity": "valuation_publish", "second_person": "no", "valid_from": "2020-01-01",
             })
         new = self.Matrix.with_user(self.approver).create({"activity": "valuation_publish", "second_person": "yes"})
-        self.assertEqual(new.step_ids.role, "approver")
-        self.assertEqual(self.Matrix._rule("valuation_publish", self.fund).persons, 2)
+        self.assertFalse(new.step_ids.role_id)
+        self.assertEqual(self.Matrix._rule("valuation_publish").persons, 2)
         self.assertEqual(row.second_person, "no")
 
     # --- MN-18: výchozí řádky z modulu a upozornění na čekající žádost ----------------------------
@@ -170,14 +172,12 @@ class TestApprovalMatrix(NavCase):
         self.assertEqual(row.note, "sudo")
 
     def test_custom_row_with_later_valid_from_allowed(self):
-        new = self.Matrix.with_user(self.approver).create({
-            "activity": "valuation_publish", "second_person": "no", "performer_role": "approver",
-        })
+        new = self.Matrix.with_user(self.approver).create({"activity": "valuation_publish", "second_person": "no"})
         self.assertFalse(new.builtin)
         self.assertEqual(new.valid_from, fields.Date.context_today(new))
 
     def test_custom_valid_row_keeps_original_error(self):
-        row = self.matrix("valuation_publish", "no", performer="approver")
+        row = self.matrix("valuation_publish", "no")
         row.sudo().valid_from = date(2020, 1, 1)
         with self.assertRaises(UserError) as ctx:
             row.with_user(self.approver).write({"note": "x"})
@@ -185,7 +185,7 @@ class TestApprovalMatrix(NavCase):
         self.assertNotIn("Výchozí řádek z modulu", str(ctx.exception))
 
     def test_pending_request_shown_on_record(self):
-        self.matrix("valuation_publish", "yes", performer="approver")
+        self.matrix("valuation_publish", "yes")
         valuation = self.confirmed()
         self.assertFalse(valuation.pending_request_id)
         self.assertFalse(valuation.action_open_pending_request())
@@ -201,7 +201,7 @@ class TestApprovalMatrix(NavCase):
     # --- jednorázové úkony přes žádost ------------------------------------------------------------
 
     def test_publish_with_four_eyes_goes_through_request(self):
-        self.matrix("valuation_publish", "yes", performer="approver")
+        self.matrix("valuation_publish", "yes")
         valuation = self.confirmed()
         action = valuation.with_user(self.approver).action_publish()
         self.assertEqual(valuation.state, "confirmed")
@@ -217,13 +217,13 @@ class TestApprovalMatrix(NavCase):
         self.assertEqual(self.fund.company_id.fiscalyear_lock_date, self.day)
 
     def test_preparer_cannot_request_publish(self):
-        self.matrix("valuation_publish", "yes", performer="approver")
+        self.matrix("valuation_publish", "yes")
         valuation = self.confirmed()
         with self.assertRaises(AccessError):
             valuation.with_user(self.preparer).action_publish()
 
     def test_return_with_four_eyes_through_wizard(self):
-        self.matrix("valuation_return", "yes", performer="approver")
+        self.matrix("valuation_return", "yes")
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()
         valuation.action_submit()
@@ -243,7 +243,7 @@ class TestApprovalMatrix(NavCase):
         self.assertTrue(valuation.search([("fund_id", "=", self.fund.id), ("version", "=", 2)]))
 
     def test_manual_rate_with_four_eyes(self):
-        self.matrix("manual_rate", "yes", performer="approver")
+        self.matrix("manual_rate", "yes")
         self.rate("2041-01-02", 25)
         Rate = self.env["investra.rate"].sudo()
         request = self.env["investra.rate"].with_user(self.approver).create_manual(
@@ -273,7 +273,7 @@ class TestApprovalMatrix(NavCase):
         self.assertEqual(self.logs(price).user_id, self.preparer)
 
     def test_price_steps_need_two_other_people(self):
-        self.matrix("price_approve", "steps", fund=self.fund, steps=["Kontrola", "Vedení"])
+        self.matrix("price_approve", "steps", steps=["Kontrola", "Vedení"])
         price = self.env["investra.instrument.price"].with_user(self.preparer).create({
             "instrument_id": self.instrument().id, "fund_id": self.fund.id, "date": self.day, "price": 10, "source": "test",
         })

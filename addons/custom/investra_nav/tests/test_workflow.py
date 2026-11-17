@@ -8,6 +8,8 @@ from odoo.tests import tagged
 from odoo.tools import format_date
 from odoo.tools.safe_eval import safe_eval
 
+from odoo.addons.investra_fund.tests.common import grant_legacy
+
 from .common import NavCase
 
 
@@ -87,7 +89,7 @@ class TestWorkflow(NavCase):
         self.assertTrue(all(m.state == "draft" for m in self.moves(valuation)))
 
     def test_preparer_cannot_approve_own_valuation(self):
-        self.preparer.group_ids |= self.env.ref("investra_entity.group_valuation_approver")
+        grant_legacy(self.env, self.preparer, approver=True)
         valuation = self.valuation(self.fund, self.day)
         valuation.action_compute()
         valuation.action_submit()
@@ -129,9 +131,9 @@ class TestWorkflow(NavCase):
             move.with_user(manager).line_ids[0].name = "změna"
 
     def test_two_step_approval_needs_two_people(self):
-        # Kroky schválení fondu jsou od 2026-11-11 řádkem schvalovací matice (zpřísnění pro fond).
+        # Kroky schválení jsou řádkem schvalovací matice; od ZJ-01 pro celou aplikaci, ne pro fond.
         self.env["investra.approval.matrix"].create({
-            "activity": "valuation_approve", "fund_id": self.fund.id, "second_person": "steps",
+            "activity": "valuation_approve", "second_person": "steps",
             "step_ids": [(0, 0, {"sequence": 1, "name": "Kontrola"}), (0, 0, {"sequence": 2, "name": "Vedení fondu"})],
         })
         valuation = self.valuation(self.fund, self.day)

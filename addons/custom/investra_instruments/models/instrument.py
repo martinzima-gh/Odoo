@@ -535,8 +535,8 @@ class InvestraInstrumentPrice(models.Model):
     def action_approve(self):
         """Schválení ceny podle schvalovací matice (rozhodnutí 2026-11-11).
 
-        Čtyři oči (výchozí): schvaluje role schvalování ocenění, nikdy zadavatel. Jeden člověk: smí i zadavatel
-        a úkon se zapíše. Sdílená cena se týká všech fondů, platí nejpřísnější pravidlo z nich.
+        Čtyři oči (výchozí): schvaluje uživatel s rolí, která cenu schvaluje, nikdy zadavatel. Jeden člověk: smí
+        i zadavatel a úkon se zapíše. Matice platí pro celou aplikaci (ZJ-01), proto i pro sdílenou cenu.
         """
         if self.sudo().company_id - self.env.companies:
             raise AccessError(self.env._("Cena patří jiné společnosti."))
@@ -544,8 +544,7 @@ class InvestraInstrumentPrice(models.Model):
             raise UserError(self.env._("Schválit jde jen cenu v návrhu."))
         Matrix = self.env["investra.approval.matrix"]
         for price in self:
-            funds = price.sudo().fund_id or self.env["investra.fund"].sudo().search([])
-            if Matrix._approve_step("price_approve", price, funds, price.sudo().entered_by | price.sudo().create_uid):
+            if Matrix._approve_step("price_approve", price, price.sudo().entered_by | price.sudo().create_uid):
                 price.sudo().write({"state": "approved", "approved_by": self.env.user.id})
 
 
