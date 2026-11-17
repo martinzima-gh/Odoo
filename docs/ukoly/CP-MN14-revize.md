@@ -15,8 +15,10 @@
 **Co zkontrolovat** (`git diff 1b835de..a90cc29`, zadání v `docs/ukoly/MN-14-vypusteni-kalendare-oceneni.md`):
 1. `investra_fund/models/schedule.py` (`next_valuation_date`): pravidla dnů podle frekvence (konec období, pátek, pracovní den bez svátků),
    hraniční případy (přelom měsíce a roku, přestupný rok, poslední ocenění v budoucnosti, žádné ocenění → Datum vzniku, prázdná frekvence).
-2. `investra_dashboard/models/dashboard.py`: nezbyl žádný odkaz na kalendář, `dashboard_next_late` ani „Ocenění po termínu“
-   (grep v celém `addons/` včetně views, `data/`, `static/`, i18n, `tools/`, `docs/manual/`).
+2. `investra_dashboard/models/dashboard.py`: nezbyl žádný **aktivní** odkaz na kalendář, `dashboard_next_late` ani „Ocenění po termínu“
+   (grep v celém `addons/` včetně views, `data/`, `static/`, i18n, `tools/`, `docs/manual/`). Dovolené zmínky: migrační skript
+   `pre-migration.py` (odkaz na starý model a tabulku), test nepřítomnosti pole nebo upozornění, vysvětlující odstavec v manuálu
+   (kap. 4) nebo komentář (např. v `tools/nav_demo/`), že kalendář zanikl. Cokoli jiného (kód, pohledy, práva, data) je nález.
 3. `migrations/20.0.0.9.0/pre-migration.py`: maže jen prázdnou tabulku, jinak zastaví; nic jiného nemění.
 4. `security/ir.access.csv`: odstraněny právě 3 řádky kalendáře, nic dalšího.
 5. Testy: pokrývají hraniční případy z bodu 1? Co chybí? (Testy Odoo nespouštěj; čistý Python smíš.)
@@ -45,4 +47,4 @@
 
 ## Převzetí
 
-Claude 17. 11. 2026: převzato jako zápis revize. Bez zásadních nálezů; dvě LOW doporučení (grep kritérium MN-14 – povolit migraci, test nepřítomnosti a manuál; chybí test platného data s prázdnou frekvencí) druhé zapracováno 17. 11. 2026 (test prázdné frekvence v `test_schedule.py`, `investra_fund` 22 testů OK); první čeká na rozhodnutí.
+Claude 17. 11. 2026: převzato jako zápis revize. Bez zásadních nálezů; dvě LOW doporučení (grep kritérium MN-14 – povolit migraci, test nepřítomnosti a manuál; chybí test platného data s prázdnou frekvencí) druhé zapracováno 17. 11. 2026 (test prázdné frekvence v `test_schedule.py`, `investra_fund` 22 testů OK); první vyřešeno upřesněním kritéria bodu 2 (17. 11. 2026, pokyn Martina): povoleny migrace, test nepřítomnosti a vysvětlující manuál; zmínky v `demo_prehled.py:68`, `test_dashboard.py:47,53` a manuálu kap. 4 jsou tedy v pořádku.
