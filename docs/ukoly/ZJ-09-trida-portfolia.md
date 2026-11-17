@@ -18,6 +18,7 @@ podílející se na výsledku, viz ZJ-08), vyplněné = portfolio jen této tř�
 Nahrazuje varianty A, A2 a B z otevřeného bodu „Obchody a pozice na třídu“.
 Martin potvrdil 17. 11. 2026 a doplnil: **i bankovní účet může být specifický pro třídu** (deník „Bankovní účet třídy“). Bankovní deník fondu má pole Třída
 se stejným významem; řádky na jeho účtu nesou třídu. Platba mezi bankou třídy a společným majetkem (nebo portfoliem jiné třídy) jde přes vnitřní zúčtování.
+Portfolio i bankovní účet jsou **buď společné pro všechny třídy, nebo pro jednu třídu**; přiřazení skupině tříd není (pole Třída je jedna hodnota).
 
 **Plán má obsahovat:**
 1. Pole Třída na `investra.fund.portfolio` (doména na třídy fondu), zámek po prvním obchodu (`_has_trades`) a po prvním dokladu derivátu.
