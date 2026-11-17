@@ -12,6 +12,9 @@
 **Postup:**
 1. Záloha `investra` (`zalohy/investra-<datum>-pred-ZJ.dump`), upgrade dotčených modulů – **jen po souhlasu Martina
    v promptu**. Log upgradu bez ERROR.
+   **Upgrade od `investra_entity`** (`-u investra_entity`; závislé moduly se povýší s ním). `investra` má moduly ještě před
+   ZJ-01 a `-u investra_fund,investra_nav` selže na chybějící skupině Správa (zkouška na kopii v ZJ-03). Migrace ZJ-03 smaže
+   1 ruční úplatu a 1 pravidlo „mimo Odoo“ a vrátí ocenění Fondu A k 31. 10. 2026 k přepočtu; po upgradu ho přepočítat.
 2. Kontrola, že `.env` má `INVESTRA_DEMO_USER_PASSWORD` (jen existence, hodnotu nečíst); spustit skript uživatelů a rolí.
    Ověřit přihlášení `ucetni`, `schvalovatel`, `view`, `admin` (heslo zadá Martin, ne agent).
 2a. Po upgradu založit v UI (jako `admin`) řádek matice **Ruční zadání úpisu a odkupu – jeden člověk** s „Platí od“ dnes
