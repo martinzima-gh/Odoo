@@ -21,8 +21,8 @@ Vzorce, podle kterých Odoo kontroluje součet:
 ## Nabídka a práva
 
 **Investra › Úpisy a odkupy.** Seznam je řazen od nejnovějšího data, stavy: **Nezaúčtováno**, **Zaúčtováno**, **Stornováno**.
-Tlačítka **Zaúčtovat**, **Opravit** a **Stornovat** vidí a použije jen skupina **Investra: příprava ocenění** (kap. 5; členství ve skupině schvalování ocenění samo nestačí) a jen pro pohyb
-společnosti, kterou má uživatel zapnutou. Tlačítko Zaúčtovat se ukáže, až když je pohyb uložen.
+Tlačítka **Zaúčtovat**, **Opravit** a **Stornovat** vidí jen skupina **Investra: příprava ocenění** (kap. 5; členství ve skupině schvalování
+ocenění samo nestačí). Pohyb jiné společnosti, než kterou má uživatel zapnutou, systém při použití tlačítka odmítne („Pohyb patří jiné společnosti.“). Tlačítko Zaúčtovat se ukáže, až když je pohyb uložen.
 
 ## Formulář pohybu
 
@@ -85,8 +85,9 @@ zbytek do 0,01 jde na výnos nebo náklad ze zaokrouhlení. Odkup jde opačným 
 
 ## Vazba na ocenění
 
-Do ocenění vstupují **zaúčtované pohyby** s datem v období ocenění (od předchozího ocenění do data ocenění): jejich změny kapitálu a kusy
-upravují kapitál a počet kusů třídy. Stornované pohyby do ocenění nevstupují. Kontroly ocenění (kap. 4):
+Do předběžného kapitálu a počtu kusů třídy vstupují všechny **nestornované** pohyby s datem v období ocenění (od předchozího ocenění
+do data ocenění). Stornované pohyby nevstupují. Nezaúčtovaný pohyb ale ocenění nepustí dál (první kontrola níže), takže ke schválení se
+dostanou jen zaúčtované. Kontroly ocenění (kap. 4):
 
 Období prvního ocenění začíná Datem vzniku fondu; pohyb s Datem rovným datu vzniku do něj nevstoupí (počítají se pohyby s datem **po** začátku období).
 

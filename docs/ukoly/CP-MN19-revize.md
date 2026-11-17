@@ -112,4 +112,12 @@ Manuál je napsán srozumitelně pro účetního: pojmy jako "Úpis", "Odkup", "
 
 ## Převzetí
 
-Doplní Claude.
+Převzal Claude (Sonnet 5.5) 17. 11. 2026; záznam Copilota commitnut s jeho autorstvím. Copilot hlásí u všech 8 bodů „v pořádku“, bez nálezů.
+Claude výsledek **nepovažuje za dostatečný důkaz** a ověřil sám:
+1. **Nález, který Copilot nezachytil (opraveno):** kap. 8 tvrdila, že do ocenění vstupují jen zaúčtované pohyby. Kód (`valuation.py` ~311, `state != reversed`)
+   bere do předběžného kapitálu i nezaúčtované; ocenění zastaví až kontrola `movements_posted`. Text upraven.
+2. **Drobnost (opraveno):** tlačítka se skrývají jen podle skupiny; shodu společnosti hlídá až kontrola při kliknutí („Pohyb patří jiné společnosti.“).
+3. Copilotovo tvrzení „required=True u amount_class“ je nepřesné (pole není povinné; kladnou částku vynucuje kontrola „Částka i kusy musí být kladné.“); věcně
+   manuál platí. Čísla řádků v záznamu neodpovídají kódu (např. `source` je movement.py:74, ne 72), nález z toho není, ale důkazy je nutné brát jako orientační.
+4. Zbytek bodů (hlášky doslovně, vzorce, storno a oprava, příklad, oddíl převzetí) Claude při přepisu i teď znovu srovnal s kódem; rozpor nezjištěn.
+Dál neověřeno: vzhled a chování v prohlížeči; příklad nespuštěn na instanci.
