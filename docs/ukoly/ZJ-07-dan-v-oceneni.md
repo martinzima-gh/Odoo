@@ -27,6 +27,12 @@ zadávají se jen výjimky (účet → režim: neuznatelný náklad, osvobozený
 
 **Otevřené otázky pro Martina:** které fondy budou základní investiční fondy (sazba); odložená daň teď, nebo jako otevřený bod.
 
+**Doplněno 17. 11. 2026 (průchod UI ZJ-06):**
+- Pravidlo druhu Očekávaná daň nemá nákladovou roli; doplnit při řešení daní.
+- Základ časově rozlišené úplaty „po dani“ (třetí volba Základ před/po, nad rámec ZJ-06, jen administrace a obdobné úplaty): dává smysl, pokud statut bere za základ
+  hodnotu fondového kapitálu po naběhlé dani. Vzniká kruh (daň závisí na výsledku po úplatách, úplata na dani); řešení ustálením nebo doúčtováním jako u výkonnostní odměny
+  s `perf_base` „Po dani“. Zásah do `engine.py` a pořadí kroků (červená zóna, Opus). Rozhodnout až po návrhu daně a podle statutů konkrétních fondů; zatím nic neměnit.
+
 ## Výsledek
 
 ## Převzetí
