@@ -88,6 +88,9 @@ Rozhodnutí 2026-11-15: pracuje se vždy jen s **jednou verzí aplikace**.
 - Testy Odoo: `tools/run_tests.sh <modul[,modul]|all>`; každý běh založí novou dočasnou `investra_ci_<čas>`, nainstaluje
   moduly, otestuje a databázi i s filestore smaže; pracovní `investra` nepoužívá. Celý log v `.test-logs/`;
   log číst jen při neúspěchu, „0 testů“ ani ERROR v logu není úspěch. Testy Odoo spouští jen Claude.
+  Rozsah testů (rozhodnutí 2026-11-18): nejdřív jen změněný modul (při ladění `TEST_TAGS=/modul:Trida`), po úspěchu jednou
+  `modul+` (modul a všechny vlastní moduly, které na něm závisejí) před sloučením do pracovní větve; `all` jen před sloučením
+  do `main` nebo na konci etapy.
 - Odoo 20: přístupová práva jsou v `security/ir.access.csv`
   (`id,name,model_id,group_id/id,operation,domain`), ne v `ir.model.access.csv`.
 

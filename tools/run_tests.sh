@@ -7,8 +7,13 @@
 # Použití:
 #   tools/run_tests.sh investra_nav                 # jeden modul (instalace včetně závislostí)
 #   tools/run_tests.sh investra_nav,investra_rates  # více modulů
+#   tools/run_tests.sh investra_fund+               # modul a všechny investra_*, které na něm (i nepřímo) závisejí
 #   tools/run_tests.sh all                          # všechny investra_* kromě investra_env_banner
 #   TEST_TAGS=/investra_nav:TestValuation tools/run_tests.sh investra_nav   # jen vybraná třída
+#
+# Postup (rozhodnutí 2026-11-18): 1. jen změněný modul, případně TEST_TAGS na novou třídu (rychlé ladění);
+# 2. po úspěchu jednou „modul+“ (závislé moduly) před sloučením do pracovní větve; 3. „all“ jen před sloučením do main
+# nebo na konci etapy.
 #   MAX_LINES=400 tools/run_tests.sh investra_nav   # delší výpis chyb (výchozí 200)
 #   KEEP_DB=1 tools/run_tests.sh investra_nav       # databázi po testu nesmazat (k ladění; pak smazat ručně)
 #
@@ -18,7 +23,27 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MODULES="${1:-}"
-if [[ "$MODULES" == "all" ]]; then
+if [[ "$MODULES" =~ ^[a-z0-9_,]+\+$ ]]; then
+  # Uvedené moduly + vlastní moduly, které na nich závisejí (přímo i nepřímo), podle depends v __manifest__.py.
+  MODULES="$(python3 -I - "$ROOT/addons/custom" "${MODULES%+}" <<'PY'
+import ast, pathlib, sys
+root, wanted = pathlib.Path(sys.argv[1]), set(sys.argv[2].split(","))
+deps = {}
+for m in root.glob("investra_*/__manifest__.py"):
+    if m.parent.name != "investra_env_banner":
+        deps[m.parent.name] = set(ast.literal_eval(m.read_text()).get("depends", []))
+unknown = wanted - deps.keys()
+if unknown:
+    sys.exit("Neznámý modul: " + ", ".join(sorted(unknown)))
+result, changed = set(wanted), True
+while changed:
+    new = {name for name, d in deps.items() if d & result} - result
+    changed = bool(new)
+    result |= new
+print(",".join(sorted(result)))
+PY
+)" || exit 2
+elif [[ "$MODULES" == "all" ]]; then
   MODULES="$(cd "$ROOT/addons/custom" && ls -d investra_*/ | tr -d / | grep -vx investra_env_banner | paste -sd, -)"
 fi
 if [[ -z "$MODULES" || ! "$MODULES" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then
