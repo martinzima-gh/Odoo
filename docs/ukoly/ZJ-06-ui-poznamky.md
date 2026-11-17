@@ -59,4 +59,34 @@ Zveřejněná ocenění se nemění. U ukázkových fondů vyjde administrace m�
 
 ## Výsledek
 
+Provedl Sonnet 5.5 (17. 11. 2026) na větvi `ukol/ZJ-zjednoduseni`; commity `792e9e8` (pohledy) a `b059bb9` (model). Do `investra` se nenasazovalo, nic se nepushovalo.
+Testy `tools/run_tests.sh all` po obou balících: 848 a 856 testů, 0 chyb (dočasné databáze smazány).
+
+| Bod | Stav | Poznámka |
+|---|---|---|
+| 1 | hotovo | `<field name="id" optional="hide"/>` v 42 samostatných seznamech modulů `investra_*` (vnořené tabulky ve formulářích a dědění seznamů ne). |
+| 2 | hotovo | `external_fee_ids` je pro čtení mimo stavy Návrh a Spočteno (zmizí koš i přidání). Zámek v modelu beze změny. |
+| 3 | hotovo | `investra.fund.action_create_next_valuation` a odkaz „Založit ocenění“ na kartě, když je stav dalšího ocenění „Nezaloženo“. Otevře nový formulář s fondem a očekávaným datem, nic nezaloží. Test `test_action_creates_next_valuation`. |
+| 4 | hotovo | Účetní knihy (pořadí 5) před Fondy (10). |
+| 5 | hotovo | „Auditní stopa“ → „Schvalování a audit“; Schvalovací matice je v ní první (pořadí 5). Aktualizován text hlášky ve `lock_exception.py` a manuál `04-oceneni-a-matice.md`. Omezení podle skupin viz Návrh níže. |
+| 6 | hotovo | `statute_ref` je `Text` „Statut a poznámka“, `note` odstraněno z modelu i pohledů. Ostatní místa (`package.py` XLS, `tools/demo_data`, `tools/nav_demo`) `note` pravidla nepoužívají, `statute_ref` zůstává. |
+| 8 | hotovo | Neukládané pole `validity_state` (Ukončená / Platná / Budoucí); v tabulce verzí řádek šedě a modře, štítek „Stav“, bez „Platí do“. |
+| 9 | hotovo | Domény tříd ve formuláři pravidla, `onchange` na fond maže cizí třídy, `_check_classes` v modelu (třídy z fondu pravidla, platící ≠ přijímající, krytí ≠ platící). |
+| 10 | hotovo | Krystalizace a Třída krytí jen u výkonnostní odměny; u daně skryty Konvence dnů, Základ a Základ před/po. |
+| 10b | hotovo | Volba „Při každém ocenění“ (`valuation`), `_is_crystallisation` vrací pravdu; test `test_crystallisation_at_every_valuation` (+ kontrola, že měsíční volba uprostřed měsíce nekrystalizuje). |
+| 11 | hotovo | Tabulka verzí: hlavní sloupce podle druhu; formulář verze (Sazba a limity, Výkonnost, záložka „Další parametry“ s pásmy, příplatky, dohánění, vahou, stropem, kladným výnosem). Nápovědy všech polí verze i pravidla. |
+| 7 | **nedělal jsem** | Pole `sequence`, `base_mode` a `engine.py` jsou beze změny; zbývá Opus. Formulář i seznam pravidel pole Pořadí zatím mají. |
+
+**Odchylky a upozornění**
+- „Sbalená sekce“ je ve formuláři verze záložka „Další parametry“ (Odoo nemá pro formuláře sbalitelný blok); pásma jsou uvnitř ní.
+- Verze sazby se v tabulce pravidla neupravuje přímo v řádku, ale ve formuláři verze (kliknutím na řádek).
+- Sloupec `note` v tabulce `investra_fee_rule` Odoo při upgradu nemaže (zůstane osiřelý, v `investra` prázdný); případné odstranění sloupce je krok migrace a čeká na Martinův pokyn. Změna `statute_ref` z Char na Text proběhne při upgradu automaticky.
+- Neověřeno v UI: formuláře (`parent.kind` v dialogu verze, domény tříd, odkaz „Založit ocenění“) jsou ověřené jen kontrolou pohledů a testy; je potřeba je projít v UI po nasazení.
+- Existující pravidla v `investra`, která by porušila nové kontroly tříd, kontrola při upgradu neověřuje; ověřit SELECTem před nasazením.
+- Konstrukce `tools/demo_data/seed.py` a `tools/nav_demo/demo.py` nebyla spuštěna; krystalizace „Při každém ocenění“ a nová pole je nevyžadují.
+
+**Návrh k bodu 5 (neprovedeno, čeká na Martina):** všechny nabídky pod Nastavením jsou dnes bez `groups` a vidí je každý z `account.group_account_readonly` (kořen Investra). Přístupová práva ale už omezují obsah: Schvalovací matice zapisuje jen `group_investra_admin`,
+Žádosti ke schválení a Úkony bez druhé osoby čtou všichni z readonly (podle společnosti). Návrh: (a) Schvalovací matici a Úkony bez druhé osoby nechat viditelné jen pro `group_investra_admin` a auditní role; (b) Žádosti ke schválení a Účetní události ponechat pro všechny;
+(c) Výjimky z uzamčení pro `group_valuation_preparer`, `group_valuation_approver` a admina. Varianta 0: nic neměnit, protože právo čtení je záměrné (přehled rozhodnutí pro audit). Doporučení: varianta 0, dokud Martin nerozhodne, kdo má matici vidět.
+
 ## Převzetí
