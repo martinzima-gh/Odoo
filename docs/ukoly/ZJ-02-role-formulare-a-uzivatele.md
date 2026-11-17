@@ -36,4 +36,34 @@
 
 ## Výsledek
 
+Provedl Claude (Sonnet) 17. 11. 2026 ve větvi `ukol/ZJ-zjednoduseni`; do `investra` se nenasazovalo (ZJ-04).
+
+**Co se změnilo**
+
+| Soubor | Změna |
+|---|---|
+| `investra_fund/models/role.py` | příznak `manual_posting` („Účtuje ručně v hlavní knize“) odvozuje `account.group_account_user`; odebere se jen když ho nedává jiná role uživatele a uživatel není správce systému ani správce účetnictví (jejich skupiny ho implikují) |
+| `investra_fund/models/approval_matrix.py`, `security/ir.access.csv` | matici a její kroky mění jen úroveň Správa nebo `base.group_system` (`_check_manage` v `create` i `_check_editable`); práva crud pro skupinu správy a správce systému místo skupiny schvalování |
+| `investra_fund/views/role_views.xml` (nový, verze 0.11.0) | Nastavení → Uživatelé a role → Role (seznam, hledání, formulář s úrovní, příznakem účtování, tabulkou činností Provádí / Schvaluje, uživateli, poznámkou, chatter); záložka Role Investra ve formuláři uživatele Odoo; nabídka i záložka jen pro Správu a správce systému |
+| formulář matice a fondu | beze změny: bez obhospodařovatele, zpřísnění a jmenovitých uživatelů, záložka Zpřísnění matice ve fondu už po ZJ-01 není |
+| `tools/demo_data/seed_users.py` (nový), `run_seed.sh` | role Admin, Účetní, Schvalovatel, Náhled a uživatelé `admin`, `ucetni`, `schvalovatel`, `view` s přístupem ke všem knihám; heslo jen z `INVESTRA_DEMO_USER_PASSWORD` (proměnná prostředí, jinak jedna řádka z `.env`; do kontejneru `-e NÁZEV`), bez ní skript skončí chybou; nikam se nevypisuje; idempotentní (role a činnosti se synchronizují, existujícímu `admin` se heslo nemění) |
+| testy | nové `investra_fund/tests/test_role_access.py` (9 testů: příznak účtování, `view` nic nezapíše, `ucetni` a `schvalovatel` nemění role a matici, nabídka Role jen pro Správu, formulář role a záložka uživatele, schvalovatel potvrdí žádost `ucetni`); `investra_nav/tests`: nový `admin_user` (Správa), testy změn matice ho používají a ověřují, že schvalovatel matici nezmění |
+
+**Ověření**
+
+- `tools/run_tests.sh all` na dočasné `investra_ci_20261117_120628` (po testu smazána): 833 testů, 0 failed, 0 error. První běh měl 2 selhání
+  v testech matice (měnil ji schvalovatel); opraveno v testech.
+- Seed: `run_seed.sh investra_ci_zj02` (heslo jednorázové náhodné z proměnné; `.env` se nečetlo) naplnil fondy A–E, Services i role a uživatele;
+  SELECT potvrdil skupiny: `admin` čtení + příprava + schvalování + správa + správce systému + účetnictví, `schvalovatel` a `ucetni` čtení + příprava + účetnictví
+  (schvalovatel i schvalování), `view` jen čtení. Opakované spuštění `seed_users.py` (před fondy a po nich) uživatele aktualizovalo bez chyby; v logu heslo není. Databáze smazána.
+- Neověřeno: větev čtení hesla z `.env` (v testu šlo heslo z prostředí); formuláře jen testy a Form, ne ručně v prohlížeči.
+
+**Odchylky a upozornění**
+
+- `seed_users.py` se musí spustit i **před** `seed.py`: ruční úpis v seedu už podle matice vyžaduje roli s činností (jinak seed padal na AccessError). `run_seed.sh` ho proto volá před fondy i po nich (po nich doplní přístup ke všem knihám).
+- Správce účetnictví (`group_account_manager`) o `group_account_user` příznakem nepřijde (implikuje ho); jiná interpretace „uživatel není admin“ než správce systému nebo účetnictví.
+- Uživatele upravuje jen ten, kdo má i přístup do Nastavení (`base.group_system`); úroveň Správa sama formulář uživatele neotevře.
+
+**Zbývá pro ZJ-04:** nasazení do `investra` se zálohou, spuštění `run_seed.sh investra` (role a uživatelé; `seed.py` nad naplněnou databází nic nezmění), nový řádek matice „jeden člověk“ pro ruční úpis.
+
 ## Převzetí

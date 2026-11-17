@@ -8,8 +8,11 @@ uživatel má rolí více. Skupiny Odoo se uživateli odvozují z jeho rolí (ru
 - Správa → `investra_entity.group_investra_admin` (implikuje Zpracování),
 - příznak Schvaluje v některé roli → `investra_entity.group_valuation_approver`.
 
-Synchronizace mění jen tyto čtyři skupiny; ostatní skupiny uživatele (účetnictví Odoo, správa systému) nechává.
-`account.group_account_user` (ruční účtování v hlavní knize) se z rolí neodvozuje – viz Výsledek ZJ-01.
+Synchronizace mění jen tyto skupiny (a skupinu účtování, viz níže); ostatní skupiny uživatele (účetnictví Odoo, správa systému) nechává.
+
+Příznak role „Účtuje ručně v hlavní knize“ (rozhodnutí 2026-11-17 po ZJ-01) odvozuje `account.group_account_user`.
+Odebere se jen tehdy, když ho nedává jiná role uživatele a uživatel není správce systému ani správce účetnictví
+(jejich skupiny ho implikují a nesmí o něj přijít).
 """
 
 from odoo import api, fields, models
@@ -23,7 +26,8 @@ READ = "investra_entity.group_investra_read"
 PREPARER = "investra_entity.group_valuation_preparer"
 APPROVER = "investra_entity.group_valuation_approver"
 ADMIN = "investra_entity.group_investra_admin"
-MANAGED_GROUPS = (READ, PREPARER, APPROVER, ADMIN)
+ACCOUNTING = "account.group_account_user"
+MANAGED_GROUPS = (READ, PREPARER, APPROVER, ADMIN, ACCOUNTING)
 
 
 class InvestraRole(models.Model):
@@ -36,6 +40,11 @@ class InvestraRole(models.Model):
     access_level = fields.Selection(
         ACCESS_LEVELS, required=True, default="read", tracking=True, string="Úroveň přístupu",
         help="Čtení: jen čte. Zpracování: zpracovává ocenění, obchody a pohyby. Správa: navíc zakládá a mění role.",
+    )
+    manual_posting = fields.Boolean(
+        tracking=True, string="Účtuje ručně v hlavní knize",
+        help="Člen role smí zadávat ruční doklady v hlavní knize Odoo mimo náhled zaúčtování a schvalovací matici "
+             "(skupina Odoo „Účetnictví“). Zapněte jen rolím, které to smějí.",
     )
     line_ids = fields.One2many("investra.role.line", "role_id", copy=True, string="Činnosti")
     user_ids = fields.Many2many(
@@ -67,7 +76,7 @@ class InvestraRole(models.Model):
         self._check_admin()
         before = self.with_context(active_test=False).user_ids
         result = super().write(vals)
-        if {"user_ids", "access_level", "active", "line_ids"} & set(vals):
+        if {"user_ids", "access_level", "active", "line_ids", "manual_posting"} & set(vals):
             self._sync_users(before | self.user_ids)
         return result
 
@@ -93,6 +102,8 @@ class InvestraRole(models.Model):
             wanted.add(ADMIN)
         if any(roles.line_ids.mapped("approve")):
             wanted.add(APPROVER)
+        if any(roles.mapped("manual_posting")):
+            wanted.add(ACCOUNTING)
         return wanted
 
     @api.model
@@ -105,7 +116,11 @@ class InvestraRole(models.Model):
         Role = self.sudo().with_context(active_test=True)
         for user in users.sudo():
             wanted = self._groups_for(Role.search([("user_ids", "in", user.id)]))
-            commands = [(4 if xmlid in wanted else 3, group.id) for xmlid, group in groups.items()]
+            keep_accounting = user.has_group("base.group_system") or user.has_group("account.group_account_manager")
+            commands = [
+                (4 if xmlid in wanted else 3, group.id) for xmlid, group in groups.items()
+                if xmlid in wanted or not (xmlid == ACCOUNTING and keep_accounting)
+            ]
             user.write({"group_ids": commands})
 
 

@@ -35,10 +35,25 @@ else
 fi
 
 SHELL_ARGS=(shell "$ADDONS" -d "$DB" --db-filter="^${DB}\$" --no-http --max-cron-threads=0)
+# Ukázkové role a uživatelé (ZJ-02). Heslo jen z proměnné prostředí INVESTRA_DEMO_USER_PASSWORD, jinak z .env (jen tato
+# jedna proměnná, nic se nevypisuje); do kontejneru jde přes `-e NÁZEV` bez hodnoty v příkazu.
+if [[ -z "${INVESTRA_DEMO_USER_PASSWORD:-}" && -f "$ROOT/.env" ]]; then
+  INVESTRA_DEMO_USER_PASSWORD="$(grep -E '^INVESTRA_DEMO_USER_PASSWORD=' "$ROOT/.env" | tail -n1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//')" || true
+fi
+export INVESTRA_DEMO_USER_PASSWORD
+seed_users() {
+  echo "Role a ukázkoví uživatelé (seed_users.py, $1) …"
+  "${COMPOSE[@]}" run --rm --no-deps -T -e INVESTRA_DEMO_USER_PASSWORD odoo odoo "${SHELL_ARGS[@]}" <"$ROOT/tools/demo_data/seed_users.py" 2>>"$LOG" \
+    | tee -a "$LOG" | grep -E "^(  |HOTOVO)|nic se nezměnilo|zastaveno|Chyba|Chybí|patří jen|není" || true
+}
+
+# Role před seed.py: ruční zadání úpisu v seed.py už podle matice vyžaduje roli s činností (ZJ-01); po seedu se doplní knihy.
+seed_users "před fondy"
 echo "Fondy a investiční společnost (seed.py) …"
 "${ODOO[@]}" "${SHELL_ARGS[@]}" <"$ROOT/tools/demo_data/seed.py" 2>>"$LOG" | tee -a "$LOG" | grep -E "^(FOND|  KONTROLY|HOTOVO)|nic se nezměnilo|Chyba|zastaveno" || true
 echo "Investra Services (seed_services.py) …"
 { printf 'CONFIG_JSON = %s\n' "$(python3 -c 'import sys; print(repr(open(sys.argv[1]).read()))' "$ROOT/tools/demo_data/services_config.json")"
   cat "$ROOT/tools/demo_data/seed_services.py"; } \
   | "${ODOO[@]}" "${SHELL_ARGS[@]}" 2>>"$LOG" | tee -a "$LOG" | grep -E "^(SERVICES|  |HOTOVO)|nic se nezměnilo|zastaveno" || true
+seed_users "po založení všech knih"
 echo "Log: $LOG"

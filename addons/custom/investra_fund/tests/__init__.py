@@ -1,1 +1,1 @@
-from . import test_fund, test_role, test_schedule
+from . import test_fund, test_role, test_role_access, test_schedule

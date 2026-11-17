@@ -155,11 +155,18 @@ class InvestraApprovalMatrix(models.Model):
 
     # --- změny ---------------------------------------------------------------------------------
 
+    @api.model
+    def _check_manage(self):
+        """Matici mění jen úroveň Správa (nebo správce systému); rozhodnutí 2026-11-17 po ZJ-01."""
+        user = self.env.user
+        if self.env.su or user.has_group("investra_entity.group_investra_admin") or user.has_group("base.group_system"):
+            return
+        raise AccessError(self.env._("Schvalovací matici mění jen uživatel s úrovní přístupu Správa."))
+
     def _check_editable(self):
         if self.env.su:
             return
-        if not self.env.user.has_group("investra_entity.group_valuation_approver"):
-            raise AccessError(self.env._("Schvalovací matici mění jen skupina schvalování ocenění."))
+        self._check_manage()
         # MN-18 (nález MN-13 č. 5): výchozí řádek z modulu má vlastní, srozumitelnější hlášení než obecný platný řádek.
         if self.filtered("builtin"):
             raise UserError(self.env._(
@@ -174,8 +181,7 @@ class InvestraApprovalMatrix(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         if not self.env.su:
-            if not self.env.user.has_group("investra_entity.group_valuation_approver"):
-                raise AccessError(self.env._("Schvalovací matici mění jen skupina schvalování ocenění."))
+            self._check_manage()
             today = fields.Date.context_today(self)
             if any(fields.Date.to_date(v.get("valid_from") or today) < today for v in vals_list):
                 raise UserError(self.env._("Řádek matice nejde založit zpětně; „Platí od“ musí být dnes nebo později."))

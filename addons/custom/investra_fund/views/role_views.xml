@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Role Investry (ZJ-02): zakládá a mění jen úroveň Správa -->
+    <record id="view_role_list" model="ir.ui.view">
+        <field name="name">investra.role.list</field>
+        <field name="model">investra.role</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="access_level" widget="badge"/>
+                <field name="manual_posting" optional="show"/>
+                <field name="user_ids" widget="many2many_tags" optional="show"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_role_search" model="ir.ui.view">
+        <field name="name">investra.role.search</field>
+        <field name="model">investra.role</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="user_ids"/>
+                <filter name="inactive" string="Archivované" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+    <record id="view_role_form" model="ir.ui.view">
+        <field name="name">investra.role.form</field>
+        <field name="model">investra.role</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archivováno" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="access_level"/>
+                            <field name="manual_posting"/>
+                        </group>
+                        <group>
+                            <div class="text-muted" colspan="2">
+                                Čtení: jen čte. Zpracování: zpracovává ocenění, obchody a pohyby. Správa: navíc zakládá a mění
+                                role a schvalovací matici. Skupiny Odoo se uživatelům odvozují z rolí, ručně se nenastavují.
+                                „Účtuje ručně v hlavní knize“ dává právo zadávat ruční doklady mimo náhled zaúčtování.
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Činnosti" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="activity"/>
+                                    <field name="perform"/>
+                                    <field name="approve"/>
+                                </list>
+                            </field>
+                            <div class="text-muted">
+                                Provádí: člen smí činnost provést (nebo o ni požádat). Schvaluje: člen smí potvrdit
+                                činnost, kterou provedl někdo jiný. Počet osob určuje schvalovací matice.
+                            </div>
+                        </page>
+                        <page string="Uživatelé" name="users">
+                            <field name="user_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Poznámka" name="note">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_role" model="ir.actions.act_window">
+        <field name="name">Role</field>
+        <field name="res_model">investra.role</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Založte první roli</p>
+            <p>Role se skládá z činností s příznaky Provádí a Schvaluje a z úrovně přístupu. Uživatel může mít rolí více.</p>
+        </field>
+    </record>
+    <menuitem id="menu_setup_users" name="Uživatelé a role" parent="investra_entity.menu_setup" sequence="5"
+              groups="investra_entity.group_investra_admin,base.group_system"/>
+    <menuitem id="menu_role" name="Role" parent="menu_setup_users" action="action_role" sequence="10"
+              groups="investra_entity.group_investra_admin,base.group_system"/>
+
+    <!-- Záložka Role Investra ve formuláři uživatele Odoo -->
+    <record id="view_users_form_investra_roles" model="ir.ui.view">
+        <field name="name">res.users.form.investra.roles</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Role Investra" name="investra_roles"
+                      groups="investra_entity.group_investra_admin,base.group_system">
+                    <field name="investra_role_ids" widget="many2many_tags"/>
+                    <div class="text-muted">
+                        Skupiny Investry (čtení, zpracování, schvalování, správa) se odvozují z rolí a po uložení se
+                        přepíšou. Role zakládá a přiřazuje jen uživatel s úrovní Správa.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

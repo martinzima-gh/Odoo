@@ -137,14 +137,17 @@ class TestApprovalMatrix(NavCase):
     def test_valid_row_is_superseded_not_changed(self):
         row = self.env.ref("investra_fund.matrix_default_valuation_publish")
         with self.assertRaises(UserError):
-            row.with_user(self.approver).write({"second_person": "yes"})
+            row.with_user(self.admin_user).write({"second_person": "yes"})
         with self.assertRaises(AccessError):
             self.Matrix.with_user(self.preparer).create({"activity": "valuation_publish", "second_person": "no"})
+        # ZJ-02: ani schvalovatel matici nemění, jen úroveň Správa.
+        with self.assertRaises(AccessError):
+            self.Matrix.with_user(self.approver).create({"activity": "valuation_publish", "second_person": "no"})
         with self.assertRaises(UserError):
-            self.Matrix.with_user(self.approver).create({
+            self.Matrix.with_user(self.admin_user).create({
                 "activity": "valuation_publish", "second_person": "no", "valid_from": "2020-01-01",
             })
-        new = self.Matrix.with_user(self.approver).create({"activity": "valuation_publish", "second_person": "yes"})
+        new = self.Matrix.with_user(self.admin_user).create({"activity": "valuation_publish", "second_person": "yes"})
         self.assertFalse(new.step_ids.role_id)
         self.assertEqual(self.Matrix._rule("valuation_publish").persons, 2)
         self.assertEqual(row.second_person, "no")
@@ -158,9 +161,9 @@ class TestApprovalMatrix(NavCase):
 
     def test_builtin_row_has_own_error(self):
         row = self._builtin()
-        for call in (lambda: row.with_user(self.approver).write({"note": "x"}),
-                     lambda: row.with_user(self.approver).unlink(),
-                     lambda: row.step_ids.with_user(self.approver).unlink() if row.step_ids else row.with_user(self.approver).write({"valid_from": "2030-01-01"})):
+        for call in (lambda: row.with_user(self.admin_user).write({"note": "x"}),
+                     lambda: row.with_user(self.admin_user).unlink(),
+                     lambda: row.step_ids.with_user(self.admin_user).unlink() if row.step_ids else row.with_user(self.admin_user).write({"valid_from": "2030-01-01"})):
             with self.assertRaises(UserError) as ctx:
                 call()
             self.assertIn("Výchozí řádek z modulu", str(ctx.exception))
@@ -172,7 +175,7 @@ class TestApprovalMatrix(NavCase):
         self.assertEqual(row.note, "sudo")
 
     def test_custom_row_with_later_valid_from_allowed(self):
-        new = self.Matrix.with_user(self.approver).create({"activity": "valuation_publish", "second_person": "no"})
+        new = self.Matrix.with_user(self.admin_user).create({"activity": "valuation_publish", "second_person": "no"})
         self.assertFalse(new.builtin)
         self.assertEqual(new.valid_from, fields.Date.context_today(new))
 
@@ -180,7 +183,7 @@ class TestApprovalMatrix(NavCase):
         row = self.matrix("valuation_publish", "no")
         row.sudo().valid_from = date(2020, 1, 1)
         with self.assertRaises(UserError) as ctx:
-            row.with_user(self.approver).write({"note": "x"})
+            row.with_user(self.admin_user).write({"note": "x"})
         self.assertIn("Platný řádek matice", str(ctx.exception))
         self.assertNotIn("Výchozí řádek z modulu", str(ctx.exception))
 

@@ -33,6 +33,11 @@ class NavCase(TransactionCase):
         cls.preparer = cls._make_user("nav_preparer", "investra_entity.group_valuation_preparer")
         cls.approver = cls._make_user("nav_approver", "investra_entity.group_valuation_approver")
         cls.approver2 = cls._make_user("nav_approver2", "investra_entity.group_valuation_approver")
+        # Matici mění jen úroveň Správa (ZJ-02).
+        cls.admin_user = cls.env["res.users"].create({
+            "name": "nav_admin", "login": "nav_admin",
+            "group_ids": [(6, 0, [cls.env.ref("base.group_user").id, cls.env.ref("investra_entity.group_investra_admin").id])],
+        })
 
     @classmethod
     def _make_user(cls, login, group):
@@ -47,7 +52,7 @@ class NavCase(TransactionCase):
             f"Fond {self.id()[-30:]} {next(FUND_NUMBER)}", "fund", "cas501", currency or self.czk, "investra_fund"
         )
         company = book.company_id
-        for user in (self.preparer, self.approver, self.approver2):
+        for user in (self.preparer, self.approver, self.approver2, self.admin_user):
             user.write({"company_ids": [(4, company.id)], "company_id": company.id})
         self.env = self.env(context=dict(self.env.context, allowed_company_ids=[company.id]))
         fund = self.env["investra.fund"].create({"entity_id": book.id, "launch_date": launch})
