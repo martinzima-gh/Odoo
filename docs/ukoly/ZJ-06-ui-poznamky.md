@@ -126,3 +126,5 @@ Ocenění Fondu A k 31. 10. 2026 v2 (id 38, Odesláno) je spočtené původní l
 nahrazen `default_get` třídy: parametry z první třídy fondu, jinak standardní 4/dolů, 6/dolů, fond). `investra_nav`: výkonnostní odměna musí mít třídu
 (kontrola), u jediné třídy předvyplnění; ocenění fondu bez třídy hlásí chybu. Testy upraveny (`test_fund.py`) a doplněny; `run_tests.sh all` 873 testů, 0 chyb.
 Upgrade ověřen na kopii `investra` (poté smazána): bez chyb; Odoo sloupce zrušených polí smaže (viz deník) – oprava předpokladu z převzetí.
+Bod 13 nasazen do `investra` 17. 11. 2026 se souhlasem Martina: záloha `zalohy/investra-2026-11-17-pred-tridy.dump` (486 tabulek), upgrade `investra_fund`,
+`investra_nav` bez chyb, 8 tříd beze změny, výchozí pole fondu odstraněna, `/web/login` 200.
