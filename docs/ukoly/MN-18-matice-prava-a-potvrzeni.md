@@ -38,7 +38,22 @@ seznam změněných míst, inventura formulářů a co se neověřilo v prohlí�
 
 ## Výsledek
 
-Doplní provádějící agent.
+Provedl Claude (Sonnet 5.5) 17. 11. 2026 na `ukol/MN-manual`; nic nenasazeno, pracovní DB `investra` nedotčena.
+
+**Změněná místa**
+- `investra_fund/models/approval_matrix.py`: `_check_editable` hlásí pro `builtin` řádky vlastní chybu (write, unlink i kroky řádku); `sudo` a ostatní řádky beze změny.
+- Nový `investra_fund/models/approval_pending.py` (abstraktní mixin `investra.approval.pending.mixin`: nestored `pending_request_id`, `action_open_pending_request`); import v `models/__init__.py`.
+- Mixin přidán do `_inherit`: `investra.valuation`, `investra.class.movement`, `investra.instrument.repayment`, `investra.trade` (v `trade_reverse.py` nutné i `_name`), `investra.derivative`, `investra.portfolio.classification`.
+- Upozornění (stejný blok XML) v šesti formulářích: `nav_views.xml` (ocenění, pohyb, splátka), `trade_views.xml` (obchod, přes dědění pohledu), `derivative_views.xml`, `instrument_views.xml` (zařazení portfolia).
+- Testy v `investra_nav/tests/test_approval_matrix.py` (5 nových: hláška builtin, sudo, nový řádek, původní hláška vlastního platného řádku, upozornění na záznamu); manuál kap. 4 (tabulka „Kde se činnost potvrzuje“, věta o zeslabení, nález 5).
+
+**Inventura formulářů** (modely volající `_gate` s `record`): 6 – ocenění, pohyb třídy, splátka nástroje, obchod, smlouva derivátu, zařazení portfolia. Limit 6 nepřekročen, stavy ani účtování se nemění. `manual_rate` volá `_gate` bez záznamu (`res_id` 0), pruh nemá kde zobrazit. Schválení ceny a výjimka z uzamčení `_gate` nevolají (`_approve_step`, potvrzení na záznamu).
+
+**Odchylka od zadání:** zadání řadí zveřejnění mezi činnosti potvrzované na záznamu; kód (`action_publish` → `_gate`) a test ukazují Žádosti ke schválení. V manuálu uvedeno podle kódu.
+
+**Testy:** `tools/run_tests.sh investra_fund,investra_nav,investra_instruments,investra_derivative` – 512 testů, 0 failed, 0 error. (První dva běhy selhaly při načtení pohledů: pole mixinu v pohledu nad modelem bez mixinu, a chybějící `_name` při seznamu `_inherit`; opraveno.)
+
+**Neověřeno:** vzhled pruhu a funkce odkazu v prohlížeči (jen validace pohledů při instalaci a test metod); texty hlášení v angličtině/překladech.
 
 ## Převzetí
 

@@ -140,6 +140,26 @@ Chyby: „Žádost musí potvrdit jiný člověk než žadatel a předchozí sch
 Žádost zamítne žadatel, nebo schvalovatel s požadovanou rolí. Schválení ocenění a ceny a výjimka z uzamčení se potvrzují přímo
 na záznamu (ocenění, cena, žádost o výjimku), ne žádostí.
 
+**Kde se činnost potvrzuje.** Ověřeno proti kódu (`_gate` v `investra_fund`, `valuation.py`, `instrument.py`, `lock_exception.py`):
+
+| Činnost | Kde se potvrzuje |
+|---|---|
+| Schválení ocenění | na záznamu ocenění (tlačítko Schválit) |
+| Schválení ceny | na záznamu ceny |
+| Výjimka z uzamčení | na záznamu žádosti o výjimku |
+| Vrácení a storno ocenění, zveřejnění ocenění | v Žádostech ke schválení |
+| Ruční kurz, ruční úpis a odkup, ruční kategorie IFRS 9, storno a oprava splátky a obchodu | v Žádostech ke schválení |
+
+Zveřejnění ocenění se potvrzuje v Žádostech, ne na záznamu (odchylka od původního zadání úkolu MN-18; vychází z kódu
+`action_publish` → `_gate` a z testu `test_publish_with_four_eyes_goes_through_request`).
+
+Na formuláři ocenění, obchodu, smlouvy derivátu, pohybu třídy, splátky nástroje a zařazení portfolia se u záznamu, kterému
+čeká žádost, zobrazí žlutý pruh **Čeká na potvrzení v Žádostech ke schválení** s odkazem **Otevřít žádost**. Pruh jen informuje;
+potvrzuje se až v žádosti. Ruční kurz žádný záznam nemá, proto se u něj pruh nezobrazí.
+
+**Řádek obhospodařovatele smí pravidlo i zeslabit** (například z čtyř očí na jednoho člověka); zpřísňovat musí jen řádek fondu.
+Odpovědnost za takové nastavení nese schvalovatel, který řádek zadal; systém zeslabení nebrání ani nehlásí.
+
 **Úkony bez druhé osoby.** Seznam jen pro čtení: kdy, činnost, záznam, kdo provedl, kniha a řádek matice. Zapisuje se každý úkon, který
 provedl jeden člověk podle matice. Záznam nejde změnit ani smazat. Ocenění je ukáže v kontrole „Úkony od minulého ocenění provedla
 druhá osoba“ (upozornění); úkony podle výchozích řádků (`Výchozí – chování před maticí`) se jen zapíší, v kontrole se neukazují.
@@ -161,7 +181,7 @@ druhá osoba“ (upozornění); úkony podle výchozích řádků (`Výchozí �
 2. Mimořádné ocenění nemá vlastní druh ani pole; je to ocenění k dřívějšímu dni.
 3. Lhůta zveřejnění se nehlídá (rozhodnutí Martina 16. 11. 2026).
 4. Záložka **Zpřísnění matice** ve fondu je seznam bez možnosti přidat řádek přímo (zjištěno ze zdrojového XML, neověřeno v prohlížeči).
-5. Výchozí řádky matice (od 1. 1. 2000) nejde měnit ani mazat běžným uživatelem; pravidlo se mění jen novým řádkem pro obhospodařovatele.
+5. Výchozí řádky matice (od 1. 1. 2000) nejde měnit ani mazat běžným uživatelem; hlásí se „Výchozí řádek z modulu nejde měnit ani smazat; zadejte nový řádek s pozdějším „Platí od“.“ (MN-18). Pravidlo se mění jen novým řádkem pro obhospodařovatele.
 6. Seznam matice (`default_order`) i formulář nezobrazují sloupec **Výchozí řádek**, takže řádky z modulu se od vlastních
    rozliší jen poznámkou „Výchozí – chování před maticí“.
 7. Vlastní čtyři oči u schválení ceny a ocenění jsou ve formuláři záznamu, u ostatních činností v Žádostech; manuál zatím
