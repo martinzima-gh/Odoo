@@ -6,12 +6,12 @@
         <field name="model">investra.role</field>
         <field name="arch" type="xml">
             <list>
+                <field name="id" optional="hide"/>
                 <field name="name"/>
                 <field name="access_level" widget="badge"/>
                 <field name="manual_posting" optional="show"/>
                 <field name="user_ids" widget="many2many_tags" optional="show"/>
                 <field name="active" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

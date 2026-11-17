@@ -5,9 +5,9 @@
         <field name="name">investra.accounting.profile.list</field><field name="model">investra.accounting.profile</field>
         <field name="arch" type="xml">
             <list editable="bottom">
+                <field name="id" optional="hide"/>
                 <field name="code" readonly="id"/><field name="name"/><field name="role_id" options="{'no_create': True}"/>
                 <field name="valid_from" optional="hide"/><field name="valid_to" optional="hide"/><field name="active" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -46,10 +46,10 @@
         <field name="model">investra.accounting.profile.assignment</field>
         <field name="arch" type="xml">
             <list>
+                <field name="id" optional="hide"/>
                 <field name="company_id"/><field name="portfolio_id"/><field name="ba0088_id"/><field name="ba0088_group_id"/>
                 <field name="accounting_profile_id"/><field name="role_id" optional="show"/><field name="priority"/>
                 <field name="valid_from"/><field name="valid_to"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

@@ -5,12 +5,12 @@
         <field name="name">investra.ba0088.code.list</field><field name="model">investra.ba0088.code</field>
         <field name="arch" type="xml">
             <list editable="bottom">
+                <field name="id" optional="hide"/>
                 <field name="code" readonly="id"/><field name="name"/><field name="selectable"/><field name="asset_family"/>
                 <field name="group_id"/><field name="parent_code"/><field name="requires_issuer" optional="hide"/>
                 <field name="requires_maturity" optional="hide"/><field name="requires_justification" optional="hide"/>
                 <field name="leverage_rule" optional="hide"/><field name="valid_from" optional="hide"/>
                 <field name="valid_to" optional="hide"/><field name="active" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -107,10 +107,10 @@
         <field name="name">investra.esa.code.list</field><field name="model">investra.esa.code</field>
         <field name="arch" type="xml">
             <list editable="bottom">
+                <field name="id" optional="hide"/>
                 <field name="code" readonly="id"/><field name="name"/><field name="aggregate_sector_id"/><field name="residency"/>
                 <field name="residency_warning" decoration-danger="residency_warning"/><field name="esa2010_sector_id" optional="show"/>
                 <field name="any_country" optional="hide"/><field name="active" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

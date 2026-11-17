@@ -60,11 +60,11 @@
         <field name="name">investra.derivative.list</field><field name="model">investra.derivative</field>
         <field name="arch" type="xml">
             <list default_order="trade_date desc">
+                <field name="id" optional="hide"/>
                 <field name="trade_date"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'agreed'" decoration-success="state == 'settled'" decoration-muted="state == 'reversed'"/>
                 <field name="name"/><field name="kind"/><field name="fund_id"/><field name="portfolio_id" optional="show"/>
                 <field name="partner_id"/><field name="contract_ref"/><field name="instrument_id" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

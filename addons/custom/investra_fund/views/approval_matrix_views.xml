@@ -6,13 +6,13 @@
         <field name="model">investra.approval.matrix</field>
         <field name="arch" type="xml">
             <list default_order="activity asc">
+                <field name="id" optional="hide"/>
                 <field name="activity"/>
                 <field name="builtin" string="Výchozí (modul)" optional="show"/>
                 <field name="valid_from"/>
                 <field name="second_person" widget="badge" decoration-warning="second_person == 'no'"/>
                 <field name="persons" optional="hide"/>
                 <field name="note" optional="show"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -85,13 +85,13 @@
         <field name="model">investra.approval.request</field>
         <field name="arch" type="xml">
             <list default_order="create_date desc">
+                <field name="id" optional="hide"/>
                 <field name="state" widget="badge" decoration-warning="state == 'pending'" decoration-success="state == 'done'" decoration-danger="state == 'rejected'"/>
                 <field name="create_date" string="Požádáno"/>
                 <field name="activity"/>
                 <field name="record_name"/>
                 <field name="company_id" optional="show"/>
                 <field name="requested_by"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -153,13 +153,13 @@
         <field name="model">investra.approval.log</field>
         <field name="arch" type="xml">
             <list create="false" edit="false" delete="false" default_order="create_date desc">
+                <field name="id" optional="hide"/>
                 <field name="create_date" string="Kdy"/>
                 <field name="activity"/>
                 <field name="record_name"/>
                 <field name="user_id"/>
                 <field name="company_id" optional="show"/>
                 <field name="matrix_id" optional="show"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

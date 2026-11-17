@@ -4,9 +4,9 @@
         <field name="name">investra.cnb.map.list</field><field name="model">investra.cnb.map</field>
         <field name="arch" type="xml">
             <list editable="bottom">
+                <field name="id" optional="hide"/>
                 <field name="methodology"/><field name="sheet"/><field name="row"/><field name="column"/><field name="source"/><field name="role_id"/>
                 <field name="ifrs9_category"/><field name="period"/><field name="sign"/><field name="report_sign"/><field name="rollup_rows"/><field name="valid_from"/><field name="valid_to"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

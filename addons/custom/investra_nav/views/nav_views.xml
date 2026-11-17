@@ -9,6 +9,7 @@
                  limit="10": rozkliknutý fond ukáže posledních 10 ocenění, starší přes stránkování ve skupině
                  (Odoo bere stejný limit i pro stránku seznamu bez seskupení). -->
             <list limit="10">
+                <field name="id" optional="hide"/>
                 <field name="date"/>
                 <!-- Šířky sloupců (uživatel 2026-11-14): stav a čísla mají horní mez, aby se volné místo nerozteklo
                      do sloupce Stav a čísla zůstala u sebe. -->
@@ -30,7 +31,6 @@
                 <field name="has_capital_change" column_invisible="1"/>
                 <field name="fund_capital_change" optional="show" invisible="not has_capital_change" width="[150,200]"
                        decoration-success="fund_capital_change &gt; 0" decoration-danger="fund_capital_change &lt; 0"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -405,11 +405,11 @@
         <field name="model">investra.fee.rule</field>
         <field name="arch" type="xml">
             <list>
+                <field name="id" optional="hide"/>
                 <field name="fund_id"/><field name="name"/><field name="kind"/><field name="base_mode" optional="show"/><field name="expense_role"/>
                 <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
                 <field name="overlap_warning" string="Souběh" optional="show"/>
                 <field name="active" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -549,6 +549,7 @@
         <field name="arch" type="xml">
             <!-- Nejnovější nahoře, při shodném datu fondy abecedně (požadavek 2026-11-14). -->
             <list default_order="date desc, fund_id asc" decoration-muted="state == 'reversed'" decoration-info="state == 'draft'">
+                <field name="id" optional="hide"/>
                 <field name="date" string="Datum"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id" string="Fond"/>
@@ -568,7 +569,6 @@
                        decoration-success="movement_type == 'subscription'" decoration-danger="movement_type == 'redemption'"/>
                 <field name="capital_amount" optional="hide"/>
                 <field name="event_id" string="Účetní událost" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -829,6 +829,7 @@ if isinstance(result, dict):
         <field name="name">investra.instrument.repayment.list</field><field name="model">investra.instrument.repayment</field>
         <field name="arch" type="xml">
             <list default_order="date asc" decoration-muted="state == 'reversed'">
+                <field name="id" optional="hide"/>
                 <header><button name="action_create_scheduled_drafts" type="object" string="Návrhy podle kalendáře" display="always" groups="investra_entity.group_valuation_preparer"/></header>
                 <field name="date"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
@@ -836,7 +837,6 @@ if isinstance(result, dict):
                 <field name="kind" optional="show"/><field name="closes_position" optional="show"/>
                 <field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/>
                 <field name="fee_amount" optional="hide"/><field name="amount"/><field name="event_id"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

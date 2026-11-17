@@ -50,6 +50,9 @@
         <field name="model">investra.entity</field>
         <field name="inherit_id" ref="investra_entity.view_entity_list"/>
         <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="create">false</attribute>
+            </list>
             <list position="inside">
                 <header>
                     <button name="%(action_new_book_wizard)d" type="action" string="Nová účetní kniha"

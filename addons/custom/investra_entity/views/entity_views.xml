@@ -5,13 +5,13 @@
         <field name="model">investra.entity</field>
         <field name="arch" type="xml">
             <list>
+                <field name="id" optional="hide"/>
                 <field name="name"/>
                 <field name="entity_type"/>
                 <field name="framework"/>
                 <field name="currency_id"/>
                 <field name="rate_source"/>
                 <field name="parent_id"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -75,11 +75,11 @@
         <field name="model">investra.role.account</field>
         <field name="arch" type="xml">
             <list editable="bottom">
+                <field name="id" optional="hide"/>
                 <field name="company_id" string="Kniha" options="{'no_create': True, 'no_open': True}"/>
                 <field name="role_id" string="Role" options="{'no_create': True, 'no_open': True}"/>
                 <field name="account_id" string="Účet" options="{'no_create': True, 'no_open': True}"/>
                 <field name="extra_account_ids" string="Další účty" widget="many2many_tags" options="{'no_create': True}"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -114,10 +114,10 @@
         <field name="model">investra.account.role</field>
         <field name="arch" type="xml">
             <list create="false" edit="false" delete="false">
+                <field name="id" optional="hide"/>
                 <field name="code" string="Kód"/>
                 <field name="name" string="Název"/>
                 <field name="category" string="Druh"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

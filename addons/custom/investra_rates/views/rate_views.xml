@@ -45,6 +45,7 @@
         <field name="model">investra.rate</field>
         <field name="arch" type="xml">
             <list create="false" edit="false" delete="false" decoration-warning="origin != 'published'">
+                <field name="id" optional="hide"/>
                 <header>
                     <button name="%(action_rate_override_wizard)d" type="action" string="Nový ruční kurz"
                             display="always" groups="investra_entity.group_valuation_approver"/>
@@ -56,7 +57,6 @@
                 <field name="reason" optional="show"/>
                 <field name="create_uid" string="Zadal" optional="hide"/>
                 <field name="fetched_at" optional="hide"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

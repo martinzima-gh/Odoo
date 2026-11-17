@@ -5,12 +5,12 @@
         <field name="model">investra.rate.validity</field>
         <field name="arch" type="xml">
             <list delete="false" decoration-muted="not active">
+                <field name="id" optional="hide"/>
                 <field name="source"/>
                 <field name="periodicity"/>
                 <field name="currency_id" placeholder="výchozí pro lístek" options="{'no_create': True}"/>
                 <field name="max_age_days"/>
                 <field name="active" column_invisible="True"/>
-                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
