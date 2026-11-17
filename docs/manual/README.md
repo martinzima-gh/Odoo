@@ -24,6 +24,6 @@
 | 5 | [05-uzivatele-a-role.md](05-uzivatele-a-role.md) | uživatelé a role | koncept |
 | 6 | [06-portfolia-a-nastroje.md](06-portfolia-a-nastroje.md) | portfolia a nástroje | koncept |
 | 7 | [07-kurzy.md](07-kurzy.md) | kurzy | koncept |
-| 8 | – | první úpis nebo převzetí fondu | plán |
+| 8 | [08-prvni-upis-a-prevzeti-fondu.md](08-prvni-upis-a-prevzeti-fondu.md) | první úpis a odkup; převzetí fondu zatím jen plán | koncept |
 
 Pořadí práce při založení od nuly: kap. 1 (společnost obhospodařovatele) → kap. 1 (kniha fondu) → kap. 2 (fond) → kap. 3 (třídy).

@@ -31,3 +31,5 @@ Nálezy proti kódu `investra_nav/models/movement.py`:
 4. Jazykové chyby a zbytky konceptu: „series“, „spot váží“, „písomných“, „Staný“, „vytvorena“, „kap. ?“, „zvedení úpisu“; příklad míchá EUR a CZK bez ověřených čísel.
 5. Štítek „ověřeno v kódu“ proto neplatí; po přepracování ověřit každé pole a hlášení.
 Další krok: přepracovat kap. 8 po opravách 1–5 (vlastní úkol MN-19b, ověřit proti kódu a testům `investra_nav`).
+
+**Dodatek 17. 11. 2026:** kap. 8 přepsal Claude (Sonnet 5.5) podle `movement.py`, `valuation.py`, `valuation_lock.py`, `approval_matrix.py` a pohledu `nav_views.xml`; nálezy 1–5 odstraněny. Převzetí fondu je v kapitole popsáno jako dosud neexistující funkce (etapa PF), ne jako postup. Příklad přepočten (kusy = (hrubá − poplatek) ÷ cena). V prohlížeči neověřeno.
