@@ -125,15 +125,14 @@ class TestMovement(NavCase):
     def test_fee_recipient_offers_same_choices_without_fund_capital(self):
         """Příjemce je jeden výběr, stejný pro vstupní i výstupní poplatek; „Fond – kapitál“ v něm není."""
         expected = ["manager", "distributor", "fund", "class_income", "class_capital"]
-        for model, field in (("investra.fund", "entry_fee_recipient"), ("investra.fund", "exit_fee_recipient"),
-                             ("investra.fund.class", "entry_fee_recipient"), ("investra.fund.class", "exit_fee_recipient"),
+        for model, field in (("investra.fund.class", "entry_fee_recipient"), ("investra.fund.class", "exit_fee_recipient"),
                              ("investra.class.movement", "fee_recipient")):
             self.assertEqual([key for key, _label in self.env[model]._fields[field].selection], expected, f"{model}.{field}")
 
     def test_entry_and_exit_fee_settings_are_separate(self):
-        self.fund.write({"exit_fee_recipient": "class_capital"})
         fund_class = self.env["investra.fund.class"].create({
             "fund_id": self.fund.id, "code": "G", "name": "G", "currency_id": self.czk.id, "exit_fee_rate": 2,
+            "exit_fee_recipient": "class_capital",
         })
         self.assertEqual((fund_class.entry_fee_recipient, fund_class.exit_fee_recipient), ("manager", "class_capital"))
         sub = self.move(fund_class, 1010, 100, 10, fee_amount_class=10)

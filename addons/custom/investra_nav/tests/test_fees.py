@@ -81,22 +81,6 @@ class TestFees(NavCase):
         self.assertAlmostEqual(valuation.fund_capital, 2000 - 42.46, places=2)
         self.assertAlmostEqual(self.result(valuation, "B").capital, 1042.47, places=2)
 
-    def test_external_amount_requires_attachment_and_reason(self):
-        fund = self.two_class_fund()
-        rule = self.Rule.create({"fund_id": fund.id, "name": "Mimo Odoo", "kind": "external"})
-        valuation = self.valuation(fund, date(2027, 1, 31))
-        with self.assertRaises(UserError):
-            valuation.action_compute()
-        entry = self.env["investra.valuation.external"].with_user(self.preparer).create(
-            {"valuation_id": valuation.id, "rule_id": rule.id, "amount": 25}
-        )
-        with self.assertRaises(UserError):
-            valuation.action_compute()
-        attachment = self.env["ir.attachment"].create({"name": "vypocet.xlsx", "raw": b"x"})
-        entry.write({"attachment_id": attachment.id, "reason": "Výpočet podle čl. 7"})
-        valuation.action_compute()
-        self.assertAlmostEqual(valuation.fund_capital, 1975, places=2)
-
     def test_performance_with_hurdle_on_class_capital(self):
         # Vstup 1 000 dne 1. 1. 2027, do 30. 6. je 180 dní, hurdle 5 %: cíl 1 000 × (1 + 0,05 × 180/365) = 1 024,66
         # Hrubě 1 100 (výnos 200 dělí 50 : 50), 100 % přebytku = 75,34

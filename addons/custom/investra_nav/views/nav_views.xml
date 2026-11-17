@@ -242,16 +242,16 @@
                             <field name="fair_value"/>
                             <field name="realised" optional="show"/>
                         </list></field></page>
-                        <page string="Úplaty"><field name="fee_line_ids"><list><field name="rule_id"/><field name="class_id"/><field name="amount"/></list></field></page>
+                        <page string="Úplaty"><field name="fee_line_ids"><list><field name="name"/><field name="class_id"/><field name="amount"/></list></field></page>
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
-                            <div class="alert alert-warning" role="alert">Výjimka: úplata spočtená mimo Odoo. Každý řádek potřebuje důvod a přílohu s výpočtem. Částka vstoupí do ocenění jako úplata a zaúčtuje se s oceněním po schválení.</div>
-                            <field name="external_fee_ids"><list editable="bottom">
-                            <!-- Pravidlo a třída jen z fondu ocenění; nové pravidlo z výběru má fond a druh předvyplněné a zamčené
-                                 (uživatel 2026-11-13). -->
-                            <field name="rule_id" domain="[('kind', '=', 'external'), ('fund_id', '=', parent.fund_id)]"
-                                   context="{'default_fund_id': parent.fund_id, 'default_kind': 'external', 'investra_lock_fund': True}"/>
-                            <field name="class_id" domain="[('fund_id', '=', parent.fund_id)]" context="{'default_fund_id': parent.fund_id}"/>
-                            <field name="amount"/><field name="reason"/>
+                            <div class="alert alert-info" role="alert">Úplata spočtená mimo Odoo (ZJ-03). Zaúčtuje se k datu ocenění na zvolený nákladový účet proti závazku z úplat, v cizí měně kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Prázdná třída = celý fond. Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.</div>
+                            <field name="external_fee_ids" context="{'default_valuation_id': id}"><list editable="bottom">
+                            <field name="class_id" domain="[('fund_id', '=', parent.fund_id)]" options="{'no_create': True}"/>
+                            <field name="amount"/>
+                            <field name="currency_id" options="{'no_create': True}"/>
+                            <field name="account_id" required="1" options="{'no_create': True}"
+                                   domain="[('account_type', '=like', 'expense%'), ('company_ids', 'in', parent.company_id)]"/>
+                            <field name="note" required="1"/>
                             <field name="document_name" column_invisible="1"/>
                             <field name="document" filename="document_name"/>
                         </list></field></page>
@@ -361,6 +361,47 @@
             <xpath expr="//field[@name='class_ids']/list/field[@name='currency_id']" position="attributes"><attribute name="readonly">movement_locked</attribute></xpath>
         </field>
     </record>
+    <!-- MN-07 i ve formuláři třídy (ZJ-03). -->
+    <record id="view_fund_class_form_lock" model="ir.ui.view">
+        <field name="name">investra.fund.class.form.lock</field><field name="model">investra.fund.class</field>
+        <field name="inherit_id" ref="investra_fund.view_fund_class_form"/>
+        <field name="arch" type="xml">
+            <field name="code" position="before"><field name="movement_locked" invisible="1"/></field>
+            <field name="code" position="attributes"><attribute name="readonly">movement_locked</attribute></field>
+            <field name="currency_id" position="attributes"><attribute name="readonly">movement_locked</attribute></field>
+        </field>
+    </record>
+    <!-- ZJ-03: pravidla úplat ve formuláři fondu; nabídka Pravidla úplat zůstává jako přehled. -->
+    <record id="view_fund_form_fee_rules" model="ir.ui.view">
+        <field name="name">investra.fund.form.fee.rules</field><field name="model">investra.fund</field>
+        <field name="inherit_id" ref="investra_fund.view_fund_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[1]" position="after">
+                <page string="Úplaty" name="fee_rules">
+                    <field name="fee_rule_ids" context="{'default_fund_id': id, 'investra_lock_fund': True}">
+                        <list>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/><field name="kind"/><field name="expense_role"/>
+                            <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
+                            <field name="overlap_warning" string="Souběh" optional="show"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_fee_rule_list" model="ir.ui.view">
+        <field name="name">investra.fee.rule.list</field>
+        <field name="model">investra.fee.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="fund_id"/><field name="sequence"/><field name="name"/><field name="kind"/><field name="expense_role"/>
+                <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
+                <field name="note" optional="hide"/><field name="overlap_warning" string="Souběh" optional="show"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
     <record id="action_valuation" model="ir.actions.act_window">
         <field name="name">Ocenění</field>
         <field name="res_model">investra.valuation</field>
@@ -377,8 +418,12 @@
         <field name="model">investra.fee.rule</field>
         <field name="arch" type="xml">
             <form><sheet>
+                <!-- ZJ-03: souběh téže nákladové role na fondu a na třídách jen upozorní; uložení ani výpočet nezastaví. -->
+                <div class="alert alert-warning" role="alert" invisible="not overlap_warning">
+                    <field name="overlap_warning" nolabel="1"/>
+                </div>
                 <group>
-                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="sequence"/><field name="statute_ref"/></group>
+                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind"/><field name="sequence"/><field name="statute_ref"/><field name="note"/></group>
                     <group><field name="basis"/><field name="base_source"/><field name="base_mode"/><field name="expense_role"/><field name="crystallisation"/></group>
                 </group>
                 <group>
@@ -403,7 +448,6 @@
                 <filter name="filter_periodic" string="Časově rozlišená úplata" domain="[('kind', '=', 'periodic')]"/>
                 <filter name="filter_performance" string="Výkonnostní odměna" domain="[('kind', '=', 'performance')]"/>
                 <filter name="filter_tax" string="Očekávaná daň" domain="[('kind', '=', 'tax')]"/>
-                <filter name="filter_external" string="Ručně doložená úplata" domain="[('kind', '=', 'external')]"/>
                 <separator/>
                 <filter name="filter_archived" string="Archivováno" domain="[('active', '=', False)]" context="{'active_test': False}"/>
                 <group>

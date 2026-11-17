@@ -23,12 +23,13 @@ class InvestraFeeRule(models.Model):
     sequence = fields.Integer(default=10, help="Pořadí výpočtu podle statutu.", string="Pořadí")
     active = fields.Boolean(default=True, string="Aktivní")
     statute_ref = fields.Char(string="Článek statutu")
+    note = fields.Text(string="Poznámka")
     kind = fields.Selection(
         [
             ("periodic", "Časově rozlišená úplata"),
             ("performance", "Výkonnostní odměna"),
             ("tax", "Očekávaná daň"),
-            ("external", "Výpočet mimo Odoo s doložením"),
+            # „Výpočet mimo Odoo s doložením“ zrušilo ZJ-03; ručně doložené úplaty se zadávají v ocenění bez pravidla.
         ],
         required=True,
         default="periodic",
@@ -78,6 +79,54 @@ class InvestraFeeRule(models.Model):
         string="Krystalizace",
     )
     version_ids = fields.One2many("investra.fee.version", "rule_id", string="Verze")
+    overlap_warning = fields.Text(compute="_compute_overlap_warning", string="Upozornění na souběh")
+
+    @api.depends("fund_id", "class_ids", "expense_role", "kind", "active")
+    def _compute_overlap_warning(self):
+        for rule in self:
+            fund = rule.fund_id
+            if not fund or rule.kind == "tax":
+                rule.overlap_warning = False
+                continue
+            # Neuložené pravidlo (formulář) se počítá místo své uložené verze.
+            others = self.search([("fund_id", "=", fund.id), ("id", "!=", rule._origin.id)])
+            rules = [(r, r.class_ids) for r in others] + ([(rule, rule.class_ids)] if rule.active else [])
+            messages = self._overlaps(rules, only=rule)
+            rule.overlap_warning = "\n".join(messages) or False
+
+    @api.model
+    def _overlaps(self, rules, only=None):
+        """Souběh úplat jedné nákladové role (rozhodnutí 2026-11-17 „Poplatky fondu a tříd“): jen upozornění.
+
+        rules = [(pravidlo, třídy)] aktivních pravidel jednoho fondu; daň se neposuzuje. `only` omezí zprávy
+        na ty, kterých se pravidlo účastní.
+        """
+        labels = dict(EXPENSE_ROLES)
+        by_role = {}
+        for rule, classes in rules:
+            if rule.kind != "tax":
+                by_role.setdefault(rule.expense_role, []).append((rule, classes))
+        messages = []
+        for role, items in by_role.items():
+            fund_wide = [r for r, c in items if not c]
+            on_classes = [(r, c) for r, c in items if c]
+            if fund_wide and on_classes and (only is None or only in fund_wide or only in [r for r, _c in on_classes]):
+                messages.append(self.env._(
+                    "%(role)s: pravidlo celého fondu (%(fund)s) i pravidlo tříd (%(classes)s).",
+                    role=labels.get(role, role), fund=", ".join(r.name for r in fund_wide),
+                    classes=", ".join(r.name for r, _c in on_classes),
+                ))
+            per_class = {}
+            for rule, classes in on_classes:
+                for fund_class in classes:
+                    per_class.setdefault(fund_class, []).append(rule)
+            for fund_class, class_rules in per_class.items():
+                if len(class_rules) > 1 and (only is None or only in class_rules):
+                    messages.append(self.env._(
+                        "%(role)s: třída %(cls)s má více pravidel (%(rules)s).",
+                        role=labels.get(role, role), cls=fund_class.code, rules=", ".join(r.name for r in class_rules),
+                    ))
+        return messages
 
     @api.constrains("recipient_share")
     def _check_share(self):

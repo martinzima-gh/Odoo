@@ -90,10 +90,10 @@ class TestCompanyAccess(NavCase):
         self.assert_stays_in_book("investra.valuation", {"fund_id": self.own.id, "date": "2037-02-28", "version": 1}, "fund_id", self.fund)
 
     def test_external_stays_in_book(self):
-        rule = self.env["investra.fee.rule"].create({"fund_id": self.own.id, "name": "Mimo Odoo", "kind": "external"})
         valuation = self.as_outsider(self.env["investra.valuation"]).create({"fund_id": self.own.id, "date": "2037-01-31", "version": 1})
         self.assert_stays_in_book("investra.valuation.external", {
-            "valuation_id": valuation.id, "rule_id": rule.id, "amount": 1,
+            "valuation_id": valuation.id, "amount": 1, "note": "Test",
+            "account_id": self.env["investra.account.role"].sudo().account_for(self.own_company, "expense_other").id,
         }, "valuation_id", self.foreign)
 
     def test_context_cannot_set_valuation_state(self):

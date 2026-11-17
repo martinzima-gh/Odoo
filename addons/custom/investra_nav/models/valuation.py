@@ -35,6 +35,8 @@ class InvestraFund(models.Model):
     _inherit = ["investra.fund", "mail.thread"]
 
     launch_date = fields.Date(string="Datum vzniku", help="Začátek prvního oceňovacího období.")
+    # Záložka Úplaty ve formuláři fondu (ZJ-03); nabídka Pravidla úplat zůstává jako přehled.
+    fee_rule_ids = fields.One2many("investra.fee.rule", "fund_id", string="Pravidla úplat")
     launch_locked = fields.Boolean(compute="_compute_launch_locked", string="Datum vzniku uzamčeno")
     # Kroky schválení (dříve approval_step_ids) určuje schvalovací matice; převedla je migrace 20.0.0.6.0.
 
@@ -359,15 +361,21 @@ class InvestraValuation(models.Model):
         self._compute_portfolio()
         self._compute_bank_fx()
         self._compute_unsettled()
+        # Ručně doložené úplaty (ZJ-03, rozhodnutí 2026-11-17) patří k ostatním úplatám: zaúčtují se před první
+        # výkonnostní odměnou nebo daní, jinak po všech úplatách.
+        manual_done = False
         for rule in self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)]):
+            if rule.kind in ("performance", "tax") and not manual_done:
+                self._apply_manual_fees()
+                manual_done = True
             if rule.kind == "periodic":
                 self._apply_periodic(rule, context)
             elif rule.kind == "performance":
                 self._apply_performance(rule, context)
             elif rule.kind == "tax":
                 self._apply_tax(rule)
-            else:
-                self._apply_external(rule)
+        if not manual_done:
+            self._apply_manual_fees()
         self._apply_scheme(context)
         self._finish(context)
         self.state = "computed"
@@ -766,10 +774,11 @@ class InvestraValuation(models.Model):
                               "movement_type": "price_revaluation", "extra": extra})
         self._add_event("unsettled_fv", "Změna RH nevypořádaných obchodů", lines)
 
-    def _fee_record(self, rule, amount, fund_class=None, detail=None):
+    def _fee_record(self, rule, amount, fund_class=None, detail=None, manual=None):
         self.env["investra.valuation.fee"].sudo().create({
             "valuation_id": self.id,
-            "rule_id": rule.id,
+            "rule_id": rule.id if rule else False,
+            "external_id": manual.id if manual else False,
             "class_id": fund_class.id if fund_class else False,
             "amount": float(amount),
             "detail": json.dumps(detail or {}, ensure_ascii=False, default=str),
@@ -938,17 +947,32 @@ class InvestraValuation(models.Model):
             {"role": "tax_payable", "amount": -move, "movement_type": "fee"},
         ])
 
-    def _apply_external(self, rule):
-        """Částka spočtená mimo Odoo: bez přílohy a důvodu ji ocenění nepřijme."""
-        entries = self.external_fee_ids.filtered(lambda e: e.rule_id == rule)
-        if not entries:
-            raise UserError(self.env._("Pravidlo %s čeká na zadání částky spočtené mimo Odoo.", rule.name))
-        for entry in entries:
-            if not entry.attachment_id or not entry.reason:
-                raise UserError(self.env._("U částky %s chybí příloha s výpočtem nebo důvod.", rule.name))
-            amount = d(entry.amount)
-            self._fee_record(rule, amount, entry.class_id, {"external": True, "reason": entry.reason})
-            self._book_fee(rule, amount, entry.class_id, kind_suffix=f":{entry.id}")
+    def _apply_manual_fees(self):
+        """Ručně doložené úplaty (ZJ-03): částka spočtená mimo Odoo na zvolený nákladový účet, protiúčet závazek z úplat.
+
+        Třída prázdná = společný náklad celého fondu (dělí se poměrem), jinak jen dané třídě. Cizí měna se přepočte
+        kurzem k datu ocenění ze zdroje kurzů fondu; řádky nesou i původní měnu, aby závazek přecenilo FX přecenění.
+        """
+        fund_currency = self.fund_id.currency_id
+        for entry in self.external_fee_ids:
+            currency = entry.currency_id or fund_currency
+            original = engine.money(d(entry.amount))
+            rate = self._fx(currency)
+            amount = engine.money(original * rate)
+            class_id = entry.class_id.id or False
+            foreign = {} if currency == fund_currency else {"currency_id": currency.id}
+            lines = [
+                {"role": "expense_other", "amount": amount, "class_id": class_id, "movement_type": "fee",
+                 "extra": {"account_id": entry.account_id.id},
+                 **({"amount_currency": original, **foreign} if foreign else {})},
+                {"role": "fee_payable", "amount": -amount, "class_id": class_id, "movement_type": "fee",
+                 **({"amount_currency": -original, **foreign} if foreign else {})},
+            ]
+            self._fee_record(None, amount, entry.class_id, {
+                "manual": True, "note": entry.note, "account": entry.account_id.code,
+                "currency": currency.name, "amount_currency": str(original), "rate": str(rate),
+            }, manual=entry)
+            self._add_event(f"fee:manual:{entry.id}", self.env._("Ručně doložená úplata"), lines)
 
     def _apply_scheme(self, context):
         """U pořadí nároků zaúčtuje rozdíl proti alokačnímu poměru jako přesun mezi třídami."""
@@ -1235,6 +1259,11 @@ class InvestraValuation(models.Model):
         self._check("lock_exception", "Uzamčené období nebylo otevřeno výjimkou", not exceptions,
                     "; ".join(exceptions), severity="warning")
         self._run_movement_checks()
+        # Souběh pravidel téže nákladové role (ZJ-03): jen upozornění, výpočet nezastaví.
+        rules = self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)])
+        overlaps = rules._overlaps([(r, r.class_ids) for r in rules])
+        self._check("fee_overlap", "Úplaty téže role nejsou zároveň na fondu a na třídách", not overlaps,
+                    "; ".join(overlaps), severity="warning")
         deviating = self._deviating_prices()
         self._check("price_fund_deviation", "Fond používá sdílené tržní ceny", not deviating, "; ".join(deviating),
                     severity="warning")
@@ -1701,26 +1730,48 @@ class InvestraValuationFee(models.Model):
 
     valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
-    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="restrict", string="Pravidlo")
+    # Bez pravidla je to ručně doložená úplata (ZJ-03); název ji pak popíše poznámkou.
+    rule_id = fields.Many2one("investra.fee.rule", ondelete="restrict", string="Pravidlo")
+    external_id = fields.Many2one("investra.valuation.external", ondelete="set null", string="Ručně doložená úplata")
+    name = fields.Char(compute="_compute_name", string="Úplata")
     class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída")
     amount = fields.Float(digits=(20, 2), string="Částka")
     detail = fields.Text(string="Výpočet")
 
+    @api.depends("rule_id.name", "external_id.note")
+    def _compute_name(self):
+        for line in self:
+            if line.rule_id:
+                line.name = line.rule_id.name
+            else:
+                note = (line.external_id.note or "").splitlines()
+                line.name = self.env._("Ručně doložená úplata") + (f": {note[0]}" if note else "")
+
 
 class InvestraValuationExternal(models.Model):
-    """Částka spočtená mimo Odoo: příloha s výpočtem a důvod jsou povinné, schvaluje se s oceněním."""
+    """Ručně doložená úplata (ZJ-03, rozhodnutí 2026-11-17): bez pravidla, schvaluje se s oceněním.
+
+    Třída prázdná = celý fond. Částka smí být záporná (oprava), ne nulová. Poznámka je povinná, příloha nepovinná.
+    Účtuje se k datu ocenění na zvolený nákladový účet, protiúčet je vždy závazek z úplat.
+    """
 
     _name = "investra.valuation.external"
     _inherit = ["investra.record.guard"]
-    _description = "Částka spočtená mimo Odoo"
+    _description = "Ručně doložená úplata"
     _book_fields = ("valuation_id",)
 
     valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
-    rule_id = fields.Many2one("investra.fee.rule", required=True, ondelete="restrict", domain=[("kind", "=", "external")], string="Pravidlo")
-    class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída")
-    amount = fields.Float(digits=(20, 2), required=True, string="Částka")
-    reason = fields.Char(string="Důvod a postup")
+    class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída",
+                               help="Prázdné = úplata celého fondu, dělí se mezi třídy poměrem.")
+    amount = fields.Float(digits=(20, 2), required=True, string="Částka",
+                          help="Náklad fondu; záporná částka náklad snižuje (oprava). Nula není dovolená.")
+    currency_id = fields.Many2one("res.currency", default=lambda self: self._default_currency(), string="Měna",
+                                  help="Cizí měna se přepočte kurzem k datu ocenění ze zdroje kurzů fondu.")
+    # Povinnost účtu a poznámky hlídá kontrola v Pythonu a formulář (ne NOT NULL), aby migrace staré řádky stihla smazat.
+    account_id = fields.Many2one("account.account", ondelete="restrict", string="Nákladový účet",
+                                 domain="[('account_type', '=like', 'expense%')]")
+    note = fields.Text(string="Poznámka")
     attachment_id = fields.Many2one("ir.attachment", string="Výpočet", ondelete="restrict")
     # Nahrání souboru přímo v řádku; ukládá se jako příloha ocenění do attachment_id.
     document = fields.Binary(string="Soubor s výpočtem", compute="_compute_document", inverse="_inverse_document")
@@ -1753,13 +1804,26 @@ class InvestraValuationExternal(models.Model):
         if not self.env.su and self.valuation_id.filtered(lambda v: v.state not in ("draft", "computed")):
             raise UserError(self.env._("Ručně doložené úplaty po odeslání ke schválení nejde měnit."))
 
-    @api.constrains("valuation_id", "rule_id", "class_id")
+    @api.model
+    def _default_currency(self):
+        valuation = self.env["investra.valuation"].browse(self.env.context.get("default_valuation_id"))
+        return valuation.fund_id.currency_id if valuation.exists() else False
+
+    @api.constrains("valuation_id", "class_id", "amount", "account_id", "note")
     def _check_fund(self):
-        # Pravidlo i třída musí patřit fondu ocenění; formulář je nabízí jen z něj, kontrola chrání i import a API.
+        # Třída a účet musí patřit fondu ocenění; formulář je nabízí jen z něj, kontrola chrání i import a API.
         for row in self:
             fund = row.valuation_id.fund_id
-            if row.rule_id.fund_id != fund or (row.class_id and row.class_id.fund_id != fund):
-                raise ValidationError(self.env._("Pravidlo i třída ručně doložené úplaty musí patřit fondu ocenění %s.", fund.display_name))
+            if row.class_id and row.class_id.fund_id != fund:
+                raise ValidationError(self.env._("Třída ručně doložené úplaty musí patřit fondu ocenění %s.", fund.display_name))
+            if not row.account_id or not row.account_id.account_type.startswith("expense"):
+                raise ValidationError(self.env._("Ručně doložená úplata potřebuje nákladový účet."))
+            if row.account_id.company_ids and row.valuation_id.company_id not in row.account_id.company_ids:
+                raise ValidationError(self.env._("Nákladový účet ručně doložené úplaty musí patřit knize fondu %s.", fund.display_name))
+            if not (row.note or "").strip():
+                raise ValidationError(self.env._("Ručně doložená úplata musí mít poznámku."))
+            if not round(row.amount, 2):
+                raise ValidationError(self.env._("Částka ručně doložené úplaty nesmí být nulová."))
 
     @api.model_create_multi
     def create(self, vals_list):

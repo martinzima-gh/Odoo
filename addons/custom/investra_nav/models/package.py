@@ -181,7 +181,8 @@ class InvestraValuation(models.Model):
         for column, label in enumerate(("Pravidlo", "Třída", "Částka", "Článek statutu")):
             sheet.write(2, column, label, bold)
         for row_index, line in enumerate(record.fee_line_ids, start=3):
-            sheet.write(row_index, 0, line.rule_id.name)
+            # ZJ-03 (odchylka od „XLS neměnit“): ruční úplata nemá pravidlo, název bere z rozpisu, jinak by buňka byla FALSE.
+            sheet.write(row_index, 0, line.name)
             sheet.write(row_index, 1, line.class_id.code or "")
             sheet.write(row_index, 2, line.amount, amount)
             sheet.write(row_index, 3, line.rule_id.statute_ref or "")

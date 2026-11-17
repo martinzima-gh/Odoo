@@ -49,8 +49,6 @@
                     </group>
                     <group string="Úpisy a odkupy – výchozí hodnoty tříd">
                         <field name="unit_digits"/><field name="unit_rounding"/><field name="rounding_owner"/>
-                        <field name="entry_fee_rate"/><field name="entry_fee_recipient"/>
-                        <field name="exit_fee_rate"/><field name="exit_fee_recipient"/>
                     </group>
                     <group string="Úročení nástrojů">
                         <field name="accrual_method"/>
@@ -58,8 +56,9 @@
                     </group>
                     <notebook>
                         <page string="Třídy">
-                            <field name="class_ids" context="{'default_price_digits': price_digits, 'default_price_rounding': price_rounding, 'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner, 'default_entry_fee_rate': entry_fee_rate, 'default_exit_fee_rate': exit_fee_rate, 'default_entry_fee_recipient': entry_fee_recipient, 'default_exit_fee_recipient': exit_fee_recipient}">
-                                <list editable="bottom">
+                            <field name="class_ids" context="{'default_price_digits': price_digits, 'default_price_rounding': price_rounding, 'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner}">
+                                <!-- Poplatky jen na třídě (ZJ-03); článek statutu, poznámku a historii změn ukáže formulář třídy. -->
+                                <list editable="bottom" open_form_view="True">
                                     <field name="sequence" widget="handle"/>
                                     <field name="active" optional="hide"/>
                                     <field name="code"/>
@@ -81,6 +80,44 @@
                         </page>
                     </notebook>
                 </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_fund_class_form" model="ir.ui.view">
+        <field name="name">investra.fund.class.form</field>
+        <field name="model">investra.fund.class</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archivováno" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <group>
+                        <group string="Třída">
+                            <field name="fund_id" readonly="id"/>
+                            <field name="code"/><field name="name"/><field name="currency_id"/><field name="isin"/>
+                            <field name="distribution"/><field name="sequence"/>
+                        </group>
+                        <group string="Kurz a kusy">
+                            <field name="price_digits"/><field name="price_rounding"/>
+                            <field name="unit_digits"/><field name="unit_rounding"/><field name="rounding_owner"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Vstupní poplatek">
+                            <field name="entry_fee_rate" string="Sazba (%)"/>
+                            <field name="entry_fee_recipient" string="Příjemce"/>
+                            <field name="entry_fee_statute_ref" string="Článek statutu"/>
+                            <field name="entry_fee_note" string="Poznámka"/>
+                        </group>
+                        <group string="Výstupní poplatek">
+                            <field name="exit_fee_rate" string="Sazba (%)"/>
+                            <field name="exit_fee_recipient" string="Příjemce"/>
+                            <field name="exit_fee_statute_ref" string="Článek statutu"/>
+                            <field name="exit_fee_note" string="Poznámka"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

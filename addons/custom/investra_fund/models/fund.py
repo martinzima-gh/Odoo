@@ -1,3 +1,5 @@
+from markupsafe import Markup
+
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -16,8 +18,17 @@ FEE_RECIPIENT = [
 ]
 CLASS_RECIPIENTS = ("class_income", "class_capital")
 INTERNAL_RECIPIENTS = ("fund",) + CLASS_RECIPIENTS
-FEE_PARAMS = ("entry_fee_recipient", "exit_fee_recipient")
-MOVEMENT_PARAMS = ("unit_digits", "unit_rounding", "rounding_owner", "entry_fee_rate", "exit_fee_rate") + FEE_PARAMS
+# Vstupní a výstupní poplatek jsou jen na třídě (rozhodnutí 2026-11-17 „Poplatky fondu a tříd“, ZJ-03); fond je nemá
+# a třída je při založení nepřebírá.
+MOVEMENT_PARAMS = ("unit_digits", "unit_rounding", "rounding_owner")
+FEE_FIELDS = (
+    "entry_fee_rate", "entry_fee_recipient", "entry_fee_statute_ref", "entry_fee_note",
+    "exit_fee_rate", "exit_fee_recipient", "exit_fee_statute_ref", "exit_fee_note",
+)
+FEE_HELP = (
+    "Obhospodařovatel a Distributor: závazek, platí se ven. Fond – výnos: výnos celého fondu, dělí se mezi třídy poměrem. "
+    "Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem."
+)
 
 
 def isin_is_valid(isin):
@@ -70,19 +81,9 @@ class InvestraFund(models.Model):
         ROUNDING_OWNER, required=True, default="fund", string="Výchozí: rozdíl ze zaokrouhlení kusů",
         help="Zůstává ve fondu = kapitál třídy; vrací se investorovi = závazek, výplatu zadává IS.",
     )
-    entry_fee_rate = fields.Float(digits=(7, 4), default=0.0, string="Výchozí vstupní poplatek (%)", help="Sazba z hrubé platby úpisu.")
-    exit_fee_rate = fields.Float(digits=(7, 4), default=0.0, string="Výchozí výstupní poplatek (%)", help="Sazba z hrubé částky odkupu (kusy × cena).")
-    # Dřívější společné pole fee_recipient převedla migrace investra_fund 20.0.0.7.0 (sloupec Odoo při upgradu odstranil).
-    entry_fee_recipient = fields.Selection(
-        FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce vstupního poplatku",
-        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond – výnos: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
-    )
-    exit_fee_recipient = fields.Selection(
-        FEE_RECIPIENT, required=True, default="manager", string="Výchozí příjemce výstupního poplatku",
-        help="Obhospodařovatel a Distributor: závazek, platí se ven. Fond – výnos: výnos celého fondu, dělí se mezi třídy poměrem. Třída – výnos / Třída – kapitál: celý poplatek jen třídě pohybu jako výnos, nebo kapitál třídy; řídí se statutem.",
-    )
-    # Dřívější zaškrtávátka entry/exit_fee_capital převedla migrace investra_fund 20.0.0.8.0 do příjemce
-    # (Třída – výnos / Třída – kapitál); sloupce Odoo při upgradu odstraní.
+    # Výchozí vstupní a výstupní poplatek fondu zrušilo ZJ-03 (rozhodnutí 2026-11-17 „Poplatky fondu a tříd“): výpočet
+    # četl jen třídu, fond hodnoty jen kopíroval do nové třídy. Sloupce entry/exit_fee_rate a entry/exit_fee_recipient
+    # fondu Odoo při upgradu odstraní.
     trade_recognition = fields.Selection(
         [("trade_date", "Trade date accounting"), ("settlement_date", "Settlement date accounting")],
         required=True,
@@ -122,6 +123,7 @@ class InvestraFund(models.Model):
 
 class InvestraFundClass(models.Model):
     _name = "investra.fund.class"
+    _inherit = ["mail.thread"]
     _description = "Třída fondu"
     _order = "fund_id, sequence, code"
 
@@ -143,10 +145,20 @@ class InvestraFundClass(models.Model):
     unit_digits = fields.Integer(required=True, string="Desetinná místa kusů", help="Bez zadání platí hodnota fondu.")
     unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
     rounding_owner = fields.Selection(ROUNDING_OWNER, required=True, string="Rozdíl ze zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
-    entry_fee_rate = fields.Float(digits=(7, 4), string="Vstupní poplatek (%)", help="Bez zadání platí hodnota fondu.")
-    exit_fee_rate = fields.Float(digits=(7, 4), string="Výstupní poplatek (%)", help="Bez zadání platí hodnota fondu.")
-    entry_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, string="Příjemce vstupního poplatku", help="Bez zadání platí hodnota fondu.")
-    exit_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, string="Příjemce výstupního poplatku", help="Bez zadání platí hodnota fondu.")
+    # Poplatky jen na třídě (ZJ-03); změny sazby, příjemce, článku statutu a poznámky zapíše write() do historie
+    # třídy, bez verzí. Atribut tracking Odoo 20 bez modulu mail_tracking změny polí neukládá (ověřeno testem).
+    entry_fee_rate = fields.Float(digits=(7, 4), required=True, default=0.0, string="Vstupní poplatek (%)",
+                                  help="Sazba z hrubé platby úpisu.")
+    entry_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager",
+                                           string="Příjemce vstupního poplatku", help=FEE_HELP)
+    entry_fee_statute_ref = fields.Char(string="Vstupní poplatek – článek statutu")
+    entry_fee_note = fields.Text(string="Vstupní poplatek – poznámka")
+    exit_fee_rate = fields.Float(digits=(7, 4), required=True, default=0.0, string="Výstupní poplatek (%)",
+                                 help="Sazba z hrubé částky odkupu (kusy × cena).")
+    exit_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager",
+                                          string="Příjemce výstupního poplatku", help=FEE_HELP)
+    exit_fee_statute_ref = fields.Char(string="Výstupní poplatek – článek statutu")
+    exit_fee_note = fields.Text(string="Výstupní poplatek – poznámka")
 
     _fund_code_uniq = models.Constraint("unique(fund_id, code)", "Kód třídy musí být ve fondu jedinečný.")
 
@@ -159,6 +171,30 @@ class InvestraFundClass(models.Model):
             for name in MOVEMENT_PARAMS:
                 vals.setdefault(name, fund[name])
         return super().create(vals_list)
+
+    def write(self, vals):
+        changed = [name for name in FEE_FIELDS if name in vals]
+        before = {record.id: {name: record._fee_value(name) for name in changed} for record in self} if changed else {}
+        result = super().write(vals)
+        for record in self.filtered(lambda r: r.id in before):
+            rows = [
+                (record._fields[name].string, before[record.id][name], record._fee_value(name))
+                for name in changed if before[record.id][name] != record._fee_value(name)
+            ]
+            if rows:
+                record.message_post(body=Markup("<ul>%s</ul>") % Markup().join(
+                    Markup("<li>%s: %s → %s</li>") % (label, old or "–", new or "–") for label, old, new in rows
+                ))
+        return result
+
+    def _fee_value(self, name):
+        field = self._fields[name]
+        value = self[name]
+        if field.type == "selection":
+            return dict(field._description_selection(self.env)).get(value, value or "")
+        if field.type == "float":
+            return f"{value:g} %"
+        return value or ""
 
     @api.depends("code", "fund_id.name")
     def _compute_display_name(self):

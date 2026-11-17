@@ -17,16 +17,10 @@ class TestAttachmentLock(NavCase):
         self.subscribe(self.cls(self.fund, "A"), "2027-01-01", 1000, 10)
         self.common_result(self.fund, "r1", "2027-01-15", 100)
         self.day = date(2027, 1, 31)
-        self.rule = self.env["investra.fee.rule"].create({
-            "fund_id": self.fund.id, "name": "Mimo Odoo", "kind": "external", "expense_role": "expense_management",
-        })
 
     def with_external(self):
         valuation = self.valuation(self.fund, self.day)
-        valuation.with_user(self.preparer).write({"external_fee_ids": [(0, 0, {
-            "rule_id": self.rule.id, "amount": 5, "reason": "Výpočet podle statutu",
-            "document": base64.b64encode(b"vypocet").decode(), "document_name": "vypocet.xlsx",
-        })]})
+        self.manual_fee(valuation, 5, document=base64.b64encode(b"vypocet").decode(), document_name="vypocet.xlsx")
         return valuation
 
     def test_uploaded_document_becomes_valuation_attachment(self):
@@ -83,19 +77,18 @@ class TestAttachmentLock(NavCase):
         })
         self.assertTrue(note.exists())
 
-    def test_external_rule_and_class_must_belong_to_valuation_fund(self):
-        """Ručně doložená úplata nesmí použít pravidlo ani třídu jiného fondu (uživatel 2026-11-13)."""
+    def test_external_class_and_account_must_belong_to_valuation_fund(self):
+        """Ručně doložená úplata nesmí použít třídu ani účet jiného fondu (uživatel 2026-11-13, ZJ-03)."""
         valuation = self.valuation(self.fund, self.day)
         own_company = self.fund.company_id
+        own_account = self.expense_account(self.fund).id
         # make_fund přepne testovací prostředí do firmy nového fondu; zápis do ocenění pak běží s oběma firmami.
         other = self.make_fund(classes=[{"code": "B"}])
-        other_rule = self.env["investra.fee.rule"].create({
-            "fund_id": other.id, "name": "Cizí", "kind": "external", "expense_role": "expense_management",
-        })
         valuation = valuation.with_context(allowed_company_ids=[own_company.id, other.company_id.id])
-        for vals in ({"rule_id": other_rule.id}, {"rule_id": self.rule.id, "class_id": self.cls(other, "B").id}):
+        for vals in ({"class_id": self.cls(other, "B").id, "account_id": own_account},
+                     {"account_id": self.expense_account(other).id}):
             with self.assertRaises(ValidationError):
-                valuation.write({"external_fee_ids": [(0, 0, dict(vals, amount=5, reason="x"))]})
+                valuation.write({"external_fee_ids": [(0, 0, dict(vals, amount=5, note="x"))]})
         valuation.write({"external_fee_ids": [(0, 0, {
-            "rule_id": self.rule.id, "class_id": self.cls(self.fund, "A").id, "amount": 5, "reason": "x"})]})
+            "class_id": self.cls(self.fund, "A").id, "amount": 5, "note": "x", "account_id": own_account})]})
         self.assertEqual(len(valuation.external_fee_ids), 1)

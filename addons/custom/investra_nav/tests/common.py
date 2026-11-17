@@ -131,6 +131,15 @@ class NavCase(TransactionCase):
     def result(self, valuation, code):
         return valuation.class_line_ids.filtered(lambda l: l.class_id.code == code)
 
+    def expense_account(self, fund, role="expense_other"):
+        return self.env["investra.account.role"].sudo().account_for(fund.company_id, role)
+
+    def manual_fee(self, valuation, amount, note="Výpočet podle statutu", **vals):
+        """Ručně doložená úplata (ZJ-03): výchozí nákladový účet je účet role Ostatní náklady."""
+        values = {"amount": amount, "note": note, "account_id": self.expense_account(valuation.fund_id).id, **vals}
+        valuation.with_user(self.preparer).write({"external_fee_ids": [(0, 0, values)]})
+        return valuation.external_fee_ids[-1]
+
     def rate(self, day, value, currency="EUR"):
         self.env["investra.rate"]._store("cnb", date.fromisoformat(day), {currency: (Decimal(1), Decimal(str(value)))}, f"{day}{value}")
 
