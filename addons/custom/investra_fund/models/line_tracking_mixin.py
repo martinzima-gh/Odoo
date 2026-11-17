@@ -16,6 +16,10 @@ class InvestraLineTrackingMixin(models.AbstractModel):
     _line_tracking_parent = None  # název Many2one pole na rodiče (např. 'role_id', 'matrix_id')
     _line_tracking_fields = None  # explicitní seznam polí, nebo None (všechna pole modelu s tracking=True)
 
+    @api.model
+    def _valid_field_parameter(self, field, name):
+        return name == "tracking" or super()._valid_field_parameter(field, name)
+
     def _line_tracking_desc(self):
         """Vrátí textový popis řádku pro použití ve zprávě v chatteru."""
         self.ensure_one()

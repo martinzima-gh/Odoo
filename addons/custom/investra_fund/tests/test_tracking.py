@@ -37,8 +37,8 @@ class TestTracking(TransactionCase):
 
         self.assertGreater(len(self.fund.message_ids), msg_count_before)
         new_msgs = self.fund.message_ids[:len(self.fund.message_ids) - msg_count_before]
-        tracked_fields = new_msgs.tracking_value_ids.field_id.mapped("name")
-        self.assertIn("valuation_frequency", tracked_fields)
+        bodies = [m.body or "" for m in new_msgs]
+        self.assertTrue(any("(Frekvence ocenění)" in b and "Ročně" in b for b in bodies))
 
     def test_fund_class_tracking(self):
         """Změna sledovaného pole třídy vytvoří tracking zprávu."""
@@ -50,9 +50,9 @@ class TestTracking(TransactionCase):
 
         self.assertGreater(len(self.fund_class.message_ids), msg_count_before)
         new_msgs = self.fund_class.message_ids[:len(self.fund_class.message_ids) - msg_count_before]
-        tracked_fields = new_msgs.tracking_value_ids.field_id.mapped("name")
-        self.assertIn("price_digits", tracked_fields)
-        self.assertIn("distribution", tracked_fields)
+        bodies = [m.body or "" for m in new_msgs]
+        self.assertTrue(any("(Desetinná místa kurzu)" in b and "6" in b for b in bodies))
+        self.assertTrue(any("(Rozdělování výnosu)" in b and "Dividendová" in b for b in bodies))
 
     def test_fund_class_fee_not_duplicated(self):
         """Změna poplatků třídy zapíše zprávu přes write() a nezdvojí se s tracking=True."""
@@ -67,12 +67,12 @@ class TestTracking(TransactionCase):
 
         new_msgs = self.fund_class.message_ids[:len(self.fund_class.message_ids) - msg_count_before]
         self.assertTrue(new_msgs)
-        # Zpráva vznikla přes write() jako strukturované HTML
-        self.assertTrue(any("Sazba (%)" in (m.body or "") for m in new_msgs))
-        # Žádná tracking_value na poplatcích nevznikla (nezdvojeno)
-        tracked_fields = new_msgs.tracking_value_ids.field_id.mapped("name")
-        self.assertNotIn("entry_fee_rate", tracked_fields)
-        self.assertNotIn("entry_fee_note", tracked_fields)
+        all_body = "".join(m.body or "" for m in new_msgs)
+        # Zpráva vznikla přes write() jako strukturované HTML s popiskem pole
+        self.assertIn("Vstupní poplatek (%)", all_body)
+        # Popisek je v těle jen jednou a ne ve formátu Odoo trackingu <i>(...)</i>
+        self.assertEqual(all_body.count("Vstupní poplatek (%)"), 1)
+        self.assertNotIn("<i>(Vstupní poplatek (%))</i>", all_body)
 
     def test_role_line_tracking(self):
         """Změna, přidání a smazání řádku činnosti v roli zapíše zprávu do chatteru role."""
@@ -90,7 +90,7 @@ class TestTracking(TransactionCase):
         self.assertGreater(len(self.role.message_ids), msg_count_before)
         latest_msg = self.role.message_ids[0]
         self.assertIn("Přidáno", latest_msg.body)
-        self.assertIn("Ocenění fondu", latest_msg.body)
+        self.assertIn("Schválení ocenění", latest_msg.body)
 
         # 2. Změna činnosti
         msg_count_before = len(self.role.message_ids)
@@ -108,7 +108,7 @@ class TestTracking(TransactionCase):
         self.assertGreater(len(self.role.message_ids), msg_count_before)
         latest_msg = self.role.message_ids[0]
         self.assertIn("Odebráno", latest_msg.body)
-        self.assertIn("Ocenění fondu", latest_msg.body)
+        self.assertIn("Schválení ocenění", latest_msg.body)
 
     def test_approval_matrix_step_tracking(self):
         """Přidání, úprava a odebrání kroku schvalovací matice zapíše zprávu do chatteru matice."""
