@@ -24,7 +24,8 @@ Zelená (pohledy)
 10. Pravidlo: Krystalizace a Třída krytí jen u druhu Výkonnostní odměna. U druhu Očekávaná daň skrýt Konvenci dnů, Základ a Základ před/po (daň je nepoužívá).
 11. Verze sazby: v tabulce jen hlavní sloupce podle `parent.kind`; formulář verze se sekcemi Sazba a limity (sazba, práh, pevná částka a způsob,
     minimum, maximum, příplatek za pásmo a za třídu), Klouzavá pásma (vnořená tabulka `tier_ids`), Výkonnost (měřítko, HWM, počáteční hodnota,
-    překážka, dohánění, benchmark, kladný výnos, pravděpodobnost, strop). Co k druhu nepatří, skrýt.
+    překážka, benchmark). Méně běžná pole (klouzavá pásma, příplatky za pásmo a za třídu, dohánění, váha pravděpodobnosti, strop, kladný výnos)
+    ve sbalené sekci „Další parametry“. Co k druhu nepatří, skrýt.
 
 Oranžová
 3. Přehled: na kartě fondu tlačítko „Založit ocenění“, otevře nový návrh s předvyplněným fondem a očekávaným datem (`_dashboard_next`); datum lze přepsat.
@@ -33,11 +34,13 @@ Oranžová
 Červená
 6. Pravidlo úplaty: jedno pole „Statut a poznámka“ = `statute_ref` změněné na víceřádkový text; pole `note` odstranit (v `investra` prázdné u všech 13 pravidel;
    před odstraněním projít `tools/demo_data`, `tools/nav_demo`, testy, XLS v `package.py`).
-7. Základ úplat a pořadí (nahrazuje rozhodnutí 2026-11-05 o parametru pořadí):
+7. Základ úplat a pořadí (nahrazuje rozhodnutí 2026-11-05 o parametru pořadí; minimální varianta schválená Martinem 17. 11. 2026):
    - pole `sequence` zrušit; pevné pořadí podle druhu: časově rozlišené úplaty → ručně doložené úplaty → výkonnostní odměna → daň;
-   - „Základ před/po úplatě“: **před** = stav před všemi úplatami v ocenění (snímek před první úplatou); **po** = stav po všech časově rozlišených
-     a ručně doložených úplatách včetně počítané, dopočteno společně opakováním do ustálení (zobecnění dnešní smyčky v `engine.periodic_fee`);
-   - totéž pro základ Kapitál třídy (snímek za třídu); Průměrný FK beze změny;
+   - časově rozlišená úplata, volba „Základ před/po“: **před** = stav před všemi úplatami v ocenění (snímek před první úplatou);
+     **po** = stav po všech časově rozlišených a ručně doložených úplatách včetně počítané, dopočteno společně opakováním do ustálení
+     (zobecnění dnešní smyčky v `engine.periodic_fee`); totéž pro základ Kapitál třídy (snímek za třídu); Průměrný FK beze změny;
+   - výkonnostní odměna bez volby: vždy po ostatních úplatách, před sebou samou (jako dnes); daň bez volby, vždy nakonec z výsledku po všech úplatách;
+   - mimo rozsah (možné rozšíření, až to bude vyžadovat statut): úplaty i výkonnostní odměna „po všech úplatách včetně výkonnostní odměny“;
    - testy: nahradit `test_rule_order_changes_base`; nové pro FK 1 000 000, obhospodařování 1 %, administrace 0,1 %, rok:
      obě před 10 000,00 / 1 000,00; obě po 9 891,20 / 989,12; obhospodařování před, administrace po 10 000,00 / 989,01 (ověřit výpočtem v testu);
    - očekávané hodnoty referenčních scénářů neměnit; když se změní, zastavit a říct Martinovi.
