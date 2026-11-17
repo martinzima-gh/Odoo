@@ -57,4 +57,8 @@ Provedl Claude (Sonnet 5.5) 17. 11. 2026 na `ukol/MN-manual`; nic nenasazeno, pr
 
 ## Převzetí
 
-Doplní Claude.
+Převzal Claude (Sonnet 5.5) 17. 11. 2026. Revize diffu (oranžová zóna): hlášení `builtin` řádku stojí až za kontrolou skupiny a `sudo`, takže se
+chování ostatních řádků a `sudo` nemění; mixin je jen čtecí (nestored, bez zápisu), `sudo` při hledání žádosti nevystavuje data, žádost je
+stejné společnosti; do `_inherit` je mixin přidán u šesti modelů shodně s inventurou; stavy ani účtování nezměněny. Testy
+`investra_fund,investra_nav,investra_instruments,investra_derivative`: 512 testů, 0 failed, 0 error (dočasná DB smazána).
+**Nenasazeno** do `investra` (čeká na souhlas: záloha, `-u`, restart 8071). Vzhled pruhu a odkaz v prohlížeči neověřeny.
