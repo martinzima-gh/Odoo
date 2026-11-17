@@ -325,6 +325,8 @@ class InvestraValuation(models.Model):
         self._require(PREPARER)
         self._require_state("draft", "computed")
         for record in self.sudo():
+            if not record.fund_id.class_ids:
+                raise UserError(self.env._("Fond %s nemá žádnou třídu; ocenění nejde spočítat.", record.fund_id.display_name))
             record._compute_all()
             record._log_step("computed", record._compute_note())
         return True

@@ -43,12 +43,7 @@
                     </div>
                     <group string="Základní parametry">
                         <field name="valuation_frequency"/>
-                        <field name="price_digits"/>
-                        <field name="price_rounding"/>
                         <field name="trade_recognition"/>
-                    </group>
-                    <group string="Úpisy a odkupy – výchozí hodnoty tříd">
-                        <field name="unit_digits"/><field name="unit_rounding"/><field name="rounding_owner"/>
                     </group>
                     <group string="Úročení nástrojů">
                         <field name="accrual_method"/>
@@ -56,7 +51,7 @@
                     </group>
                     <notebook>
                         <page string="Třídy">
-                            <field name="class_ids" context="{'default_price_digits': price_digits, 'default_price_rounding': price_rounding, 'default_unit_digits': unit_digits, 'default_unit_rounding': unit_rounding, 'default_rounding_owner': rounding_owner}">
+                            <field name="class_ids" context="{'default_fund_id': id}">
                                 <!-- Poplatky jen na třídě (ZJ-03); článek statutu, poznámku a historii změn ukáže formulář třídy. -->
                                 <list editable="bottom" open_form_view="True">
                                     <field name="sequence" widget="handle"/>
@@ -126,6 +121,8 @@
         <field name="res_model">investra.fund</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_fund_search"/>
+        <!-- Rozhodnutí 2026-11-17: fond bez zadané třídy dostane při založení výchozí třídu „A“ (kód jde přepsat). -->
+        <field name="context">{'investra_default_class': True}</field>
     </record>
     <menuitem id="menu_fund" name="Fondy" parent="investra_entity.menu_setup_funds" action="action_fund" sequence="10"/>
 </odoo>

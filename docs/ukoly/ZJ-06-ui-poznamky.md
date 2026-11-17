@@ -120,3 +120,9 @@ První upgrade 12 změněných modulů selhal na validaci formuláře fondu (sta
 oprava: pohled `view_fund_form_fee_rules` přesunut v `nav_views.xml` před ostatní dědění formuláře fondu. Upgrade ověřen na kopii ze zálohy (`investra_ci_upg_zj06`,
 poté smazána), pak proveden na `investra` bez chyb; `investra_nav` 0.35.0, 13 pravidel, 11 hodnot „Statut a poznámka“ zachováno; `investra-web` běží, `/web/login` 200.
 Ocenění Fondu A k 31. 10. 2026 v2 (id 38, Odesláno) je spočtené původní logikou a nemá historii kroků. Zbývá: Martin projde formuláře v UI.
+
+**Bod 13 – fond má vždy aspoň jednu třídu (Claude, 17. 11. 2026, rozhodnutí téhož dne):** `investra_fund`: výchozí třída „A“ při založení z nabídky (kontext
+`investra_default_class` v akci Fondy), poslední třídu nejde smazat, pole price/unit digits a rounding a rounding_owner fondu zrušena (formulář, MN-03 kontext řádku
+nahrazen `default_get` třídy: parametry z první třídy fondu, jinak standardní 4/dolů, 6/dolů, fond). `investra_nav`: výkonnostní odměna musí mít třídu
+(kontrola), u jediné třídy předvyplnění; ocenění fondu bez třídy hlásí chybu. Testy upraveny (`test_fund.py`) a doplněny; `run_tests.sh all` 873 testů, 0 chyb.
+Upgrade ověřen na kopii `investra` (poté smazána): bez chyb; Odoo sloupce zrušených polí smaže (viz deník) – oprava předpokladu z převzetí.

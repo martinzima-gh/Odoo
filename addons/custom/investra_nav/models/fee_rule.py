@@ -173,10 +173,24 @@ class InvestraFeeRule(models.Model):
             if rule.cover_class_id.fund_id != rule.fund_id:
                 rule.cover_class_id = False
 
-    @api.constrains("fund_id", "class_ids", "recipient_class_ids", "cover_class_id")
-    def _check_classes(self):
-        """Třídy musí být z fondu pravidla; třída nesmí být platící i přijímající a třída krytí nesmí být platící."""
+    @api.onchange("fund_id", "kind")
+    def _onchange_single_class(self):
+        """Výkonnostní odměna fondu s jedinou třídou: třída se předvyplní (rozhodnutí 2026-11-17)."""
         for rule in self:
+            if rule.kind == "performance" and not rule.class_ids and len(rule.fund_id.class_ids) == 1:
+                rule.class_ids = rule.fund_id.class_ids
+
+    @api.constrains("fund_id", "kind", "class_ids", "recipient_class_ids", "cover_class_id")
+    def _check_classes(self):
+        """Třídy musí být z fondu pravidla; třída nesmí být platící i přijímající a třída krytí nesmí být platící.
+
+        Výkonnostní odměna musí mít aspoň jednu třídu: počítá se za každou třídu zvlášť, bez třídy by se tiše
+        nespočítala (rozhodnutí 2026-11-17).
+        """
+        for rule in self:
+            if rule.kind == "performance" and not rule.class_ids:
+                raise ValidationError(self.env._(
+                    "Výkonnostní odměna %s musí mít aspoň jednu třídu v poli Platí třídy.", rule.name))
             classes = rule.class_ids | rule.recipient_class_ids | rule.cover_class_id
             foreign = classes.filtered(lambda c: c.fund_id != rule.fund_id)
             if foreign:

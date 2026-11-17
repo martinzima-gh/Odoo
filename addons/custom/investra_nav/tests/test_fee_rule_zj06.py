@@ -3,7 +3,8 @@ from datetime import date
 from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.fields import Command
-from odoo.tests import tagged
+from odoo.exceptions import UserError
+from odoo.tests import Form, tagged
 
 from .common import NavCase
 
@@ -110,3 +111,22 @@ class TestFeeRuleZj06(NavCase):
         self.common_result(fund, "v1", "2027-01-20", 100)
         first = self.run_to_posted(self.valuation(fund, date(2027, 1, 25)))
         self.assertAlmostEqual(self.result(first, "A").perf_accrued, 20, places=2)
+
+    def test_performance_rule_needs_class(self):
+        # Rozhodnutí 2026-11-17: výkonnostní odměna bez třídy by se tiše nespočítala
+        fund = self.make_fund(classes=[{"code": "A"}])
+        with self.assertRaises(ValidationError):
+            self.rule(fund, kind="performance", name="Odměna")
+
+    def test_performance_rule_prefills_single_class(self):
+        fund = self.make_fund(classes=[{"code": "A"}])
+        form = Form(self.Rule.with_context(default_fund_id=fund.id))
+        form.name = "Odměna"
+        form.kind = "performance"
+        self.assertEqual(form.class_ids[:], fund.class_ids)
+
+    def test_valuation_of_fund_without_class_explains(self):
+        fund = self.make_fund()
+        valuation = self.valuation(fund, date(2027, 1, 31))
+        with self.assertRaises(UserError):
+            valuation.action_compute()

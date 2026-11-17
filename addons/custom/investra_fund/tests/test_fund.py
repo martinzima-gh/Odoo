@@ -1,6 +1,6 @@
 from psycopg2 import IntegrityError
 
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, TransactionCase, tagged
 from odoo.tools import mute_logger
 
@@ -41,15 +41,42 @@ class TestFund(TransactionCase):
         record = self._class(self.fund_a)
         self.assertEqual((record.price_digits, record.price_rounding), (4, "down"))
 
-    def test_class_takes_rounding_from_fund(self):
-        self.fund_b.write({"price_digits": 6, "price_rounding": "half_up"})
+    def test_class_takes_params_from_first_class(self):
+        # Rozhodnutí 2026-11-17: výchozí hodnoty fondu zrušeny, nová třída přebírá parametry z první třídy fondu
+        self._class(self.fund_b, "E", price_digits=6, price_rounding="half_up", unit_digits=3, unit_rounding="up",
+                    rounding_owner="investor")
         record = self._class(self.fund_b, "F")
-        self.assertEqual((record.price_digits, record.price_rounding), (6, "half_up"))
+        self.assertEqual(
+            (record.price_digits, record.price_rounding, record.unit_digits, record.unit_rounding, record.rounding_owner),
+            (6, "half_up", 3, "up", "investor"),
+        )
+        self.assertNotIn("price_digits", self.env["investra.fund"]._fields)
 
-    def test_class_can_override_fund(self):
-        self.fund_b.write({"price_digits": 6, "price_rounding": "half_up"})
+    def test_class_can_override_first_class(self):
+        self._class(self.fund_b, "E", price_digits=6, price_rounding="half_up")
         record = self._class(self.fund_b, "G", price_digits=2, price_rounding="up")
         self.assertEqual((record.price_digits, record.price_rounding), (2, "up"))
+
+    def test_fund_from_menu_gets_default_class_with_editable_code(self):
+        book = self.env["investra.entity"].create_book("Fond C", "fund", "cas501", self.czk, "cz")
+        fund = self.env["investra.fund"].with_context(investra_default_class=True).create({"entity_id": book.id})
+        self.assertEqual((fund.class_ids.code, fund.class_ids.currency_id), ("A", self.czk))
+        self.assertEqual((fund.class_ids.price_digits, fund.class_ids.unit_digits), (4, 6))
+        fund.class_ids.code = "CZK"
+        self.assertEqual(fund.class_ids.code, "CZK")
+
+    def test_fund_from_menu_with_own_class_gets_no_default(self):
+        book = self.env["investra.entity"].create_book("Fond D", "fund", "cas501", self.czk, "cz")
+        fund = self.env["investra.fund"].with_context(investra_default_class=True).create({
+            "entity_id": book.id, "class_ids": [(0, 0, {"code": "I", "name": "Investiční", "currency_id": self.czk.id})],
+        })
+        self.assertEqual(fund.class_ids.mapped("code"), ["I"])
+
+    def test_last_class_cannot_be_deleted(self):
+        first, second = self._class(self.fund_a, "A"), self._class(self.fund_a, "B")
+        second.unlink()
+        with self.assertRaises(UserError):
+            first.unlink()
 
     def test_zero_digits_is_kept_not_replaced_by_fund(self):
         self.assertEqual(self._class(self.fund_a, "H", price_digits=0).price_digits, 0)
@@ -80,8 +107,8 @@ class TestFund(TransactionCase):
             })
 
     def test_class_row_in_fund_form_gets_price_params(self):
-        """MN-03: nový řádek třídy ve formuláři fondu dostane kurz a zaokrouhlení z fondu (ne 0)."""
-        self.fund_b.write({"price_digits": 5, "price_rounding": "half_up"})
+        """MN-03: nový řádek třídy ve formuláři fondu dostane kurz a zaokrouhlení z první třídy fondu (ne 0)."""
+        self._class(self.fund_b, "P", price_digits=5, price_rounding="half_up")
         form = Form(self.fund_b)
         with form.class_ids.new() as line:
             line.code = "N"

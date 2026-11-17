@@ -1,7 +1,7 @@
 from markupsafe import Markup
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 PRICE_ROUNDING = [("down", "Dolů"), ("half_up", "Matematicky"), ("up", "Nahoru")]
@@ -21,6 +21,10 @@ INTERNAL_RECIPIENTS = ("fund",) + CLASS_RECIPIENTS
 # Vstupní a výstupní poplatek jsou jen na třídě (rozhodnutí 2026-11-17 „Poplatky fondu a tříd“, ZJ-03); fond je nemá
 # a třída je při založení nepřebírá.
 MOVEMENT_PARAMS = ("unit_digits", "unit_rounding", "rounding_owner")
+# Parametry třídy (rozhodnutí 2026-11-17): fond má vždy aspoň jednu třídu a výchozí hodnoty fondu se zrušily.
+# Nová třída převezme parametry z první třídy fondu, první třída tyto standardní hodnoty.
+CLASS_PARAMS = ("price_digits", "price_rounding", *MOVEMENT_PARAMS)
+CLASS_DEFAULTS = {"price_digits": 4, "price_rounding": "down", "unit_digits": 6, "unit_rounding": "down", "rounding_owner": "fund"}
 FEE_FIELDS = (
     "entry_fee_rate", "entry_fee_recipient", "entry_fee_statute_ref", "entry_fee_note",
     "exit_fee_rate", "exit_fee_recipient", "exit_fee_statute_ref", "exit_fee_note",
@@ -53,6 +57,20 @@ class InvestraFund(models.Model):
     _name = "investra.fund"
     _description = "Fond"
     _order = "name"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Fond založený z nabídky Fondy bez třídy dostane výchozí třídu „A“ (rozhodnutí 2026-11-17).
+
+        Jen s kontextem `investra_default_class` (akce nabídky); skripty a testy zakládají třídy samy.
+        """
+        records = super().create(vals_list)
+        if self.env.context.get("investra_default_class"):
+            for fund in records.filtered(lambda f: not f.class_ids):
+                self.env["investra.fund.class"].create({
+                    "fund_id": fund.id, "code": "A", "name": fund.name or "A", "currency_id": fund.currency_id.id,
+                })
+        return records
     _check_company_auto = True
 
     name = fields.Char(related="entity_id.name", store=True)
@@ -73,14 +91,8 @@ class InvestraFund(models.Model):
         "investra.entity", ondelete="restrict", domain=[("entity_type", "=", "manager")], string="Obhospodařovatel",
         help="Investiční společnost, která fond obhospodařuje (údaj o fondu). Schvalovací matice je společná a na obhospodařovateli nezávisí.",
     )
-    price_digits = fields.Integer(default=4, required=True, string="Výchozí desetinná místa kurzu")
-    price_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kurzu")
-    unit_digits = fields.Integer(default=6, required=True, string="Výchozí desetinná místa kusů")
-    unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, default="down", string="Výchozí zaokrouhlení kusů")
-    rounding_owner = fields.Selection(
-        ROUNDING_OWNER, required=True, default="fund", string="Výchozí: rozdíl ze zaokrouhlení kusů",
-        help="Zůstává ve fondu = kapitál třídy; vrací se investorovi = závazek, výplatu zadává IS.",
-    )
+    # Výchozí desetinná místa a zaokrouhlení kurzu a kusů fondu zrušeny (rozhodnutí 2026-11-17): platí jen na třídě,
+    # nová třída je přebírá z první třídy fondu. Sloupce v databázi se odstraní při příští migraci.
     # Výchozí vstupní a výstupní poplatek fondu zrušilo ZJ-03 (rozhodnutí 2026-11-17 „Poplatky fondu a tříd“): výpočet
     # četl jen třídu, fond hodnoty jen kopíroval do nové třídy. Sloupce entry/exit_fee_rate a entry/exit_fee_recipient
     # fondu Odoo při upgradu odstraní.
@@ -138,13 +150,13 @@ class InvestraFundClass(models.Model):
     )
     isin = fields.Char(
         string="ISIN", help="12 znaků: kód země (2 velká písmena), 9 znaků a kontrolní číslice podle ISO 6166. Nepovinné; formát se kontroluje.")
-    price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Bez zadání platí hodnota fondu.")
-    price_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kurzu", help="Bez zadání platí hodnota fondu.")
+    price_digits = fields.Integer(required=True, string="Desetinná místa kurzu", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    price_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kurzu", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
     distribution = fields.Selection([("growth", "Růstová"), ("dividend", "Dividendová")], default="growth", required=True, string="Rozdělování výnosu",
         help="Růstová, nebo dividendová třída. U dividendové třídy účtuje Odoo hrubou dividendu, výplatu a srážky řeší IS (rozhodnutí 2026-11-04).")
-    unit_digits = fields.Integer(required=True, string="Desetinná místa kusů", help="Bez zadání platí hodnota fondu.")
-    unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
-    rounding_owner = fields.Selection(ROUNDING_OWNER, required=True, string="Rozdíl ze zaokrouhlení kusů", help="Bez zadání platí hodnota fondu.")
+    unit_digits = fields.Integer(required=True, string="Desetinná místa kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    unit_rounding = fields.Selection(PRICE_ROUNDING, required=True, string="Zaokrouhlení kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
+    rounding_owner = fields.Selection(ROUNDING_OWNER, required=True, string="Rozdíl ze zaokrouhlení kusů", help="Nová třída převezme hodnotu z první třídy fondu; první třída má standardní hodnotu.")
     # Poplatky jen na třídě (ZJ-03); změny sazby, příjemce, článku statutu a poznámky zapíše write() do historie
     # třídy, bez verzí. Atribut tracking Odoo 20 bez modulu mail_tracking změny polí neukládá (ověřeno testem).
     entry_fee_rate = fields.Float(digits=(7, 4), required=True, default=0.0, string="Vstupní poplatek (%)",
@@ -165,12 +177,29 @@ class InvestraFundClass(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            fund = self.env["investra.fund"].browse(vals.get("fund_id"))
-            vals.setdefault("price_digits", fund.price_digits)
-            vals.setdefault("price_rounding", fund.price_rounding)
-            for name in MOVEMENT_PARAMS:
-                vals.setdefault(name, fund[name])
+            first = self.search([("fund_id", "=", vals.get("fund_id"))], order="sequence, id", limit=1) \
+                if vals.get("fund_id") else self.browse()
+            for name in CLASS_PARAMS:
+                vals.setdefault(name, first[name] if first else CLASS_DEFAULTS[name])
         return super().create(vals_list)
+
+    @api.model
+    def default_get(self, fields_list):
+        """Nový řádek třídy (i ve formuláři fondu, MN-03) dostane parametry první třídy fondu, jinak standardní hodnoty."""
+        result = super().default_get(fields_list)
+        fund_id = result.get("fund_id") or self.env.context.get("default_fund_id")
+        first = self.search([("fund_id", "=", fund_id)], order="sequence, id", limit=1) if fund_id else self.browse()
+        for name in CLASS_PARAMS:
+            if name in fields_list and name not in result:
+                result[name] = first[name] if first else CLASS_DEFAULTS[name]
+        return result
+
+    def unlink(self):
+        """Fond má vždy aspoň jednu třídu (rozhodnutí 2026-11-17): poslední třídu fondu nejde smazat."""
+        for fund in self.fund_id:
+            if not fund.with_context(active_test=False).class_ids - self:
+                raise UserError(self.env._("Fond %s musí mít aspoň jednu třídu; poslední třídu nejde smazat.", fund.display_name))
+        return super().unlink()
 
     def write(self, vals):
         changed = [name for name in FEE_FIELDS if name in vals]
