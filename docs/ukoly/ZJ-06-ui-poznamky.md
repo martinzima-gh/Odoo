@@ -128,3 +128,12 @@ nahrazen `default_get` třídy: parametry z první třídy fondu, jinak standard
 Upgrade ověřen na kopii `investra` (poté smazána): bez chyb; Odoo sloupce zrušených polí smaže (viz deník) – oprava předpokladu z převzetí.
 Bod 13 nasazen do `investra` 17. 11. 2026 se souhlasem Martina: záloha `zalohy/investra-2026-11-17-pred-tridy.dump` (486 tabulek), upgrade `investra_fund`,
 `investra_nav` bez chyb, 8 tříd beze změny, výchozí pole fondu odstraněna, `/web/login` 200.
+
+## Průchod UI s Martinem (17. 11. 2026)
+
+Body 1–9 prošel Martin v UI, vše v pořádku s těmito nálezy:
+- **Opraveno** (commit `7707cc6`, zelená zóna, zatím nenasazeno do `investra`): sloupec ID je v seznamech první; Účetní knihy bez tlačítka Nové, zůstává jen „Nová účetní kniha“ (průvodce).
+- **Pro ZJ-07:** pravidlo druhu Očekávaná daň nemá nákladovou roli; doplnit při řešení daní.
+- **Návrh pro Opusa (červená zóna, neprovedeno):** fond nejde smazat ani archivovat (pole Aktivní má jen třída; tracking bez `mail_tracking` změny neukládá).
+  Doporučení: tlačítko „Archivovat fond“ s povinným důvodem, zápis kdo/kdy/proč do nezměnitelné historie (`investra.record.guard`), odmítnout u fondu s rozpracovaným oceněním.
+  Varianta B (smazání úplně prázdného fondu i s jeho jedinou třídou) jen na výslovné přání.
