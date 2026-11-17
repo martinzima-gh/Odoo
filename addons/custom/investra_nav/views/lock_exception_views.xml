@@ -13,6 +13,7 @@
                 <field name="end_datetime"/>
                 <field name="requested_by"/>
                 <field name="confirmed_by" optional="show"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

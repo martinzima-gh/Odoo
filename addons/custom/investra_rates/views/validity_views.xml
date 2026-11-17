@@ -10,6 +10,7 @@
                 <field name="currency_id" placeholder="výchozí pro lístek" options="{'no_create': True}"/>
                 <field name="max_age_days"/>
                 <field name="active" column_invisible="True"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

@@ -11,6 +11,7 @@
                 <field name="manual_posting" optional="show"/>
                 <field name="user_ids" widget="many2many_tags" optional="show"/>
                 <field name="active" optional="hide"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

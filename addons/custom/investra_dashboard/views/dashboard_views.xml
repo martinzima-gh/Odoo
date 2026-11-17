@@ -77,7 +77,11 @@
                                        class="o_investra_pill o_investra_pending">
                                         <field name="dashboard_next_state"/><t t-if="record.dashboard_next_version.raw_value &gt; 1"> · v<t t-out="record.dashboard_next_version.raw_value"/></t>
                                     </a>
-                                    <span t-else="" class="o_investra_pill o_investra_pending"><field name="dashboard_next_state"/></span>
+                                    <t t-else="">
+                                        <span class="o_investra_pill o_investra_pending"><field name="dashboard_next_state"/></span>
+                                        <!-- ZJ-06 bod 3: ocenění se dá založit přímo z karty. -->
+                                        <a type="object" name="action_create_next_valuation" class="o_investra_link_control">Založit ocenění</a>
+                                    </t>
                                 </div>
                                 <span t-else="">—</span>
                             </div>
@@ -131,6 +135,7 @@
                 <field name="dashboard_next_state" widget="badge" decoration-info="dashboard_next_state in ('draft', 'computed', 'none')" decoration-warning="dashboard_next_state in ('submitted', 'approved')"/>
                 <field name="dashboard_todo_count" string="Ke zpracování" optional="show"/><field name="dashboard_my_todo" string="Můj krok" widget="boolean" optional="show"/>
                 <field name="dashboard_next_deadline"/><field name="dashboard_deadline_state" widget="badge" decoration-warning="dashboard_deadline_state == 'open'" decoration-danger="dashboard_deadline_state == 'overdue'" decoration-success="dashboard_deadline_state == 'submitted'"/><field name="dashboard_exception_count"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -139,6 +144,7 @@
         <field name="arch" type="xml">
             <list create="false">
                 <field name="valuation_id"/><field name="name"/><field name="status" widget="badge" decoration-success="status == 'ok'" decoration-warning="status == 'warning'" decoration-danger="status == 'stop'"/><field name="detail"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -148,6 +154,7 @@
         <field name="arch" type="xml">
             <list create="false" edit="false" delete="false">
                 <field name="date"/><field name="instrument_id"/><field name="flow_type"/><field name="amount"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -181,6 +188,7 @@
         <field name="arch" type="xml">
             <list editable="bottom">
                 <field name="fund_id"/><field name="report"/><field name="period_end"/><field name="due_date"/><field name="state" widget="badge" decoration-warning="state == 'open' and due_date &gt;= current_date" decoration-danger="state == 'open' and due_date &lt; current_date" decoration-success="state == 'submitted'"/><field name="source"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

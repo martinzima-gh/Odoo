@@ -10,6 +10,7 @@
                 <field name="requires_maturity" optional="hide"/><field name="requires_justification" optional="hide"/>
                 <field name="leverage_rule" optional="hide"/><field name="valid_from" optional="hide"/>
                 <field name="valid_to" optional="hide"/><field name="active" optional="hide"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -59,7 +60,7 @@
     <record id="view_ba0088_group_list" model="ir.ui.view">
         <field name="name">investra.ba0088.group.list</field><field name="model">investra.ba0088.group</field>
         <field name="arch" type="xml">
-            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="active" optional="hide"/></list>
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="active" optional="hide"/><field name="id" optional="hide"/></list>
         </field>
     </record>
     <record id="view_ba0088_group_search" model="ir.ui.view">
@@ -82,7 +83,7 @@
     <record id="view_esa_aggregate_list" model="ir.ui.view">
         <field name="name">investra.esa.aggregate.sector.list</field><field name="model">investra.esa.aggregate.sector</field>
         <field name="arch" type="xml">
-            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="help_text" optional="hide"/><field name="active" optional="hide"/></list>
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="help_text" optional="hide"/><field name="active" optional="hide"/><field name="id" optional="hide"/></list>
         </field>
     </record>
     <record id="view_esa_aggregate_search" model="ir.ui.view">
@@ -109,6 +110,7 @@
                 <field name="code" readonly="id"/><field name="name"/><field name="aggregate_sector_id"/><field name="residency"/>
                 <field name="residency_warning" decoration-danger="residency_warning"/><field name="esa2010_sector_id" optional="show"/>
                 <field name="any_country" optional="hide"/><field name="active" optional="hide"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -148,7 +150,7 @@
     <record id="view_membership_list" model="ir.ui.view">
         <field name="name">investra.country.group.membership.list</field><field name="model">investra.country.group.membership</field>
         <field name="arch" type="xml">
-            <list editable="bottom"><field name="country_id"/><field name="group"/><field name="valid_from"/><field name="valid_to"/><field name="source"/></list>
+            <list editable="bottom"><field name="country_id"/><field name="group"/><field name="valid_from"/><field name="valid_to"/><field name="source"/><field name="id" optional="hide"/></list>
         </field>
     </record>
     <record id="view_membership_search" model="ir.ui.view">
@@ -176,7 +178,7 @@
     <record id="view_measurement_category_list" model="ir.ui.view">
         <field name="name">investra.measurement.category.list</field><field name="model">investra.measurement.category</field>
         <field name="arch" type="xml">
-            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="ifrs9_category" readonly="id"/><field name="help_text" optional="show"/><field name="active" optional="hide"/></list>
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="ifrs9_category" readonly="id"/><field name="help_text" optional="show"/><field name="active" optional="hide"/><field name="id" optional="hide"/></list>
         </field>
     </record>
     <record id="view_measurement_category_search" model="ir.ui.view">
@@ -199,7 +201,7 @@
     <record id="view_classification_reason_list" model="ir.ui.view">
         <field name="name">investra.classification.reason.list</field><field name="model">investra.classification.reason</field>
         <field name="arch" type="xml">
-            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="requires_note"/><field name="help_text" optional="show"/><field name="active" optional="hide"/></list>
+            <list editable="bottom"><field name="code" readonly="id"/><field name="name"/><field name="requires_note"/><field name="help_text" optional="show"/><field name="active" optional="hide"/><field name="id" optional="hide"/></list>
         </field>
     </record>
     <record id="view_classification_reason_search" model="ir.ui.view">

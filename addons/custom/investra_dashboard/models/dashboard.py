@@ -551,6 +551,25 @@ class InvestraFund(models.Model):
             "views": [(False, "form")],
         }
 
+    def action_create_next_valuation(self):
+        """Otevře nový návrh ocenění s předvyplněným fondem a očekávaným datem (`_dashboard_next`); datum lze přepsat.
+
+        Nic nezaloží: návrh vznikne až uložením formuláře a kontroly pořadí ocenění platí jako při ručním zadání.
+        """
+        self.ensure_one()
+        context = {"default_fund_id": self.id}
+        if self.dashboard_next_valuation:
+            context["default_date"] = fields.Date.to_string(self.dashboard_next_valuation)
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Nové ocenění: %s", self.name),
+            "res_model": "investra.valuation",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "current",
+            "context": context,
+        }
+
     def action_open_next_valuation(self):
         self.ensure_one()
         return {

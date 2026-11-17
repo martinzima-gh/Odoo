@@ -11,6 +11,7 @@
                 <field name="currency_id"/>
                 <field name="rate_source"/>
                 <field name="parent_id"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -78,6 +79,7 @@
                 <field name="role_id" string="Role" options="{'no_create': True, 'no_open': True}"/>
                 <field name="account_id" string="Účet" options="{'no_create': True, 'no_open': True}"/>
                 <field name="extra_account_ids" string="Další účty" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -115,6 +117,7 @@
                 <field name="code" string="Kód"/>
                 <field name="name" string="Název"/>
                 <field name="category" string="Druh"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -144,9 +147,9 @@
     <menuitem id="menu_setup_funds" name="Fondy" parent="menu_setup" sequence="10"/>
     <menuitem id="menu_setup_instruments" name="Nástroje" parent="menu_setup" sequence="20"/>
     <menuitem id="menu_setup_cnb" name="ČNB" parent="menu_setup" sequence="30"/>
-    <menuitem id="menu_setup_audit" name="Auditní stopa" parent="menu_setup" sequence="40"/>
+    <menuitem id="menu_setup_audit" name="Schvalování a audit" parent="menu_setup" sequence="40"/>
     <menuitem id="menu_setup_accounting" name="Účtování" parent="menu_setup" sequence="35"/>
     <menuitem id="menu_role_account" name="Účty rolí" parent="menu_setup_accounting" action="action_role_account" sequence="10"/>
     <menuitem id="menu_account_role" name="Role účtů" parent="menu_setup_accounting" action="action_account_role" sequence="20"/>
-    <menuitem id="menu_entity" name="Účetní knihy" parent="menu_setup_funds" action="action_entity" sequence="20"/>
+    <menuitem id="menu_entity" name="Účetní knihy" parent="menu_setup_funds" action="action_entity" sequence="5"/>
 </odoo>

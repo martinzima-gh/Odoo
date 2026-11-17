@@ -56,6 +56,7 @@
                 <field name="reason" optional="show"/>
                 <field name="create_uid" string="Zadal" optional="hide"/>
                 <field name="fetched_at" optional="hide"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

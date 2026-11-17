@@ -30,6 +30,7 @@
                 <field name="has_capital_change" column_invisible="1"/>
                 <field name="fund_capital_change" optional="show" invisible="not has_capital_change" width="[150,200]"
                        decoration-success="fund_capital_change &gt; 0" decoration-danger="fund_capital_change &lt; 0"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -245,7 +246,8 @@
                         <page string="Úplaty"><field name="fee_line_ids"><list><field name="name"/><field name="class_id"/><field name="amount"/></list></field></page>
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
                             <div class="alert alert-info" role="alert">Úplata spočtená mimo Odoo (ZJ-03). Zaúčtuje se k datu ocenění na zvolený nákladový účet proti závazku z úplat, v cizí měně kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Prázdná třída = celý fond. Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.</div>
-                            <field name="external_fee_ids" context="{'default_valuation_id': id}"><list editable="bottom">
+                            <field name="external_fee_ids" context="{'default_valuation_id': id}"
+                                   readonly="state not in ('draft', 'computed')"><list editable="bottom">
                             <field name="class_id" domain="[('fund_id', '=', parent.fund_id)]" options="{'no_create': True}"/>
                             <field name="amount"/>
                             <field name="currency_id" options="{'no_create': True}"/>
@@ -401,6 +403,7 @@
                 <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
                 <field name="note" optional="hide"/><field name="overlap_warning" string="Souběh" optional="show"/>
                 <field name="active" optional="hide"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -426,16 +429,76 @@
                 </div>
                 <group>
                     <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind"/><field name="sequence"/><field name="statute_ref"/><field name="note"/></group>
-                    <group><field name="basis"/><field name="base_source"/><field name="base_mode"/><field name="expense_role"/><field name="crystallisation"/></group>
+                    <!-- ZJ-06 bod 10: co k druhu úplaty nepatří, se neukazuje. Daň konvenci dnů a základ nepoužívá. -->
+                    <group>
+                        <field name="basis" invisible="kind == 'tax'"/>
+                        <field name="base_source" invisible="kind == 'tax'"/>
+                        <field name="base_mode" invisible="kind == 'tax'"/>
+                        <field name="expense_role"/>
+                        <field name="crystallisation" invisible="kind != 'performance'"/>
+                    </group>
                 </group>
                 <group>
-                    <field name="class_ids" widget="many2many_tags"/>
-                    <field name="recipient_share"/><field name="recipient_class_ids" widget="many2many_tags"/><field name="cover_class_id"/>
+                    <field name="class_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    <field name="recipient_share"/><field name="recipient_class_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    <field name="cover_class_id" invisible="kind != 'performance'" options="{'no_create': True}"/>
                 </group>
-                <field name="version_ids"><list editable="bottom">
-                    <field name="valid_from"/><field name="decision_ref"/><field name="rate"/><field name="threshold"/><field name="fixed_monthly"/>
-                    <field name="min_annual"/><field name="max_annual"/><field name="hurdle_kind"/><field name="hurdle_rate"/>
-                </list></field>
+                <!-- ZJ-06 bod 11: v tabulce jen hlavní sloupce podle druhu, ostatní ve formuláři verze. -->
+                <field name="version_ids">
+                    <list>
+                        <field name="valid_from"/><field name="decision_ref"/><field name="rate"/>
+                        <field name="threshold" column_invisible="parent.kind != 'periodic'"/>
+                        <field name="fixed_monthly" column_invisible="parent.kind != 'periodic'"/>
+                        <field name="min_annual" column_invisible="parent.kind != 'periodic'"/>
+                        <field name="max_annual" column_invisible="parent.kind != 'periodic'"/>
+                        <field name="hurdle_kind" column_invisible="parent.kind != 'performance'"/>
+                        <field name="hurdle_rate" column_invisible="parent.kind != 'performance'"/>
+                    </list>
+                    <form>
+                        <group string="Sazba a limity">
+                            <group>
+                                <field name="valid_from"/><field name="decision_ref"/><field name="rate"/>
+                            </group>
+                            <group invisible="parent.kind != 'periodic'">
+                                <field name="threshold"/><field name="fixed_monthly"/><field name="fixed_mode"/>
+                                <field name="min_annual"/><field name="max_annual"/>
+                            </group>
+                        </group>
+                        <group string="Výkonnost" invisible="parent.kind != 'performance'">
+                            <group>
+                                <field name="perf_measure"/><field name="perf_use_hwm"/><field name="initial_reference"/>
+                            </group>
+                            <group>
+                                <field name="hurdle_kind"/><field name="hurdle_rate" invisible="hurdle_kind != 'fixed'"/>
+                                <field name="benchmark_id" invisible="hurdle_kind != 'index'" options="{'no_create': True}"/>
+                            </group>
+                        </group>
+                        <notebook invisible="parent.kind == 'tax'">
+                            <page string="Další parametry" name="more">
+                                <group invisible="parent.kind != 'periodic'">
+                                    <group>
+                                        <field name="step_size"/><field name="step_amount"/>
+                                    </group>
+                                    <group>
+                                        <field name="included_classes"/><field name="extra_class_monthly"/>
+                                    </group>
+                                </group>
+                                <field name="tier_ids" invisible="parent.kind != 'periodic'">
+                                    <list editable="bottom"><field name="amount_from"/><field name="rate"/></list>
+                                </field>
+                                <group invisible="parent.kind != 'performance'">
+                                    <group>
+                                        <field name="hurdle_type"/><field name="catch_up"/><field name="hurdle_margin"/>
+                                    </group>
+                                    <group>
+                                        <field name="hurdle_floor_zero"/><field name="require_positive_return"/>
+                                        <field name="probability"/><field name="cap_rate"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </form>
+                </field>
             </sheet></form>
         </field>
     </record>
@@ -494,6 +557,7 @@
                        decoration-success="movement_type == 'subscription'" decoration-danger="movement_type == 'redemption'"/>
                 <field name="capital_amount" optional="hide"/>
                 <field name="event_id" string="Účetní událost" optional="hide"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -761,6 +825,7 @@ if isinstance(result, dict):
                 <field name="kind" optional="show"/><field name="closes_position" optional="show"/>
                 <field name="principal_amount" optional="show"/><field name="interest_amount" optional="show"/>
                 <field name="fee_amount" optional="hide"/><field name="amount"/><field name="event_id"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

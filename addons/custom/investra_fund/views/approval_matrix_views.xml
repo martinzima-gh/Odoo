@@ -12,6 +12,7 @@
                 <field name="second_person" widget="badge" decoration-warning="second_person == 'no'"/>
                 <field name="persons" optional="hide"/>
                 <field name="note" optional="show"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -75,8 +76,8 @@
                Změna = nový řádek s pozdějším „Platí od“; platný řádek se nepřepisuje.</p>
         </field>
     </record>
-    <menuitem id="menu_approval_matrix" name="Schvalovací matice" parent="investra_entity.menu_setup_funds"
-              action="action_approval_matrix" sequence="30"/>
+    <menuitem id="menu_approval_matrix" name="Schvalovací matice" parent="investra_entity.menu_setup_audit"
+              action="action_approval_matrix" sequence="5"/>
 
     <!-- Žádosti podle matice -->
     <record id="view_approval_request_list" model="ir.ui.view">
@@ -90,6 +91,7 @@
                 <field name="record_name"/>
                 <field name="company_id" optional="show"/>
                 <field name="requested_by"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -157,6 +159,7 @@
                 <field name="user_id"/>
                 <field name="company_id" optional="show"/>
                 <field name="matrix_id" optional="show"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

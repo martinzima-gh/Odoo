@@ -2,7 +2,7 @@
 <odoo>
     <record id="view_esa_sector_list" model="ir.ui.view">
         <field name="name">investra.esa.sector.list</field><field name="model">investra.esa.sector</field>
-        <field name="arch" type="xml"><list><field name="code"/><field name="name"/></list></field>
+        <field name="arch" type="xml"><list><field name="code"/><field name="name"/><field name="id" optional="hide"/></list></field>
     </record>
     <record id="view_esa_sector_search" model="ir.ui.view">
         <field name="name">investra.esa.sector.search</field><field name="model">investra.esa.sector</field>
@@ -11,7 +11,7 @@
     <record id="view_profile_list" model="ir.ui.view">
         <field name="name">investra.counterparty.profile.list</field><field name="model">investra.counterparty.profile</field>
         <field name="arch" type="xml">
-            <list><field name="partner_id"/><field name="country_id"/><field name="sector_id"/><field name="lei"/></list>
+            <list><field name="partner_id"/><field name="country_id"/><field name="sector_id"/><field name="lei"/><field name="id" optional="hide"/></list>
         </field>
     </record>
     <record id="view_profile_search" model="ir.ui.view">

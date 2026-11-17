@@ -57,7 +57,7 @@ class AccountLockException(models.Model):
             )
             if _fund_books(self.env, companies):
                 raise UserError(self.env._(
-                    "Výjimku z uzamčení fondové knihy zakládá jen žádost v Investra (Nastavení → Auditní stopa)."
+                    "Výjimku z uzamčení fondové knihy zakládá jen žádost v Investra (Nastavení → Schvalování a audit)."
                 ))
         return super().create(vals_list)
 

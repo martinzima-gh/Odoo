@@ -120,7 +120,7 @@ s příznakem Provádí; vznikne žádost, kterou potvrdí jiný uživatel s rol
 
 ## 3. Žádosti ke schválení a Úkony bez druhé osoby
 
-Obě nabídky jsou pod **Investra › Nastavení › Auditní stopa**.
+Obě nabídky jsou pod **Investra › Nastavení › Schvalování a audit** (tamtéž je jako první Schvalovací matice).
 
 **Žádosti ke schválení.** Jednorázový úkon (vrácení a storno ocenění, zveřejnění, ruční kurz, ruční úpis a odkup, ruční kategorie,
 storno splátky a obchodu), který matice určuje pro čtyři oči nebo kroky, se neprovede hned. Vznikne žádost (stav **Čeká na potvrzení**),

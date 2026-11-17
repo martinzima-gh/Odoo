@@ -199,6 +199,17 @@ class TestDashboard(NavCase):
         draft = self.valuation(self.fund, "2032-01-31")
         self.assertEqual(self.fund.action_open_next_valuation()["res_id"], draft.id)
 
+    def test_action_creates_next_valuation(self):
+        # ZJ-06 bod 3: tlačítko „Založit ocenění“ otevře návrh s fondem a očekávaným datem, nic nezakládá.
+        self.fund.launch_date = "2031-12-31"
+        self.fund.invalidate_recordset()
+        before = self.env["investra.valuation"].search_count([("fund_id", "=", self.fund.id)])
+        action = self.fund.action_create_next_valuation()
+        self.assertEqual(action["res_model"], "investra.valuation")
+        self.assertEqual(action["context"]["default_fund_id"], self.fund.id)
+        self.assertEqual(action["context"]["default_date"], fields.Date.to_string(self.fund.dashboard_next_valuation))
+        self.assertEqual(self.env["investra.valuation"].search_count([("fund_id", "=", self.fund.id)]), before)
+
     def test_todo_lists_valuation_step_for_role(self):
         self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
         draft = self.valuation(self.fund, "2032-01-31")

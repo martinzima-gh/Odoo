@@ -6,6 +6,7 @@
             <list default_order="code asc">
                 <field name="code"/><field name="name"/><field name="isin"/><field name="identifier" optional="hide"/><field name="type_id"/><field name="currency_id"/><field name="fund_id" optional="show"/>
                 <field name="cnb_sheet"/><field name="deviates_from_type"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -130,6 +131,7 @@
                 <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
                 <field name="ifrs9_category" optional="show"/><field name="settlement_date"/>
                 <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -233,6 +235,7 @@
                 <field name="code"/><field name="name"/><field name="group"/><field name="kind"/>
                 <field name="ifrs9_category" string="Kategorie (typická)"/><field name="valuation_method"/><field name="role_id"/>
                 <field name="cnb_sheet"/><field name="max_price_age"/><field name="isin_required"/><field name="code_prefix"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -264,6 +267,7 @@
                 <field name="state" string="Stav" widget="badge" decoration-warning="state == 'draft'" decoration-success="state == 'approved'"/>
                 <field name="entered_by" string="Zadal" optional="show"/>
                 <field name="approved_by" string="Schválil" optional="show"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -362,6 +366,7 @@
                 <field name="category_override" optional="show"/>
                 <field name="ifrs9_category"/><field name="valuation_method"/><field name="role_id" optional="show"/>
                 <field name="deviates_from_proposal" optional="hide"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -471,6 +476,7 @@
         <field name="arch" type="xml">
             <list default_order="sequence asc">
                 <field name="sequence" widget="handle"/><field name="fund_id"/><field name="name"/><field name="business_model"/>
+                <field name="id" optional="hide"/>
             </list>
         </field>
     </record>

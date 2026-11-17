@@ -4,7 +4,7 @@
         <field name="name">investra.fund.list</field>
         <field name="model">investra.fund</field>
         <field name="arch" type="xml">
-            <list default_order="name asc"><field name="name"/><field name="currency_id"/><field name="valuation_frequency"/></list>
+            <list default_order="name asc"><field name="name"/><field name="currency_id"/><field name="valuation_frequency"/><field name="id" optional="hide"/></list>
         </field>
     </record>
     <record id="view_fund_search" model="ir.ui.view">
