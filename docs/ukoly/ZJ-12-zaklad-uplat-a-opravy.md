@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | kroky 1–3 hotové (2026-11-18), daň v základu odměny (B.3) v práci, scénář s4 čeká na schválení; další krok 4 (opravy všech druhů) |
+| Stav | kroky 1–3 hotové (2026-11-18) včetně daně v základu odměny a schváleného s4; krok 4 (opravy všech druhů, části 4a–4e) v práci |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -313,7 +313,7 @@ odměna s daní přes krystalizaci (přičtení 0 / 4 000 / 4 000 / 0 po 31. 3.)
 − náklady (tři třídy, tři ocenění). `tools/nav_reference`: odměna (jen krok 2) přičítá nesenou daň, nový ruční test. `investra_nav` 452/452,
 `investra_nav+` 526/526. Kopie zálohy povýšená na 37.0: ocenění 35 a 39 beze změny (FK, úplaty, kapitály, kurzy).
 
-**Scénář s4 ke schválení (druhá verze, přírůstkový přesun a daň v základu odměny):** viz tabulka níže; nahrazuje předchozí návrh.
+**Scénář s4 – schválená druhá verze** (Martin 18. 11. 2026; přírůstkový přesun a daň v základu odměny); nahrazuje předchozí návrh.
 
 | Datum | Položka | Dosud (commit) | Nově |
 |---|---|---|---|
@@ -327,11 +327,12 @@ odměna s daní přes krystalizaci (přičtení 0 / 4 000 / 4 000 / 0 po 31. 3.)
 | 28. 2. | kapitál A / B | 1 009 364,60 / 1 010 975,72 | 1 008 993,39 / 1 010 936,29 |
 | 28. 2. | kurz A / B | 1 009,3646 / 1 010,9757 | 1 008,9933 / 1 010,9362 |
 
-## Plán kroku 4 (technický návrh, 2026-11-18; věcně rozhodnuto B.7–B.10)
+## Plán kroku 4 (technický návrh schválen 2026-11-18; věcně rozhodnuto B.7–B.10)
 
 1. **Převzaté opravy** `_carried_corrections()`: řádky oprav s platností „do konce období“ z `_earlier_valuations(D)`, součet podle (pravidlo, třída, cíl);
    D = `perf_base_date` u odměny, 31. 12. předchozího roku u daně a opravy základu průměrného FK. **Ukončení** = nová oprava o −převzatou částku
-   s povinnou poznámkou a `origin_id` na ukončovanou; tím součet klesne na 0 a další ocenění ji nepřevezme.
+   s povinnou poznámkou a odkazem `ended_id` („Ukončuje opravu“) na ukončovanou; tím součet klesne na 0 a další ocenění ji nepřevezme.
+   `origin_id` („Převzato z“) zůstává jen pro převzetí z verze (B.10), kontroly i protokol je rozlišují.
 2. **Dva průchody** `_apply_fees`: (1) bez jakýchkoli oprav (nových i převzatých) = Vypočteno do detailu; (2) `pinned[klíč]` = vypočteno + převzaté + nové
    u oprav částky; oprava základu nepinuje, přičte se do základu položky (daň: výsledek; průměrný FK: průměr, převzatá do konce roku; FK a kapitál
    třídy: jen toto ocenění). Ostatní pravidla se dopočítají k pevným částkám.
@@ -348,7 +349,7 @@ odměna s daní přes krystalizaci (přičtení 0 / 4 000 / 4 000 / 0 po 31. 3.)
    archivované pravidlo naběhlou částku přestane rozpouštět (důvod pojistky).
 8. **Části a commity:** 4a převzaté opravy částky a dva průchody (odměna, daň, úplaty) · 4b oprava základu · 4c kontroly, upozornění, Ponechat rozdíl/výsledek ·
    4d stopa a převzetí z verze · 4e pojistka archivace. Každá část s testy `investra_nav`, před sloučením `investra_nav+`. Tlačítka a dialog v UI krok 5.
-   Otevřené: oprava základu daně souvisí s překryvem ZJ-07 × DA-01 (rozhoduje Martin).
+   Překryv ZJ-07 × DA-01 krok 4 neblokuje: oprava základu daně podle ZJ-12, vztah k daňovému profilu počká (Martin 18. 11. 2026).
 
 ## Výsledek
 
