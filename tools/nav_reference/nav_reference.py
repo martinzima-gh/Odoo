@@ -51,7 +51,9 @@ def compute(scenario):
     ytd_result = Decimal(0)
     # ZJ-12 B.5: specifické náklady tříd od 1. 1. (odměna, specifické položky) a zaúčtované přesuny daňového efektu.
     ytd_specific = {code: Decimal(0) for code in classes}
-    tax_transfers_booked = {code: Decimal(0) for code in classes}
+    # Daňový efekt minulého ocenění: {třída: e × spec_c} a e × Σ spec (přírůstkový přesun, ZJ-12 B.5).
+    tax_effect_prev = {code: Decimal(0) for code in classes}
+    tax_effect_total_prev = Decimal(0)
     results = []
 
     for val in scenario["valuations"]:
@@ -107,15 +109,19 @@ def compute(scenario):
             tax_accrued = required
             fk -= tax_move
             # Daňový efekt specifických položek (ZJ-12 B.5): e = (daň bez nich − daň s nimi) / Σ spec; přesun do třídy
-            # c = e × (spec_c − ρ_c × Σ spec), kumulativně od 1. 1., účtuje se doplatek; haléřový rozdíl nese největší přesun.
+            # c = Δ(e × spec_c) − ρ_c × Δ(e × Σ spec), Δ proti minulému ocenění, ρ dnešní (dřívější přesuny se nepřepočítávají);
+            # haléřový rozdíl nese největší přesun.
             total = sum(ytd_specific.values())
             effective = (rate * max(ytd_result + total, Decimal(0)) - exact) / total if total else Decimal(0)
-            transfers = {c: money(effective * (ytd_specific[c] - apt[c] * total) - tax_transfers_booked[c]) for c in classes}
+            effect = {c: effective * ytd_specific[c] for c in classes}
+            effect_total = effective * total
+            transfers = {c: money(effect[c] - tax_effect_prev[c] - apt[c] * (effect_total - tax_effect_total_prev))
+                         for c in classes}
+            tax_effect_prev, tax_effect_total_prev = effect, effect_total
             rounding = -sum(transfers.values())
             if rounding:
                 transfers[max(sorted(transfers), key=lambda c: abs(transfers[c]))] += rounding
             for c in classes:
-                tax_transfers_booked[c] += transfers[c]
                 delta[c] += transfers[c]
 
         nfk = fk - sum(delta.values())

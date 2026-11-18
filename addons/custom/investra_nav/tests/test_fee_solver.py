@@ -223,9 +223,9 @@ class TestFeeSolverValuation(NavCase):
         self.assertAlmostEqual(self.result(valuation, "A").capital, 1002500 - 10025 + 125, places=2)
         self.assertAlmostEqual(self.result(valuation, "B").capital, 1002500 - 125, places=2)
 
-    def test_tax_effect_is_cumulative_and_trued_up(self):
-        # Leden jako C5 (přesun A +250). Únor ztráta 100 000: odměna se rozpustí, daň od 1. 1. je 0, přesun od 1. 1. je 0;
-        # únor proto zaúčtuje A −250 a B +250 jako doplatek proti lednu.
+    def test_tax_effect_transfer_is_incremental(self):
+        # Leden jako C5 (efekt A 500, přesun A +250). Únor ztráta 100 000: odměna se rozpustí, daň i efekt od 1. 1. jsou 0.
+        # Přírůstkový přesun A = ΔE_A − ρ_A × ΔΣE = −500 + ρ_A × 500, ρ_A = 1 038 000 / 2 085 500 (po lednu) → −251,14.
         fund = self.fund(classes=("A", "B"))
         self.common_result(fund, "v1", "2027-01-20", 100000)
         perf = self.performance(fund, "A", "1")
@@ -238,4 +238,28 @@ class TestFeeSolverValuation(NavCase):
         self.assertAlmostEqual(self.amount(february, perf), -10000, places=2)
         self.assertAlmostEqual(self.amount(february, tax), -4500, places=2)
         self.assertEqual(self.tax_detail(january, tax)["transfers"], {str(a.id): "250.00", str(b.id): "-250.00"})
-        self.assertEqual(self.tax_detail(february, tax)["transfers"], {str(a.id): "-250.00", str(b.id): "250.00"})
+        effect = self.tax_detail(january, tax)["effect"]
+        self.assertAlmostEqual(float(effect[str(a.id)]), 500, places=6)
+        self.assertAlmostEqual(float(effect[str(b.id)]), 0, places=6)
+        self.assertEqual(self.tax_detail(february, tax)["transfers"], {str(a.id): "-251.14", str(b.id): "251.14"})
+        self.assert_consistent(february)
+
+    def test_tax_effect_not_restated_by_later_subscription(self):
+        # Leden jako C5 (efekt A 500, přesun A +250). Únor: úpis 8 000 000 do B, žádný výsledek.
+        # Odměna po kroku 1: 1 038 000 + 10 000 → 9 600 (−400; lednová daň třídy A se podle B.3 nepřičítá). Daň 0,05 × 90 400
+        # = 4 520 (+20). Efekt 480, ΔE_A = ΔΣE = −20, ρ_A = 1 038 000 / 10 085 500 → přesun A = −20 × (1 − ρ_A) = −17,94.
+        # Lednový přesun se novým poměrem nepřepočítá; kumulativní výpočet by dal 0,05 × 9 600 × (1 − ρ_A) − 250 = +180,59.
+        fund = self.fund(classes=("A", "B"))
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        perf = self.performance(fund, "A", "1")
+        tax = self.tax(fund)
+        self.run_to_posted(self.valuation(fund, JANUARY))
+        self.subscribe(self.cls(fund, "B"), "2027-02-10", 8000000, 8000)
+        february = self.valuation(fund, date(2027, 2, 28))
+        february.action_compute()
+        a, b = self.cls(fund, "A"), self.cls(fund, "B")
+        self.assertAlmostEqual(self.amount(february, perf), -400, places=2)
+        self.assertAlmostEqual(self.amount(february, tax), 20, places=2)
+        self.assertEqual(self.tax_detail(february, tax)["transfers"], {str(a.id): "-17.94", str(b.id): "17.94"})
+        self.assertAlmostEqual(self.result(february, "A").capital, 1038000 + 400 - 20 * 1038000 / 10085500 - 17.94, places=2)
+        self.assert_consistent(february)

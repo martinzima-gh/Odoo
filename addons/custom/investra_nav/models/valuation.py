@@ -1091,8 +1091,8 @@ class InvestraValuation(models.Model):
 
         Výsledek od 1. 1. bez účtu daně; náklady dřívějších ocenění, které podle volby základ nesnižují (krok 1:
         úplaty a odměna, krok 2: odměna), se přičtou zpět. Specifické položky tříd = výsledkové řádky s třídou od 1. 1.
-        (úplaty a odměna tříd, opravy, zajištění) bez nezapočitatelných. Dříve zaúčtované přesuny daňového efektu jsou
-        v detailu řádků daně (`transfers`).
+        (úplaty a odměna tříd, opravy, zajištění) bez nezapočitatelných. Daňový efekt minulého ocenění v roce (pro
+        přírůstkový přesun) je v detailu jeho řádku daně (`effect`, `effect_total`).
         """
         version = rule._version_at(self.date)
         step = int(rule.base_step)
@@ -1113,16 +1113,30 @@ class InvestraValuation(models.Model):
                 result += item["expense"]
                 if item["payer"] in specific:
                     specific[item["payer"]] -= item["expense"]
-        transfers = {}
-        for valuation in self._earlier_valuations(self._year_start()):
-            for line in valuation.fee_line_ids.filtered(lambda l: l.rule_id.kind == "tax"):
-                for key, value in json.loads(line.detail or "{}").get("transfers", {}).items():
-                    transfers[int(key)] = transfers.get(int(key), Decimal(0)) + d(value)
+        previous, previous_total = self._previous_tax_effect(rule)
         booked = self._sum(("date", ">=", year_start), ("account_id", "=", tax_account.id))
         return {"stage": engine.STAGE_TAX, "payer": None, "tax": {
             "rate": d(version.rate), "step": step, "result": result, "booked": booked, "specific": specific,
-            "booked_transfers": transfers,
+            "previous_effect": previous, "previous_effect_total": previous_total,
         }}
+
+    def _previous_tax_effect(self, rule):
+        """Daňový efekt tříd posledního dřívějšího ocenění v roce ({třída: e × spec_c}, e × Σ spec), ZJ-12 B.5.
+
+        Řádky z kroku 3 před přírůstkovým přesunem efekt neukládají: dopočte se z `effective_rate` a `specific`
+        (zaokrouhlené na haléře, rozdíl nejvýš e × 0,005 na třídu). Řádek bez efektivní sazby (před krokem 3) = 0.
+        """
+        for valuation in reversed(self._earlier_valuations(self._year_start())):
+            line = valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule)[:1]
+            if not line:
+                continue
+            detail = json.loads(line.detail or "{}")
+            if "effect" in detail:
+                return ({int(k): d(v) for k, v in detail["effect"].items()}, d(detail["effect_total"]))
+            rate = d(detail.get("effective_rate") or 0)
+            effect = {int(k): rate * d(v) for k, v in (detail.get("specific") or {}).items()}
+            return effect, sum(effect.values(), Decimal(0))
+        return {}, Decimal(0)
 
     def _manual_item(self, entry, values):
         """Ručně doložená úplata nebo oprava (ZJ-03, ZJ-11): pevná částka v měně fondu, krok 2."""
@@ -1281,6 +1295,7 @@ class InvestraValuation(models.Model):
             "base": tax["base"], "base_step": rule.base_step, "required": required, "booked": spec["booked"],
             "result": spec["result"], "specific": {str(k): str(engine.money(v)) for k, v in tax["specific"].items()},
             "effective_rate": tax["effective_rate"], "transfers": {str(k): str(v) for k, v in transfers.items()},
+            "effect": {str(k): str(v) for k, v in tax["effect"].items()}, "effect_total": str(tax["effect_total"]),
         })
         lines = [
             {"role": "expense_tax", "amount": move, "movement_type": "fee"},

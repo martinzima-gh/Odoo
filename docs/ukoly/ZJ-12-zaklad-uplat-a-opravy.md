@@ -83,7 +83,7 @@ Referenční model (PowerShell) a jeho očekávané hodnoty: `docs/ukoly/ZJ-12/`
    - Přesun do třídy c = e × (spec_c − ρ_c × Σ spec), součet 0. Efektivní sazba e = (daň bez specifických položek − daň s nimi) / Σ spec: v zisku sazba, ve ztrátě 0, při přechodu přes nulu poměrně.
    - Neuznatelné účty podle ZJ-07 se vynechají.
    - Třída může mít zápornou daň, účtuje se ale jen přesun.
-   - **Implementační upřesnění (referenční model ho neověřuje, je jednoobdobový):** přesun počítat kumulativně od 1. 1. a účtovat jako doplatek proti dříve zaúčtovaným přesunům třídy, stejně jako daň. Ověřit vícedobým testem.
+   - **Implementační upřesnění (referenční model ho neověřuje, je jednoobdobový):** daňový efekt E_c = e × spec_c se počítá od 1. 1., přesun je ale **přírůstkový**: přesun_c = ΔE_c − ρ_c(dnes) × ΔΣE, Δ proti minulému ocenění v roce (z detailu jeho řádku daně). Dřívější přesuny se dnešním poměrem nepřepočítávají, stejně jako daň rozdělená v minulých oceněních (Martin 18. 11. 2026; nahrazuje kumulativní doplatek ze stejného dne).
    - Úspora z daňové ztráty minulých let se dělí poměrem, ztráta se po třídách nesleduje (uvést v manuálu).
 6. **Průměrný FK:**
    - volba kroku jako u FK; dnešní bod průměru je stav po zvoleném kroku, dřívější body jsou zveřejněné FK, průměr prostý;
@@ -262,8 +262,9 @@ Opravené pravidlo se zaúčtuje částkou i základem z průchodu bez oprav (de
   (odměna po kroku 1 od krystalizace, daň od 1. 1.). Starší řádky je nemají: náklad = částka × (1 − podíl příjemců), plátce-třída nese celou
   částku, společnou úplatu třídy poměrem uloženým v ocenění; podíl přijatý od jiných tříd se u nich vynechá (odchylka jen u řádků před krokem 3).
 - Daň: výsledek od 1. 1. z knihy po kroku 1; náklady dřívějších ocenění, které podle kroku základ nesnižují, se přičtou zpět. Specifické
-  položky třídy = výsledkové řádky s třídou od 1. 1. (bez účtu daně) + položky tohoto ocenění s plátcem-třídou. Přesun kumulativně od 1. 1.,
-  doplatek proti součtu `transfers` v dřívějších řádcích daně (ověřeno vícedobým testem). Haléřový rozdíl nese největší přesun.
+  položky třídy = výsledkové řádky s třídou od 1. 1. (bez účtu daně) + položky tohoto ocenění s plátcem-třídou. Přesun přírůstkový
+  (B.5): ΔE_c − ρ_c × ΔΣE proti minulému ocenění v roce; řádek daně ukládá nezaokrouhlený `effect` a `effect_total`, starší řádky kroku 3
+  se dopočtou z `effective_rate` × `specific`. Haléřový rozdíl nese největší přesun; zaokrouhlení přesunu se mezi oceněními nedorovnává.
 - Průměrný FK: jedna položka na pravidlo (oprava B.6); „booked“ z dřívějších ocenění bere jeden řádek pravidla na ocenění (i u starších dvojitých).
 - **Odchylka od dřívějšího chování:** váhy přijímajících tříd jsou hodnoty tříd po kroku 1 (dřív stav knihy v okamžiku zaúčtování, závislý na
   pořadí dokladů). Krytí výkonnostní odměny zůstává mimo dopočet (přesun po zaúčtování odměny, jako dřív).
@@ -273,11 +274,12 @@ Opravené pravidlo se zaúčtuje částkou i základem z průchodu bez oprav (de
 **Testy:** schválené hodnoty zapsané (19,19 / 4,04 a jeden doklad daně; 9 900,99 vypočteno, výsledek 9 800,99, FK 990 199,01); B.6 charakterizace
 na 3 100 a jeden řádek. Nové `test_fee_solver.py` (11 testů): engine × referenční model, neustálení, 36 kombinací kroků úplaty × odměny × daně
 v Odoo proti modelu, C4, C5, C7, průměrný FK po kroku 2, odměna po kroku 1 s přičtením (2 000 / 4 000 / 6 000, krystalizace), měřítko na kus
-s úpisem, vícedobý přesun. `investra_nav` 448/448, `investra_nav+` 522/522. Zkouška na `investra_ci_zj12k3` ze zálohy
+s úpisem, přírůstkový přesun (únor −251,14) a velký úpis do B v únoru (lednový přesun se nepřepočítá; únor −17,94, kumulativně by bylo +180,59).
+`investra_nav` 449/449, `investra_nav+` 523/523 (po přechodu na přírůstkový přesun). Zkouška na `investra_ci_zj12k3` ze zálohy
 `zalohy/investra-2026-11-18-pred-ZJ12-krok2.dump` povýšené na 37.0: přepočet obou otevřených ocenění (35, 39) dal shodné FK, úplaty, kapitály
 i kurzy; kopie smazána. Referenční výpočet `tools/nav_reference` doplněn o daňový efekt tříd (nový test, scénáře s1–s3 a s5 beze změny).
 
-**Scénář s4 ke schválení** (Martin; v pracovním stromu, necommitováno): daňový efekt výkonnostní odměny třídy A. Odoo i `tools/nav_reference` shodně:
+**Scénář s4 ke schválení** (Martin; v pracovním stromu, necommitováno): daňový efekt výkonnostní odměny třídy A, přírůstkový přesun. Odoo i `tools/nav_reference` shodně:
 
 | Datum | Položka | Dosud | Nově |
 |---|---|---|---|
@@ -286,10 +288,10 @@ i kurzy; kopie smazána. Referenční výpočet `tools/nav_reference` doplněn o
 | 31. 1. | kurz A / B | 1 036,4034 / 1 046,0467 | 1 036,6444 / 1 045,8056 |
 | 28. 2. | odměna A (doplatek) | −7 708,86 | −7 662,34 (lednový přesun zvýšil hodnotu A) |
 | 28. 2. | daň (doplatek) | −3 268,94 | −3 271,26 |
-| 28. 2. | přesun A / B | – | −191,34 / +191,34 (kumulativně 49,74 minus leden 241,08) |
+| 28. 2. | přesun A / B | – | −192,40 / +192,40 (ΔE_A = 0,05 × (1 980,95 − 9 643,29) = −383,117; × (1 − ρ_A 0,4978004)) |
 | 28. 2. | FK | 2 020 340,32 | 2 020 296,12 |
-| 28. 2. | kapitál A / B | 1 009 364,60 / 1 010 975,72 | 1 009 360,89 / 1 010 935,23 |
-| 28. 2. | kurz A / B | 1 009,3646 / 1 010,9757 | 1 009,3608 / 1 010,9352 |
+| 28. 2. | kapitál A / B | 1 009 364,60 / 1 010 975,72 | 1 009 359,83 / 1 010 936,29 |
+| 28. 2. | kurz A / B | 1 009,3646 / 1 010,9757 | 1 009,3598 / 1 010,9362 |
 
 ## Výsledek
 

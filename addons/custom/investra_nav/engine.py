@@ -296,9 +296,11 @@ def _tax(spec, items, amounts, ratios):
 
     spec: rate, step (1–3: které náklady snižují základ), result (výsledek od 1. 1. po kroku 1 už se zpět přičtenými
     náklady dřívějších ocenění, které podle kroku základ nesnižují), booked (zaúčtovaná daň od 1. 1.), specific
-    ({třída: specifické náklady od 1. 1. před tímto oceněním, které základ snižují}), booked_transfers ({třída: dříve
-    zaúčtovaný přesun}). Přesun do třídy c = e × (spec_c − ρ_c × Σ spec), e = efektivní sazba specifických položek.
-    Přesun se počítá kumulativně od 1. 1. a účtuje doplatkem proti dříve zaúčtovaným přesunům, stejně jako daň.
+    ({třída: specifické náklady od 1. 1. před tímto oceněním, které základ snižují}), previous_effect ({třída: e × spec_c
+    minulého ocenění v roce}), previous_effect_total (e × Σ spec minulého ocenění).
+    Daňový efekt od 1. 1.: E_c = e × spec_c, e = efektivní sazba specifických položek. Přesun je přírůstkový:
+    přesun_c = ΔE_c − ρ_c × ΔΣE, Δ proti minulému ocenění, ρ dnešní. Dřívější přesuny se dnešním poměrem nepřepočítávají
+    (stejně jako se dnes nepřepočítává daň rozdělená v minulých oceněních); součet přesunů je nula.
     """
     rate, step = dec(spec["rate"]), int(spec["step"])
     deductible = ZERO
@@ -316,14 +318,18 @@ def _tax(spec, items, amounts, ratios):
     effective = ZERO
     if total_specific:
         effective = (rate * max(base + total_specific, ZERO) - required) / total_specific
-    booked_transfers = spec.get("booked_transfers") or {}
+    previous = spec.get("previous_effect") or {}
+    effect = {code: effective * specific[code] for code in ratios}
+    effect_total = effective * total_specific
+    change_total = effect_total - dec(spec.get("previous_effect_total"))
     transfers = {
-        code: effective * (specific[code] - ratios[code] * total_specific) - dec(booked_transfers.get(code))
+        code: effect[code] - dec(previous.get(code)) - ratios[code] * change_total
         for code in ratios
     }
     return {
         "amount": required - dec(spec.get("booked")),
-        "base": base, "required": required, "specific": specific, "effective_rate": effective, "transfers": transfers,
+        "base": base, "required": required, "specific": specific, "effective_rate": effective,
+        "effect": effect, "effect_total": effect_total, "transfers": transfers,
     }
 
 
