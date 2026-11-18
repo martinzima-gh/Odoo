@@ -2675,9 +2675,26 @@ class InvestraValuationExternal(models.Model):
         for vals in vals_list:
             if "computed_at_entry" in vals:
                 vals.setdefault("computed_captured", True)
+            else:
+                self._capture_from_existing_row(vals)
         records = super().create(vals_list)
         records._check_open()
         return records
+
+    @api.model
+    def _capture_from_existing_row(self, vals):
+        """Snímek „Vypočteno při zadání“ u opravy částky zadané bez tlačítka Opravit (ZJ-12, upřesnění kroku 4, bod 3).
+
+        Je-li ocenění už spočtené, snímek se vezme hned při uložení z řádku rozpisu téhož pravidla a třídy (částka řádku =
+        vypočteno + převzaté opravy, bez nových oprav). Řádek rozpisu ještě není: snímek pořídí první výpočet (`_capture_computed`).
+        """
+        if not vals.get("corrects_rule_id") or vals.get("correction_target", "amount") != "amount":
+            return
+        line = self.env["investra.valuation.fee"].sudo().search([
+            ("valuation_id", "=", vals.get("valuation_id")), ("rule_id", "=", vals["corrects_rule_id"]),
+            ("class_id", "=", vals.get("class_id") or False)], limit=1)
+        if line:
+            vals.update(computed_at_entry=line.amount, computed_captured=True)
 
     def write(self, vals):
         self._check_open()

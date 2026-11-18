@@ -341,6 +341,24 @@ class TestCarriedCorrections(NavCase):
         self.assertIn(f"při opravě {before:.2f}", check.detail)
         return valuation, rule, entry, before
 
+    def test_snapshot_taken_at_save_when_valuation_is_computed(self):
+        # Upřesnění kroku 4 (3): ocenění je už spočtené → snímek se vezme z řádku rozpisu hned při uložení opravy,
+        # ne až při dalším výpočtu (tam by se změna mezi uložením a výpočtem nepoznala).
+        fund = self.fund()
+        rule = self.periodic(fund)
+        valuation = self.valuation(fund, JANUARY)
+        valuation.action_compute()
+        line = valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule)
+        entry = self.correct(valuation, rule, -100)
+        self.assertTrue(entry.computed_captured)
+        self.assertAlmostEqual(entry.computed_at_entry, line.amount, places=2)
+        # Bez řádku rozpisu (ocenění nespočtené) snímek pořídí až první výpočet.
+        other = self.valuation(fund, FEBRUARY)
+        late = self.correct(other, rule, -50)
+        self.assertFalse(late.computed_captured)
+        other.action_compute()
+        self.assertTrue(late.computed_captured)
+
     def test_changed_computation_stops_and_keep_difference(self):
         valuation, rule, entry, before = self.changed_correction()
         now = entry.computed_now
