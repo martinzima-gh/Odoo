@@ -62,7 +62,7 @@ pro depozitáře, aniž vznikne nový model ani druhý způsob účtování. Opr
 
 ## Stav
 
-**Krok 1 hotový 2026-11-18 (Claude), čeká na schválení Martinem.** Záloha před změnou schématu: `zalohy/investra-2026-11-18-pred-ZJ11.dump`.
+**Krok 1 hotový 2026-11-18 (Claude). Upřesnění (b) a (c) schválil Martin 2026-11-18; upřesnění (a) nahrazuje ZJ-12.** Záloha před změnou schématu: `zalohy/investra-2026-11-18-pred-ZJ11.dump`.
 Pracovní databáze `investra` zatím **není povýšená** (modul 20.0.0.36.0, nový sloupec `corrects_rule_id`); povýšení na pokyn.
 
 - Pole `corrects_rule_id` („Opravuje úplatu“) na `investra.valuation.external`; v seznamu ručních úplat sloupec a účet povinný jen bez opravy

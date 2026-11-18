@@ -195,6 +195,31 @@ Po každém kroku test `investra_nav`, před sloučením `investra_nav+`, `all` 
 - Oprava úplaty „po“ posune vypočtenou částku (`test_correction_lowers_cost_before_after_fees`: 9 901,98).
 - Ve schvalovací matici zatím chybí aktivita pro opravu. Druhá osoba u oprav je podle ZJ-11 „přes matici, výchozí bez“, aktivitu doplnit podle potřeby.
 
+## Otevřené body: vazby na ZJ-07 a DA-01
+
+Daň se v ZJ-12 řeší jen v rozsahu zadání (krok 4, volba základu 1–3, společný dopočet, přesun daňového efektu tříd, oprava základu). Nad ten rámec se nic neřeší;
+tři vazby na ZJ-07 zůstávají otevřené a rozhodnou se při návrhu ZJ-07 (návrh, bez kódu):
+
+1. **Kde se nastavuje uznatelnost úplat a odměny:** krok daně (volba „které náklady snižují základ“: žádné / úplaty / úplaty i odměna, tj. celá položka na pravidle)
+   × daňový profil ZJ-07 (výjimky po účtech: neuznatelný náklad se do základu nepřičítá ani neodečítá). ZJ-12 počítá s tím, že neuznatelné účty ze ZJ-07 se při
+   daňovém efektu tříd vynechají; vztah obou nastavení (kdo má přednost, zda se kombinují) je třeba určit.
+2. **Samostatný základ s jinou sazbou** (ZJ-07): ZJ-12 počítá jedno pravidlo daně a jeden základ na fond. Samostatný základ potřebuje druhé pravidlo nebo
+   řádek profilu; to koliduje s omezením „nejvýš jedno pravidlo daně na fond“ (část A.2) a s oddělením přesunu daňového efektu tříd.
+3. **Odložená daň a daňový efekt tříd:** ZJ-12 účtuje jen splatnou (očekávanou) daň a přesun efektu položek třídy; odložená daň (vyhláška 501/2002 Sb., ČÚS) se do něj
+   nepromítá. Je třeba určit, zda se odložená daň rozděluje mezi třídy stejným způsobem a zda ji ovlivní přesun efektu specifických položek.
+
+**Překryv ZJ-07 s DA-01** (`docs/plan-dalsiho-vyvoje.md`, etapa s daněmi): DA-01 („Daně fondu – daňové a nedaňové účty …, výpočet splatné daně, dohad na daň, odložená daň“)
+zahrnuje totéž co ZJ-07 (daňový profil, výjimky po účtech, samostatný základ, odložená daň). Před návrhem ZJ-07 rozhodnout, zda se ZJ-07 sloučí do DA-01,
+nebo zda ZJ-07 zůstane jako zjednodušený profil a DA-01 jako následná plná varianta. Do rozhodnutí se v ZJ-07 ani v DA-01 nic nezavádí.
+
+## Zjištění kroku 1 (2026-11-18)
+
+- Referenční model z přílohy A je převedený do Pythonu (`addons/custom/investra_nav/tests/ref_fee_model.py`, testy `test_fee_reference_model.py`) a reprodukuje A.1 přesně:
+  720 kombinací, 1 152 oprav, shoda s dnešním pořadím u 40 kombinací, 33 kroků, relativní zbytek 3,305e-13, **12 013 kontrol, 0 selhání**; příklady C1–C8 sedí.
+  Běží bez Odoo (`python3 ref_fee_model.py`). V kroku 3 se testy přepnou na čistou funkci v `engine.py`.
+- **Podezření z B.6 potvrzeno** (`test_fee_characterization.py`): pravidlo průměrného FK se dvěma třídami vytvoří dva řádky rozpisu (doklad jen jeden) a další ocenění
+  odečte zaúčtovanou úplatu dvakrát (`booked` 6 200 místo 3 100). Chyba existuje dnes, test ji zachycuje jako dnešní chování; v kroku 3 se očekávaná hodnota změní na 3 100.
+
 ## Výsledek
 
 ## Převzetí

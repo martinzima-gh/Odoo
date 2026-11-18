@@ -15,3 +15,5 @@ from . import test_fee_rule_zj06
 from . import test_valuation_steps
 from . import test_tracking_zj10
 from . import test_fee_correction
+from . import test_fee_reference_model
+from . import test_fee_characterization
