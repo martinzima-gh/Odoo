@@ -18,8 +18,9 @@ zadávají se jen výjimky (účet → režim: neuznatelný náklad, osvobozený
 
 **Návrh má obsahovat** (varianty a doporučení, bez kódu):
 1. Model profilu a výjimek po účtech, platnost od data, vazba na knihu fondu.
-2. Ruční úpravy základu v ocenění (připočitatelné a odčitatelné položky s poznámkou a přílohou, vzor ručně doložené úplaty).
-3. Ztráta z minulých let k odečtení.
+2. ~~Ruční úpravy základu v ocenění~~ – **přesunuto do ZJ-12** (rozhodnutí 2026-11-18): oprava základu daně je řádek opravy u pravidla daně
+   s volbou „Co opravuje: Základ“ (kladná = připočitatelná, záporná = odčitatelná, poznámka povinná, příloha nepovinná, platí do konce roku). ZJ-07 zůstává profil, výjimky po účtech, ztráta a odložená daň.
+3. Ztráta z minulých let k odečtení (návrh ZJ-12: údaj daňového profilu na rok; rozhodne se v ZJ-07).
 4. Zobrazení výpočtu daně v ocenění a v náhledu zaúčtování.
 5. Právní rámec ověřený ve Sbírce zákonů s přesnými odkazy: zákon č. 586/1992 Sb. (sazba základního investičního fondu a ostatních fondů,
    samostatný základ daně, osvobození, neuznatelné náklady, ztráta); daňový režim změn reálné hodnoty u fondu; účetní rámec fondu pro odloženou daň.
@@ -29,9 +30,8 @@ zadávají se jen výjimky (účet → režim: neuznatelný náklad, osvobozený
 
 **Doplněno 17. 11. 2026 (průchod UI ZJ-06):**
 - Pravidlo druhu Očekávaná daň nemá nákladovou roli; doplnit při řešení daní.
-- Základ časově rozlišené úplaty „po dani“ (třetí volba Základ před/po, nad rámec ZJ-06, jen administrace a obdobné úplaty): dává smysl, pokud statut bere za základ
-  hodnotu fondového kapitálu po naběhlé dani. Vzniká kruh (daň závisí na výsledku po úplatách, úplata na dani); řešení ustálením nebo doúčtováním jako u výkonnostní odměny
-  s `perf_base` „Po dani“. Zásah do `engine.py` a pořadí kroků (červená zóna, Opus). Rozhodnout až po návrhu daně a podle statutů konkrétních fondů; zatím nic neměnit.
+- ~~Základ časově rozlišené úplaty „po dani“ a cyklus odměny po dani~~ – **vyřešeno rozhodnutími 2026-11-18** (ZJ-12): základ „po kroku 1–4“ a společný dopočet
+  s kontrolou konzistence; kruh úplata–daň i odměna–daň se řeší ustálením, ne zvláštními doúčtováními.
 
 ## Výsledek
 

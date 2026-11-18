@@ -10,6 +10,10 @@
 | Řešitel | Claude (kroky 1–2, červená zóna); krok 3 (tlačítko a protokol) může převzít Antigravity / Copilot po plánu |
 | Nahrazuje | otevřený bod „Ruční úprava vypočtené úplaty se zdůvodněním“ (`docs/otevrene-body.md`) |
 
+> **Upraveno 2026-11-18 zadáním ZJ-12** (`docs/ukoly/ZJ-12-zaklad-uplat-a-opravy.md`): upřesnění (a) „opravit jde jen časově rozlišenou úplatu“ nahrazuje
+> ZJ-12 (opravy všech druhů s platností); rozhodnutí 3 se upřesňuje – oprava = pevná částka „vypočteno bez opravy + oprava“; bod 6 (chatter) nahrazuje
+> souhrn oprav v krocích ocenění; krok 3 (protokol a XLS) se provede spolu s krokem 6 ZJ-12. Kroky 1–2 zůstávají hotové a platí do doby, než je ZJ-12 přepíše.
+
 **Cíl:** vypočtenou úplatu lze opravit (zaokrouhlení podle faktury obhospodařovatele, dohoda s depozitářem) se zdůvodněním, stopou a viditelností
 pro depozitáře, aniž vznikne nový model ani druhý způsob účtování. Oprava je **záporná nebo kladná ruční úplata** (ZJ-03) navázaná na pravidlo úplaty.
 
