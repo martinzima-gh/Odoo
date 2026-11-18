@@ -84,10 +84,9 @@ class TestRoleAccess(TransactionCase):
 
     def test_menu_roles_only_for_admin_level(self):
         menu = self.env.ref("investra_fund.menu_role")
-        parent = self.env.ref("investra_fund.menu_setup_users")
         for user, visible in ((self.admin, True), (self.ucetni, False), (self.schvalovatel, False), (self.view, False)):
             ids = self.env["ir.ui.menu"].with_user(user)._visible_menu_ids()
-            self.assertEqual((menu.id in ids, parent.id in ids), (visible, visible), user.login)
+            self.assertEqual(menu.id in ids, visible, user.login)
 
     def test_role_form(self):
         form = Form(self.env["investra.role"].with_user(self.admin))

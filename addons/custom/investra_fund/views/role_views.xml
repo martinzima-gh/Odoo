@@ -83,9 +83,7 @@
             <p>Role se skládá z činností s příznaky Provádí a Schvaluje a z úrovně přístupu. Uživatel může mít rolí více.</p>
         </field>
     </record>
-    <menuitem id="menu_setup_users" name="Uživatelé a role" parent="investra_entity.menu_setup_audit" sequence="5"
-              groups="investra_entity.group_investra_admin,base.group_system"/>
-    <menuitem id="menu_role" name="Role" parent="menu_setup_users" action="action_role" sequence="10"
+    <menuitem id="menu_role" name="Role" parent="investra_entity.menu_setup_audit" action="action_role" sequence="5"
               groups="investra_entity.group_investra_admin,base.group_system"/>
 
     <!-- Záložka Role Investra ve formuláři uživatele Odoo -->
