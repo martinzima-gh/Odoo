@@ -160,6 +160,7 @@ druhá osoba“ (upozornění); úkony podle výchozích řádků (`Výchozí �
 Úplatu, kterou Odoo nespočte z pravidla (například ji spočetl depozitář), zadáte přímo v ocenění. Záložka **Ručně doložené úplaty** je ve formuláři
 ocenění viditelná, dokud ocenění není odesláno ke schválení; po odeslání už řádky nejde měnit („Ručně doložené úplaty po odeslání ke schválení nejde měnit.“).
 Dřívější druh pravidla „externí“ zrušilo ZJ-03.
+Opravu vypočtené úplaty, odměny nebo daně (tlačítko **Opravit** na záložce Úplaty) popisuje kap. 9.
 
 | Pole | Povinné | Význam |
 |---|---|---|

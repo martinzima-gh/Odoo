@@ -25,5 +25,6 @@
 | 6 | [06-portfolia-a-nastroje.md](06-portfolia-a-nastroje.md) | portfolia a nástroje | koncept |
 | 7 | [07-kurzy.md](07-kurzy.md) | kurzy | koncept |
 | 8 | [08-prvni-upis-a-prevzeti-fondu.md](08-prvni-upis-a-prevzeti-fondu.md) | první úpis a odkup; převzetí fondu zatím jen plán | koncept |
+| 9 | [09-uplaty-a-opravy.md](09-uplaty-a-opravy.md) | úplaty, odměna a daň v ocenění: kroky a Základ, ruční opravy, zrušení úplaty, list Úplaty | koncept |
 
 Pořadí práce při založení od nuly: kap. 1 (společnost obhospodařovatele) → kap. 1 (kniha fondu) → kap. 2 (fond) → kap. 3 (třídy).
