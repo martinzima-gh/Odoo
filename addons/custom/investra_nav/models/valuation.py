@@ -409,23 +409,12 @@ class InvestraValuation(models.Model):
         # ZJ-12 krok 3: společný dopočet úplat, výkonnostní odměny a daně (engine.solve_fees) místo pevného pořadí
         # podle druhu (ZJ-06 bod 7). Základ každého pravidla volí „Základ: po kroku 1–4“; doklady vznikají až po ustálení.
         rules = self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)])
-        self._check_fee_steps(rules)
         self._apply_fees(rules, context)
         self._apply_scheme(context)
         self._finish(context)
         self.state = "computed"
         self.write({"computed_at": fields.Datetime.now(),
                     "inputs_stamp": json.dumps(self._inputs_now(), ensure_ascii=False)})
-
-    def _check_fee_steps(self, rules):
-        """Dočasná pojistka ZJ-12 do části 4b: opravu základu výpočet odmítne (opravy částky všech druhů umí od 4a)."""
-        for entry in self.external_fee_ids.filtered("corrects_rule_id"):
-            if entry.correction_target != "amount":
-                raise UserError(self.env._(
-                    "Oprava %(rule)s: opravu základu zatím výpočet ocenění nepodporuje (ZJ-12 krok 4b). "
-                    "Řádek opravy smažte nebo počkejte na úpravu výpočtu.",
-                    rule=entry.corrects_rule_id.name,
-                ))
 
     def _rate_source(self):
         return self.fund_id.entity_id._require_rate_source()
@@ -938,7 +927,7 @@ class InvestraValuation(models.Model):
             for line in valuation.fee_line_ids:
                 detail = json.loads(line.detail or "{}")
                 rule = line.rule_id or line.external_id.corrects_rule_id
-                if detail.get("covered_by"):
+                if detail.get("covered_by") or detail.get("target") == "base":
                     continue
                 if rule and rule.kind == "tax":
                     amount = d(line.amount)
@@ -1001,6 +990,7 @@ class InvestraValuation(models.Model):
     def _periodic_item(self, rule, fund_class):
         """Časově rozlišená úplata: základ FK nebo kapitál třídy po zvoleném kroku; aktiva a bez základu jsou pevné."""
         constant = base = None
+        shift = {"base": Decimal(0)}
         if rule.base_source in ("none", "assets"):
             constant = Decimal(0) if rule.base_source == "none" else self._assets()
         elif rule.base_source == "class_fk" and fund_class:
@@ -1009,11 +999,12 @@ class InvestraValuation(models.Model):
             base = {"scope": "fund", "step": int(rule.base_step)}
 
         def full(value):
-            value = constant if base is None else value
+            # Oprava základu (B.7) se přičte ke stavu k datu jen v tomto ocenění.
+            value = (constant if base is None else value) + shift["base"]
             result = self._periodic_amount(rule, value)
             return {"base": value, "base_step": rule.base_step, **result, "move": result["amount"]}
 
-        return {"base": base, "amount": lambda value: full(value)["exact"], "full": full}
+        return {"base": base, "amount": lambda value: full(value)["exact"], "full": full, "shift": shift}
 
     def _average_item(self, rule):
         """Úplata z průměrného FK (ZJ-12 B.6): nárok od začátku roku minus to, co už je v roce naúčtované.
@@ -1032,15 +1023,17 @@ class InvestraValuation(models.Model):
             booked += d(lines[0].amount) if lines else Decimal(0)
         spec = rule._engine_rule(start, self.date)
         count = len(self.fund_id.class_ids)
+        shift = {"base": Decimal(0)}
 
         def full(current):
-            average = (sum(capitals, Decimal(0)) + current) / (len(capitals) + 1)
+            # Oprava základu (B.7) upravuje celoroční průměr; převzatá platí do konce roku.
+            average = (sum(capitals, Decimal(0)) + current) / (len(capitals) + 1) + shift["base"]
             result = engine.periodic_fee(spec, start, self.date, average, classes_count=count)
             return {"average": average, "booked": booked, "base_step": rule.base_step, **result,
                     "move": result["amount"] - booked}
 
         return {"base": {"scope": "fund", "step": int(rule.base_step)},
-                "amount": lambda current: full(current)["exact"] - booked, "full": full}
+                "amount": lambda current: full(current)["exact"] - booked, "full": full, "shift": shift}
 
     def _performance_item(self, rule, fund_class, context):
         """Výkonnostní odměna třídy: základ hodnota třídy po kroku 1, 2 nebo 4, nikdy po sobě samé.
@@ -1082,8 +1075,10 @@ class InvestraValuation(models.Model):
         added_fees = borne.get(engine.STAGE_FEE, Decimal(0))
         added_tax = borne.get(engine.STAGE_TAX, Decimal(0))
 
+        shift = {"base": Decimal(0)}
+
         def full(value):
-            gross = value + accrued + added_fees + added_tax
+            gross = value + accrued + added_fees + added_tax + shift["base"]
             result = engine.performance_fee(spec, base_date, self.date, gross, units=row["units"], flows=flows,
                                             accrued=accrued)
             return {"gross": gross, "base_date": base_date, "base_step": rule.base_step, "added_fees": added_fees,
@@ -1091,7 +1086,7 @@ class InvestraValuation(models.Model):
 
         state = {"reference": reference, "hwm": hwm, "base_date": base_date, "measure": version.perf_measure}
         return {"base": {"scope": "class", "class": fund_class.id, "step": int(rule.base_step)},
-                "amount": lambda value: full(value)["exact"] - accrued, "full": full, "state": state}
+                "amount": lambda value: full(value)["exact"] - accrued, "full": full, "state": state, "shift": shift}
 
     def _tax_item(self, rule):
         """Očekávaná daň (ZJ-12 B.4, B.5): vstupy dopočtu z knihy po kroku 1 a z dřívějších ocenění od 1. 1.
@@ -1179,7 +1174,7 @@ class InvestraValuation(models.Model):
             return ("perf", rule.id, class_id)
         return ("fee", rule.id, None if rule.base_source == "average_fk" else class_id)
 
-    def _carried_corrections(self, rule, fund_class, since):
+    def _carried_corrections(self, rule, fund_class, since, target="amount"):
         """Převzaté opravy částky (ZJ-12 B.7): opravy s platností „do konce období“ z dřívějších ocenění po dni `since`.
 
         Odměna od poslední krystalizace, daň od 1. 1.; časově rozlišená úplata se nepřebírá (oprava je trvalá).
@@ -1190,9 +1185,52 @@ class InvestraValuation(models.Model):
             return self.env["investra.valuation.external"]
         return self.env["investra.valuation.external"].sudo().search([
             ("valuation_id", "in", earlier.ids), ("corrects_rule_id", "=", rule.id),
-            ("correction_target", "=", "amount"), ("validity", "=", "period"),
+            ("correction_target", "=", target), ("validity", "=", "period"),
             ("class_id", "=", fund_class.id if fund_class else False),
         ], order="id")
+
+    def _apply_base_correction(self, item, base_entries):
+        """Oprava základu (ZJ-12 B.7): nové opravy tohoto ocenění a převzaté „do konce období“ se přičtou k základu.
+
+        Daň: k základu (ruční úprava ZJ-07 bod 2), převzatá od 1. 1. Průměrný FK: k celoročnímu průměru, převzatá od 1. 1.
+        Odměna: k hodnotě třídy, převzatá od krystalizace. Úplata ze stavu k datu (FK, kapitál třídy, aktiva): jen toto
+        ocenění. Oprava základu nepevní částku: pravidlo se z opraveného základu spočítá (i v průchodu „Vypočteno“,
+        kde jsou vynechané jen opravy částky).
+        """
+        if item["kind"] not in ("periodic", "performance", "tax"):
+            return
+        rule, fund_class = item["rule"], item.get("fund_class")
+        new = base_entries.filtered(
+            lambda e: self._correction_key(e.corrects_rule_id, e.class_id.id or None) == item["key"])
+        if item["kind"] == "tax" or rule.base_source == "average_fk":
+            carried = self._carried_corrections(rule, None, self._year_start(), target="base")
+        elif item["kind"] == "performance":
+            carried = self._carried_corrections(rule, fund_class, item["state"]["base_date"], target="base")
+        else:
+            carried = self.env["investra.valuation.external"]
+        entries = carried | new
+        if not entries:
+            return
+        total = sum((engine.money(d(e.amount)) for e in entries), Decimal(0))
+        item.update(base_entries=entries, base_correction=total)
+        if item["kind"] == "tax":
+            item["tax"]["base_correction"] = total
+        else:
+            item["shift"]["base"] = total
+
+    def _check_previous_base_corrections(self):
+        """Upozornění (ZJ-12 B.7): minulé ocenění mělo opravu základu úplaty ze stavu k datu, která skončila."""
+        previous = self.search([
+            ("fund_id", "=", self.fund_id.id), ("date", "<", self.date),
+            ("state", "in", ("posted", "sent", "confirmed", "published")),
+        ], order="date desc, version desc", limit=1)
+        ended = previous.external_fee_ids.filtered(
+            lambda e: e.correction_target == "base" and e.corrects_rule_id.kind == "periodic"
+            and e.corrects_rule_id.base_source != "average_fk")
+        names = ", ".join(sorted(set(ended.mapped("corrects_rule_id.name"))))
+        self._check("base_correction_ended", self.env._("Oprava základu z minulého ocenění skončila"), not ended,
+                    self.env._("Minulé ocenění mělo opravu základu u pravidla %s.", names) if ended else "",
+                    severity="warning")
 
     def end_correction(self, entry, note):
         """Ukončí převzatou opravu (ZJ-12 B.7): nová oprava o −její částku s povinnou poznámkou a odkazem `ended_id`.
@@ -1234,7 +1272,9 @@ class InvestraValuation(models.Model):
                 items.append({"key": ("fee", rule.id, class_id), "stage": engine.STAGE_FEE, "payer": class_id,
                               "kind": "periodic", "rule": rule, "fund_class": fund_class,
                               **self._recipients(rule, values), **self._periodic_item(rule, fund_class)})
-        manual = [self._manual_item(entry, values) for entry in self.external_fee_ids]
+        base_entries = self.external_fee_ids.filtered(
+            lambda e: e.corrects_rule_id and e.correction_target == "base")
+        manual = [self._manual_item(entry, values) for entry in self.external_fee_ids - base_entries]
         items += manual
         for rule in rules.filtered(lambda r: r.kind == "performance"):
             for fund_class in rule.class_ids:
@@ -1243,6 +1283,8 @@ class InvestraValuation(models.Model):
                               **self._recipients(rule, values), **self._performance_item(rule, fund_class, context)})
         for rule in rules.filtered(lambda r: r.kind == "tax"):
             items.append({"key": ("tax", rule.id), "kind": "tax", "rule": rule, **self._tax_item(rule)})
+        for item in items:
+            self._apply_base_correction(item, base_entries)
         for item in items:
             if item["kind"] == "performance":
                 carried = self._carried_corrections(item["rule"], item["fund_class"], item["state"]["base_date"])
@@ -1275,6 +1317,13 @@ class InvestraValuation(models.Model):
         self._check("fee_consistency", self.env._("Společný dopočet úplat je konzistentní"),
                     residual <= Decimal("1e-10"), f"kroků {solved['steps']}, relativní zbytek {float(residual):.1e}")
         ratios = {c.id: context[c]["ratio"] for c in context}
+        for entry in base_entries:
+            self._fee_record(None, Decimal(0), entry.class_id, {
+                "manual": True, "corrects": entry.corrects_rule_id.name, "corrects_kind": entry.corrects_rule_id.kind,
+                "target": "base", "base_correction": engine.money(d(entry.amount)), "validity": entry.validity,
+                "note": entry.note, **({"ends": entry.ended_id.id} if entry.ended_id else {}),
+            }, manual=entry)
+        self._check_previous_base_corrections()
         for item in items:
             # Opravené pravidlo: částka i základ z průchodu bez oprav („Vypočteno“).
             source = first if item["key"] in pinned else solved
@@ -1299,6 +1348,8 @@ class InvestraValuation(models.Model):
         detail = {**full, **self._effect_detail(item, amount, ratios)}
         if corrected:
             detail["corrected"] = True
+        if item.get("base_entries"):
+            detail.update(base_correction=item["base_correction"], base_correction_ids=item["base_entries"].ids)
         if item.get("carried_entries"):
             # Vypočteno (bez oprav) a převzaté opravy; řádek pravidla zaúčtuje oboje, nové opravy mají vlastní řádky.
             detail.update(computed=full["move"], carried=carried, carried_ids=item["carried_entries"].ids)
@@ -1391,6 +1442,8 @@ class InvestraValuation(models.Model):
             "effective_rate": tax["effective_rate"], "transfers": {str(k): str(v) for k, v in transfers.items()},
             "effect": {str(k): str(v) for k, v in tax["effect"].items()}, "effect_total": str(tax["effect_total"]),
             **({"corrected": True} if computed else {}),
+            **({"base_correction": item["base_correction"], "base_correction_ids": item["base_entries"].ids}
+               if item.get("base_entries") else {}),
             **({"computed": required - spec["booked"], "carried": carried,
                 "carried_ids": item["carried_entries"].ids} if item.get("carried_entries") else {}),
         })
@@ -2309,9 +2362,8 @@ class InvestraValuationExternal(models.Model):
     account_id = fields.Many2one("account.account", ondelete="restrict", string="Nákladový účet",
                                  domain="[('account_type', '=like', 'expense%')]")
     note = fields.Text(string="Poznámka")
-    # ZJ-12 A.3: opravit jde pravidlo každého druhu; výpočet zatím zaúčtuje jen opravu částky časově rozlišené
-    # úplaty, ostatní odmítne (_check_fee_steps v ocenění) až do kroku 4. Formuláře zatím nabízejí jen časově
-    # rozlišenou úplatu (domény ve views); rozšíří je krok 5.
+    # ZJ-12 A.3, B.7: opravit jde pravidlo každého druhu, částku i základ (výpočet od kroku 4). Formuláře zatím nabízejí
+    # jen časově rozlišenou úplatu (domény ve views); rozšíří je krok 5.
     corrects_rule_id = fields.Many2one(
         "investra.fee.rule", ondelete="restrict", string="Opravuje úplatu",
         help="Oprava vypočtené úplaty, výkonnostní odměny nebo daně (zaokrouhlení podle faktury, dohoda s depozitářem). "
@@ -2414,6 +2466,8 @@ class InvestraValuationExternal(models.Model):
         if rule.fund_id != fund:
             raise ValidationError(self.env._("Opravovaná úplata %(rule)s nepatří fondu ocenění %(fund)s.",
                                              rule=rule.name, fund=fund.display_name))
+        if self.correction_target == "base" and rule.kind == "periodic" and rule.base_source == "none":
+            raise ValidationError(self.env._("Úplata %s nemá základ; opravte její částku.", rule.name))
         if self.validity != "period" and rule.kind == "periodic":
             raise ValidationError(self.env._(
                 "Oprava časově rozlišené úplaty %s platí trvale; platnost „Jen toto ocenění“ je jen u odměny a daně.",

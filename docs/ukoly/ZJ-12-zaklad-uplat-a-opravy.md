@@ -365,6 +365,15 @@ Testy `test_fee_carried.py` (9): převzetí odměny, „jen toto ocenění“ se
 ukončení a jeho kontroly, daň převzatá a „jen toto ocenění“, oprava daně bez daňového efektu, oprava odměny jako specifická položka (přesun +225).
 `investra_nav` 461/461.
 
+**4b – oprava základu.** Řádek opravy základu nic neúčtuje (rozpis s částkou 0, detail `target: base`), přičte se k základu položky:
+daň k základu (engine `_tax`: `base_correction`), převzatá od 1. 1.; průměrný FK k celoročnímu průměru, převzatá od 1. 1.; odměna k hodnotě
+třídy, převzatá od krystalizace; úplata ze stavu k datu (FK, kapitál třídy, aktiva) jen v tomto ocenění, další ocenění upozorní kontrolou
+`base_correction_ended` („Minulé ocenění mělo opravu základu u pravidla X“). Úplata bez základu opravu základu odmítne. **Upřesnění plánu:**
+oprava základu je vstup výpočtu, uplatní se i v průchodu „Vypočteno“ (ten vynechává jen opravy částky); jinak by oprava částky téhož pravidla
+opravu základu tiše přebila. Pojistka `_check_fee_steps` zrušena (s testem kroku 2). Testy (+5): daň převzatá do konce roku a v novém roce
+ne, průměr převzatý (rozdíl = rozdíl lednového FK + oprava), stav k datu jen jedno ocenění s upozorněním, odměna převzatá, úplata bez základu.
+`investra_nav` 465/465.
+
 ## Výsledek
 
 ## Převzetí

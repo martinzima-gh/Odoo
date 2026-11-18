@@ -219,3 +219,100 @@ class TestCarriedCorrections(NavCase):
         self.assertAlmostEqual(self.total(january, tax), 4550, places=2)
         self.assertEqual(self.rule_line(january, tax)[1]["transfers"], {str(a.id): "225.00", str(b.id): "-225.00"})
         self.consistent(january)
+
+    # --- oprava základu (4b) ------------------------------------------------------------------------------------------
+
+    def correct_base(self, valuation, rule, amount, code=None, validity="period"):
+        cls = self.cls(valuation.fund_id, code) if code else self.env["investra.fund.class"]
+        return self.manual_fee(valuation, amount, note="Ruční úprava základu", account_id=False,
+                               corrects_rule_id=rule.id, class_id=cls.id, correction_target="base", validity=validity)
+
+    def periodic(self, fund, source="fk", rate=0.012):
+        return self.Rule.create({"fund_id": fund.id, "name": "Obhospodařování", "kind": "periodic", "base_step": "1",
+                                 "base_source": source, "expense_role": "expense_management",
+                                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": rate})]})
+
+    def test_tax_base_correction_carried_to_year_end(self):
+        # Připočitatelná položka +10 000: základ 110 000, daň 5 500; řádek opravy nic neúčtuje. Únor převezme (doplatek 0),
+        # leden 2028 už ne (nový rok, výsledek 0 → daň 0).
+        fund = self.fund()
+        tax = self.tax(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        january = self.valuation(fund, JANUARY)
+        entry = self.correct_base(january, tax, 10000)
+        self.run_to_posted(january)
+        line, detail = self.rule_line(january, tax)
+        self.assertAlmostEqual(line.amount, 5500, places=2)
+        self.assertAlmostEqual(float(detail["base"]), 110000, places=2)
+        correction = january.fee_line_ids.filtered(lambda l: l.external_id == entry)
+        self.assertEqual((correction.amount, json.loads(correction.detail)["target"]), (0, "base"))
+        february = self.run_to_posted(self.valuation(fund, FEBRUARY))
+        line, detail = self.rule_line(february, tax)
+        self.assertAlmostEqual(line.amount, 0, places=2)
+        self.assertEqual(detail["base_correction_ids"], entry.ids)
+        next_year = self.valuation(fund, date(2028, 1, 31))
+        next_year.action_compute()
+        line, detail = self.rule_line(next_year, tax)
+        self.assertAlmostEqual(line.amount, 0, places=2)
+        self.assertNotIn("base_correction", detail)
+
+    def test_average_base_correction_adjusts_average_to_year_end(self):
+        # Oprava průměru +1 000 000: lednový průměr o 1 000 000 vyšší; únor ji převezme. Rozdíl únorového průměru proti
+        # fondu bez opravy = rozdíl lednového FK (vyšší úplata) + 1 000 000.
+        averages, capitals = {}, {}
+        for corrected in (False, True):
+            fund = self.fund()
+            rule = self.periodic(fund, "average_fk")
+            january = self.valuation(fund, JANUARY)
+            if corrected:
+                self.correct_base(january, rule, 1000000)
+            self.run_to_posted(january)
+            capitals[corrected] = january.fund_capital
+            february = self.valuation(fund, FEBRUARY)
+            february.action_compute()
+            line, detail = self.rule_line(february, rule)
+            averages[corrected] = float(detail["average"])
+            if corrected:
+                self.assertAlmostEqual(float(detail["base_correction"]), 1000000, places=2)
+        self.assertAlmostEqual(averages[True] - averages[False], capitals[True] - capitals[False] + 1000000, places=2)
+
+    def test_point_in_time_base_correction_only_this_valuation(self):
+        # Úplata z FK: oprava základu +1 000 000 jen v lednu; únor ji nepřevezme a upozorní.
+        fund = self.fund()
+        rule = self.periodic(fund)
+        january = self.valuation(fund, JANUARY)
+        self.correct_base(january, rule, 1000000)
+        self.run_to_posted(january)
+        line, detail = self.rule_line(january, rule)
+        self.assertAlmostEqual(float(detail["base"]), 2000000, places=2)
+        self.assertEqual(january.check_ids.filtered(lambda c: c.code == "base_correction_ended").status, "ok")
+        february = self.valuation(fund, FEBRUARY)
+        february.action_compute()
+        line, detail = self.rule_line(february, rule)
+        self.assertNotIn("base_correction", detail)
+        self.assertLess(float(detail["base"]), 1100000)
+        check = february.check_ids.filtered(lambda c: c.code == "base_correction_ended")
+        self.assertEqual(check.status, "warning")
+        self.assertIn("Obhospodařování", check.detail)
+
+    def test_performance_base_correction_carried_until_crystallisation(self):
+        # Odměna po kroku 2: výsledek 100 000, oprava základu −50 000 → odměna 10 000; únor převezme (doplatek 0).
+        fund = self.fund()
+        perf = self.performance(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        january = self.valuation(fund, JANUARY)
+        self.correct_base(january, perf, -50000, "A")
+        self.run_to_posted(january)
+        self.assertAlmostEqual(self.total(january, perf), 10000, places=2)
+        february = self.valuation(fund, FEBRUARY)
+        february.action_compute()
+        line, detail = self.rule_line(february, perf)
+        self.assertAlmostEqual(line.amount, 0, places=2)
+        self.assertAlmostEqual(float(detail["base_correction"]), -50000, places=2)
+        self.consistent(february)
+
+    def test_base_correction_needs_base(self):
+        fund = self.fund()
+        rule = self.periodic(fund, "none")
+        with self.assertRaises(ValidationError):
+            self.correct_base(self.valuation(fund, JANUARY), rule, 100)

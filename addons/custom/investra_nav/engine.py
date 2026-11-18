@@ -312,7 +312,8 @@ def _tax(spec, items, amounts, ratios):
         deductible += expense
         if item.get("payer") is not None:
             specific[item["payer"]] += expense
-    base = dec(spec["result"]) - deductible
+    # Oprava základu daně (ZJ-12 B.7, ZJ-07 bod 2): kladná = připočitatelná, záporná = odčitatelná položka.
+    base = dec(spec["result"]) - deductible + dec(spec.get("base_correction"))
     required = rate * max(base, ZERO)
     total_specific = sum(specific.values(), ZERO)
     effective = ZERO

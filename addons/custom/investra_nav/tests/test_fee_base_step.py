@@ -5,7 +5,7 @@ import importlib.util
 from datetime import date
 from pathlib import Path
 
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 
 from .common import NavCase
@@ -121,21 +121,6 @@ class TestFeeBaseStep(NavCase):
             self.manual_fee(valuation, -1, corrects_rule_id=tax.id, class_id=self.a.id, **values)
         entry = self.manual_fee(valuation, -1, corrects_rule_id=tax.id, validity="valuation", **values)
         self.assertEqual((entry.class_id.id, entry.validity), (False, "valuation"))
-
-    # --- ocenění: pojistka do kroku 4 (kombinace základů počítá společný dopočet, test_fee_solver) ----------------
-
-    def test_valuation_refuses_corrections_not_yet_booked(self):
-        # Oprava základu se uložit dá, zaúčtuje ji až krok 4b (opravy částky všech druhů umí 4a, test_fee_carried).
-        self.subscribe(self.a, "2027-01-01", 1000000, 1000)
-        periodic = self.rule("periodic", name="Obhospodařování")
-        tax = self.rule("tax", name="Daň")
-        values = {"note": "Ruční úprava", "account_id": False}
-        for version, rule in enumerate((tax, periodic), start=1):
-            with self.subTest(rule=rule.name):
-                valuation = self.valuation(self.fund, YEAR_END, version=version)
-                self.manual_fee(valuation, -1, corrects_rule_id=rule.id, correction_target="base", **values)
-                with self.assertRaisesRegex(UserError, "ZJ-12 krok 4b"):
-                    valuation.action_compute()
 
     def test_correction_fields_only_on_correction(self):
         valuation = self.valuation(self.fund, YEAR_END)
