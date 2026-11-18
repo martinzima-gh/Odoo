@@ -56,6 +56,23 @@ pro depozitáře, aniž vznikne nový model ani druhý způsob účtování. Opr
 2. Tlačítko a zobrazení (oranžová).
 3. Protokol a XLS pro depozitáře, manuál (postup „oprava úplaty“ v `docs/manual/`), deník rozhodnutí.
 
+## Stav
+
+**Krok 1 hotový 2026-11-18 (Claude), čeká na schválení Martinem.** Záloha před změnou schématu: `zalohy/investra-2026-11-18-pred-ZJ11.dump`.
+Pracovní databáze `investra` zatím **není povýšená** (modul 20.0.0.36.0, nový sloupec `corrects_rule_id`); povýšení na pokyn.
+
+- Pole `corrects_rule_id` („Opravuje úplatu“) na `investra.valuation.external`; v seznamu ručních úplat sloupec a účet povinný jen bez opravy
+  (nutné minimum, aby šla oprava zadat; tlačítko „Opravit“ je krok 2).
+- `_apply_manual_fees`: s polem účtuje přes `_book_fee` (role pravidla, příjemci z tříd), klíč dokladu `fee:<pravidlo>:<třída>:manual:<id>`,
+  název „Oprava úplaty …“; řádek rozpisu bez pravidla, takže průměrný FK opravu nedorovná.
+- `_check_correction`: pravidlo fondu ocenění; třída podle pravidla (pravidlo tříd → jedna z nich, pravidlo fondu → prázdná); poznámka
+  a nenulová částka jako dosud.
+- **Upřesnění navíc oproti plánu (ke schválení):** (a) opravit jde jen časově rozlišenou úplatu, ne výkonnostní odměnu ani daň
+  (počítají se jako doplatek do požadovaného stavu, oprava by se dalším oceněním dorovnala); (b) oprava jen v měně fondu (`_book_fee`
+  nenese cizí měnu); (c) vyplněný nákladový účet se u opravy odmítne, ne tiše ignoruje.
+- Testy `tests/test_fee_correction.py` (6): before, after, průměrný FK, příjemci (náklad + přesun = oprava, vnitřní zúčtování nulové),
+  přepočet a zámek, zamítnutí. `investra_nav` 17/17, `investra_nav+` 494/494 OK.
+
 ## Převzetí
 
 (doplní se po provedení)

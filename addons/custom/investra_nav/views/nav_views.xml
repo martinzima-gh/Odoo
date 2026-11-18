@@ -251,8 +251,10 @@
                                    readonly="state not in ('draft', 'computed')"><list editable="bottom">
                             <field name="class_id" domain="[('fund_id', '=', parent.fund_id)]" options="{'no_create': True}"/>
                             <field name="amount"/>
-                            <field name="currency_id" options="{'no_create': True}"/>
-                            <field name="account_id" required="1" options="{'no_create': True}"
+                            <field name="currency_id" options="{'no_create': True}" readonly="corrects_rule_id"/>
+                            <field name="corrects_rule_id" optional="show" options="{'no_create': True}"
+                                   domain="[('fund_id', '=', parent.fund_id), ('kind', '=', 'periodic')]"/>
+                            <field name="account_id" required="not corrects_rule_id" readonly="corrects_rule_id" options="{'no_create': True}"
                                    domain="[('account_type', '=like', 'expense%'), ('company_ids', 'in', parent.company_id)]"/>
                             <field name="note" required="1"/>
                             <field name="document_name" column_invisible="1"/>
