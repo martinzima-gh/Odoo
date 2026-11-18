@@ -1,4 +1,4 @@
-<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 377. -->
+<!-- Export z Claude Doc "Investra – architektura Odoo a IS" (https://claude.ai/artifact/YPQf7hVsbVDpGgRAxYH19w). Zdroj pravdy je Doc; soubor se přepisuje exportem, neupravovat ručně. Revize Doc: 378. -->
 # Investra – architektura Odoo a IS
 
 Nov 5, 2026 · @Martin Zíma
@@ -263,6 +263,7 @@ Rozhodnutí jsou potvrzená zadavatelem. Návrhy a předpoklady se ještě mohou
 | 2026-11-18 | Pravidla úplat – omezení | Nejvýš jedna výkonnostní odměna na třídu (dělení přes podíl příjemcům); základ zůstává v hlavičce pravidla bez „Platí od“, u kumulativních druhů (průměrný FK, odměna, daň) varování, že změna působí za dosavadní část období. Potvrzuje rozhodnutí 2026-11-18 o zámku base\_mode. |
 | 2026-11-18 | Ruční opravy vypočtených hodnot | Jeden mechanismus pro úplatu, odměnu, daň i základ: ruční položka vedle vypočtené hodnoty (rozšíření ZJ-11), zadání rozdílem nebo cílovou částkou. Oprava je pevný rozdíl k hodnotě vypočtené bez opravy; opravené pravidlo má v dopočtu pevnou částku. Oprava odměny platí výchozí do krystalizace, daně do konce roku (volba „jen toto ocenění“), převzaté opravy jsou vidět a jdou ukončit. Po stornu nebo vrácení upozornění a tlačítko „Převzít z verze n“. Příloha nepovinná bez upozornění. Sloupce Vypočteno/Oprava/Výsledek jen v ocenění s opravou. Mění ZJ-11: upřesnění (a) (zákaz oprav odměny a daně) a bod 3 (pevná částka); test test\_correction\_lowers\_cost\_before\_after\_fees → 9 800,99. Opravy jsou výjimka, běžně se účtuje před oceněním. |
 | 2026-11-18 | Oprava úplaty (ZJ-11) – upřesnění kroku 1 | Schváleno: (b) oprava jen v měně fondu (\_book\_fee nenese cizí měnu), (c) vyplněný nákladový účet se u opravy odmítne. Upřesnění (a) „opravit jde jen časově rozlišená úplata“ nahrazuje rozhodnutí ZJ-12 (opravy všech druhů s platností). Rozhodl Martin 18. 11. 2026. |
+| 2026-11-18 | ZJ-12 krok 2 – převod základu a schválené hodnoty | Schválené nové očekávané hodnoty: test\_perf\_after\_tax\_then\_tax\_is\_topped\_up 19,19/4,04 (jeden doklad daně), test\_correction\_lowers\_cost\_before\_after\_fees 9 800,99, FK 990 199,01; do testů se zapíšou s výpočtem v kroku 3, scénář s4 se posoudí v kroku 3. Pre-migrace převádí base\_mode a perf\_base na base\_step (daň → 3, odměna po úplatách → 2, ostatní → 1). Do kroků 3 a 4 výpočet ocenění odmítne základy, které dnešní pořadí neumí, a opravy odměny, daně a základu (dočasná pojistka). |
 
 ## Hranice systémů a vlastnictví dat
 

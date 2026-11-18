@@ -27,7 +27,7 @@ class TestScenarios(NavCase):
             fee = first["mgmt_fee"]
             rules["mgmt"] = Rule.create({
                 "fund_id": fund.id, "name": "Úplata", "kind": "periodic", "basis": "act365",
-                "base_mode": fee.get("base", "before"), "expense_role": "expense_management",
+                "base_step": {"before": "1", "after": "2"}[fee.get("base", "before")], "expense_role": "expense_management",
                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": float(fee["rate"])})],
             })
         for code, fee in first.get("perf_fee", {}).items():

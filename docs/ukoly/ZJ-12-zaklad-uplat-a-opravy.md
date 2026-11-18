@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | zadání zapsáno 2026-11-18, **kód čeká na Martinovo potvrzení zadání** |
+| Stav | kroky 1 a 2 hotové (2026-11-18); další krok 3 (společný dopočet) |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -219,6 +219,23 @@ nebo zda ZJ-07 zůstane jako zjednodušený profil a DA-01 jako následná plná
   Běží bez Odoo (`python3 ref_fee_model.py`). V kroku 3 se testy přepnou na čistou funkci v `engine.py`.
 - **Podezření z B.6 potvrzeno** (`test_fee_characterization.py`): pravidlo průměrného FK se dvěma třídami vytvoří dva řádky rozpisu (doklad jen jeden) a další ocenění
   odečte zaúčtovanou úplatu dvakrát (`booked` 6 200 místo 3 100). Chyba existuje dnes, test ji zachycuje jako dnešní chování; v kroku 3 se očekávaná hodnota změní na 3 100.
+
+## Zjištění kroku 2 (2026-11-18)
+
+- `investra.fee.rule.base_step` (výběr 1–4, `tracking`, výchozí podle druhu výpočtem `_compute_base_step`: úplata 1, odměna 2, daň 3;
+  nepřípustná volba se po změně druhu nebo zdroje nahradí výchozí). Přípustnost podle tabulky hlídá `_check_base_step`; `base_mode` a `perf_base` zrušené.
+  Formulář: Zdroj základu skrytý u odměny i daně, Základ skrytý u aktiv a bez základu. Popisky voleb podle druhu přijdou v kroku 5.
+- Kontroly A.2 (`_check_single_performance_and_tax`): nejvýš jedna aktivní odměna na třídu, nejvýš jedno aktivní pravidlo daně na fond; pravidla bez tříd kontrolu odměn nespouštějí.
+- Řádek opravy: `correction_target`, `validity`, `computed_at_entry` (plní tlačítko Opravit z vypočtené částky), `origin_id`. `_check_correction` přijme pravidlo každého druhu;
+  „Jen toto ocenění“ jen u odměny a daně; Co opravuje a Platnost jen u opravy.
+- **Dočasná pojistka do kroků 3 a 4** (`_check_fee_steps`): výpočet ocenění odmítne základ, který dnešní pořadí neumí (úplata po kroku 3 a 4, průměrný FK po kroku 2–4,
+  daň po kroku 1 a 2), a opravy odměny, daně a základu. Inline formulář ruční úplaty dál nabízí jen časově rozlišenou úplatu (rozšíří krok 5). Výsledky existujících pravidel beze změny.
+- Pre-migrace `migrations/20.0.0.37.0/pre-migration.py` (verze 20.0.0.36.0 → 20.0.0.37.0). Zkouška na `investra_ci_zj12mig` obnovené ze zálohy
+  `zalohy/investra-2026-11-18-pred-ZJ12-krok2.dump`: převedeno 14 pravidel (1: 11 úplat, 2: odměna 3, 3: daně 4 a 7), staré sloupce smazané, rozpis úplat beze změny
+  (123 řádků, součet 6 258 847,97), přepočet obou otevřených ocenění (fond 1 s odměnou a daní, fond 2 s daní) dal shodné FK i úplaty. Kopie smazána.
+- Testy: nové `test_fee_base_step.py` (11 testů: výchozí a přípustné volby, změna druhu, jedna odměna na třídu, jedna daň na fond, pravidla bez tříd, pojistky výpočtu,
+  pole opravy, převod v pre-migraci). Pole v testech převedená, `TestBaseModeRetroactive` → `TestBaseStepRetroactive`, scénáře mapují klíč `base` (JSON beze změny).
+  Schválené nové hodnoty (19,19 / 4,04; 9 800,99 / 990 199,01) se zapíšou do testů v kroku 3 spolu s výpočtem.
 
 ## Výsledek
 

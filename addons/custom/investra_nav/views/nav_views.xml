@@ -433,7 +433,7 @@
         <field name="arch" type="xml">
             <list>
                 <field name="id" optional="hide"/>
-                <field name="fund_id"/><field name="name"/><field name="kind"/><field name="base_mode" optional="show"/><field name="expense_role"/>
+                <field name="fund_id"/><field name="name"/><field name="kind"/><field name="base_step" optional="show"/><field name="expense_role"/>
                 <field name="class_ids" widget="many2many_tags"/><field name="statute_ref"/>
                 <field name="overlap_warning" string="Souběh" optional="show"/>
                 <field name="active" optional="hide"/>
@@ -465,10 +465,10 @@
                     <!-- ZJ-06 bod 10: co k druhu úplaty nepatří, se neukazuje. Daň konvenci dnů a základ nepoužívá. -->
                     <group>
                         <field name="basis" invisible="kind == 'tax'"/>
-                        <field name="base_source" invisible="kind == 'tax'"/>
-                        <field name="base_mode" invisible="kind != 'periodic' or base_source not in ('fk', 'class_fk')"/>
+                        <!-- ZJ-12 A.1: zdroj základu odměna ani daň nepoužívá (odměna bere hodnotu třídy). -->
+                        <field name="base_source" invisible="kind in ('tax', 'performance')"/>
+                        <field name="base_step" invisible="kind == 'periodic' and base_source in ('assets', 'none')"/>
                         <field name="expense_role"/>
-                        <field name="perf_base" invisible="kind != 'performance'"/>
                         <field name="crystallisation" invisible="kind != 'performance'"/>
                     </group>
                 </group>

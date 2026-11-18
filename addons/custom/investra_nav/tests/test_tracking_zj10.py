@@ -39,11 +39,11 @@ class TestTrackingFees(TrackingMixin, NavCase):
 
     def test_rule_header_selection(self):
         mark = self.mark(self.rule)
-        self.rule.write({"base_mode": "after"})
+        self.rule.write({"base_step": "2"})
         text = self.new_text(self.rule, mark)
-        self.assertIn("Před úplatami", text)
-        self.assertIn("Po všech úplatách", text)
-        self.assertIn("(Základ před/po úplatách)", text)
+        self.assertIn("Po kroku 1", text)
+        self.assertIn("Po kroku 2", text)
+        self.assertIn("(Základ: po kroku)", text)
 
     def test_rule_many2many(self):
         mark = self.mark(self.rule)
@@ -52,10 +52,10 @@ class TestTrackingFees(TrackingMixin, NavCase):
 
     def test_rule_more_fields_one_message(self):
         mark = self.mark(self.rule)
-        self.rule.write({"base_mode": "after", "expense_role": "expense_management"})
+        self.rule.write({"base_step": "2", "expense_role": "expense_management"})
         bodies = self.new_bodies(self.rule, mark)
         self.assertEqual(len(bodies), 1)
-        self.assertIn("(Základ před/po úplatách)", bodies[0])
+        self.assertIn("(Základ: po kroku)", bodies[0])
         self.assertIn("(Nákladová role)", bodies[0])
 
     def test_version_and_tier_go_to_rule_chatter(self):
@@ -95,7 +95,7 @@ class TestTrackingFees(TrackingMixin, NavCase):
     def test_tracking_disable_silences_everything(self):
         mark = self.mark(self.rule)
         quiet = self.env["investra.fee.rule"].with_context(tracking_disable=True)
-        self.rule.with_context(tracking_disable=True).write({"base_mode": "after"})
+        self.rule.with_context(tracking_disable=True).write({"base_step": "2"})
         self.version.with_context(tracking_disable=True).write({"rate": 0.05})
         self.env["investra.fee.tier"].with_context(tracking_disable=True).create(
             {"version_id": self.version.id, "amount_from": 1, "rate": 0.01})

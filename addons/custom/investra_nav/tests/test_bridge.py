@@ -83,7 +83,7 @@ class TestBridge(NavCase):
         Rule = self.env["investra.fee.rule"]
         Rule.create({
             "fund_id": fund.id, "name": "Úplata", "kind": "periodic", "basis": "act365",
-            "base_mode": "before", "expense_role": "expense_management",
+            "base_step": "1", "expense_role": "expense_management",
             "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.02})],
         })
         Rule.create({

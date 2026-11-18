@@ -410,17 +410,21 @@ class InvestraValuation(models.Model):
         # časově rozlišené a ručně doložené úplaty → výkonnostní odměna (po nich, před sebou) → daň nakonec.
         # Výkonnostní odměna má základ před úplatami, po úplatách, nebo po dani; „po dani“ se počítá až po dani
         # a daň se pak ve stejném ocenění doúčtuje o odměnu, která šla do výsledku (rozhodnutí 2026-11-17).
+        # ZJ-12 krok 2: volba „Základ: po kroku“ se převádí na dnešní pořadí beze změny výsledků – odměna
+        # 1 = před úplatami tohoto ocenění, 2 = po úplatách, 4 = po dani; daň 3. Ostatní kombinace přinese
+        # společný dopočet v kroku 3; do té doby je výpočet odmítne (_check_fee_steps).
         rules = self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)])
+        self._check_fee_steps(rules)
         performance = rules.filtered(lambda r: r.kind == "performance")
         taxes = rules.filtered(lambda r: r.kind == "tax")
         before_fees = {fund_class: self._class_value(fund_class, context) for fund_class in context} \
-            if any(rule.perf_base == "before_fees" for rule in performance) else {}
+            if any(rule.base_step == "1" for rule in performance) else {}
         self._apply_periodic_fees(rules.filtered(lambda r: r.kind == "periodic"), context)
-        for rule in performance.filtered(lambda r: r.perf_base != "after_tax"):
+        for rule in performance.filtered(lambda r: r.base_step != "4"):
             self._apply_performance(rule, context, before_fees)
         for rule in taxes:
             self._apply_tax(rule)
-        late = performance.filtered(lambda r: r.perf_base == "after_tax")
+        late = performance.filtered(lambda r: r.base_step == "4")
         for rule in late:
             self._apply_performance(rule, context, before_fees)
         if late:
@@ -431,6 +435,33 @@ class InvestraValuation(models.Model):
         self.state = "computed"
         self.write({"computed_at": fields.Datetime.now(),
                     "inputs_stamp": json.dumps(self._inputs_now(), ensure_ascii=False)})
+
+    def _check_fee_steps(self, rules):
+        """Dočasná pojistka ZJ-12 krok 2: kombinace základu, které dnešní pořadí výpočtu neumí, výpočet odmítne.
+
+        Pravidlo je smí uložit (přípustnost podle tabulky ZJ-12), počítat je bude společný dopočet z kroku 3. Stejně
+        opravy odměny a daně a opravy základu: řádek je uložit jde, zaúčtování přinese krok 4. Bez pojistky by
+        výpočet tiše použil jiný základ, nebo opravu zaúčtoval jako trvalou úplatu na nákladovou roli pravidla.
+        """
+        for rule in rules:
+            unsupported = (
+                (rule.kind == "periodic" and rule.base_source == "average_fk" and rule.base_step != "1")
+                or (rule.kind == "periodic" and rule.base_step in ("3", "4"))
+                or (rule.kind == "tax" and rule.base_step != "3")
+            )
+            if unsupported:
+                raise UserError(self.env._(
+                    "Pravidlo %(rule)s: základ po kroku %(step)s zatím výpočet ocenění nepodporuje (připravuje se "
+                    "společný dopočet, ZJ-12 krok 3). Zvolte jiný základ.",
+                    rule=rule.name, step=rule.base_step,
+                ))
+        for entry in self.external_fee_ids.filtered("corrects_rule_id"):
+            if entry.corrects_rule_id.kind != "periodic" or entry.correction_target != "amount":
+                raise UserError(self.env._(
+                    "Oprava %(rule)s: opravu výkonnostní odměny, daně a opravu základu zatím výpočet ocenění "
+                    "nepodporuje (ZJ-12 krok 4). Řádek opravy smažte nebo počkejte na úpravu výpočtu.",
+                    rule=entry.corrects_rule_id.name,
+                ))
 
     def _rate_source(self):
         return self.fund_id.entity_id._require_rate_source()
@@ -911,19 +942,20 @@ class InvestraValuation(models.Model):
     def _periodic_amount(self, rule, base):
         """Částka časově rozlišené úplaty z daného základu; základ před/po řeší volající, ne engine."""
         start, end = self._period_start(), self.date
-        spec = dict(rule._engine_rule(start, end), base_mode="before")
+        spec = rule._engine_rule(start, end)
         return engine.periodic_fee(spec, start, end, base, classes_count=len(self.fund_id.class_ids))
 
     def _apply_periodic_fees(self, rules, context):
         """Časově rozlišené a ručně doložené úplaty (ZJ-06 bod 7, rozhodnutí 2026-11-17).
 
-        Základ „před“ = stav před všemi úplatami v ocenění (snímek před první úplatou); úplaty se navzájem neovlivňují.
-        Základ „po“ = stav po všech časově rozlišených a ručně doložených úplatách včetně počítané; úplaty „po“ se
-        dopočtou společně opakováním do ustálení. Průměrný FK, Aktiva a Bez základu volbu nemají (počítají jako „před“).
+        Základ po kroku 1 („před“) = stav před všemi úplatami v ocenění (snímek před první úplatou); úplaty se navzájem
+        neovlivňují. Po kroku 2 („po“) = stav po všech časově rozlišených a ručně doložených úplatách včetně počítané;
+        úplaty „po“ se dopočtou společně opakováním do ustálení. Aktiva a Bez základu volbu nemají, průměrný FK zatím
+        jen krok 1 (ZJ-12 krok 2; kroky 3 a 4 přinese společný dopočet).
         Ručně doložené úplaty (ZJ-03) mají pevnou částku; zaúčtují se po úplatách „před“ a před dopočtem úplat „po“.
         """
         payers = [(rule, fund_class) for rule in rules for fund_class in (rule.class_ids or [None])]
-        after = [key for key in payers if key[0].base_mode == "after" and key[0].base_source in ("fk", "class_fk")]
+        after = [key for key in payers if key[0].base_step == "2" and key[0].base_source in ("fk", "class_fk")]
         # Snímek před první úplatou: základy úplat „před“ a váhy přijímajících tříd pro odhad dopadu úplat „po“.
         fund_before = self._net_assets()
         class_before = {fund_class: self._class_value(fund_class, context) for fund_class in context} if after else {}
@@ -937,7 +969,7 @@ class InvestraValuation(models.Model):
                 continue
             base = bases[(rule, fund_class)]
             result = self._periodic_amount(rule, base)
-            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_mode": "before", **result})
+            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_step": rule.base_step, **result})
             self._book_fee(rule, result["amount"], fund_class)
         self._apply_manual_fees()
         if not after:
@@ -960,7 +992,7 @@ class InvestraValuation(models.Model):
             rule, fund_class = key
             base = current[key] - self._after_effect(key, exact, context, class_before)
             result = self._periodic_amount(rule, base)
-            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_mode": "after", **result})
+            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_step": rule.base_step, **result})
             self._book_fee(rule, result["amount"], fund_class)
 
     def _after_effect(self, key, amounts, context, class_before):
@@ -1015,7 +1047,7 @@ class InvestraValuation(models.Model):
             reference, hwm, accrued, base_date = self._performance_state(rule, fund_class, row, version)
             # Základ „před úplatami“ = hodnota třídy před úplatami tohoto ocenění; jinak aktuální stav knihy
             # (po úplatách, u „po dani“ i po dani). Naběhlá odměna se přičítá zpět: odměna počítá před sebou samou.
-            value = before_fees[fund_class] if rule.perf_base == "before_fees" else self._class_value(fund_class, context)
+            value = before_fees[fund_class] if rule.base_step == "1" else self._class_value(fund_class, context)
             gross = value + accrued
             flows = []
             if version.perf_measure == "capital":
@@ -1986,6 +2018,8 @@ class InvestraValuationFee(models.Model):
                 "default_corrects_rule_id": self.rule_id.id,
                 "default_class_id": self.class_id.id,
                 "default_currency_id": valuation.fund_id.currency_id.id,
+                # ZJ-12 A.3: snímek vypočtené částky při zadání; krok 4 ho porovná s novým výpočtem (kontrola B.8).
+                "default_computed_at_entry": self.amount,
             },
         }
 
@@ -2027,12 +2061,35 @@ class InvestraValuationExternal(models.Model):
     account_id = fields.Many2one("account.account", ondelete="restrict", string="Nákladový účet",
                                  domain="[('account_type', '=like', 'expense%')]")
     note = fields.Text(string="Poznámka")
+    # ZJ-12 A.3: opravit jde pravidlo každého druhu; výpočet zatím zaúčtuje jen opravu částky časově rozlišené
+    # úplaty, ostatní odmítne (_check_fee_steps v ocenění) až do kroku 4. Formuláře zatím nabízejí jen časově
+    # rozlišenou úplatu (domény ve views); rozšíří je krok 5.
     corrects_rule_id = fields.Many2one(
         "investra.fee.rule", ondelete="restrict", string="Opravuje úplatu",
-        domain="[('kind', '=', 'periodic')]",
-        help="Oprava vypočtené časově rozlišené úplaty (zaokrouhlení podle faktury, dohoda s depozitářem). Účtuje se "
-             "na nákladovou roli pravidla a dělí se příjemcům z tříd jako původní úplata; nákladový účet se nezadává. "
-             "Oprava platí trvale: průměrný FK ji v dalším ocenění nedorovná.",
+        help="Oprava vypočtené úplaty, výkonnostní odměny nebo daně (zaokrouhlení podle faktury, dohoda s depozitářem). "
+             "Účtuje se jako úplata pravidla; nákladový účet se nezadává. Oprava časově rozlišené úplaty platí trvale: "
+             "průměrný FK ji v dalším ocenění nedorovná.",
+    )
+    correction_target = fields.Selection(
+        [("amount", "Částka"), ("base", "Základ")], default="amount", required=True, string="Co opravuje",
+        help="Částka: oprava se přičte k vypočtené částce pravidla. Základ: přičte se k základu pravidla; u daně je to "
+             "ruční úprava základu (kladná = připočitatelná, záporná = odčitatelná položka), platí do konce roku.",
+    )
+    validity = fields.Selection(
+        [("period", "Do konce období"), ("valuation", "Jen toto ocenění")], default="period", required=True,
+        string="Platnost",
+        help="Jen oprava výkonnostní odměny a daně. Do konce období: další ocenění opravu převezmou (odměna do "
+             "krystalizace, daň do konce roku). Jen toto ocenění: další ocenění upozorní, že oprava skončila.",
+    )
+    computed_at_entry = fields.Float(
+        digits=(20, 2), readonly=True, string="Vypočteno při zadání",
+        help="Vypočtená částka pravidla v okamžiku zadání opravy (snímek). Liší-li se nový výpočet, ocenění opravu "
+             "zastaví k potvrzení.",
+    )
+    origin_id = fields.Many2one(
+        "investra.valuation.external", ondelete="set null", readonly=True, copy=False, index="btree_not_null",
+        string="Převzato z",
+        help="Řádek předchozí verze ocenění nebo dřívějšího ocenění, ze kterého se ruční úprava nebo oprava převzala.",
     )
     attachment_id = fields.Many2one("ir.attachment", string="Výpočet", ondelete="restrict")
     # Nahrání souboru přímo v řádku; ukládá se jako příloha ocenění do attachment_id.
@@ -2071,7 +2128,8 @@ class InvestraValuationExternal(models.Model):
         valuation = self.env["investra.valuation"].browse(self.env.context.get("default_valuation_id"))
         return valuation.fund_id.currency_id if valuation.exists() else False
 
-    @api.constrains("valuation_id", "class_id", "amount", "account_id", "note", "corrects_rule_id", "currency_id")
+    @api.constrains("valuation_id", "class_id", "amount", "account_id", "note", "corrects_rule_id", "currency_id",
+                    "correction_target", "validity")
     def _check_fund(self):
         # Třída a účet musí patřit fondu ocenění; formulář je nabízí jen z něj, kontrola chrání i import a API.
         for row in self:
@@ -2080,6 +2138,8 @@ class InvestraValuationExternal(models.Model):
                 raise ValidationError(self.env._("Třída ručně doložené úplaty musí patřit fondu ocenění %s.", fund.display_name))
             if row.corrects_rule_id:
                 row._check_correction(fund)
+            elif row.correction_target != "amount" or row.validity != "period":
+                raise ValidationError(self.env._("Co opravuje a Platnost se vyplňují jen u opravy úplaty."))
             elif not row.account_id or not row.account_id.account_type.startswith("expense"):
                 raise ValidationError(self.env._("Ručně doložená úplata potřebuje nákladový účet."))
             if row.account_id.company_ids and row.valuation_id.company_id not in row.account_id.company_ids:
@@ -2090,14 +2150,16 @@ class InvestraValuationExternal(models.Model):
                 raise ValidationError(self.env._("Částka ručně doložené úplaty nesmí být nulová."))
 
     def _check_correction(self, fund):
-        """Oprava úplaty (ZJ-11): pravidlo fondu ocenění, třída podle pravidla, bez nákladového účtu, měna fondu."""
+        """Oprava úplaty (ZJ-11, ZJ-12 A.3): pravidlo fondu ocenění (každého druhu), třída podle pravidla, bez nákladového
+        účtu, měna fondu. Platnost „jen toto ocenění“ má smysl jen u odměny a daně (časově rozlišená úplata je trvalá)."""
         rule = self.corrects_rule_id
         if rule.fund_id != fund:
             raise ValidationError(self.env._("Opravovaná úplata %(rule)s nepatří fondu ocenění %(fund)s.",
                                              rule=rule.name, fund=fund.display_name))
-        if rule.kind != "periodic":
-            # Výkonnostní odměna a daň se počítají jako doplatek do požadovaného stavu; opravu by další ocenění dorovnalo.
-            raise ValidationError(self.env._("Opravit jde jen časově rozlišenou úplatu, ne %s.", rule.name))
+        if self.validity != "period" and rule.kind == "periodic":
+            raise ValidationError(self.env._(
+                "Oprava časově rozlišené úplaty %s platí trvale; platnost „Jen toto ocenění“ je jen u odměny a daně.",
+                rule.name))
         if rule.class_ids and self.class_id not in rule.class_ids:
             raise ValidationError(self.env._("Oprava úplaty %(rule)s musí mít třídu, která úplatu platí: %(classes)s.",
                                              rule=rule.name, classes=", ".join(rule.class_ids.mapped("code"))))

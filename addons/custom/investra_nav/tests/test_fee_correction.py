@@ -69,7 +69,7 @@ class TestFeeCorrection(NavCase):
         # Úplata „po“ 1 %: oprava −100 zvýší základ před dopočtem → S = 0,01 × (1 000 100 − S) = 9 901,98.
         # FK = 1 000 100 − 9 901,98 = 990 198,02 (čistý výpočet z opravené částky).
         fund = self.fund()
-        rule = self.rule(fund, base_mode="after")
+        rule = self.rule(fund, base_step="2")
         valuation = self.valuation(fund, YEAR_END)
         self.correction(valuation, rule, -100)
         valuation.action_compute()
@@ -152,7 +152,8 @@ class TestFeeCorrection(NavCase):
             (whole, {"class_id": a.id}),                                             # třída u úplaty celého fondu
             (whole, {"account_id": self.expense_account(fund, "expense_management").id}),  # účet se nezadává
             (whole, {"currency_id": self.eur.id}),                                   # jen měna fondu
-            (performance, {"class_id": a.id}),                                       # jen časově rozlišená úplata
+            (performance, {}),                                                       # bez třídy u odměny tříd
+            (whole, {"validity": "valuation"}),                                      # úplata platí trvale
         )
         for rule, vals in invalid:
             with self.subTest(rule=rule.name, vals=vals), self.assertRaises(ValidationError):
@@ -188,6 +189,10 @@ class TestFeeCorrection(NavCase):
             "amount": -0.40, "note": "Faktura"})
         self.assertEqual(entry.corrects_rule_id, rule)
         self.assertEqual(entry.class_id, line.class_id)
+        # ZJ-12 A.3: snímek vypočtené částky při zadání opravy (porovná ho krok 4).
+        self.assertAlmostEqual(ctx["default_computed_at_entry"], line.amount, places=2)
+        self.assertAlmostEqual(entry.computed_at_entry, line.amount, places=2)
+        self.assertEqual((entry.correction_target, entry.validity), ("amount", "period"))
 
     def test_correction_sorted_under_original(self):
         fund = self.fund()
