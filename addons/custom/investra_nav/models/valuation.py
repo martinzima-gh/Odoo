@@ -237,11 +237,39 @@ class InvestraValuation(models.Model):
         ])
 
     def _compute_note(self):
-        """Souhrn výpočtu do historie: FK a kurzy tříd."""
+        """Souhrn výpočtu do historie: FK, kurzy tříd a opravy (ZJ-12 B.9)."""
         self.ensure_one()
         prices = ", ".join(f"{line.class_id.code} {line.price}" for line in self.class_line_ids)
-        return self.env._("FK %(fk).2f %(currency)s; kurzy tříd: %(prices)s",
+        note = self.env._("FK %(fk).2f %(currency)s; kurzy tříd: %(prices)s",
                           fk=self.fund_capital, currency=self.currency_id.name or "", prices=prices or "-")
+        corrections = self._corrections_summary()
+        return f"{note}\n{corrections}" if corrections else note
+
+    def _corrections_summary(self):
+        """Seznam oprav ocenění pro stopu (ZJ-12 B.9): pravidlo, třída, vypočteno → oprava, platnost, zdůvodnění, kdo
+        zadal; ukončení a převzetí z verze jsou rozlišené. Na konci počet převzatých oprav dřívějších ocenění."""
+        self.ensure_one()
+        validity = dict(self.env["investra.valuation.external"]._fields["validity"].selection)
+        rows = []
+        for entry in self.external_fee_ids.filtered("corrects_rule_id"):
+            head = " ".join(filter(None, [entry.corrects_rule_id.name, entry.class_id.code]))
+            if entry.correction_target == "base":
+                what = self.env._("oprava základu %s", f"{entry.amount:+.2f}")
+            else:
+                what = self.env._("vypočteno %(computed)s → %(result)s (oprava %(amount)s)",
+                                  computed=f"{entry.computed_now:.2f}", result=f"{entry.computed_now + entry.amount:.2f}",
+                                  amount=f"{entry.amount:+.2f}")
+            extra = []
+            if entry.ended_id:
+                extra.append(self.env._("ukončuje opravu z %s", entry.ended_id.valuation_id.display_name))
+            if entry.origin_id:
+                extra.append(self.env._("převzato z verze %s", entry.origin_id.valuation_id.version))
+            rows.append("; ".join([f"{head}: {what}", validity.get(entry.validity, ""), entry.note or "",
+                                   self.env._("zadal %s", entry.create_uid.name), *extra]))
+        carried = self.check_ids.filtered(lambda c: c.code == "carried_corrections" and c.status != "ok")
+        if carried:
+            rows.append(carried.name)
+        return (self.env._("Opravy: ") + " | ".join(rows)) if rows else ""
 
     def _require_state(self, *states):
         for record in self:
@@ -1393,6 +1421,7 @@ class InvestraValuation(models.Model):
             }, manual=entry)
         self._check_previous_corrections()
         self._check_carried(items)
+        self._check_version_copies()
         for item in items:
             # Opravené pravidlo: částka i základ z průchodu bez oprav („Vypočteno“).
             source = first if item["key"] in pinned else solved
@@ -2013,7 +2042,7 @@ class InvestraValuation(models.Model):
             record.event_ids._lock_events()
             payload, digest = record._fingerprint()
             record.write({"snapshot": payload, "snapshot_hash": digest, "state": "submitted"})
-            record._log_step("submitted")
+            record._log_step("submitted", record._corrections_summary() or False)
             # Kroky schválení podle schvalovací matice platné v okamžiku předložení (rozhodnutí 2026-11-11).
             rule = self.env["investra.approval.matrix"]._rule("valuation_approve")
             rule.check_performer(self.env)
@@ -2097,6 +2126,51 @@ class InvestraValuation(models.Model):
     def _new_version(self):
         self.ensure_one()
         return self.create({"fund_id": self.fund_id.id, "date": self.date, "version": self.version + 1})
+
+    def _previous_version(self):
+        """Vrácená nebo stornovaná verze, ze které tato verze vznikla (ZJ-12 B.10)."""
+        self.ensure_one()
+        return self.search([("fund_id", "=", self.fund_id.id), ("date", "=", self.date),
+                            ("version", "=", self.version - 1), ("state", "in", ("returned", "reversed"))], limit=1)
+
+    def _copy_fields(self, line):
+        return {
+            "class_id": line.class_id.id, "amount": line.amount, "currency_id": line.currency_id.id,
+            "account_id": line.account_id.id, "note": line.note, "corrects_rule_id": line.corrects_rule_id.id,
+            "correction_target": line.correction_target, "validity": line.validity,
+            "computed_at_entry": line.computed_at_entry, "computed_captured": line.computed_captured,
+            "ended_id": line.ended_id.id, "origin_id": line.id,
+        }
+
+    def action_copy_from_version(self):
+        """Převzít z verze n (ZJ-12 B.10): zkopíruje ruční úpravy a opravy zadané ve vrácené verzi (ne převzaté opravy
+        dřívějších ocenění, ty vzniknou výpočtem znovu), s novou kopií přílohy patřící této verzi a `origin_id`.
+        Už převzaté řádky se nekopírují znovu; nechtěné se v návrhu smažou."""
+        self.ensure_one()
+        self._require_state("draft", "computed")
+        previous = self._previous_version()
+        if not previous:
+            raise UserError(self.env._("Ocenění nemá vrácenou ani stornovanou předchozí verzi."))
+        copied = self.external_fee_ids.mapped("origin_id")
+        commands = []
+        for line in previous.external_fee_ids - copied:
+            values = self._copy_fields(line)
+            if line.attachment_id:
+                values["attachment_id"] = line.attachment_id.sudo().copy(
+                    {"res_model": "investra.valuation", "res_id": self.id}).id
+            commands.append((0, 0, values))
+        if commands:
+            self.write({"external_fee_ids": commands})
+        return len(commands)
+
+    def _check_version_copies(self):
+        """Upozornění (ZJ-12 B.8): předchozí verze měla ruční úpravy (n), které v této verzi nejsou."""
+        previous = self._previous_version() if self.version > 1 else self.browse()
+        missing = previous.external_fee_ids - self.external_fee_ids.mapped("origin_id")
+        self._check("version_entries_missing",
+                    self.env._("Předchozí verze měla ruční úpravy (%s), které v této verzi nejsou", len(missing)),
+                    not missing, "; ".join(f"{l.corrects_rule_id.name or l.note} {l.amount:.2f}" for l in missing),
+                    severity="warning")
 
     def action_post(self):
         """Zaúčtuje návrhy jedním krokem, jen pokud sedí se schváleným snímkem."""
@@ -2565,7 +2639,8 @@ class InvestraValuationExternal(models.Model):
         ended = self.ended_id
         same = (ended.corrects_rule_id, ended.class_id, ended.correction_target) == (
             self.corrects_rule_id, self.class_id, self.correction_target)
-        earlier = ended.valuation_id.fund_id == self.valuation_id.fund_id and ended.valuation_id.date < self.valuation_id.date
+        earlier = (ended.valuation_id.fund_id == self.valuation_id.fund_id and ended.valuation_id.date < self.valuation_id.date
+                   and ended.valuation_id.state not in ("returned", "reversed"))
         if not same or not earlier or ended.validity != "period" or ended.ended_id:
             raise ValidationError(self.env._(
                 "Ukončit jde jen převzatou opravu „do konce období“ téhož pravidla a třídy z dřívějšího ocenění."))
@@ -2573,7 +2648,9 @@ class InvestraValuationExternal(models.Model):
             raise ValidationError(self.env._(
                 "Ukončení opravy má částku %(amount)s (−částka ukončované opravy) a platnost „Do konce období“.",
                 amount=-ended.amount))
-        if self.search_count([("ended_id", "=", ended.id), ("id", "!=", self.id)]):
+        # Ukončení ve vrácené nebo stornované verzi neplatí (nová verze ho smí převzít, B.10).
+        if self.search_count([("ended_id", "=", ended.id), ("id", "!=", self.id),
+                              ("valuation_id.state", "not in", ("returned", "reversed"))]):
             raise ValidationError(self.env._("Oprava %s už je ukončená.", ended.display_name))
 
     def action_keep_difference(self):

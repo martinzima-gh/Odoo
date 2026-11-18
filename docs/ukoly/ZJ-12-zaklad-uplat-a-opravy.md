@@ -381,6 +381,13 @@ nyní; nulová se odmítne) přepočtou ocenění; tlačítka v UI krok 5. Výpo
 druhem či třídami (`_check_corrected_rules`). Upozornění: `carried_corrections` „Obsahuje převzaté opravy (n)“ (ukončené dvojice se nepočítají),
 `correction_once_ended` (oprava „jen toto ocenění“ minulého ocenění skončila), `base_correction_ended`. Testy (+4); `investra_nav` 469/469.
 
+**4d – stopa a převzetí z verze.** `_corrections_summary` (pravidlo, třída, vypočteno → výsledek a oprava, nebo oprava základu; platnost,
+zdůvodnění, kdo zadal; „ukončuje opravu z …“ a „převzato z verze n“ rozlišené; počet převzatých oprav) jde do poznámky kroků Spočítání
+a Odeslání ke schválení. `action_copy_from_version` zkopíruje řádky vrácené nebo stornované předchozí verze (ruční úpravy i opravy, snímek,
+`ended_id`, nová kopie přílohy patřící nové verzi, `origin_id`); převzaté opravy dřívějších ocenění ne, už převzaté znovu ne. Upozornění
+`version_entries_missing` „Předchozí verze měla ruční úpravy (n), které v této verzi nejsou“. Ukončení ve vrácené nebo stornované verzi se do
+„jen jednou“ nepočítá, aby ho nová verze mohla převzít. Testy (+3); `investra_nav` 472/472.
+
 ## Výsledek
 
 ## Převzetí

@@ -399,3 +399,71 @@ class TestCarriedCorrections(NavCase):
         march.action_compute()
         self.assertEqual(self.check(march, "carried_corrections").status, "ok")
         self.assertEqual(self.check(march, "correction_once_ended").status, "ok")
+
+    # --- stopa a převzetí z verze (4d) -----------------------------------------------------------------------------
+
+    def test_trail_lists_corrections(self):
+        fund = self.fund()
+        perf = self.performance(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        valuation = self.valuation(fund, JANUARY)
+        self.correct(valuation, perf, -1000, "A")
+        valuation.action_compute()
+        valuation.action_submit()
+        notes = {step.step: step.note or "" for step in valuation.step_ids}
+        for step in ("computed", "submitted"):
+            self.assertIn("Opravy: Odměna A: vypočteno 20000.00 → 19000.00 (oprava -1000.00)", notes[step])
+            self.assertIn("Dohoda s depozitářem", notes[step])
+            self.assertIn(f"zadal {self.preparer.name}", notes[step])
+
+    def test_copy_from_returned_version(self):
+        # Verze 1: oprava odměny a ruční úplata s přílohou; vrácení → verze 2 upozorní na 2 chybějící řádky. Převzetí
+        # zkopíruje oba (origin_id, nová příloha patřící verzi 2), opakované převzetí nic nepřidá.
+        fund = self.fund()
+        perf = self.performance(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        first = self.valuation(fund, JANUARY)
+        correction = self.correct(first, perf, -1000, "A")
+        attachment = self.env["ir.attachment"].create({"name": "faktura.pdf", "raw": b"%PDF",
+                                                       "res_model": "investra.valuation", "res_id": first.id})
+        manual = self.manual_fee(first, 300, attachment_id=attachment.id)
+        first.action_compute()
+        first.action_submit()
+        second = first.with_user(self.approver).action_return("Chybná faktura")
+        second.action_compute()
+        check = self.check(second, "version_entries_missing")
+        self.assertEqual((check.status, check.name),
+                         ("warning", "Předchozí verze měla ruční úpravy (2), které v této verzi nejsou"))
+        self.assertEqual(second.with_user(self.preparer).action_copy_from_version(), 2)
+        copies = second.external_fee_ids
+        self.assertEqual(copies.mapped("origin_id"), correction | manual)
+        copy = copies.filtered(lambda l: l.origin_id == manual)
+        self.assertNotEqual(copy.attachment_id, attachment)
+        self.assertEqual((copy.attachment_id.res_id, copy.attachment_id.raw.content), (second.id, b"%PDF"))
+        self.assertFalse(copies.mapped("ended_id"))
+        self.assertEqual(second.with_user(self.preparer).action_copy_from_version(), 0)
+        second.action_compute()
+        self.assertEqual(self.check(second, "version_entries_missing").status, "ok")
+        # Ruční úplata 300 je krok 2, odměna po kroku 2 ji zahrnuje: 0,2 × (100 000 − 300) − 1 000 = 18 940.
+        self.assertAlmostEqual(self.total(second, perf), 18940, places=2)
+
+    def test_copy_ending_from_returned_version(self):
+        # Ukončení zadané ve vrácené verzi února se do verze 2 převezme (ukončení ve vrácené verzi se nepočítá).
+        fund = self.fund()
+        perf = self.performance(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        january = self.valuation(fund, JANUARY)
+        entry = self.correct(january, perf, -1000, "A")
+        self.run_to_posted(january)
+        february = self.valuation(fund, FEBRUARY)
+        february.with_user(self.preparer).end_correction(entry, "Konec")
+        february.action_compute()
+        february.action_submit()
+        second = february.with_user(self.approver).action_return("Oprava")
+        self.assertEqual(second.with_user(self.preparer).action_copy_from_version(), 1)
+        ending = second.external_fee_ids
+        self.assertEqual((ending.ended_id, ending.origin_id.valuation_id), (entry, february))
+        second.action_compute()
+        self.assertAlmostEqual(self.accrued(second), 20000, places=2)
+        self.assertIn("ukončuje opravu", second._corrections_summary())
+        self.assertIn("převzato z verze 1", second._corrections_summary())
