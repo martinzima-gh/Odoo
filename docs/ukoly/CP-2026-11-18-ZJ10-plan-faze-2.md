@@ -114,3 +114,6 @@ Přidat testy k existujícím testům modulů. Změnu záznamu oddělit od jeho 
    create a unlink sazby probíhají s `tracking_disable=True`, aby nevznikly duplicity.
 4. **Benchmark:** přidat seznam, formulář s hodnotami a chatterem a akci v nastavení úplat (práva podle stávajícího `ir.access.csv`).
 - Řešitel kódu: červená zóna – Copilot podle svých pravidel kód nepíše; Antigravity (po obnovení kreditů) nebo Claude.
+
+**Provedení** – Claude (Sonnet 5.5) 18. 11. 2026, commit `2a93615`: plán realizován včetně schválených úprav 1–4; podrobnosti, testy a nasazení
+v sekci „Fáze 2“ v `ZJ-10-sledovani-zmen-nastaveni.md`.

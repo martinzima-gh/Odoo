@@ -229,3 +229,22 @@ Proveden krok **1b** (ostatní modely z bodu 3 mimo investra_fund, hromadné zá
 - **Testy Odoo:** `tools/run_tests.sh investra_entity+` (14 modulů) → 0 failed, 0 error(s) of 892 tests; varování stejná jako dřív. Dočasná DB smazána.
 - **Neověřeno:** nové formuláře v prohlížeči; pracovní databáze `investra` zatím nepovýšená (dotčené moduly po záloze, na Martinův pokyn).
 - **Další krok:** plán fáze 2 (bod 4, červená zóna) – předloží řešitel (Copilot), schvaluje Martin; teprve pak kód.
+
+**Fáze 2** – naprogramoval a převzal Claude (Sonnet 5.5) 18. 11. 2026 podle schváleného plánu `CP-2026-11-18-ZJ10-plan-faze-2.md`; commit `2a93615`.
+
+- **Provedeno:** mixin `investra.line.tracking.mixin` umí rodiče zadaného cestou (`rule_id`, `version_id.rule_id`; `role_id` a `matrix_id` beze změny);
+  `investra_nav` závisí přímo na `investra_fund`; `mail.thread` + `tracking=True` na pravidle úplaty, benchmarku, alokačním schématu a FX profilu
+  (chatter ve formulářích; benchmark má nový seznam, formulář s hodnotami a nabídku Nastavení → Fondy → Benchmarky); verze a pásma úplaty,
+  hodnoty benchmarku a nároky tříd přes mixin do chatteru rodiče (verze a pásma do chatteru pravidla); období sazby nástroje sleduje jen
+  `note`, create a unlink s `tracking_disable` (ruční zprávy sazeb beze změny, bez duplicit); `_ensure_fx_profile()` s `tracking_disable`.
+- **Odchylky od plánu (popisy řádků):** řádek verze „Verze platná od …“, pásmo „Pásmo (verze od …)“, nárok „Nárok třídy <třída>“ (aby šlo řádky
+  v jedné zprávě rozlišit); texty testů tomu odpovídají.
+- **Testy Odoo:** `investra_nav,investra_allocation,investra_fx_revaluation` → 0 failed of 455; `investra_fund+` (10 modulů) → 0 failed of 787.
+  Nové třídy: `test_tracking_zj10.py` (nav), `test_variable_rate.py` (období sazby), `test_tracking.py` (allocation, fx). Pokryto: hlavičky, M2M,
+  jedna zpráva při změně více polí, verze/pásma v chatteru pravidla, benchmark a hodnoty, ruční zprávy sazeb bez duplicity, `tracking_disable`,
+  právě jeden chatter ve formulářích. Dočasné DB smazány; očekávané hodnoty scénářů nezměněny.
+- **Nasazení do pracovní DB:** záloha `zalohy/investra-2026-11-18-pred-ZJ10-1b-2.dump` (pg_dump -Fc, 9 MB, `pg_restore -l` čitelné); upgrade 11 modulů
+  (`investra_entity, fund, chart_fund, cnb, counterparty, dashboard, instrument_master, instruments, allocation, fx_revaluation, nav`) v `investra`
+  bez chyby (v logu jen docutils u popisů modulů); `investra-web` restartován, HTTP 200.
+- **Neověřeno:** vzhled chatteru a nového formuláře Benchmarky v prohlížeči (ověří Martin); skutečný objem `mail_message`; práva čtení chatteru
+  pro `account.group_account_readonly`; chování `base_mode` zpětně (plán bod 5) nezkoušeno samostatným testem.
