@@ -163,11 +163,14 @@ class TestFees(NavCase):
         self.assertAlmostEqual(tax, 4.00, places=2)
 
     def test_perf_after_tax_then_tax_is_topped_up(self):
-        # Daň 0,05 × 100 = 5,00; kurz 109,5 → odměna 0,2 × 9,5 × 10 = 19,00; doúčtování daně
-        # na 0,05 × (100 − 19) = 4,05, tj. −0,95; obě kroky daně jsou v ocenění
+        # ZJ-12 krok 3 (schváleno 2026-11-18, příklad C3): odměna po kroku 4 a daň po kroku 3 se dopočtou společně.
+        # P = 0,2 × (100 − 0,05 × 100) / (1 − 0,2 × 0,05) = 19,19; daň 0,05 × (100 − 19,19) = 4,04; jeden doklad daně.
+        # Dřív pevné pořadí: odměna 19,00 a doúčtování daně na 4,05 druhým dokladem (tax:<id>:perf).
         fund_perf, tax = self.perf_case("4", tax=True)
-        self.assertAlmostEqual(fund_perf, 19.00, places=2)
-        self.assertAlmostEqual(tax, 4.05, places=2)
+        self.assertAlmostEqual(fund_perf, 19.19, places=2)
+        self.assertAlmostEqual(tax, 4.04, places=2)
+        valuation = self.env["investra.valuation"].search([], order="id desc", limit=1)
+        self.assertEqual(len(valuation.event_ids.filtered(lambda e: ":tax:" in e.key)), 1)
 
     def test_waterfall_gives_priority_class_target_and_junior_the_rest(self):
         # 365 dní, PIA 1 000 s cílem 6 %, VIA 100; výnos 110: PIA 60, VIA 50

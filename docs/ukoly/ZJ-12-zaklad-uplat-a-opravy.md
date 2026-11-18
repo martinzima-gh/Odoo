@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | kroky 1 a 2 hotové (2026-11-18); další krok 3 (společný dopočet) |
+| Stav | kroky 1–3 hotové (2026-11-18), scénář s4 čeká na schválení; další krok 4 (opravy všech druhů) |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -236,6 +236,60 @@ nebo zda ZJ-07 zůstane jako zjednodušený profil a DA-01 jako následná plná
 - Testy: nové `test_fee_base_step.py` (11 testů: výchozí a přípustné volby, změna druhu, jedna odměna na třídu, jedna daň na fond, pravidla bez tříd, pojistky výpočtu,
   pole opravy, převod v pre-migraci). Pole v testech převedená, `TestBaseModeRetroactive` → `TestBaseStepRetroactive`, scénáře mapují klíč `base` (JSON beze změny).
   Schválené nové hodnoty (19,19 / 4,04; 9 800,99 / 990 199,01) se zapíšou do testů v kroku 3 spolu s výpočtem.
+
+## Zjištění kroku 3 (2026-11-18)
+
+**Rozhraní** `engine.solve_fees(classes, items, pinned=None, max_steps=500, rel_tol=1e-12)` (čistá funkce, bez Odoo):
+
+- `classes`: `{třída: {"value": hodnota po kroku 1, "ratio": ρ}}`; FK po kroku 1 = součet hodnot.
+- `items`: položky v pevném pořadí s `key`, `stage` (2 úplata, ruční úplata, oprava; 3 odměna; 4 daň), `payer` (třída nebo fond),
+  `share` a `recipients` (váhy přijímajících tříd), `base` (`None` = pevný základ; `{"scope": "fund"|"class", "class", "step"}`)
+  a `amount` (funkce základ → přesná částka, nebo konstanta). Daň místo `base`/`amount` nese `tax` (sazba, krok, výsledek od 1. 1.
+  po kroku 1 s přičtenými nezapočitatelnými náklady dřívějších ocenění, zaúčtovaná daň, specifické náklady tříd, dřívější přesuny).
+- Stav po kroku s = položky se `stage ≤ s`; odměna ani daň nezahrnují samy sebe. Jacobiho iterace z nuly, relativní tolerance,
+  neustálení = `ValueError` (ocenění `UserError`). Výstup: částky, základy, daň s přesuny daňového efektu, počet kroků, zbytek konzistence.
+- Funkce částky staví ocenění z `periodic_fee` a `performance_fee` (nový klíč `exact` = částka před zaokrouhlením); engine o pravidlech nic neví.
+- Shoda s referenčním modelem (`tests/ref_fee_adapter.py`, `test_fee_solver.TestSolveFeesEngine`): 720 kombinací (rozdíl ≤ 1e-10, nejvýš 32 kroků),
+  rozdělení daně mezi třídy, 1 152 oprav (opravené pravidlo pevně na „Vypočteno“, oprava jako samostatná pevná položka).
+
+**Zaúčtování po ustálení** (`_apply_fees`): průchod bez oprav, s opravami druhý průchod; pak doklady v pevném pořadí, částky už na pořadí nezávisí:
+časově rozlišené úplaty (pravidla podle `_order`, třídy) → ruční úplaty a opravy → výkonnostní odměny (a krytí) → daň.
+Daň je **jeden doklad** `tax:<id>`: doplatek daně a přesun daňového efektu tříd přes `internal_clearing` (součet 0); `tax:<id>:perf` zaniká.
+Opravené pravidlo se zaúčtuje částkou i základem z průchodu bez oprav (detail `corrected`). Kontrola `fee_consistency` (stop při zbytku > 1e-10).
+
+**Výpočet:**
+- Řádky rozpisu nově nesou `expense` (náklad mimo fond) a `borne` (částka nesená třídami); z nich se počítá přičtení úplat od data
+  (odměna po kroku 1 od krystalizace, daň od 1. 1.). Starší řádky je nemají: náklad = částka × (1 − podíl příjemců), plátce-třída nese celou
+  částku, společnou úplatu třídy poměrem uloženým v ocenění; podíl přijatý od jiných tříd se u nich vynechá (odchylka jen u řádků před krokem 3).
+- Daň: výsledek od 1. 1. z knihy po kroku 1; náklady dřívějších ocenění, které podle kroku základ nesnižují, se přičtou zpět. Specifické
+  položky třídy = výsledkové řádky s třídou od 1. 1. (bez účtu daně) + položky tohoto ocenění s plátcem-třídou. Přesun kumulativně od 1. 1.,
+  doplatek proti součtu `transfers` v dřívějších řádcích daně (ověřeno vícedobým testem). Haléřový rozdíl nese největší přesun.
+- Průměrný FK: jedna položka na pravidlo (oprava B.6); „booked“ z dřívějších ocenění bere jeden řádek pravidla na ocenění (i u starších dvojitých).
+- **Odchylka od dřívějšího chování:** váhy přijímajících tříd jsou hodnoty tříd po kroku 1 (dřív stav knihy v okamžiku zaúčtování, závislý na
+  pořadí dokladů). Krytí výkonnostní odměny zůstává mimo dopočet (přesun po zaúčtování odměny, jako dřív).
+- Dočasná pojistka `_check_fee_steps` zúžena jen na opravy odměny, daně a základu (zaniká v kroku 4).
+- Přemostění třídy: přesun daňového efektu je zatím v položce „Ostatní“; samostatnou položku přinese krok 6 (E).
+
+**Testy:** schválené hodnoty zapsané (19,19 / 4,04 a jeden doklad daně; 9 900,99 vypočteno, výsledek 9 800,99, FK 990 199,01); B.6 charakterizace
+na 3 100 a jeden řádek. Nové `test_fee_solver.py` (11 testů): engine × referenční model, neustálení, 36 kombinací kroků úplaty × odměny × daně
+v Odoo proti modelu, C4, C5, C7, průměrný FK po kroku 2, odměna po kroku 1 s přičtením (2 000 / 4 000 / 6 000, krystalizace), měřítko na kus
+s úpisem, vícedobý přesun. `investra_nav` 448/448, `investra_nav+` 522/522. Zkouška na `investra_ci_zj12k3` ze zálohy
+`zalohy/investra-2026-11-18-pred-ZJ12-krok2.dump` povýšené na 37.0: přepočet obou otevřených ocenění (35, 39) dal shodné FK, úplaty, kapitály
+i kurzy; kopie smazána. Referenční výpočet `tools/nav_reference` doplněn o daňový efekt tříd (nový test, scénáře s1–s3 a s5 beze změny).
+
+**Scénář s4 ke schválení** (Martin; v pracovním stromu, necommitováno): daňový efekt výkonnostní odměny třídy A. Odoo i `tools/nav_reference` shodně:
+
+| Datum | Položka | Dosud | Nově |
+|---|---|---|---|
+| 31. 1. | přesun daňového efektu A / B | – | +241,08 / −241,08 (0,05 × (9 643,29 − 0,5 × 9 643,29)) |
+| 31. 1. | kapitál A / B | 1 036 403,41 / 1 046 046,70 | 1 036 644,49 / 1 045 805,62 |
+| 31. 1. | kurz A / B | 1 036,4034 / 1 046,0467 | 1 036,6444 / 1 045,8056 |
+| 28. 2. | odměna A (doplatek) | −7 708,86 | −7 662,34 (lednový přesun zvýšil hodnotu A) |
+| 28. 2. | daň (doplatek) | −3 268,94 | −3 271,26 |
+| 28. 2. | přesun A / B | – | −191,34 / +191,34 (kumulativně 49,74 minus leden 241,08) |
+| 28. 2. | FK | 2 020 340,32 | 2 020 296,12 |
+| 28. 2. | kapitál A / B | 1 009 364,60 / 1 010 975,72 | 1 009 360,89 / 1 010 935,23 |
+| 28. 2. | kurz A / B | 1 009,3646 / 1 010,9757 | 1 009,3608 / 1 010,9352 |
 
 ## Výsledek
 

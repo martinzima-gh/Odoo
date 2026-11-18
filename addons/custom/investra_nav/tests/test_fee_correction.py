@@ -66,15 +66,17 @@ class TestFeeCorrection(NavCase):
         self.assertEqual(self.correction_event(valuation, entry).name, f"Oprava úplaty Obhospodařování ({YEAR_END})")
 
     def test_correction_lowers_cost_before_after_fees(self):
-        # Úplata „po“ 1 %: oprava −100 zvýší základ před dopočtem → S = 0,01 × (1 000 100 − S) = 9 901,98.
-        # FK = 1 000 100 − 9 901,98 = 990 198,02 (čistý výpočet z opravené částky).
+        # ZJ-12 krok 3 (schváleno 2026-11-18, příklad C8): úplata po kroku 2, oprava −100 ve dvou průchodech.
+        # Vypočteno bez opravy S = 0,01 × (1 000 000 − S) = 9 900,99; výsledek = vypočteno + oprava = 9 800,99;
+        # FK = 1 000 000 − 9 800,99 = 990 199,01. Dřív oprava posunula základ: 9 901,98 a FK 990 198,02.
         fund = self.fund()
         rule = self.rule(fund, base_step="2")
         valuation = self.valuation(fund, YEAR_END)
         self.correction(valuation, rule, -100)
         valuation.action_compute()
-        self.assertAlmostEqual(valuation.fee_line_ids.filtered("rule_id").amount, 9901.98, places=2)
-        self.assertAlmostEqual(valuation.fund_capital, 990198.02, places=2)
+        self.assertAlmostEqual(valuation.fee_line_ids.filtered("rule_id").amount, 9900.99, places=2)
+        self.assertAlmostEqual(sum(valuation.fee_line_ids.mapped("amount")), 9800.99, places=2)
+        self.assertAlmostEqual(valuation.fund_capital, 990199.01, places=2)
 
     def test_average_fk_does_not_true_up_correction(self):
         # Jako TestFees.test_average_fk_with_true_up: leden 3 100, oprava −0,50 (FK leden 996 900,50).

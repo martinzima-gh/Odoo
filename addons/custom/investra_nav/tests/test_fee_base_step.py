@@ -122,25 +122,7 @@ class TestFeeBaseStep(NavCase):
         entry = self.manual_fee(valuation, -1, corrects_rule_id=tax.id, validity="valuation", **values)
         self.assertEqual((entry.class_id.id, entry.validity), (False, "valuation"))
 
-    # --- ocenění v kroku 2 ---------------------------------------------------------------------------------------
-
-    def test_valuation_refuses_steps_not_yet_computed(self):
-        # Krok 2 nemění výsledky: kombinace, které počítá až společný dopočet (krok 3), výpočet odmítne.
-        self.subscribe(self.a, "2027-01-01", 1000000, 1000)
-        cases = (("periodic", {"base_step": "3"}), ("periodic", {"base_step": "4"}),
-                 ("periodic", {"base_source": "average_fk", "base_step": "2"}), ("tax", {"base_step": "2"}))
-        for version, (kind, vals) in enumerate(cases, start=1):
-            with self.subTest(kind=kind, vals=vals):
-                rule = self.rule(kind, name="Pravidlo", **vals)
-                valuation = self.valuation(self.fund, YEAR_END, version=version)
-                with self.assertRaisesRegex(UserError, "ZJ-12 krok 3"):
-                    valuation.action_compute()
-                rule.active = False
-        # Bez nepodporovaných pravidel se ocenění spočítá.
-        self.rule("periodic", name="Obhospodařování")
-        valuation = self.valuation(self.fund, YEAR_END, version=len(cases) + 1)
-        valuation.action_compute()
-        self.assertEqual(valuation.state, "computed")
+    # --- ocenění: pojistka do kroku 4 (kombinace základů počítá společný dopočet, test_fee_solver) ----------------
 
     def test_valuation_refuses_corrections_not_yet_booked(self):
         # Opravy odměny a daně a oprava základu se uložit dají, zaúčtuje je až krok 4.
