@@ -37,7 +37,7 @@ USERS = {  # login: (jméno, role, správce systému)
     "view": ("Náhled (ukázka)", "Náhled", False),
 }
 
-Role = env["investra.role"].sudo()
+Role = env["investra.role"].sudo().with_context(tracking_disable=True, mail_create_nolog=True)
 role = {}
 for name, (level, manual, lines) in ROLES.items():
     rec = Role.with_context(active_test=False).search([("name", "=", name)], limit=1)

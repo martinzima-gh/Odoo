@@ -117,7 +117,7 @@ admin.write({
         "investra_entity.group_valuation_approver", "investra_instrument_master.group_codelist_manager",
     )],
 })
-UA = env(user=admin.id, context=dict(env.context, lang="cs_CZ", tz="Europe/Prague"))
+UA = env(user=admin.id, context=dict(env.context, lang="cs_CZ", tz="Europe/Prague", mail_create_nolog=True, tracking_disable=True))
 
 # --- investiční společnost a schvalovací matice „jeden člověk“ (krok 4a) ---------------------------------------------
 manager = env["investra.entity"].browse(BOOK_IDS["M"])

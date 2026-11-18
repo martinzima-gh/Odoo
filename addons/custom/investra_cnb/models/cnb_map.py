@@ -11,22 +11,23 @@ class InvestraCnbMap(models.Model):
     """Převod role účtu na řádek listu ČNB. Pracovní nastavení, potvrzuje účetní metodik."""
 
     _name = "investra.cnb.map"
+    _inherit = ["mail.thread"]
     _description = "Převod na výkaz ČNB"
     _order = "sheet, row, id"
 
-    methodology = fields.Char(required=True, default="FOFI20261201", string="Metodika")
-    sheet = fields.Char(required=True, index=True, string="List")
-    row = fields.Integer(required=True, string="Řádek")
-    column = fields.Integer(required=True, default=1, string="Sloupec")
-    source = fields.Selection([("role", "Role účtu"), ("result", "Výsledek běžného období")], required=True, default="role", string="Zdroj")
-    role_id = fields.Many2one("investra.account.role", ondelete="restrict", string="Role účtu")
-    ifrs9_category = fields.Selection(IFRS9_CATEGORY, string="Jen kategorie IFRS 9")
-    period = fields.Selection([("balance", "Zůstatek k datu"), ("ytd", "Od začátku roku")], required=True, default="balance", string="Období")
-    sign = fields.Integer(required=True, default=1, string="Znaménko", help="1 zůstatek, -1 obrácený; určuje dopad do součtů.")
-    report_sign = fields.Integer(required=True, default=1, string="Znaménko řádku", help="-1 u nákladů vykázaných kladně.")
-    rollup_rows = fields.Char(string="Součtové řádky", help="Řádky oddělené čárkou, do kterých se hodnota přičte.")
-    valid_from = fields.Date(required=True, default=date(2026, 12, 1), string="Platí od")
-    valid_to = fields.Date(string="Platí do")
+    methodology = fields.Char(required=True, default="FOFI20261201", string="Metodika", tracking=True)
+    sheet = fields.Char(required=True, index=True, string="List", tracking=True)
+    row = fields.Integer(required=True, string="Řádek", tracking=True)
+    column = fields.Integer(required=True, default=1, string="Sloupec", tracking=True)
+    source = fields.Selection([("role", "Role účtu"), ("result", "Výsledek běžného období")], required=True, default="role", string="Zdroj", tracking=True)
+    role_id = fields.Many2one("investra.account.role", ondelete="restrict", string="Role účtu", tracking=True)
+    ifrs9_category = fields.Selection(IFRS9_CATEGORY, string="Jen kategorie IFRS 9", tracking=True)
+    period = fields.Selection([("balance", "Zůstatek k datu"), ("ytd", "Od začátku roku")], required=True, default="balance", string="Období", tracking=True)
+    sign = fields.Integer(required=True, default=1, string="Znaménko", tracking=True, help="1 zůstatek, -1 obrácený; určuje dopad do součtů.")
+    report_sign = fields.Integer(required=True, default=1, string="Znaménko řádku", tracking=True, help="-1 u nákladů vykázaných kladně.")
+    rollup_rows = fields.Char(string="Součtové řádky", tracking=True, help="Řádky oddělené čárkou, do kterých se hodnota přičte.")
+    valid_from = fields.Date(required=True, default=date(2026, 12, 1), string="Platí od", tracking=True)
+    valid_to = fields.Date(string="Platí do", tracking=True)
 
     def _active(self, sheet, day):
         return self.sudo().search([

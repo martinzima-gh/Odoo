@@ -40,6 +40,7 @@ class InvestraEntity(models.Model):
     """Účetní kniha: jedna hlavní společnost Odoo. Hierarchie je vlastní, ne pobočky."""
 
     _name = "investra.entity"
+    _inherit = ["mail.thread"]
     _description = "Účetní kniha"
     _order = "name"
 
@@ -53,6 +54,7 @@ class InvestraEntity(models.Model):
         string="Společnost",
         default=lambda self: self.env.company,
         domain="[('id', 'in', allowed_company_ids)]",
+        tracking=True,
     )
     currency_id = fields.Many2one(related="company_id.currency_id", string="Funkční měna")
     # IČO a DIČ patří kontaktu společnosti; zapisuje je jen ten, kdo smí měnit společnost (formulář má pro ostatní pole
@@ -71,6 +73,7 @@ class InvestraEntity(models.Model):
         ],
         required=True,
         string="Druh jednotky",
+        tracking=True,
         help="Servisní a investiční společnost jsou obecné jednotky; SICAV, fond a podfond mají osnovu fondu "
              "a neměnné zápisy v deníku. Podfond patří pod SICAV.",
     )
@@ -82,6 +85,7 @@ class InvestraEntity(models.Model):
         ],
         required=True,
         string="Účetní rámec",
+        tracking=True,
         help="Podle vyhlášky: servisní společnost 500/2002, investiční společnost, SICAV, fond a podfond 501/2002. "
              "Rámce se nemíchají a po prvním zaúčtování se nemění.",
     )
@@ -89,12 +93,14 @@ class InvestraEntity(models.Model):
     rate_source = fields.Selection(
         RATE_SOURCES, required=True, string="Zdroj kurzů",
         default=lambda self: rate_source_for(self.env.company.currency_id),
+        tracking=True,
         help="Řídí se funkční měnou knihy (§ 24d zákona o účetnictví): CZK – ČNB, EUR – ECB. Pro jinou funkční měnu "
              "zdroj kurzů není implementován: přecenění, ocenění i pohyb třídy v cizí měně skončí chybou.",
     )
     parent_id = fields.Many2one(
         "investra.entity", string="Nadřazená kniha", ondelete="restrict",
         domain="[('entity_type', '=', 'sicav')]",
+        tracking=True,
         help="Jen u podfondu: SICAV, jehož je podfond součástí.",
     )
 

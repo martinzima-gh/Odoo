@@ -8,6 +8,20 @@
         <field name="name">investra.esa.sector.search</field><field name="model">investra.esa.sector</field>
         <field name="arch" type="xml"><search><field name="code"/><field name="name"/></search></field>
     </record>
+    <record id="view_esa_sector_form" model="ir.ui.view">
+        <field name="name">investra.esa.sector.form</field><field name="model">investra.esa.sector</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="code"/>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
     <record id="view_profile_list" model="ir.ui.view">
         <field name="name">investra.counterparty.profile.list</field><field name="model">investra.counterparty.profile</field>
         <field name="arch" type="xml">

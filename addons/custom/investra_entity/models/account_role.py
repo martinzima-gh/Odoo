@@ -6,11 +6,12 @@ class InvestraAccountRole(models.Model):
     """Význam účtu nezávislý na jeho čísle; pravidla účtování pracují s rolemi."""
 
     _name = "investra.account.role"
+    _inherit = ["mail.thread"]
     _description = "Role účtu"
     _order = "code"
 
-    code = fields.Char(required=True, string="Kód")
-    name = fields.Char(required=True, string="Název")
+    code = fields.Char(required=True, string="Kód", tracking=True)
+    name = fields.Char(required=True, string="Název", tracking=True)
     category = fields.Selection(
         [
             ("asset", "Aktivum"),
@@ -23,8 +24,9 @@ class InvestraAccountRole(models.Model):
         ],
         required=True,
         string="Druh",
+        tracking=True,
     )
-    active = fields.Boolean(default=True, string="Aktivní")
+    active = fields.Boolean(default=True, string="Aktivní", tracking=True)
 
     _code_uniq = models.Constraint("unique(code)", "Kód role musí být jedinečný.")
 
@@ -61,18 +63,19 @@ class InvestraAccountRole(models.Model):
 
 class InvestraRoleAccount(models.Model):
     _name = "investra.role.account"
+    _inherit = ["mail.thread"]
     _description = "Účet role v knize"
     _check_company_auto = True
 
-    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, string="Kniha")
-    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Role")
+    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, string="Kniha", tracking=True)
+    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Role", tracking=True)
     account_id = fields.Many2one("account.account", required=True, ondelete="restrict", check_company=True, string="Účet",
-                                 help="Hlavní účet role: na něj účtují pravidla účtování.")
+                                 tracking=True, help="Hlavní účet role: na něj účtují pravidla účtování.")
     # Rozhodnutí 2026-11-12 „Role s více účty“: více bankovních účtů, platby na cestě. Zůstatky, výkazy ČNB a kontroly
     # sčítají hlavní i další účty; účtování jde jen na hlavní účet.
     extra_account_ids = fields.Many2many(
         "account.account", "investra_role_account_extra_rel", "mapping_id", "account_id",
-        check_company=True, string="Další účty",
+        check_company=True, string="Další účty", tracking=True,
         help="Účty se stejným významem (např. další bankovní účty). Patří do zůstatku role ve výkazech a kontrolách.",
     )
 

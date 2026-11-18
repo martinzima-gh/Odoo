@@ -13,6 +13,7 @@ class InvestraAccountingProfile(models.Model):
 
     # Profil odkazuje na roli účtu, ne na účet; role se do účtu knihy překládá až při účtování.
     role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", tracking=True, string="Role účtu")
+    note = fields.Text(string="Poznámka", tracking=True)
 
 
 class InvestraAccountingProfileAssignment(models.Model):
@@ -42,7 +43,7 @@ class InvestraAccountingProfileAssignment(models.Model):
     priority = fields.Integer(default=10, tracking=True, string="Priorita", help="Nižší číslo má přednost.")
     valid_from = fields.Date(required=True, default=fields.Date.context_today, tracking=True, string="Platí od")
     valid_to = fields.Date(tracking=True, string="Platí do")
-    note = fields.Text(string="Poznámka")
+    note = fields.Text(string="Poznámka", tracking=True)
 
     @api.depends("portfolio_id")
     def _compute_company(self):

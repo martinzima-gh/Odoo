@@ -18,21 +18,22 @@ class InvestraCfiBa0088Map(models.Model):
     """Mapa začátku kódu CFI na druh BA0088; slouží jen k upozornění u nástroje (plán 3.2)."""
 
     _name = "investra.cfi.ba0088.map"
+    _inherit = ["mail.thread"]
     _description = "Mapa CFI na BA0088"
     _order = "cfi_prefix"
 
-    cfi_prefix = fields.Char("Začátek CFI", required=True)
-    ba0088_id = fields.Many2one("investra.ba0088.code", "Druh CP (BA0088)", required=True, ondelete="restrict")
-    valid_from = fields.Date("Platí od")
-    valid_to = fields.Date("Platí do")
-    source = fields.Char("Zdroj")
+    cfi_prefix = fields.Char("Začátek CFI", required=True, tracking=True)
+    ba0088_id = fields.Many2one("investra.ba0088.code", "Druh CP (BA0088)", required=True, ondelete="restrict", tracking=True)
+    valid_from = fields.Date("Platí od", tracking=True)
+    valid_to = fields.Date("Platí do", tracking=True)
+    source = fields.Char("Zdroj", tracking=True)
 
 
 class InvestraInstrumentType(models.Model):
     _inherit = "investra.instrument.type"
 
     ba0088_required = fields.Boolean(
-        "Vyžaduje BA0088", default=True,
+        "Vyžaduje BA0088", default=True, tracking=True,
         help="Typ, u kterého se při potvrzení klasifikace vyžaduje druh cenného papíru podle BA0088.")
 
 

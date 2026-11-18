@@ -126,7 +126,9 @@ class InvestraCodelistImportWizard(models.TransientModel):
             if unknown:
                 raise UserError(self.env._(
                     "Kód ESA musí začínat 1 (rezident) nebo 2 (nerezident): %s.", ", ".join(unknown.mapped("code"))))
-        model = self._model().with_context(investra_codelist_import=True, active_test=False)
+        model = self._model().with_context(
+            investra_codelist_import=True, active_test=False, mail_create_nolog=True, tracking_disable=True
+        )
         all_codes = set(self.line_ids.filtered(lambda l: l.state != "missing").mapped("code")) | set(
             model.search([]).mapped("code"))
         end = self.valid_from - timedelta(days=1)
