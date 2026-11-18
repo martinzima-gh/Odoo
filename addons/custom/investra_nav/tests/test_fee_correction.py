@@ -162,3 +162,59 @@ class TestFeeCorrection(NavCase):
         self.correction(valuation, on_a, -1, class_id=a.id)
         self.correction(valuation, whole, 1)
         self.assertEqual(len(valuation.external_fee_ids), 2)
+
+    # --- tlačítko Opravit na řádku úplaty (krok 2) -----------------------------------------------------------------
+
+    def test_correct_button_context_and_save(self):
+        fund = self.fund(classes=("A", "B"))
+        a = self.cls(fund, "A")
+        rule = self.rule(fund, class_ids=[(6, 0, [a.id])])
+        valuation = self.valuation(fund, YEAR_END)
+        valuation.action_compute()
+        line = valuation.fee_line_ids.filtered("rule_id")
+        self.assertTrue(line.can_correct)
+        action = line.action_correct()
+        ctx = action["context"]
+        self.assertEqual(action["res_model"], "investra.valuation.external")
+        self.assertEqual(action["target"], "new")
+        self.assertEqual(ctx["default_valuation_id"], valuation.id)
+        self.assertEqual(ctx["default_corrects_rule_id"], rule.id)
+        self.assertEqual(ctx["default_class_id"], line.class_id.id)
+        self.assertEqual(ctx["default_currency_id"], fund.currency_id.id)
+        # Uložení z formuláře s předvyplněnými hodnotami: jen částka a poznámka.
+        view = self.env.ref("investra_nav.view_valuation_external_correction_form")
+        self.assertEqual(action["views"], [(view.id, "form")])
+        entry = self.env["investra.valuation.external"].with_user(self.preparer).with_context(**ctx).create({
+            "amount": -0.40, "note": "Faktura"})
+        self.assertEqual(entry.corrects_rule_id, rule)
+        self.assertEqual(entry.class_id, line.class_id)
+
+    def test_correction_sorted_under_original(self):
+        fund = self.fund()
+        first = self.rule(fund, name="Obhospodařování")
+        second = self.rule(fund, name="Administrace", rate=0.002)
+        valuation = self.valuation(fund, YEAR_END)
+        self.manual_fee(valuation, 5)
+        self.correction(valuation, first, -0.40)
+        valuation.action_compute()
+        # Pořadí dává _order modelu (jak ho čte formulář), ne cache One2many po vytvoření.
+        lines = self.env["investra.valuation.fee"].search([("valuation_id", "=", valuation.id)])
+        names = [(l.rule_id or l.external_id.corrects_rule_id).id for l in lines
+                 if l.rule_id or l.external_id.corrects_rule_id]
+        self.assertEqual(names, [first.id, first.id, second.id])
+        self.assertTrue(lines[1].is_correction)
+        self.assertFalse(lines[-1].rule_id)  # ruční úplata bez opravy na konci
+
+    def test_correct_button_refused_outside_draft(self):
+        fund = self.fund()
+        self.rule(fund)
+        valuation = self.valuation(fund, YEAR_END)
+        valuation.action_compute()
+        self.manual_fee(valuation, 5)
+        valuation.action_compute()  # přepočet řádky rozpisu založí znovu
+        self.assertFalse(valuation.fee_line_ids.filtered("external_id").can_correct)
+        line = valuation.fee_line_ids.filtered("rule_id")
+        valuation.sudo().state = "submitted"
+        self.assertFalse(line.can_correct)
+        with self.assertRaises(UserError):
+            line.action_correct()

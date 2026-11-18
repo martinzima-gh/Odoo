@@ -244,7 +244,13 @@
                             <field name="fair_value"/>
                             <field name="realised" optional="show"/>
                         </list></field></page>
-                        <page string="Úplaty"><field name="fee_line_ids"><list><field name="name"/><field name="class_id"/><field name="amount"/></list></field></page>
+                        <page string="Úplaty"><field name="fee_line_ids"><list>
+                            <field name="name"/><field name="class_id"/><field name="amount"/>
+                            <field name="can_correct" column_invisible="1"/>
+                            <button name="action_correct" type="object" string="Opravit" icon="fa-pencil"
+                                    invisible="not can_correct"
+                                    title="Opravit úplatu ruční úplatou (zaokrouhlení podle faktury)"/>
+                        </list></field></page>
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
                             <div class="alert alert-info" role="alert">Úplata spočtená mimo Odoo (ZJ-03). Zaúčtuje se k datu ocenění na zvolený nákladový účet proti závazku z úplat, v cizí měně kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Prázdná třída = celý fond. Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.</div>
                             <field name="external_fee_ids" context="{'default_valuation_id': id}"
@@ -269,6 +275,25 @@
                         </list></field></page>
                     </notebook>
                 </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- ZJ-11: formulář opravy úplaty otevřený tlačítkem Opravit na řádku záložky Úplaty. -->
+    <record id="view_valuation_external_correction_form" model="ir.ui.view">
+        <field name="name">investra.valuation.external.correction</field>
+        <field name="model">investra.valuation.external</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="valuation_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="corrects_rule_id" readonly="1"/>
+                    <field name="class_id" readonly="1"/>
+                    <field name="amount"/>
+                    <field name="note" required="1"/>
+                    <field name="document_name" invisible="1"/>
+                    <field name="document" filename="document_name"/>
+                </group>
             </form>
         </field>
     </record>

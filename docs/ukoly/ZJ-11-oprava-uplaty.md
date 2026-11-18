@@ -73,6 +73,14 @@ Pracovní databáze `investra` zatím **není povýšená** (modul 20.0.0.36.0, 
 - Testy `tests/test_fee_correction.py` (6): before, after, průměrný FK, příjemci (náklad + přesun = oprava, vnitřní zúčtování nulové),
   přepočet a zámek, zamítnutí. `investra_nav` 17/17, `investra_nav+` 494/494 OK.
 
+**Krok 2 hotový 2026-11-18 (Claude).** Na řádku rozpisu úplaty (záložka Úplaty) tlačítko „Opravit“ (`investra.valuation.fee.action_correct`,
+vidět jen u řádku s pravidlem `kind == 'periodic'` v ocenění Návrh/Spočteno; jinak `UserError`). Otevře dialog formuláře ruční úplaty
+(`view_valuation_external_correction_form`) s kontextem ocenění, opravované úplaty, třídy řádku a měny fondu; uloží se až s částkou a poznámkou.
+Řazení rozpisu: nová uložená pole `group_key` a `is_correction`, `_order = valuation_id, group_key, is_correction, id` – oprava hned pod původní úplatou,
+ruční úplaty bez opravy na konci. Účtování beze změny. Testy +3 (kontext a uložení, řazení, zákaz mimo draft/computed);
+`investra_nav` 423/423, `investra_nav+` 497/497 OK. Nová uložená pole se doplní při povýšení na 20.0.0.36.0 (verzi jsem nezvyšoval,
+`investra` ještě není povýšená). Zbývá krok 3 (protokol, XLS, manuál, deník).
+
 ## Převzetí
 
 (doplní se po provedení)

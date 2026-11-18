@@ -1938,6 +1938,8 @@ class InvestraValuationClass(models.Model):
 class InvestraValuationFee(models.Model):
     _name = "investra.valuation.fee"
     _description = "Rozpis úplaty"
+    # ZJ-11: oprava se řadí hned pod původní úplatu (skupina = pravidlo, oprava za původními řádky), ruční úplaty na konec.
+    _order = "valuation_id, group_key, is_correction, id"
 
     valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
@@ -1948,6 +1950,44 @@ class InvestraValuationFee(models.Model):
     class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída")
     amount = fields.Float(digits=(20, 2), string="Částka")
     detail = fields.Text(string="Výpočet")
+    group_key = fields.Integer(compute="_compute_group_key", store=True, string="Skupina řazení")
+    is_correction = fields.Boolean(compute="_compute_group_key", store=True, string="Oprava")
+    can_correct = fields.Boolean(compute="_compute_can_correct", string="Lze opravit")
+
+    @api.depends("rule_id", "external_id.corrects_rule_id")
+    def _compute_group_key(self):
+        for line in self:
+            corrected = line.external_id.corrects_rule_id
+            rule = line.rule_id or corrected
+            line.group_key = rule.id if rule else 2**31 - 1
+            line.is_correction = bool(corrected)
+
+    @api.depends("rule_id.kind", "valuation_id.state")
+    def _compute_can_correct(self):
+        for line in self:
+            line.can_correct = (line.rule_id.kind == "periodic"
+                                and line.valuation_id.state in ("draft", "computed"))
+
+    def action_correct(self):
+        """Otevře formulář ruční úplaty s předvyplněným „Opravuje úplatu“ (ZJ-11); uloží se až s částkou a poznámkou."""
+        self.ensure_one()
+        if not self.can_correct:
+            raise UserError(self.env._("Opravit jde jen časově rozlišenou úplatu v ocenění ve stavu Návrh nebo Spočteno."))
+        valuation = self.valuation_id
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Oprava úplaty %s", self.rule_id.name),
+            "res_model": "investra.valuation.external",
+            "view_mode": "form",
+            "views": [(self.env.ref("investra_nav.view_valuation_external_correction_form").id, "form")],
+            "target": "new",
+            "context": {
+                "default_valuation_id": valuation.id,
+                "default_corrects_rule_id": self.rule_id.id,
+                "default_class_id": self.class_id.id,
+                "default_currency_id": valuation.fund_id.currency_id.id,
+            },
+        }
 
     @api.depends("rule_id.name", "external_id.note", "external_id.corrects_rule_id.name")
     def _compute_name(self):
