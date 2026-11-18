@@ -19,3 +19,4 @@ from . import test_fee_reference_model
 from . import test_fee_characterization
 from . import test_fee_base_step
 from . import test_fee_solver
+from . import test_fee_carried

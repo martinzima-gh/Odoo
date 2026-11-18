@@ -125,16 +125,16 @@ class TestFeeBaseStep(NavCase):
     # --- ocenění: pojistka do kroku 4 (kombinace základů počítá společný dopočet, test_fee_solver) ----------------
 
     def test_valuation_refuses_corrections_not_yet_booked(self):
-        # Opravy odměny a daně a oprava základu se uložit dají, zaúčtuje je až krok 4.
+        # Oprava základu se uložit dá, zaúčtuje ji až krok 4b (opravy částky všech druhů umí 4a, test_fee_carried).
         self.subscribe(self.a, "2027-01-01", 1000000, 1000)
         periodic = self.rule("periodic", name="Obhospodařování")
         tax = self.rule("tax", name="Daň")
         values = {"note": "Ruční úprava", "account_id": False}
-        for version, (rule, vals) in enumerate(((tax, {}), (periodic, {"correction_target": "base"})), start=1):
-            with self.subTest(rule=rule.name, vals=vals):
+        for version, rule in enumerate((tax, periodic), start=1):
+            with self.subTest(rule=rule.name):
                 valuation = self.valuation(self.fund, YEAR_END, version=version)
-                self.manual_fee(valuation, -1, corrects_rule_id=rule.id, **values, **vals)
-                with self.assertRaisesRegex(UserError, "ZJ-12 krok 4"):
+                self.manual_fee(valuation, -1, corrects_rule_id=rule.id, correction_target="base", **values)
+                with self.assertRaisesRegex(UserError, "ZJ-12 krok 4b"):
                     valuation.action_compute()
 
     def test_correction_fields_only_on_correction(self):

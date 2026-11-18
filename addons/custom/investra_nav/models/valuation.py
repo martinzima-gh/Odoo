@@ -418,17 +418,12 @@ class InvestraValuation(models.Model):
                     "inputs_stamp": json.dumps(self._inputs_now(), ensure_ascii=False)})
 
     def _check_fee_steps(self, rules):
-        """Dočasná pojistka ZJ-12 do kroku 4: opravy výkonnostní odměny, daně a opravy základu výpočet odmítne.
-
-        Řádek opravy uložit jde, zaúčtování (převzaté opravy, platnost, oprava základu) přinese krok 4. Bez pojistky by
-        výpočet opravu zaúčtoval jako trvalou úplatu na nákladovou roli pravidla. Volby základu 1–4 počítá od kroku 3
-        společný dopočet (_apply_fees).
-        """
+        """Dočasná pojistka ZJ-12 do části 4b: opravu základu výpočet odmítne (opravy částky všech druhů umí od 4a)."""
         for entry in self.external_fee_ids.filtered("corrects_rule_id"):
-            if entry.corrects_rule_id.kind != "periodic" or entry.correction_target != "amount":
+            if entry.correction_target != "amount":
                 raise UserError(self.env._(
-                    "Oprava %(rule)s: opravu výkonnostní odměny, daně a opravu základu zatím výpočet ocenění "
-                    "nepodporuje (ZJ-12 krok 4). Řádek opravy smažte nebo počkejte na úpravu výpočtu.",
+                    "Oprava %(rule)s: opravu základu zatím výpočet ocenění nepodporuje (ZJ-12 krok 4b). "
+                    "Řádek opravy smažte nebo počkejte na úpravu výpočtu.",
                     rule=entry.corrects_rule_id.name,
                 ))
 
@@ -1153,7 +1148,11 @@ class InvestraValuation(models.Model):
         return {}, Decimal(0)
 
     def _manual_item(self, entry, values):
-        """Ručně doložená úplata nebo oprava (ZJ-03, ZJ-11): pevná částka v měně fondu, krok 2."""
+        """Ručně doložená úplata nebo oprava (ZJ-03, ZJ-11, ZJ-12 B.7): pevná částka v měně fondu.
+
+        Ručně doložená úplata a oprava úplaty jsou krok 2, oprava odměny krok 3 (plátce třída), oprava daně krok 4
+        (plátce fond; do základu daně nevstupuje, je to daň). `corrects` = klíč opraveného pravidla v dopočtu.
+        """
         currency = entry.currency_id or self.fund_id.currency_id
         original = engine.money(d(entry.amount))
         rate = self._fx(currency)
@@ -1162,10 +1161,53 @@ class InvestraValuation(models.Model):
                 "original": original, "rate": rate, "currency": currency}
         rule = entry.corrects_rule_id
         if rule:
+            item["corrects"] = self._correction_key(rule, entry.class_id.id or None)
+            if rule.kind == "tax":
+                item.update(stage=engine.STAGE_TAX, payer=None)
+                return item
             item.update(self._recipients(rule, values))
-            class_id = None if rule.base_source == "average_fk" else entry.class_id.id or None
-            item["corrects"] = ("fee", rule.id, class_id)
+            if rule.kind == "performance":
+                item["stage"] = engine.STAGE_PERFORMANCE
         return item
+
+    @staticmethod
+    def _correction_key(rule, class_id):
+        """Klíč položky pravidla v dopočtu, ke které se oprava vztahuje."""
+        if rule.kind == "tax":
+            return ("tax", rule.id)
+        if rule.kind == "performance":
+            return ("perf", rule.id, class_id)
+        return ("fee", rule.id, None if rule.base_source == "average_fk" else class_id)
+
+    def _carried_corrections(self, rule, fund_class, since):
+        """Převzaté opravy částky (ZJ-12 B.7): opravy s platností „do konce období“ z dřívějších ocenění po dni `since`.
+
+        Odměna od poslední krystalizace, daň od 1. 1.; časově rozlišená úplata se nepřebírá (oprava je trvalá).
+        Ukončení (`ended_id`) je oprava o −částku s toutéž platností, proto se v součtu s ukončenou vyruší.
+        """
+        earlier = self._earlier_valuations(since)
+        if not earlier:
+            return self.env["investra.valuation.external"]
+        return self.env["investra.valuation.external"].sudo().search([
+            ("valuation_id", "in", earlier.ids), ("corrects_rule_id", "=", rule.id),
+            ("correction_target", "=", "amount"), ("validity", "=", "period"),
+            ("class_id", "=", fund_class.id if fund_class else False),
+        ], order="id")
+
+    def end_correction(self, entry, note):
+        """Ukončí převzatou opravu (ZJ-12 B.7): nová oprava o −její částku s povinnou poznámkou a odkazem `ended_id`.
+
+        Tlačítko „Ukončit opravu“ u převzatých oprav přidá krok 5; kontroly ukončení jsou v `_check_ending`.
+        """
+        self.ensure_one()
+        if not (note or "").strip():
+            raise UserError(self.env._("Ukončení opravy musí mít poznámku."))
+        self.write({"external_fee_ids": [(0, 0, {
+            "corrects_rule_id": entry.corrects_rule_id.id, "class_id": entry.class_id.id,
+            "correction_target": entry.correction_target, "validity": "period", "amount": -entry.amount,
+            "currency_id": entry.currency_id.id, "note": note, "ended_id": entry.id,
+        })]})
+        return self.external_fee_ids.filtered(lambda row: row.ended_id == entry)
 
     def _solve_fees(self, classes, items, pinned=None):
         try:
@@ -1201,17 +1243,33 @@ class InvestraValuation(models.Model):
                               **self._recipients(rule, values), **self._performance_item(rule, fund_class, context)})
         for rule in rules.filtered(lambda r: r.kind == "tax"):
             items.append({"key": ("tax", rule.id), "kind": "tax", "rule": rule, **self._tax_item(rule)})
+        for item in items:
+            if item["kind"] == "performance":
+                carried = self._carried_corrections(item["rule"], item["fund_class"], item["state"]["base_date"])
+            elif item["kind"] == "tax":
+                carried = self._carried_corrections(item["rule"], None, self._year_start())
+            else:
+                continue
+            item["carried_entries"] = carried
+            item["carried"] = sum((engine.money(d(e.amount)) for e in carried), Decimal(0))
         first = self._solve_fees(classes, [item for item in items if not item.get("corrects")])
         solved, pinned = first, {}
         corrections = [item for item in manual if item.get("corrects")]
-        if corrections:
-            for item in corrections:
-                if item["corrects"] not in first["amounts"]:
-                    raise UserError(self.env._(
-                        "Oprava %(rule)s: pravidlo se v tomto ocenění nepočítá pro tuto třídu.",
-                        rule=item["entry"].corrects_rule_id.name,
-                    ))
-                pinned[item["corrects"]] = first["amounts"][item["corrects"]]
+        for item in corrections:
+            if item["corrects"] not in first["amounts"]:
+                raise UserError(self.env._(
+                    "Oprava %(rule)s: pravidlo se v tomto ocenění nepočítá pro tuto třídu.",
+                    rule=item["entry"].corrects_rule_id.name,
+                ))
+            pinned[item["corrects"]] = first["amounts"][item["corrects"]]
+        for item in items:
+            # Převzaté opravy: opravené pravidlo má pevnou částku vypočteno + převzaté (B.7).
+            if item.get("carried_entries"):
+                pinned[item["key"]] = first["amounts"][item["key"]] + item["carried"]
+        for item in corrections:
+            target = next(i for i in items if i["key"] == item["corrects"])
+            target["new_corrections"] = target.get("new_corrections", Decimal(0)) + item["amount"]
+        if pinned:
             solved = self._solve_fees(classes, items, pinned)
         residual = solved["residual"]
         self._check("fee_consistency", self.env._("Společný dopočet úplat je konzistentní"),
@@ -1221,7 +1279,7 @@ class InvestraValuation(models.Model):
             # Opravené pravidlo: částka i základ z průchodu bez oprav („Vypočteno“).
             source = first if item["key"] in pinned else solved
             if item["kind"] == "tax":
-                self._book_tax(item, solved["tax"])
+                self._book_tax(item, solved["tax"], first["tax"] if item["key"] in pinned else None)
             elif item["kind"] == "manual":
                 self._book_manual(item, ratios, values)
             else:
@@ -1236,19 +1294,26 @@ class InvestraValuation(models.Model):
     def _book_rule_fee(self, item, base, corrected, ratios, values, context):
         rule, fund_class = item["rule"], item["fund_class"]
         full = item["full"](base)
-        amount = full["move"]
+        carried = item.get("carried", Decimal(0))
+        amount = full["move"] + carried
         detail = {**full, **self._effect_detail(item, amount, ratios)}
         if corrected:
             detail["corrected"] = True
+        if item.get("carried_entries"):
+            # Vypočteno (bez oprav) a převzaté opravy; řádek pravidla zaúčtuje oboje, nové opravy mají vlastní řádky.
+            detail.update(computed=full["move"], carried=carried, carried_ids=item["carried_entries"].ids)
         self._fee_record(rule, amount, fund_class, detail)
         if item["kind"] != "performance":
             self._book_fee(rule, amount, fund_class, weights=values)
             return
         self._book_fee(rule, amount, fund_class, payable="performance_payable", weights=values)
         state = item["state"]
+        # Naběhlá odměna včetně oprav (B.7): „jen toto ocenění“ se dalším oceněním vrátí, „do konce období“ drží
+        # převzetí; při krystalizaci je oprava součástí splatné odměny.
+        accrued = full["required"] + carried + item.get("new_corrections", Decimal(0))
         context[fund_class]["perf"] = {
-            "reference": state["reference"], "hwm": state["hwm"], "accrued": full["required"],
-            "base_date": state["base_date"], "crystallise": self._is_crystallisation(rule) and full["required"] > 0,
+            "reference": state["reference"], "hwm": state["hwm"], "accrued": accrued,
+            "base_date": state["base_date"], "crystallise": self._is_crystallisation(rule) and accrued > 0,
             "measure": state["measure"],
         }
         if rule.cover_class_id and full["shortfall"] > 0:
@@ -1271,10 +1336,22 @@ class InvestraValuation(models.Model):
         rule = entry.corrects_rule_id
         if rule:
             self._fee_record(None, amount, entry.class_id, {
-                "manual": True, "corrects": rule.name, "note": entry.note, "currency": currency.name, **effect,
+                "manual": True, "corrects": rule.name, "corrects_kind": rule.kind, "validity": entry.validity,
+                "note": entry.note, "currency": currency.name, **effect,
+                **({"ends": entry.ended_id.id} if entry.ended_id else {}),
             }, manual=entry)
-            self._book_fee(rule, amount, entry.class_id or None, kind_suffix=f":manual:{entry.id}",
-                           name=self.env._("Oprava úplaty %s", rule.name), weights=values)
+            name = {"tax": self.env._("Oprava daně %s", rule.name),
+                    "performance": self.env._("Oprava odměny %s", rule.name)}.get(
+                        rule.kind, self.env._("Oprava úplaty %s", rule.name))
+            if rule.kind == "tax":
+                self._add_event(f"tax:{rule.id}:manual:{entry.id}", name, [
+                    {"role": "expense_tax", "amount": amount, "movement_type": "fee"},
+                    {"role": "tax_payable", "amount": -amount, "movement_type": "fee"},
+                ])
+                return
+            payable = "performance_payable" if rule.kind == "performance" else "fee_payable"
+            self._book_fee(rule, amount, entry.class_id or None, kind_suffix=f":manual:{entry.id}", name=name,
+                           payable=payable, weights=values)
             return
         class_id = entry.class_id.id or False
         foreign = {} if currency == self.fund_id.currency_id else {"currency_id": currency.id}
@@ -1291,15 +1368,18 @@ class InvestraValuation(models.Model):
         }, manual=entry)
         self._add_event(f"fee:manual:{entry.id}", self.env._("Ručně doložená úplata"), lines)
 
-    def _book_tax(self, item, tax):
+    def _book_tax(self, item, tax, computed=None):
         """Daň jedním dokladem (ZJ-12 B.4): doplatek do požadované daně a přesun daňového efektu tříd (B.5).
 
         Přesuny se zaokrouhlí na haléře; rozdíl, aby byl součet nulový, nese přesun s největší absolutní hodnotou.
         Doúčtování po výkonnostní odměně (`tax:<id>:perf`) zaniká, odměnu a daň počítá společný dopočet.
+        Opravená daň (`computed` = průchod bez oprav, B.7): doplatek z vypočtené daně + převzaté opravy; nové opravy
+        mají vlastní doklady. Přesuny daňového efektu jsou z konečného stavu (oprava daně do nich nevstupuje).
         """
         rule, spec = item["rule"], item["tax"]
-        required = engine.money(tax["required"])
-        move = required - spec["booked"]
+        carried = item.get("carried", Decimal(0))
+        required = engine.money((computed or tax)["required"])
+        move = required - spec["booked"] + carried
         transfers = {key: engine.money(value) for key, value in tax["transfers"].items()}
         rounding = -sum(transfers.values(), Decimal(0))
         if rounding and transfers:
@@ -1310,6 +1390,9 @@ class InvestraValuation(models.Model):
             "result": spec["result"], "specific": {str(k): str(engine.money(v)) for k, v in tax["specific"].items()},
             "effective_rate": tax["effective_rate"], "transfers": {str(k): str(v) for k, v in transfers.items()},
             "effect": {str(k): str(v) for k, v in tax["effect"].items()}, "effect_total": str(tax["effect_total"]),
+            **({"corrected": True} if computed else {}),
+            **({"computed": required - spec["booked"], "carried": carried,
+                "carried_ids": item["carried_entries"].ids} if item.get("carried_entries") else {}),
         })
         lines = [
             {"role": "expense_tax", "amount": move, "movement_type": "fee"},
@@ -2256,6 +2339,12 @@ class InvestraValuationExternal(models.Model):
         string="Převzato z",
         help="Řádek předchozí verze ocenění nebo dřívějšího ocenění, ze kterého se ruční úprava nebo oprava převzala.",
     )
+    ended_id = fields.Many2one(
+        "investra.valuation.external", ondelete="restrict", readonly=True, copy=False, index="btree_not_null",
+        string="Ukončuje opravu",
+        help="Převzatá oprava dřívějšího ocenění, kterou tento řádek ukončuje (oprava o −její částku, ZJ-12 B.7). "
+             "Liší se od „Převzato z“ (převzetí z verze ocenění).",
+    )
     attachment_id = fields.Many2one("ir.attachment", string="Výpočet", ondelete="restrict")
     # Nahrání souboru přímo v řádku; ukládá se jako příloha ocenění do attachment_id.
     document = fields.Binary(string="Soubor s výpočtem", compute="_compute_document", inverse="_inverse_document")
@@ -2294,15 +2383,19 @@ class InvestraValuationExternal(models.Model):
         return valuation.fund_id.currency_id if valuation.exists() else False
 
     @api.constrains("valuation_id", "class_id", "amount", "account_id", "note", "corrects_rule_id", "currency_id",
-                    "correction_target", "validity")
+                    "correction_target", "validity", "ended_id")
     def _check_fund(self):
         # Třída a účet musí patřit fondu ocenění; formulář je nabízí jen z něj, kontrola chrání i import a API.
         for row in self:
             fund = row.valuation_id.fund_id
             if row.class_id and row.class_id.fund_id != fund:
                 raise ValidationError(self.env._("Třída ručně doložené úplaty musí patřit fondu ocenění %s.", fund.display_name))
+            if row.ended_id and not row.corrects_rule_id:
+                raise ValidationError(self.env._("Ukončit jde jen převzatou opravu úplaty."))
             if row.corrects_rule_id:
                 row._check_correction(fund)
+                if row.ended_id:
+                    row._check_ending()
             elif row.correction_target != "amount" or row.validity != "period":
                 raise ValidationError(self.env._("Co opravuje a Platnost se vyplňují jen u opravy úplaty."))
             elif not row.account_id or not row.account_id.account_type.startswith("expense"):
@@ -2334,6 +2427,23 @@ class InvestraValuationExternal(models.Model):
             raise ValidationError(self.env._("Oprava úplaty se účtuje na nákladovou roli pravidla; nákladový účet nevyplňujte."))
         if self.currency_id and self.currency_id != fund.currency_id:
             raise ValidationError(self.env._("Oprava úplaty musí být v měně fondu %s.", fund.currency_id.name))
+
+    def _check_ending(self):
+        """Ukončení převzaté opravy (ZJ-12 B.7): stejné pravidlo, třída a cíl, ukončovaná je oprava „do konce období“
+        z dřívějšího ocenění téhož fondu, částka přesně −její částka, platnost „do konce období“, každá jen jednou."""
+        ended = self.ended_id
+        same = (ended.corrects_rule_id, ended.class_id, ended.correction_target) == (
+            self.corrects_rule_id, self.class_id, self.correction_target)
+        earlier = ended.valuation_id.fund_id == self.valuation_id.fund_id and ended.valuation_id.date < self.valuation_id.date
+        if not same or not earlier or ended.validity != "period" or ended.ended_id:
+            raise ValidationError(self.env._(
+                "Ukončit jde jen převzatou opravu „do konce období“ téhož pravidla a třídy z dřívějšího ocenění."))
+        if self.validity != "period" or round(self.amount + ended.amount, 2):
+            raise ValidationError(self.env._(
+                "Ukončení opravy má částku %(amount)s (−částka ukončované opravy) a platnost „Do konce období“.",
+                amount=-ended.amount))
+        if self.search_count([("ended_id", "=", ended.id), ("id", "!=", self.id)]):
+            raise ValidationError(self.env._("Oprava %s už je ukončená.", ended.display_name))
 
     @api.model_create_multi
     def create(self, vals_list):

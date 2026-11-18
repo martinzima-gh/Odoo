@@ -339,13 +339,14 @@ def solve_fees(classes, items, pinned=None, max_steps=500, rel_tol=Decimal("1e-1
     classes: {třída: {"value": hodnota třídy po kroku 1, "ratio": poměr ρ}}; FK po kroku 1 = součet hodnot.
     items: položky v pevném pořadí, každá s
       key        jednoznačný klíč,
-      stage      2 úplata, ruční úplata, oprava; 3 výkonnostní odměna; 4 daň (nejvýš jedna),
+      stage      2 úplata, ruční úplata, oprava úplaty; 3 výkonnostní odměna a její oprava; 4 daň a její oprava,
       payer      třída, nebo None = fond (dělí se poměrem),
       share, recipients  podíl přijímajícím třídám a jejich váhy (ocenění je bere z hodnot tříd po kroku 1),
       base       None = základ nezávislý na dopočtu (aktiva, bez základu, pevná částka),
                  {"scope": "fund", "step": s} = FK po kroku s, {"scope": "class", "class": c, "step": s} = hodnota třídy,
       amount     funkce základ → přesná částka (bez zaokrouhlení); u pevné částky konstanta,
-      tax        jen daň: popis podle _tax (místo base a amount).
+      tax        jen pravidlo daně (nejvýš jedno): popis podle _tax (místo base a amount); oprava daně je pevná
+                 položka kroku 4 bez `tax` (plátce fond, do základu daně nevstupuje).
     Stav po kroku s obsahuje položky se stage ≤ s; „po kroku 2“ zahrnuje i úplatu samotnou, odměna a daň nikdy samy sebe.
     pinned: {klíč: pevná částka} (opravy, B.7). Tolerance relativní: rel_tol × max(1, největší částka).
     Vrací částky, základy, výsledek daně, počet kroků a zbytek konzistence (B.8); neustálí-li se, ValueError.
@@ -354,7 +355,7 @@ def solve_fees(classes, items, pinned=None, max_steps=500, rel_tol=Decimal("1e-1
     ratios = {code: dec(row["ratio"]) for code, row in classes.items()}
     values = {code: dec(row["value"]) for code, row in classes.items()}
     fund_value = sum(values.values(), ZERO)
-    taxes = [item for item in items if item["stage"] == STAGE_TAX]
+    taxes = [item for item in items if item.get("tax")]
     if len(taxes) > 1:
         raise ValueError("Společný dopočet umí jedno pravidlo daně na fond.")
 

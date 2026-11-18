@@ -351,6 +351,20 @@ odměna s daní přes krystalizaci (přičtení 0 / 4 000 / 4 000 / 0 po 31. 3.)
    4d stopa a převzetí z verze · 4e pojistka archivace. Každá část s testy `investra_nav`, před sloučením `investra_nav+`. Tlačítka a dialog v UI krok 5.
    Překryv ZJ-07 × DA-01 krok 4 neblokuje: oprava základu daně podle ZJ-12, vztah k daňovému profilu počká (Martin 18. 11. 2026).
 
+## Zjištění kroku 4 (2026-11-18)
+
+**4a – převzaté opravy částky a dva průchody.** Oprava odměny je položka kroku 3 (plátce třída), oprava daně položka kroku 4 (plátce fond,
+v engine je daní jen položka s `tax`). `_carried_corrections(pravidlo, třída, od)`: opravy „do konce období“ z dřívějších ocenění (odměna od
+`perf_base_date`, daň od 1. 1.); opravené pravidlo má pevnou částku vypočteno (průchod bez oprav) + převzaté, nové opravy jsou samostatné
+pevné položky a mají vlastní doklad (odměna: závazek z odměny; daň: účty daně, „Oprava daně …“). Řádek pravidla zaúčtuje vypočteno + převzaté
+(detail `computed`, `carried`, `carried_ids`); naběhlá odměna se ukládá včetně oprav. Ukončení: `end_correction(řádek, poznámka)` založí opravu
+o −částku s `ended_id` (pole „Ukončuje opravu“, kontrola `_check_ending`: stejné pravidlo, třída a cíl, dřívější ocenění téhož fondu, platnost
+„do konce období“, jen jednou). Pojistka `_check_fee_steps` odmítá už jen opravu základu (do 4b). Hranice: když je opravená odměna i daň
+zároveň, daň je pevná z průchodu bez oprav a na opravu odměny už nereaguje (podle B.7 „opravená pravidla mají pevnou částku“).
+Testy `test_fee_carried.py` (9): převzetí odměny, „jen toto ocenění“ se vrátí, krystalizace oprava zaplatí a převzetí ukončí (splatná 19 000),
+ukončení a jeho kontroly, daň převzatá a „jen toto ocenění“, oprava daně bez daňového efektu, oprava odměny jako specifická položka (přesun +225).
+`investra_nav` 461/461.
+
 ## Výsledek
 
 ## Převzetí
