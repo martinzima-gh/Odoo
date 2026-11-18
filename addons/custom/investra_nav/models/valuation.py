@@ -2441,14 +2441,14 @@ class InvestraValuationFee(models.Model):
     @api.depends("rule_id.kind", "valuation_id.state")
     def _compute_can_correct(self):
         for line in self:
-            line.can_correct = (line.rule_id.kind == "periodic"
-                                and line.valuation_id.state in ("draft", "computed"))
+            # ZJ-12 krok 5: opravit jde pravidlo každého druhu (úplata, odměna, daň).
+            line.can_correct = bool(line.rule_id) and line.valuation_id.state in ("draft", "computed")
 
     def action_correct(self):
         """Otevře formulář ruční úplaty s předvyplněným „Opravuje úplatu“ (ZJ-11); uloží se až s částkou a poznámkou."""
         self.ensure_one()
         if not self.can_correct:
-            raise UserError(self.env._("Opravit jde jen časově rozlišenou úplatu v ocenění ve stavu Návrh nebo Spočteno."))
+            raise UserError(self.env._("Opravit jde jen úplatu, odměnu nebo daň v ocenění ve stavu Návrh nebo Spočteno."))
         valuation = self.valuation_id
         return {
             "type": "ir.actions.act_window",

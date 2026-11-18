@@ -20,3 +20,4 @@ from . import test_fee_characterization
 from . import test_fee_base_step
 from . import test_fee_solver
 from . import test_fee_carried
+from . import test_fee_ui

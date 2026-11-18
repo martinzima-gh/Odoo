@@ -148,6 +148,9 @@
             <form>
                 <header>
                     <button name="action_compute" type="object" string="Spočítat" invisible="state not in ('draft', 'computed')" class="btn-primary"/>
+                    <button name="action_copy_from_version" type="object" string="Převzít z předchozí verze" invisible="not can_copy_from_version"
+                            confirm="Zkopíruje ruční úpravy a opravy z vrácené nebo stornované předchozí verze (ne převzaté opravy dřívějších ocenění). Nechtěné řádky v návrhu smažte."/>
+                    <field name="can_copy_from_version" invisible="1"/>
                     <button name="action_submit" type="object" string="Odeslat ke schválení" invisible="state != 'computed'"/>
                     <button name="action_approve" type="object" string="Schválit" invisible="state != 'submitted'"/>
                     <button name="action_post" type="object" string="Zaúčtovat" invisible="state != 'approved'"/>
@@ -244,13 +247,44 @@
                             <field name="fair_value"/>
                             <field name="realised" optional="show"/>
                         </list></field></page>
-                        <page string="Úplaty"><field name="fee_line_ids"><list>
+                        <page string="Úplaty" name="fees">
+                            <field name="has_corrections" invisible="1"/>
+                            <field name="fee_line_ids"><list>
                             <field name="name"/><field name="class_id"/><field name="amount"/>
+                            <!-- ZJ-12 C.3: sloupce oprav se ukážou jen v ocenění, které opravu má. -->
+                            <field name="fix_kind" column_invisible="1"/>
+                            <field name="fix_computed" column_invisible="not parent.has_corrections" invisible="fix_kind != 'rule'"/>
+                            <field name="fix_correction" column_invisible="not parent.has_corrections" invisible="fix_kind == 'none'"/>
+                            <field name="fix_result" column_invisible="not parent.has_corrections" invisible="fix_kind != 'rule'"/>
+                            <field name="fix_note" column_invisible="not parent.has_corrections"/>
+                            <field name="fix_user_id" column_invisible="not parent.has_corrections"/>
+                            <field name="fix_date" column_invisible="not parent.has_corrections"/>
                             <field name="can_correct" column_invisible="1"/>
+                            <field name="correction_changed" column_invisible="1"/>
                             <button name="action_correct" type="object" string="Opravit" icon="fa-pencil"
                                     invisible="not can_correct"
-                                    title="Opravit úplatu ruční úplatou (zaokrouhlení podle faktury)"/>
-                        </list></field></page>
+                                    title="Opravit částku nebo základ úplaty, odměny či daně (zaokrouhlení podle faktury, dohoda s depozitářem)"/>
+                            <button name="action_keep_difference" type="object" string="Ponechat rozdíl" icon="fa-exchange"
+                                    invisible="not correction_changed"
+                                    title="Vypočtená částka se od zadání opravy změnila: ponechat zadaný rozdíl, výsledek se změní"/>
+                            <button name="action_keep_result" type="object" string="Ponechat výsledek" icon="fa-check"
+                                    invisible="not correction_changed"
+                                    title="Vypočtená částka se od zadání opravy změnila: ponechat výsledek, rozdíl se upraví"/>
+                        </list></field>
+                            <group string="Převzaté opravy" invisible="not carried_correction_ids">
+                                <div class="text-muted" colspan="2">Opravy dřívějších ocenění „do konce období“, které toto ocenění převzalo; zahrnuje je výpočet. Jen pro čtení. Převzetí končí tlačítkem Ukončit opravu (založí opravu o opačnou částku s poznámkou).</div>
+                                <field name="carried_correction_ids" nolabel="1" colspan="2" readonly="1" context="{'ending_valuation_id': id}">
+                                    <list create="0" delete="0" edit="0">
+                                        <field name="valuation_id" string="Z ocenění"/>
+                                        <field name="corrects_rule_id"/><field name="class_id"/><field name="correction_target"/>
+                                        <field name="amount"/><field name="validity"/><field name="note"/>
+                                        <field name="is_ended" column_invisible="1"/>
+                                        <button name="action_end_correction" type="object" string="Ukončit opravu" icon="fa-stop-circle"
+                                                invisible="is_ended or parent.state not in ('draft', 'computed')"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
                             <div class="alert alert-info" role="alert">Úplata spočtená mimo Odoo (ZJ-03). Zaúčtuje se k datu ocenění na zvolený nákladový účet proti závazku z úplat, v cizí měně kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Prázdná třída = celý fond. Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.</div>
                             <field name="external_fee_ids" context="{'default_valuation_id': id}"
@@ -259,7 +293,9 @@
                             <field name="amount"/>
                             <field name="currency_id" options="{'no_create': True}" readonly="corrects_rule_id"/>
                             <field name="corrects_rule_id" optional="show" options="{'no_create': True}"
-                                   domain="[('fund_id', '=', parent.fund_id), ('kind', '=', 'periodic')]"/>
+                                   domain="[('fund_id', '=', parent.fund_id)]"/>
+                            <field name="correction_target" optional="hide" readonly="not corrects_rule_id"/>
+                            <field name="validity" optional="hide" readonly="not corrects_rule_id"/>
                             <field name="account_id" required="not corrects_rule_id" readonly="corrects_rule_id" options="{'no_create': True}"
                                    domain="[('account_type', '=like', 'expense%'), ('company_ids', 'in', parent.company_id)]"/>
                             <field name="note" required="1"/>
@@ -284,16 +320,48 @@
         <field name="model">investra.valuation.external</field>
         <field name="arch" type="xml">
             <form>
+                <div class="alert alert-info" role="alert">Oprava se přičte k vypočtené částce (nebo k základu) pravidla; ocenění se při dalším výpočtu přepočte. Zadejte rozdíl, nebo cílovou částku, druhá hodnota se dopočte. Poznámka je povinná, příloha nepovinná.</div>
                 <group>
                     <field name="valuation_id" invisible="1"/>
                     <field name="currency_id" invisible="1"/>
-                    <field name="corrects_rule_id" readonly="1"/>
-                    <field name="class_id" readonly="1"/>
-                    <field name="amount"/>
-                    <field name="note" required="1"/>
+                    <field name="rule_kind" invisible="1"/>
+                    <group>
+                        <field name="corrects_rule_id" readonly="1"/>
+                        <field name="class_id" readonly="1"/>
+                        <field name="correction_target"/>
+                    </group>
+                    <group>
+                        <field name="computed_at_entry" string="Vypočteno" readonly="1" invisible="correction_target != 'amount'"/>
+                        <field name="amount" string="Rozdíl (oprava)"/>
+                        <field name="target_amount" invisible="correction_target != 'amount'"/>
+                        <field name="zero_out" invisible="correction_target != 'amount'"/>
+                        <field name="validity" invisible="rule_kind == 'periodic'"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="note" required="1" placeholder="Důvod opravy (uloží se k ocenění a do stopy)"/>
                     <field name="document_name" invisible="1"/>
                     <field name="document" filename="document_name"/>
                 </group>
+            </form>
+        </field>
+    </record>
+    <record id="view_valuation_end_wizard_form" model="ir.ui.view">
+        <field name="name">investra.valuation.end.wizard.form</field>
+        <field name="model">investra.valuation.end.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Ukončit opravu">
+                <div class="alert alert-warning" role="alert">Ukončení založí opravu o opačnou částku. Od tohoto ocenění se oprava přestane přebírat; dřívější zaúčtovaná ocenění se nezmění.</div>
+                <group>
+                    <field name="valuation_id" readonly="1"/>
+                    <field name="entry_id" readonly="1"/>
+                    <field name="amount"/>
+                    <field name="note" placeholder="Proč oprava končí"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Ukončit opravu" class="btn-primary"/>
+                    <button special="cancel" string="Zrušit"/>
+                </footer>
             </form>
         </field>
     </record>
@@ -381,6 +449,31 @@
                         </list>
                     </field>
                 </page>
+                <page string="Schéma výpočtu" name="fee_scheme">
+                    <div class="alert alert-info" role="alert" invisible="not fee_scheme_cycle_info">
+                        <field name="fee_scheme_cycle_info" nolabel="1"/>
+                    </div>
+                    <div class="mb-3">
+                        <button name="action_scheme_standard" type="object" string="Standardní fond" class="btn btn-secondary me-2"
+                                confirm="Nastaví základ pravidel: úplaty po kroku 1, odměna po kroku 2, daň po kroku 3. Změna základu průměrného FK, odměny a daně se projeví i za dosavadní část roku nebo období odměny; rozdíl se doúčtuje v dalším ocenění. Pokračovat?"/>
+                        <button name="action_scheme_net_fk" type="object" string="Úplaty z výsledného FK" class="btn btn-secondary"
+                                confirm="Nastaví základ pravidel: úplaty po kroku 4 (z výsledného FK), daň po kroku 2; odměna zůstane. Úplaty a daň se pak počítají společně. Změna se projeví i za dosavadní část roku; rozdíl se doúčtuje v dalším ocenění. Pokračovat?"/>
+                    </div>
+                    <p class="text-muted">Kroky výpočtu: 1 FK před úplatami a daní · 2 úplaty, ruční úplaty a opravy · 3 výkonnostní odměna · 4 daň. Každé pravidlo má volbu „Základ: po kroku“ jen s přípustnými hodnotami svého druhu.</p>
+                    <field name="fee_rule_ids" nolabel="1" context="{'default_fund_id': id, 'investra_lock_fund': True}">
+                        <list editable="bottom" create="0" delete="0">
+                            <field name="name" readonly="1"/>
+                            <field name="kind" readonly="1"/>
+                            <field name="base_source" readonly="1" invisible="kind != 'periodic'"/>
+                            <field name="base_step_fee" invisible="kind != 'periodic' or base_source in ('assets', 'none')"/>
+                            <field name="base_step_performance" invisible="kind != 'performance'"/>
+                            <field name="base_step_tax" invisible="kind != 'tax'"/>
+                        </list>
+                    </field>
+                    <group string="Náhled s čísly">
+                        <field name="fee_scheme_preview" nolabel="1" colspan="2" readonly="1"/>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>
@@ -467,7 +560,11 @@
                         <field name="basis" invisible="kind == 'tax'"/>
                         <!-- ZJ-12 A.1: zdroj základu odměna ani daň nepoužívá (odměna bere hodnotu třídy). -->
                         <field name="base_source" invisible="kind in ('tax', 'performance')"/>
-                        <field name="base_step" invisible="kind == 'periodic' and base_source in ('assets', 'none')"/>
+                        <!-- ZJ-12 krok 5: jedna volba Základ, popisky a přípustné hodnoty podle druhu (hodnotu drží base_step). -->
+                        <field name="base_step" invisible="1"/>
+                        <field name="base_step_fee" invisible="kind != 'periodic' or base_source in ('assets', 'none')"/>
+                        <field name="base_step_performance" invisible="kind != 'performance'"/>
+                        <field name="base_step_tax" invisible="kind != 'tax'"/>
                         <field name="expense_role"/>
                         <field name="crystallisation" invisible="kind != 'performance'"/>
                     </group>

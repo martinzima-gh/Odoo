@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | kroky 1–4 hotové (2026-11-18); upřesnění kroku 4 čekají na potvrzení; další krok 5 (rozhraní) |
+| Stav | kroky 1–5 hotové (2026-11-18), upřesnění kroku 4 schválena; další krok 6 (protokol, XLS, manuál, přemostění třídy) |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -397,6 +397,30 @@ sazby 0 % odměnu rozpustí (−20 000) a archivace pak projde; pravidlo bez č�
 `zalohy/investra-2026-11-18-pred-ZJ12-krok2.dump` povýšené na 37.0: ocenění 35 a 39 beze změny (FK, úplaty, kapitály, kurzy); nové upozornění
 `version_entries_missing` u ocenění 39 (verze 3: předchozí verze má ruční úpravy, které ve verzi 3 nejsou); kopie smazána. Tlačítka (Opravit u všech
 druhů, Vynulovat, Ukončit opravu, Ponechat rozdíl/výsledek, Převzít z verze) a sloupce Vypočteno/Oprava/Výsledek přinese krok 5.
+
+## Zjištění kroku 5 (2026-11-18)
+
+**Rozhraní (oranžová zóna), výpočet beze změny** (engine, `_apply_fees` a kontroly se nedotkly). Nové soubory `models/fee_scheme.py` (fond) a
+`models/valuation_corrections_ui.py` (pomocná pole ocenění a řádků, průvodce ukončení); `views/nav_views.xml`; testy `tests/test_fee_ui.py` (12).
+
+- **Fond, záložka Schéma výpočtu:** tabulka pravidel (název, druh, zdroj, Základ jen s přípustnými hodnotami druhu), tlačítka „Standardní fond“
+  (úplaty 1, odměna 2, daň 3) a „Úplaty z výsledného FK“ (úplaty 4, daň 2; odměna beze změny; úplaty s Aktivy a Bez základu se nemění), obě s potvrzením
+  a varováním o doúčtování. Informace „Vzájemný dopočet“ (cyklus závislostí mezi pravidly, ne chyba). Náhled: `engine.solve_fees` s modelovým stavem
+  (FK 1 000 000, rok kalendářního roku data dnes, sazby aktuálních verzí, výnos za rok +5 %, bez podílů příjemcům a bez oprav; úplata ze základu Aktiva se v náhledu
+  vynechá, překážka podle indexu se vynechá a je to v náhledu napsáno).
+- **Formulář pravidla:** pole `base_step_fee`, `base_step_performance`, `base_step_tax` (nestorované pohledy na `base_step` s vlastními popisky a jen přípustnými volbami;
+  hodnotu drží `base_step`, sledování změn zůstává) a varování při změně u průměrného FK, odměny a daně. Důvod pohledů: výběr v Odoo nemá různé volby podle řádku.
+- **Ocenění, záložka Úplaty:** sloupce Vypočteno / Oprava / Výsledek / Zdůvodnění / Zadal / Kdy jen v ocenění s opravou (`has_corrections`); na řádku pravidla vypočteno,
+  součet oprav částky a výsledek, na řádku opravy její částka, poznámka, autor a čas. Tlačítko Opravit u všech druhů; Ponechat rozdíl / Ponechat výsledek jen u změněné
+  vypočtené částky. Pod tabulkou „Převzaté opravy“ (jen čtení, z `carried_ids` a `base_correction_ids` detailů) s tlačítkem Ukončit opravu (okno s povinnou poznámkou →
+  `end_correction`). V hlavičce „Převzít z předchozí verze“ (viditelné jen když předchozí vrácená verze má nepřevzaté řádky).
+- **Dialog Opravit:** Co opravuje, Vypočteno (snímek), Rozdíl ⇄ Cílová částka (vzájemně), zaškrtnutí Vynulovat (cílová 0), Platnost (jen odměna a daň, výchozí do konce období),
+  poznámka, příloha. Zkratka Vynulovat je zaškrtávací pole, protože tlačítko v okně neuloženého záznamu záznam nejdřív uloží.
+- **Přemostění třídy (d) přesunuto do kroku 6.** Samostatná položka „Daňový efekt specifických položek“ vyžaduje nové uložené pole na `investra.valuation.class`, změnu rozkladu
+  `other_amount` v přemostění (`valuation.py`, výpočet) a změnu součtu specifických položek v kontrolách přemostění (`_run_bridge_checks`), tedy zásah do výpočtu a kontrol (červená zóna),
+  a mění očekávané hodnoty v `test_bridge`. Navíc patří podle E do protokolu a XLS (krok 6). Navrhuji ji provést tam s plánem pro Martina.
+- **Ověření:** testy `investra_nav` 489/489, `investra_nav+` 563/563 (12 nových: pole podle druhu, varování, předvolby, cyklus, náhled = výsledek solve_fees, sloupce, dialog včetně Form, Vynulovat, Ukončit opravu, převzetí z verze).
+  Pohledy se při instalaci modulu validují; v prohlížeči na dočasné instanci se nezkoušelo (jen testy formulářů přes `odoo.tests.Form`), vzhled stránek tedy čeká na Martinovu kontrolu po povýšení.
 
 ## Výsledek
 

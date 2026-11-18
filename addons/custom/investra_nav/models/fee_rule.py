@@ -10,6 +10,24 @@ BASE_STEPS = [
     ("4", "Po kroku 4"),
 ]
 
+# ZJ-12 krok 5: popisky voleb základu podle druhu pravidla (stejná hodnota base_step, jiný popis a jen přípustné volby).
+BASE_STEPS_FEE = [
+    ("1", "Po kroku 1 – před úplatami tohoto ocenění"),
+    ("2", "Po kroku 2 – včetně úplat tohoto ocenění"),
+    ("3", "Po kroku 3 – po výkonnostní odměně"),
+    ("4", "Po kroku 4 – výsledný FK (po úplatách, odměně a dani)"),
+]
+BASE_STEPS_PERFORMANCE = [
+    ("1", "Po kroku 1 – před úplatami a daní od začátku období odměny"),
+    ("2", "Po kroku 2 – po úplatách, před daní od začátku období odměny"),
+    ("4", "Po kroku 4 – zveřejněná hodnota po úplatách a dani"),
+]
+BASE_STEPS_TAX = [
+    ("1", "Po kroku 1 – základ nesnižují úplaty ani odměna"),
+    ("2", "Po kroku 2 – základ snižují úplaty"),
+    ("3", "Po kroku 3 – základ snižují úplaty i odměna"),
+]
+
 EXPENSE_ROLES = [
     ("expense_management", "Úplata za obhospodařování"),
     ("expense_administration", "Úplata za administraci"),
@@ -91,6 +109,22 @@ class InvestraFeeRule(models.Model):
              "Očekávaná daň: které náklady snižují základ – 1 žádné, 2 úplaty, 3 úplaty i odměna (výchozí). "
              "Úplata ze základu Aktiva nebo Bez základu volbu nemá.",
     )
+    # Pohledy na base_step podle druhu (ZJ-12 krok 5): formulář i tabulka schématu ukazují jen přípustné volby a popisky
+    # svého druhu. Hodnotu drží base_step (sledování změn, kontrola přípustnosti); pohled ji při uložení zapíše zpět.
+    base_step_fee = fields.Selection(
+        BASE_STEPS_FEE, compute="_compute_base_step_views", inverse="_inverse_base_step_views", string="Základ úplaty",
+        help="Z jakého stavu NAV k datu ocenění se úplata počítá. Před úplatami tohoto ocenění (1) je výchozí; po kroku 2 se "
+             "základ snižuje i o tuto úplatu, po kroku 4 se úplata počítá z výsledného (zveřejněného) FK a s daní se dopočte společně.",
+    )
+    base_step_performance = fields.Selection(
+        BASE_STEPS_PERFORMANCE, compute="_compute_base_step_views", inverse="_inverse_base_step_views", string="Základ odměny",
+        help="Hodnota třídy, ze které se odměna počítá. Před úplatami a daní (1): k hodnotě třídy se přičtou úplaty i daň, které třída "
+             "nesla od začátku období odměny. Po kroku 2 (výchozí): přičte se jen daň. Po kroku 4: zveřejněná hodnota po úplatách a dani.",
+    )
+    base_step_tax = fields.Selection(
+        BASE_STEPS_TAX, compute="_compute_base_step_views", inverse="_inverse_base_step_views", string="Základ daně",
+        help="Které náklady snižují základ očekávané daně: žádné (1), úplaty (2), úplaty i výkonnostní odměna (3, výchozí).",
+    )
     class_ids = fields.Many2many("investra.fund.class", tracking=True, string="Platí třídy",
         help="Třídy téhož fondu, které úplatu nesou. Prázdné znamená společný náklad celého fondu (dělí se poměrem kapitálu). "
              "Třída nesmí být zároveň přijímající.")
@@ -145,6 +179,36 @@ class InvestraFeeRule(models.Model):
             allowed, default = self._base_steps(rule.kind, rule.base_source)
             if rule.base_step not in allowed:
                 rule.base_step = default
+
+    @api.depends("kind", "base_step")
+    def _compute_base_step_views(self):
+        for rule in self:
+            rule.base_step_fee = rule.base_step if rule.kind == "periodic" else False
+            rule.base_step_performance = rule.base_step if rule.kind == "performance" else False
+            rule.base_step_tax = rule.base_step if rule.kind == "tax" else False
+
+    def _inverse_base_step_views(self):
+        for rule in self:
+            value = {"periodic": rule.base_step_fee, "performance": rule.base_step_performance,
+                     "tax": rule.base_step_tax}.get(rule.kind)
+            if value and value != rule.base_step:
+                rule.base_step = value
+
+    @api.onchange("base_step_fee", "base_step_performance", "base_step_tax")
+    def _onchange_base_step_warning(self):
+        """Změna základu průměrného FK, odměny a daně se projeví i za dosavadní část roku nebo období odměny (ZJ-12 C.2)."""
+        rule = self
+        value = {"periodic": rule.base_step_fee, "performance": rule.base_step_performance,
+                 "tax": rule.base_step_tax}.get(rule.kind)
+        if not rule._origin.id or not value or value == rule._origin.base_step:
+            return None
+        if rule.kind == "periodic" and rule.base_source != "average_fk":
+            return None
+        return {"warning": {
+            "title": self.env._("Změna základu"),
+            "message": self.env._(
+                "Změna se projeví i za dosavadní část roku nebo období odměny; rozdíl se doúčtuje v dalším ocenění."),
+        }}
 
     @api.constrains("kind", "base_source", "base_step")
     def _check_base_step(self):
