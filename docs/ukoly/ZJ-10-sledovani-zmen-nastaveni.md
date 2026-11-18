@@ -214,3 +214,18 @@ Proveden krok **1b** (ostatní modely z bodu 3 mimo investra_fund, hromadné zá
   stejných jako v běhu 17. 11. (nesouvisí). Dočasná DB smazána.
 - **Neověřeno:** vzhled chatteru ve formuláři fondu v prohlížeči; pracovní databáze `investra` zatím není povýšená (upgrade `investra_fund` po záloze, na Martinův pokyn).
 - **Další krok:** 1b (ostatní modely z bodu 3 s mixinem z 1a, hromadné zápisy z bodu 5).
+- **Doplněk po 1a:** chatter fondu byl ve formuláři dvakrát (přidává ho už `investra_nav`, `view_fund_form_history`); odebrán z `investra_fund` (`8882cad`).
+  Postranní chatter zúžen na 400 px v `investra_theme` (`fb0f233`).
+
+**Krok 1b** – převzal Claude (Opus 5.5) 18. 11. 2026; commit Antigravity `95b3b15`, oprava testu `f788ed2`, sloučeno `dd44e34`.
+
+- **Revize diffu:** rozsah odpovídá bodu 3 a 5; nové formuláře s chatterem (převodník ČNB, sektor ESA, termíny ČNB, role účtu, účet role,
+  typ nástroje, mapa CFI) a pro mapu CFI i seznam, hledání a nabídka v Číselnících (práva už existovala, zápis jen správce číselníků).
+  `note` na účetním profilu není nové pole – jen přepíná sledování pole z číselníkového mixinu (bez nového sloupce). Zdvojený chatter nikde
+  (kniha ani jiné formuláře ho z jiného modulu nemají). Hromadné zápisy s `tracking_disable`: import číselníků, mapování rolí při založení knihy
+  (`investra_chart_fund`), `tools/demo_data/seed*.py`, `tools/nav_demo/demo*.py`.
+- **Nález opravený při převzetí:** test Many2many `extra_account_ids` procházel v obou případech. Odoo 20 Many2many sleduje
+  (`mail_track_mixin`, typy one2many/many2many/tags), test teď změnu „(Další účty)“ vyžaduje a prošel.
+- **Testy Odoo:** `tools/run_tests.sh investra_entity+` (14 modulů) → 0 failed, 0 error(s) of 892 tests; varování stejná jako dřív. Dočasná DB smazána.
+- **Neověřeno:** nové formuláře v prohlížeči; pracovní databáze `investra` zatím nepovýšená (dotčené moduly po záloze, na Martinův pokyn).
+- **Další krok:** plán fáze 2 (bod 4, červená zóna) – předloží řešitel (Copilot), schvaluje Martin; teprve pak kód.
