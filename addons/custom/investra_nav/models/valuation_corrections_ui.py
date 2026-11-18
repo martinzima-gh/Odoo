@@ -50,7 +50,7 @@ class InvestraValuationFeeCorrectionsUi(models.Model):
 
     fix_kind = fields.Selection(
         [("none", "Bez opravy"), ("rule", "Pravidlo s opravou"), ("correction", "Oprava")], compute="_compute_fix",
-        string="Oprava")
+        string="Druh opravy")
     fix_computed = fields.Float(digits=(20, 2), compute="_compute_fix", string="Vypočteno")
     fix_correction = fields.Float(digits=(20, 2), compute="_compute_fix", string="Oprava částky")
     fix_result = fields.Float(digits=(20, 2), compute="_compute_fix", string="Výsledek")
