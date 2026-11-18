@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | kroky 1–3 hotové (2026-11-18) včetně daně v základu odměny a schváleného s4; krok 4 (opravy všech druhů, části 4a–4e) v práci |
+| Stav | kroky 1–4 hotové (2026-11-18); upřesnění kroku 4 čekají na potvrzení; další krok 5 (rozhraní) |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -387,6 +387,16 @@ a Odeslání ke schválení. `action_copy_from_version` zkopíruje řádky vrác
 `ended_id`, nová kopie přílohy patřící nové verzi, `origin_id`); převzaté opravy dřívějších ocenění ne, už převzaté znovu ne. Upozornění
 `version_entries_missing` „Předchozí verze měla ruční úpravy (n), které v této verzi nejsou“. Ukončení ve vrácené nebo stornované verzi se do
 „jen jednou“ nepočítá, aby ho nová verze mohla převzít. Testy (+3); `investra_nav` 472/472.
+
+**4e – pojistka archivace.** `investra.fee.rule.write(active=False)` (i Archivovat) se u odměny a daně zastaví, má-li poslední zaúčtované ocenění
+fondu nenulovou naběhlou odměnu tříd pravidla nebo daň zaúčtovanou od 1. 1. („Nejdřív nastavte verzi sazby 0 % od data dalšího ocenění…“).
+Ověřeno testem: pravidlo archivované obejitím se v dalším ocenění nepočítá a naběhlá odměna zůstane v závazku (důvod pojistky); postup verze
+sazby 0 % odměnu rozpustí (−20 000) a archivace pak projde; pravidlo bez částky archivovat jde. Testy (+4).
+
+**Krok 4 celkem:** `test_fee_carried.py` 25 testů; `investra_nav` 476/476, `investra_nav+` 550/550. Zkouška na `investra_ci_zj12k4` ze zálohy
+`zalohy/investra-2026-11-18-pred-ZJ12-krok2.dump` povýšené na 37.0: ocenění 35 a 39 beze změny (FK, úplaty, kapitály, kurzy); nové upozornění
+`version_entries_missing` u ocenění 39 (verze 3: předchozí verze má ruční úpravy, které ve verzi 3 nejsou); kopie smazána. Tlačítka (Opravit u všech
+druhů, Vynulovat, Ukončit opravu, Ponechat rozdíl/výsledek, Převzít z verze) a sloupce Vypočteno/Oprava/Výsledek přinese krok 5.
 
 ## Výsledek
 

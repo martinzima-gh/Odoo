@@ -1,3 +1,5 @@
+from datetime import date
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -185,6 +187,36 @@ class InvestraFeeRule(models.Model):
                         "Fond %(fund)s už má pravidlo daně %(others)s. Fond smí mít nejvýš jedno aktivní pravidlo daně.",
                         fund=rule.fund_id.name, others=", ".join(others.mapped("name")),
                     ))
+
+    def write(self, vals):
+        if "active" in vals and not vals["active"]:
+            self._check_archive()
+        return super().write(vals)
+
+    def _check_archive(self):
+        """Pojistka archivace (ZJ-12 krok 4, rozhodnutí 2026-11-18): archivované pravidlo se v dalším ocenění nepočítá,
+        naběhlou odměnu ani zaúčtovanou daň by proto už nerozpustilo. Archivace se zastaví, má-li pravidlo odměny nebo daně
+        z posledního zaúčtovaného ocenění nenulovou naběhlou odměnu (třídy pravidla) nebo daň zaúčtovanou od 1. 1."""
+        Valuation = self.env["investra.valuation"].sudo()
+        for rule in self.filtered(lambda r: r.active and r.kind in ("performance", "tax")):
+            last = Valuation.search([
+                ("fund_id", "=", rule.fund_id.id), ("state", "in", ("posted", "sent", "confirmed", "published")),
+            ], order="date desc, version desc", limit=1)
+            if not last:
+                continue
+            if rule.kind == "performance":
+                lines = last.class_line_ids.filtered(lambda line: line.class_id in rule.class_ids)
+                amount, what = sum(lines.mapped("perf_accrued")), self.env._("naběhlou odměnu")
+            else:
+                account = self.env["investra.account.role"].sudo().account_for(rule.company_id, "expense_tax")
+                amount = float(last._sum(("date", ">=", date(last.date.year, 1, 1)), ("account_id", "=", account.id)))
+                what = self.env._("zaúčtovanou daň od 1. 1.")
+            if round(amount, 2):
+                raise UserError(self.env._(
+                    "Pravidlo %(rule)s má z posledního ocenění %(valuation)s %(what)s %(amount)s. Archivované pravidlo by ji "
+                    "už nerozpustilo. Nejdřív nastavte verzi sazby 0 %% od data dalšího ocenění, ocenění zaúčtujte a pravidlo "
+                    "archivujte potom. Omylem založené pravidlo bez částky archivovat jde.",
+                    rule=rule.name, valuation=last.display_name, what=what, amount=f"{amount:.2f}"))
 
     @api.depends("fund_id", "class_ids", "expense_role", "kind", "active")
     def _compute_overlap_warning(self):

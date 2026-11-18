@@ -467,3 +467,56 @@ class TestCarriedCorrections(NavCase):
         self.assertAlmostEqual(self.accrued(second), 20000, places=2)
         self.assertIn("ukončuje opravu", second._corrections_summary())
         self.assertIn("převzato z verze 1", second._corrections_summary())
+
+    # --- pojistka archivace (4e) -----------------------------------------------------------------------------------
+
+    def payable(self, fund, role):
+        account = self.expense_account(fund, role)
+        lines = self.env["account.move.line"].sudo().search([("account_id", "=", account.id),
+                                                             ("company_id", "=", fund.company_id.id)])
+        return -sum(lines.mapped("balance"))
+
+    def test_archive_stops_with_accrued_performance_fee_until_zero_rate(self):
+        # Naběhlá odměna 20 000: archivace se zastaví. Postup: verze sazby 0 % od 1. 2., únor odměnu rozpustí (−20 000),
+        # pak archivace projde.
+        fund = self.fund()
+        perf = self.performance(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        self.run_to_posted(self.valuation(fund, JANUARY))
+        with self.assertRaisesRegex(UserError, "verzi sazby 0 %"):
+            perf.action_archive()
+        perf.write({"version_ids": [(0, 0, {"valid_from": "2027-02-01", "rate": 0, "initial_reference": 0})]})
+        february = self.run_to_posted(self.valuation(fund, FEBRUARY))
+        self.assertAlmostEqual(self.total(february, perf), -20000, places=2)
+        self.assertAlmostEqual(self.accrued(february), 0, places=2)
+        perf.action_archive()
+        self.assertFalse(perf.active)
+
+    def test_archived_rule_no_longer_releases_accrual(self):
+        # Důvod pojistky: pravidlo archivované obejitím (přímo v databázi) se v dalším ocenění nepočítá, naběhlá odměna
+        # 20 000 zůstane v závazku i v kapitálu třídy.
+        fund = self.fund()
+        perf = self.performance(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        self.run_to_posted(self.valuation(fund, JANUARY))
+        self.env.cr.execute("UPDATE investra_fee_rule SET active = false WHERE id = %s", [perf.id])
+        perf.invalidate_recordset(["active"])
+        february = self.run_to_posted(self.valuation(fund, FEBRUARY))
+        self.assertFalse(february.fee_line_ids.filtered(lambda l: l.rule_id == perf))
+        self.assertAlmostEqual(self.payable(fund, "performance_payable"), 20000, places=2)
+
+    def test_archive_stops_with_booked_tax(self):
+        fund = self.fund()
+        tax = self.tax(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        self.run_to_posted(self.valuation(fund, JANUARY))
+        with self.assertRaisesRegex(UserError, "zaúčtovanou daň"):
+            tax.action_archive()
+
+    def test_archive_rule_without_amount(self):
+        # Omylem založené pravidlo (ocenění bez zisku: daň 0) archivovat jde.
+        fund = self.fund()
+        tax = self.tax(fund)
+        self.run_to_posted(self.valuation(fund, JANUARY))
+        tax.action_archive()
+        self.assertFalse(tax.active)
