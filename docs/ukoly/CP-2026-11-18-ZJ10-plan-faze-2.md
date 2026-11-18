@@ -96,4 +96,21 @@ Přidat testy k existujícím testům modulů. Změnu záznamu oddělit od jeho 
 
 ## Převzetí
 
-Doplní Claude po schválení plánu a implementaci: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+**Revize plánu** – Claude (Opus 5.5) 18. 11. 2026, převzato commitem `87cfbd2` (autor Copilot).
+
+- Ověřeno v kódu: `investra_nav` závisí na `investra_fund` jen nepřímo (manifest ř. 8); benchmark nemá žádný pohled; ruční zápisy sazeb
+  nástroje (`instrument_rate.py` ř. 65, 210, 318).
+- **Varianta „chatter na verzi úplaty“ nefunguje:** Odoo 20 chatter ve vnořeném formuláři (dialogu) nevykreslí –
+  `mail/static/src/chatter/web/form_compiler.js:27` (`t-if: !env.inDialog`). Zprávy verze by v aplikaci nebyly vidět.
+  Doporučení Clauda: rozšířit mixin v `investra_fund` o rodiče přes cestu (např. `_line_tracking_parent = "version_id.rule_id"`);
+  verze i pásma pak píšou do chatteru pravidla úplaty, celá historie úplaty je na jednom místě.
+- Ostatní body plánu bez námitek.
+
+**Schváleno Martinem 18. 11. 2026** (plán s těmito úpravami; kód smí začít):
+1. **Verze a pásma úplaty → chatter pravidla.** Mixin `investra.line.tracking.mixin` (`investra_fund`) se rozšíří o rodiče zadaného cestou
+   (`"rule_id"` u verze, `"version_id.rule_id"` u pásma); stávající použití (`role_id`, `matrix_id`) se nemění. Verze se nesleduje vlastním chatterem.
+2. **Přímá závislost** `investra_fund` v manifestu `investra_nav`.
+3. **Sazby nástroje:** ruční zprávy (`_log_cashflow_change`) zůstávají beze změny; mixin sleduje jen `note` (`_line_tracking_fields = ("note",)`),
+   create a unlink sazby probíhají s `tracking_disable=True`, aby nevznikly duplicity.
+4. **Benchmark:** přidat seznam, formulář s hodnotami a chatterem a akci v nastavení úplat (práva podle stávajícího `ir.access.csv`).
+- Řešitel kódu: červená zóna – Copilot podle svých pravidel kód nepíše; Antigravity (po obnovení kreditů) nebo Claude.
