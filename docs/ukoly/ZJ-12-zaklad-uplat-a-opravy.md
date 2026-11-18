@@ -374,6 +374,13 @@ opravu základu tiše přebila. Pojistka `_check_fee_steps` zrušena (s testem k
 ne, průměr převzatý (rozdíl = rozdíl lednového FK + oprava), stav k datu jen jedno ocenění s upozorněním, odměna převzatá, úplata bez základu.
 `investra_nav` 465/465.
 
+**4c – kontroly a Ponechat rozdíl / výsledek.** Stop `correction_changed` (D4): u oprav částky zadaných v tomto ocenění se Vypočteno (průchod
+bez oprav částky + převzaté) porovná se snímkem `computed_at_entry`; snímek bez tlačítka Opravit pořídí první výpočet (`computed_captured`),
+nynější hodnota je v `computed_now`. `action_keep_difference` (oprava zůstává, snímek = nyní) a `action_keep_result` (oprava = snímek + oprava −
+nyní; nulová se odmítne) přepočtou ocenění; tlačítka v UI krok 5. Výpočet se zastaví u opravy archivovaného pravidla nebo pravidla se změněným
+druhem či třídami (`_check_corrected_rules`). Upozornění: `carried_corrections` „Obsahuje převzaté opravy (n)“ (ukončené dvojice se nepočítají),
+`correction_once_ended` (oprava „jen toto ocenění“ minulého ocenění skončila), `base_correction_ended`. Testy (+4); `investra_nav` 469/469.
+
 ## Výsledek
 
 ## Převzetí

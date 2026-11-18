@@ -3,7 +3,7 @@
 import json
 from datetime import date
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from .common import NavCase
@@ -316,3 +316,86 @@ class TestCarriedCorrections(NavCase):
         rule = self.periodic(fund, "none")
         with self.assertRaises(ValidationError):
             self.correct_base(self.valuation(fund, JANUARY), rule, 100)
+
+    # --- kontroly a Ponechat rozdíl / výsledek (4c) ----------------------------------------------------------------
+
+    def check(self, valuation, code):
+        return valuation.check_ids.filtered(lambda c: c.code == code)
+
+    def changed_correction(self):
+        # Úplata z FK 1,2 % p. a., oprava −100 bez tlačítka: snímek se pořídí při prvním výpočtu. Pak výnos 1 000 000
+        # (vyšší FK) → vypočteno se změní a ocenění se zastaví.
+        fund = self.fund()
+        rule = self.periodic(fund)
+        valuation = self.valuation(fund, JANUARY)
+        entry = self.correct(valuation, rule, -100)
+        valuation.action_compute()
+        before = entry.computed_at_entry
+        self.assertTrue(entry.computed_captured)
+        self.assertAlmostEqual(before, 0.012 * 31 / 365 * 1000000, places=1)
+        self.assertEqual(self.check(valuation, "correction_changed").status, "ok")
+        self.common_result(fund, "v1", "2027-01-20", 1000000)
+        valuation.action_compute()
+        check = self.check(valuation, "correction_changed")
+        self.assertEqual(check.status, "stop")
+        self.assertIn(f"při opravě {before:.2f}", check.detail)
+        return valuation, rule, entry, before
+
+    def test_changed_computation_stops_and_keep_difference(self):
+        valuation, rule, entry, before = self.changed_correction()
+        now = entry.computed_now
+        self.assertGreater(now, before)
+        with self.assertRaises(UserError):
+            valuation.action_submit()
+        entry.with_user(self.preparer).action_keep_difference()
+        self.assertEqual((entry.amount, entry.computed_at_entry), (-100, now))
+        self.assertEqual(self.check(valuation, "correction_changed").status, "ok")
+        self.assertAlmostEqual(self.total(valuation, rule), now - 100, places=2)
+
+    def test_keep_result(self):
+        valuation, rule, entry, before = self.changed_correction()
+        now = entry.computed_now
+        entry.with_user(self.preparer).action_keep_result()
+        self.assertAlmostEqual(entry.amount, round(before - 100 - now, 2), places=2)
+        self.assertEqual(self.check(valuation, "correction_changed").status, "ok")
+        self.assertAlmostEqual(self.total(valuation, rule), before - 100, places=2)
+
+    def test_correction_of_archived_or_changed_rule_stops(self):
+        fund = self.fund(classes=("A", "B"))
+        rule = self.periodic(fund)
+        valuation = self.valuation(fund, JANUARY)
+        self.correct(valuation, rule, -100)
+        rule.class_ids = [(6, 0, self.cls(fund, "A").ids)]
+        with self.assertRaisesRegex(UserError, "neodpovídá pravidlu"):
+            valuation.action_compute()
+        rule.class_ids = [(5, 0, 0)]
+        rule.active = False
+        with self.assertRaisesRegex(UserError, "archivované"):
+            valuation.action_compute()
+
+    def test_warnings_carried_and_once_ended(self):
+        # Leden: oprava odměny do konce období a oprava daně jen pro toto ocenění. Únor: „převzaté opravy (1)“ a
+        # „oprava jen toto ocenění skončila“; únor opravu ukončí, březen už nic nepřebírá.
+        fund = self.fund()
+        perf = self.performance(fund)
+        tax = self.tax(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        january = self.valuation(fund, JANUARY)
+        entry = self.correct(january, perf, -1000, "A")
+        self.correct(january, tax, -50, validity="valuation")
+        self.run_to_posted(january)
+        february = self.valuation(fund, FEBRUARY)
+        february.action_compute()
+        carried = self.check(february, "carried_corrections")
+        self.assertEqual((carried.status, carried.name), ("warning", "Obsahuje převzaté opravy (1)"))
+        once = self.check(february, "correction_once_ended")
+        self.assertEqual(once.status, "warning")
+        self.assertIn("Daň", once.detail)
+        february.with_user(self.preparer).end_correction(entry, "Konec opravy")
+        february.action_compute()
+        self.assertEqual(self.check(february, "carried_corrections").status, "ok")
+        self.run_to_posted(february)
+        march = self.valuation(fund, MARCH)
+        march.action_compute()
+        self.assertEqual(self.check(march, "carried_corrections").status, "ok")
+        self.assertEqual(self.check(march, "correction_once_ended").status, "ok")

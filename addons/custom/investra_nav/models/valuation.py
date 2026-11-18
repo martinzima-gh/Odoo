@@ -1218,18 +1218,84 @@ class InvestraValuation(models.Model):
         else:
             item["shift"]["base"] = total
 
-    def _check_previous_base_corrections(self):
-        """Upozornění (ZJ-12 B.7): minulé ocenění mělo opravu základu úplaty ze stavu k datu, která skončila."""
-        previous = self.search([
+    def _check_corrected_rules(self):
+        """Stop (ZJ-12 B.8): oprava odkazuje na pravidlo, které mezitím změnilo druh nebo třídy nebo je archivované."""
+        for entry in self.external_fee_ids.filtered("corrects_rule_id"):
+            rule = entry.corrects_rule_id
+            if not rule.active:
+                raise UserError(self.env._(
+                    "Oprava %s: pravidlo je archivované. Opravu smažte, nebo pravidlo znovu aktivujte.", rule.name))
+            try:
+                entry._check_correction(self.fund_id)
+            except ValidationError as error:
+                raise UserError(self.env._(
+                    "Oprava %(rule)s už neodpovídá pravidlu (změna druhu nebo tříd): %(error)s",
+                    rule=rule.name, error=error.args[0])) from error
+
+    def _capture_computed(self, items, corrections, first):
+        """Snímek „Vypočteno“ u oprav částky zadaných v tomto ocenění a kontrola změny (ZJ-12 B.8, D4).
+
+        Vypočteno = průchod bez oprav částky + převzaté opravy (= částka řádku pravidla bez nových oprav). Snímek bez
+        tlačítka Opravit (`computed_captured` nevyplněné) se pořídí při prvním výpočtu. Liší-li se nový výpočet od snímku,
+        ocenění se zastaví; uživatel zvolí „Ponechat rozdíl“ nebo „Ponechat výsledek“ (`computed_now` = nynější hodnota).
+        Převzaté opravy dřívějších ocenění se nekontrolují.
+        """
+        targets = {item["key"]: item for item in items}
+        changed = []
+        for item in corrections:
+            entry, target = item["entry"], targets[item["corrects"]]
+            computed = engine.money(first["amounts"][item["corrects"]] + target.get("carried", Decimal(0)))
+            values = {"computed_now": float(computed)}
+            if not entry.computed_captured:
+                values.update(computed_at_entry=float(computed), computed_captured=True)
+            entry.sudo().write(values)
+            if engine.money(d(entry.computed_at_entry)) != computed:
+                changed.append(self.env._(
+                    "%(rule)s: při opravě %(then)s, nyní %(now)s; oprava %(amount)s",
+                    rule=entry.corrects_rule_id.name, then=f"{entry.computed_at_entry:.2f}", now=f"{computed:.2f}",
+                    amount=f"{entry.amount:.2f}"))
+        self._check("correction_changed", self.env._("Vypočtená částka opravených úplat se od zadání opravy nezměnila"),
+                    not changed, "; ".join(changed))
+
+    def _previous_valuation(self):
+        return self.search([
             ("fund_id", "=", self.fund_id.id), ("date", "<", self.date),
             ("state", "in", ("posted", "sent", "confirmed", "published")),
         ], order="date desc, version desc", limit=1)
-        ended = previous.external_fee_ids.filtered(
+
+    def _check_previous_corrections(self):
+        """Upozornění (ZJ-12 B.7, B.8): opravy minulého ocenění, které v tomto už neplatí.
+
+        Oprava základu úplaty ze stavu k datu platí jen pro své ocenění; oprava odměny nebo daně „jen toto ocenění“ se
+        tímto oceněním vrací na vypočtený stav.
+        """
+        previous = self._previous_valuation()
+        corrections = previous.external_fee_ids.filtered("corrects_rule_id")
+        base = corrections.filtered(
             lambda e: e.correction_target == "base" and e.corrects_rule_id.kind == "periodic"
             and e.corrects_rule_id.base_source != "average_fk")
-        names = ", ".join(sorted(set(ended.mapped("corrects_rule_id.name"))))
-        self._check("base_correction_ended", self.env._("Oprava základu z minulého ocenění skončila"), not ended,
-                    self.env._("Minulé ocenění mělo opravu základu u pravidla %s.", names) if ended else "",
+        names = ", ".join(sorted(set(base.mapped("corrects_rule_id.name"))))
+        self._check("base_correction_ended", self.env._("Oprava základu z minulého ocenění skončila"), not base,
+                    self.env._("Minulé ocenění mělo opravu základu u pravidla %s.", names) if base else "",
+                    severity="warning")
+        once = corrections.filtered(lambda e: e.validity == "valuation")
+        names = ", ".join(sorted(set(once.mapped("corrects_rule_id.name"))))
+        self._check("correction_once_ended", self.env._("Opravy „jen toto ocenění“ z minulého ocenění skončily"),
+                    not once, self.env._("Skončila oprava „jen toto ocenění“ u pravidla %s.", names) if once else "",
+                    severity="warning")
+
+    def _check_carried(self, items):
+        """Upozornění (ZJ-12 B.8): ocenění obsahuje převzaté opravy (n); ukončené dvojice se nepočítají."""
+        carried = self.env["investra.valuation.external"]
+        for item in items:
+            carried |= item.get("carried_entries") or carried.browse()
+            carried |= (item.get("base_entries") or carried.browse()).filtered(lambda e: e.valuation_id != self)
+        ending = self.external_fee_ids.filtered("ended_id")
+        ended = carried.mapped("ended_id") | ending.mapped("ended_id")
+        live = carried.filtered(lambda e: e not in ended and not (e.ended_id and e.ended_id in carried))
+        detail = "; ".join(f"{e.corrects_rule_id.name} {e.class_id.code or ''} {e.amount:.2f} ({e.valuation_id.display_name})"
+                           for e in live)
+        self._check("carried_corrections", self.env._("Obsahuje převzaté opravy (%s)", len(live)), not live, detail,
                     severity="warning")
 
     def end_correction(self, entry, note):
@@ -1294,6 +1360,7 @@ class InvestraValuation(models.Model):
                 continue
             item["carried_entries"] = carried
             item["carried"] = sum((engine.money(d(e.amount)) for e in carried), Decimal(0))
+        self._check_corrected_rules()
         first = self._solve_fees(classes, [item for item in items if not item.get("corrects")])
         solved, pinned = first, {}
         corrections = [item for item in manual if item.get("corrects")]
@@ -1304,6 +1371,7 @@ class InvestraValuation(models.Model):
                     rule=item["entry"].corrects_rule_id.name,
                 ))
             pinned[item["corrects"]] = first["amounts"][item["corrects"]]
+        self._capture_computed(items, corrections, first)
         for item in items:
             # Převzaté opravy: opravené pravidlo má pevnou částku vypočteno + převzaté (B.7).
             if item.get("carried_entries"):
@@ -1323,7 +1391,8 @@ class InvestraValuation(models.Model):
                 "target": "base", "base_correction": engine.money(d(entry.amount)), "validity": entry.validity,
                 "note": entry.note, **({"ends": entry.ended_id.id} if entry.ended_id else {}),
             }, manual=entry)
-        self._check_previous_base_corrections()
+        self._check_previous_corrections()
+        self._check_carried(items)
         for item in items:
             # Opravené pravidlo: částka i základ z průchodu bez oprav („Vypočteno“).
             source = first if item["key"] in pinned else solved
@@ -2391,6 +2460,14 @@ class InvestraValuationExternal(models.Model):
         string="Převzato z",
         help="Řádek předchozí verze ocenění nebo dřívějšího ocenění, ze kterého se ruční úprava nebo oprava převzala.",
     )
+    computed_captured = fields.Boolean(
+        readonly=True, copy=False, string="Snímek pořízen",
+        help="Snímek „Vypočteno při zadání“ je uložený (tlačítkem Opravit, nebo prvním výpočtem po zadání opravy).",
+    )
+    computed_now = fields.Float(
+        digits=(20, 2), readonly=True, copy=False, string="Vypočteno nyní",
+        help="Vypočtená částka pravidla v posledním výpočtu ocenění (pro Ponechat rozdíl / Ponechat výsledek).",
+    )
     ended_id = fields.Many2one(
         "investra.valuation.external", ondelete="restrict", readonly=True, copy=False, index="btree_not_null",
         string="Ukončuje opravu",
@@ -2499,8 +2576,28 @@ class InvestraValuationExternal(models.Model):
         if self.search_count([("ended_id", "=", ended.id), ("id", "!=", self.id)]):
             raise ValidationError(self.env._("Oprava %s už je ukončená.", ended.display_name))
 
+    def action_keep_difference(self):
+        """Ponechat rozdíl (ZJ-12 B.8): oprava zůstává, snímek se přepíše nynější vypočtenou částkou; přepočet."""
+        self.ensure_one()
+        self.write({"computed_at_entry": self.computed_now, "computed_captured": True})
+        self.valuation_id.action_compute()
+
+    def action_keep_result(self):
+        """Ponechat výsledek (ZJ-12 B.8): výsledek při zadání (snímek + oprava) zůstává, oprava se dopočte k nynější
+        vypočtené částce; snímek se přepíše; přepočet."""
+        self.ensure_one()
+        amount = round(self.computed_at_entry + self.amount - self.computed_now, 2)
+        if not amount:
+            raise UserError(self.env._(
+                "Výsledek se rovná nynější vypočtené částce, oprava by byla nulová. Řádek opravy smažte."))
+        self.write({"amount": amount, "computed_at_entry": self.computed_now, "computed_captured": True})
+        self.valuation_id.action_compute()
+
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if "computed_at_entry" in vals:
+                vals.setdefault("computed_captured", True)
         records = super().create(vals_list)
         records._check_open()
         return records
