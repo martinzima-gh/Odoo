@@ -13,12 +13,28 @@ class InvestraLineTrackingMixin(models.AbstractModel):
     _name = "investra.line.tracking.mixin"
     _description = "Sledování změn řádků v chatteru rodiče"
 
-    _line_tracking_parent = None  # název Many2one pole na rodiče (např. 'role_id', 'matrix_id')
+    # Many2one pole na rodiče (např. 'role_id', 'matrix_id') nebo cesta přes více záznamů (např. 'version_id.rule_id':
+    # pásmo úplaty zapisuje do chatteru pravidla, ne verze; rozhodnutí 2026-11-18, ZJ-10 fáze 2).
+    _line_tracking_parent = None
     _line_tracking_fields = None  # explicitní seznam polí, nebo None (všechna pole modelu s tracking=True)
 
     @api.model
     def _valid_field_parameter(self, field, name):
         return name == "tracking" or super()._valid_field_parameter(field, name)
+
+    def _line_tracking_parent_field(self):
+        """Název Many2one pole řádku, kterým cesta k rodiči začíná; None, když model rodiče nemá."""
+        path = getattr(self, "_line_tracking_parent", None)
+        field_name = path.split(".")[0] if path else None
+        return field_name if field_name in self._fields else None
+
+    def _line_tracking_parent_record(self):
+        """Rodič řádku podle cesty `_line_tracking_parent` (prázdný záznam, když cesta nevede k rodiči)."""
+        self.ensure_one()
+        record = self
+        for part in self._line_tracking_parent.split("."):
+            record = record[part]
+        return record
 
     def _line_tracking_desc(self):
         """Vrátí textový popis řádku pro použití ve zprávě v chatteru."""
@@ -51,9 +67,9 @@ class InvestraLineTrackingMixin(models.AbstractModel):
         if self.env.context.get("tracking_disable") or self.env.context.get("mail_create_nolog"):
             return records
 
-        parent_field = getattr(self, "_line_tracking_parent", None)
-        if parent_field and parent_field in self._fields:
-            for parent, lines in records.grouped(parent_field).items():
+        parent_field = self._line_tracking_parent_field()
+        if parent_field:
+            for parent, lines in records.grouped(lambda line: line._line_tracking_parent_record()).items():
                 if not parent or not hasattr(parent, "message_post"):
                     continue
                 items = []
@@ -77,11 +93,11 @@ class InvestraLineTrackingMixin(models.AbstractModel):
         if self.env.context.get("tracking_disable"):
             return super().write(vals)
 
-        parent_field = getattr(self, "_line_tracking_parent", None)
+        parent_field = self._line_tracking_parent_field()
         tracked_fields = [f for f in self._line_tracking_get_fields() if f in vals]
 
         before = {}
-        if parent_field and tracked_fields and parent_field in self._fields:
+        if parent_field and tracked_fields:
             for record in self:
                 before[record.id] = {
                     fname: record._line_tracking_format_value(fname)
@@ -91,7 +107,7 @@ class InvestraLineTrackingMixin(models.AbstractModel):
         result = super().write(vals)
 
         if before:
-            for parent, lines in self.grouped(parent_field).items():
+            for parent, lines in self.grouped(lambda line: line._line_tracking_parent_record()).items():
                 if not parent or not hasattr(parent, "message_post"):
                     continue
                 items = []
@@ -116,10 +132,10 @@ class InvestraLineTrackingMixin(models.AbstractModel):
         if self.env.context.get("tracking_disable"):
             return super().unlink()
 
-        parent_field = getattr(self, "_line_tracking_parent", None)
+        parent_field = self._line_tracking_parent_field()
         to_notify = []
-        if parent_field and parent_field in self._fields:
-            for parent, lines in self.grouped(parent_field).items():
+        if parent_field:
+            for parent, lines in self.grouped(lambda line: line._line_tracking_parent_record()).items():
                 if parent and hasattr(parent, "message_post"):
                     items = [Markup("<li>%s: %s</li>") % (self.env._("Odebráno"), line._line_tracking_desc()) for line in lines]
                     to_notify.append((parent, items))

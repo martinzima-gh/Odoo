@@ -262,3 +262,43 @@ class TestVariableRate(NavCase):
         self.assertEqual(fixed._accrued_value(self.fund, date(2029, 4, 1)), before)
         self.assertEqual([f[3] for f in self.flows(fixed)], [False, True, False])
         self.assertIn("Druh sazby: Pevná → Variabilní", " ".join(fixed.message_ids.mapped("body")))
+
+    # --- ZJ-10 fáze 2: sledování období sazby (mixin jen poznámka; ruční zprávy nástroje beze změny, bez duplicit) ---
+
+    def _tracking_mark(self):
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        return set(self.deposit.message_ids.ids)
+
+    def _tracking_bodies(self, mark):
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        return [m.body or "" for m in self.deposit.message_ids.filtered(lambda m: m.id not in mark)]
+
+
+    def test_note_change_goes_to_instrument_chatter(self):
+        period = self.deposit.rate_period_ids
+        mark = self._tracking_mark()
+        period.write({"note": "3M PRIBOR + 1 %"})
+        text = "\n".join(self._tracking_bodies(mark))
+        self.assertIn("Období sazby od 2029-01-01 – Poznámka: – → 3M PRIBOR + 1 %", text)
+
+    def test_new_rate_keeps_manual_message_without_duplicate(self):
+        mark = self._tracking_mark()
+        self.new_rate(self.deposit, "2029-07-01", 5)
+        bodies = self._tracking_bodies(mark)
+        self.assertEqual(sum("Nová sazba 5 % p.a. platí od 2029-07-01" in b for b in bodies), 1)
+        self.assertFalse([b for b in bodies if "Přidáno" in b], bodies)
+
+        mark = self._tracking_mark()
+        self.deposit.rate_period_ids[-1].with_user(self.preparer).unlink()
+        bodies = self._tracking_bodies(mark)
+        self.assertEqual(sum("Smazána sazba 5 % p.a. platná od 2029-07-01" in b for b in bodies), 1)
+        self.assertFalse([b for b in bodies if "Odebráno" in b], bodies)
+
+    def test_rate_type_switch_does_not_log_period_lines(self):
+        mark = self._tracking_mark()
+        self.deposit.write({"rate_type": "fixed"})
+        bodies = self._tracking_bodies(mark)
+        self.assertTrue([b for b in bodies if "Druh sazby" in b])
+        self.assertFalse([b for b in bodies if "Odebráno" in b], bodies)

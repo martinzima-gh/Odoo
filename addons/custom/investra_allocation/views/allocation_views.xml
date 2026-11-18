@@ -11,7 +11,7 @@
             <field name="line_ids"><list editable="bottom">
                 <field name="class_id"/><field name="rank"/><field name="target_rate"/>
                 <field name="residual_share"/><field name="loss_rank"/>
-            </list></field></sheet></form>
+            </list></field></sheet><chatter/></form>
         </field>
     </record>
     <record id="action_scheme" model="ir.actions.act_window">

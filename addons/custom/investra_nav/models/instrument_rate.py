@@ -268,14 +268,20 @@ class InvestraInstrumentRatePeriod(models.Model):
     průvodce Zadat novou sazbu; založení dalšího období přepočte budoucí toky Úrok."""
 
     _name = "investra.instrument.rate.period"
+    _inherit = ["investra.line.tracking.mixin"]
     _description = "Období úrokové sazby nástroje"
     _order = "instrument_id, valid_from"
+
+    # ZJ-10 fáze 2: mixin sleduje jen poznámku. Vznik a smazání sazby už popisují ruční zprávy nástroje
+    # (_apply_rate_change, unlink), proto se create a unlink dělají s tracking_disable (bez duplicity).
+    _line_tracking_parent = "instrument_id"
+    _line_tracking_fields = ("note",)
 
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="cascade", index=True, string="Nástroj")
     company_id = fields.Many2one(related="instrument_id.company_id", store=True, index=True)
     valid_from = fields.Date(required=True, string="Platí od")
     rate = fields.Float(digits=(16, 6), string="Sazba % p.a.")
-    note = fields.Char(string="Poznámka", help="Např. referenční sazba a marže; jen informativně, výpočet bere Sazbu.")
+    note = fields.Char(tracking=True, string="Poznámka", help="Např. referenční sazba a marže; jen informativně, výpočet bere Sazbu.")
 
     _instrument_day_uniq = models.UniqueIndex("(instrument_id, valid_from)", "Nástroj už má období sazby s tímto dnem.")
 
@@ -289,7 +295,7 @@ class InvestraInstrumentRatePeriod(models.Model):
                 instrument._check_rate_change(fields.Date.to_date(vals.get("valid_from")))
             elif not self.env.su:
                 raise UserError(self.env._("První období sazby založí přechod nástroje na variabilní sazbu."))
-            period = super().create([vals])
+            period = super(InvestraInstrumentRatePeriod, self.with_context(tracking_disable=True)).create([vals])
             if not first:
                 instrument._apply_rate_change(period)
             periods |= period
@@ -301,8 +307,9 @@ class InvestraInstrumentRatePeriod(models.Model):
         return super().write(vals)
 
     def unlink(self):
+        quiet = self.with_context(tracking_disable=True)
         if self.env.su:
-            return super().unlink()
+            return super(InvestraInstrumentRatePeriod, quiet).unlink()
         for period in self.sorted("valid_from", reverse=True):
             instrument = period.instrument_id
             if period != instrument.rate_period_ids[-1:] or len(instrument.rate_period_ids) == 1:
@@ -311,7 +318,7 @@ class InvestraInstrumentRatePeriod(models.Model):
             day, rate = period.valid_from, period.rate
             period._check_revert()
             instrument._revert_rate_change(period)
-            super(InvestraInstrumentRatePeriod, period).unlink()
+            super(InvestraInstrumentRatePeriod, period.with_context(tracking_disable=True)).unlink()
             instrument.invalidate_recordset(["rate_period_ids", "cashflow_ids", "superseded_cashflow_ids"])
             instrument._refresh_estimated()
             instrument.sudo().write({"coupon_rate": instrument._rate_periods()[-1][1]})
@@ -320,6 +327,9 @@ class InvestraInstrumentRatePeriod(models.Model):
                 rate=f"{rate:g}", day=day,
             ))
         return True
+
+    def _line_tracking_desc(self):
+        return self.env._("Období sazby od %s", self.valid_from or "–")
 
     def _check_revert(self):
         """Smazání sazby mění toky po jejím dni platnosti: zamčené ocenění ani splátka po tomto dni ho nepovolí."""

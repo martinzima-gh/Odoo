@@ -100,7 +100,8 @@ class InvestraFund(models.Model):
             journal = self.env["account.journal"].sudo().search(
                 [("company_id", "=", company.id), ("type", "=", "general")], order="sequence, id", limit=1
             )
-            Profile.create({
+            # ZJ-10 fáze 2: automaticky založený profil nemá v novém chatteru dělat šum.
+            Profile.with_context(tracking_disable=True, mail_create_nolog=True).create({
                 "name": self.env._("Přecenění – %s", fund.display_name),
                 "fund_id": fund.id,
                 "company_id": company.id,
@@ -115,7 +116,7 @@ class InvestraFund(models.Model):
 class InvestraFxProfile(models.Model):
     _inherit = "investra.fx.profile"
 
-    fund_id = fields.Many2one("investra.fund", ondelete="cascade", index=True, readonly=True, string="Fond",
+    fund_id = fields.Many2one("investra.fund", ondelete="cascade", index=True, readonly=True, tracking=True, string="Fond",
                               help="Profil založený pro fond; jeho účty přeceňuje ocenění fondu.")
 
 

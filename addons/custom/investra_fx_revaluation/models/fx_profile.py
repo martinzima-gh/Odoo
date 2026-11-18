@@ -8,21 +8,22 @@ class InvestraFxProfile(models.Model):
     """Které účty se přeceňují a kam jde rozdíl; účty určuje uživatel."""
 
     _name = "investra.fx.profile"
+    _inherit = ["mail.thread"]
     _description = "Profil přecenění cizích měn"
     _check_company_auto = True
 
-    name = fields.Char(required=True, string="Název")
-    active = fields.Boolean(default=True, string="Aktivní")
-    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, string="Společnost")
-    account_ids = fields.Many2many("account.account", string="Přeceňované účty", check_company=True)
-    gain_account_id = fields.Many2one("account.account", string="Účet zisku z přecenění", check_company=True, ondelete="restrict")
-    loss_account_id = fields.Many2one("account.account", string="Účet ztráty z přecenění", check_company=True, ondelete="restrict")
+    name = fields.Char(required=True, tracking=True, string="Název")
+    active = fields.Boolean(default=True, tracking=True, string="Aktivní")
+    company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company, tracking=True, string="Společnost")
+    account_ids = fields.Many2many("account.account", string="Přeceňované účty", check_company=True, tracking=True)
+    gain_account_id = fields.Many2one("account.account", string="Účet zisku z přecenění", check_company=True, tracking=True, ondelete="restrict")
+    loss_account_id = fields.Many2one("account.account", string="Účet ztráty z přecenění", check_company=True, tracking=True, ondelete="restrict")
     journal_id = fields.Many2one(
-        "account.journal", string="Deník", check_company=True, ondelete="restrict", domain="[('type', '=', 'general')]"
+        "account.journal", string="Deník", check_company=True, tracking=True, ondelete="restrict", domain="[('type', '=', 'general')]"
     )
     # Výchozí podle funkční měny aktivní firmy, onchange a create podle zvolené společnosti (dřív pevně ČNB, MN-08).
     rate_source = fields.Selection(
-        RATE_SOURCES, required=True, string="Zdroj kurzu", default=lambda self: rate_source_for(self.env.company.currency_id),
+        RATE_SOURCES, required=True, tracking=True, string="Zdroj kurzu", default=lambda self: rate_source_for(self.env.company.currency_id),
     )
 
     @api.onchange("company_id")

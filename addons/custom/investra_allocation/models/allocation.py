@@ -10,16 +10,17 @@ class InvestraAllocationScheme(models.Model):
     """
 
     _name = "investra.allocation.scheme"
+    _inherit = ["mail.thread"]
     _description = "Alokační schéma"
     _order = "fund_id, valid_from desc"
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, tracking=True, string="Fond")
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    valid_from = fields.Date(required=True, string="Platí od")
-    method = fields.Selection([("proportional", "Alokační poměr"), ("waterfall", "Pořadí nároků")], required=True, default="proportional", string="Metoda rozdělení")
-    statute_ref = fields.Char(string="Článek statutu")
+    valid_from = fields.Date(required=True, tracking=True, string="Platí od")
+    method = fields.Selection([("proportional", "Alokační poměr"), ("waterfall", "Pořadí nároků")], required=True, default="proportional", tracking=True, string="Metoda rozdělení")
+    statute_ref = fields.Char(tracking=True, string="Článek statutu")
     line_ids = fields.One2many("investra.allocation.line", "scheme_id", string="Třídy")
-    residual_pro_rata = fields.Float(digits=(6, 4), string="Část zbytku podle kapitálů")
+    residual_pro_rata = fields.Float(digits=(6, 4), tracking=True, string="Část zbytku podle kapitálů")
 
     _uniq = models.Constraint("unique(fund_id, valid_from)", "Schéma s tímto datem už existuje.")
 
@@ -30,16 +31,22 @@ class InvestraAllocationScheme(models.Model):
 
 class InvestraAllocationLine(models.Model):
     _name = "investra.allocation.line"
+    _inherit = ["investra.line.tracking.mixin"]
     _description = "Nárok třídy"
     _order = "rank, id"
 
+    _line_tracking_parent = "scheme_id"
+
     scheme_id = fields.Many2one("investra.allocation.scheme", required=True, ondelete="cascade", string="Schéma")
     company_id = fields.Many2one(related="scheme_id.company_id", store=True, index=True)
-    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict", string="Třída")
-    rank = fields.Integer(default=1, string="Pořadí nároku", help="Třídy se stejným pořadím se dělí poměrem cílů.")
-    target_rate = fields.Float(digits=(8, 6), string="Cílový výnos p. a.")
-    residual_share = fields.Float(digits=(6, 4), string="Podíl na zbytku")
-    loss_rank = fields.Integer(default=0, string="Pořadí ve ztrátě", help="0 znamená poměrem kapitálů; 1 nese ztrátu první.")
+    class_id = fields.Many2one("investra.fund.class", required=True, ondelete="restrict", tracking=True, string="Třída")
+    rank = fields.Integer(default=1, tracking=True, string="Pořadí nároku", help="Třídy se stejným pořadím se dělí poměrem cílů.")
+    target_rate = fields.Float(digits=(8, 6), tracking=True, string="Cílový výnos p. a.")
+    residual_share = fields.Float(digits=(6, 4), tracking=True, string="Podíl na zbytku")
+    loss_rank = fields.Integer(default=0, tracking=True, string="Pořadí ve ztrátě", help="0 znamená poměrem kapitálů; 1 nese ztrátu první.")
+
+    def _line_tracking_desc(self):
+        return self.env._("Nárok třídy %s", self.class_id.display_name or "–")
 
     @api.constrains("class_id", "scheme_id")
     def _check_class(self):
