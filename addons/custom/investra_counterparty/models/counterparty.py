@@ -11,12 +11,13 @@ def lei_is_valid(lei):
 
 class InvestraEsaSector(models.Model):
     _name = "investra.esa.sector"
+    _inherit = ["mail.thread"]
     _description = "Sektor ESA 2010"
     _order = "code"
     _rec_names_search = ["code", "name"]
 
-    code = fields.Char(required=True, string="Kód")
-    name = fields.Char(required=True, string="Název")
+    code = fields.Char(required=True, string="Kód", tracking=True)
+    name = fields.Char(required=True, string="Název", tracking=True)
 
     _code_uniq = models.Constraint("unique(code)", "Kód sektoru musí být jedinečný.")
 

@@ -219,4 +219,52 @@
     <record id="action_classification_reason" model="ir.actions.act_window">
         <field name="name">Důvody klasifikace</field><field name="res_model">investra.classification.reason</field><field name="view_mode">list,form</field>
     </record>
+
+    <!-- Mapa CFI na BA0088 -->
+    <record id="view_cfi_ba0088_map_list" model="ir.ui.view">
+        <field name="name">investra.cfi.ba0088.map.list</field><field name="model">investra.cfi.ba0088.map</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="id" optional="hide"/>
+                <field name="cfi_prefix"/>
+                <field name="ba0088_id" options="{'no_create': True}"/>
+                <field name="valid_from"/>
+                <field name="valid_to"/>
+                <field name="source"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_cfi_ba0088_map_search" model="ir.ui.view">
+        <field name="name">investra.cfi.ba0088.map.search</field><field name="model">investra.cfi.ba0088.map</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="cfi_prefix"/>
+                <field name="ba0088_id"/>
+            </search>
+        </field>
+    </record>
+    <record id="view_cfi_ba0088_map_form" model="ir.ui.view">
+        <field name="name">investra.cfi.ba0088.map.form</field><field name="model">investra.cfi.ba0088.map</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="cfi_prefix"/>
+                            <field name="ba0088_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="valid_from"/>
+                            <field name="valid_to"/>
+                            <field name="source"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_cfi_ba0088_map" model="ir.actions.act_window">
+        <field name="name">Mapa CFI na BA0088</field><field name="res_model">investra.cfi.ba0088.map</field><field name="view_mode">list,form</field>
+    </record>
 </odoo>

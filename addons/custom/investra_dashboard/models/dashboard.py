@@ -19,19 +19,19 @@ class InvestraRegulatoryDeadline(models.Model):
     """Termín podání; zdrojem bude SDAT. Dashboard ho jen vyhodnocuje a nic nepodává."""
 
     _name = "investra.regulatory.deadline"
-    _inherit = ["investra.record.guard"]
+    _inherit = ["investra.record.guard", "mail.thread"]
     _description = "Termín podání ČNB"
     _order = "due_date, id"
     _book_fields = ("fund_id",)
 
-    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond")
+    fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond", tracking=True)
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
-    report = fields.Char(required=True, string="Výkaz")
-    period_end = fields.Date(required=True, string="Období do")
-    due_date = fields.Date(required=True, string="Termín")
-    state = fields.Selection([("open", "Otevřeno"), ("submitted", "Podáno")], required=True, default="open", string="Stav")
+    report = fields.Char(required=True, string="Výkaz", tracking=True)
+    period_end = fields.Date(required=True, string="Období do", tracking=True)
+    due_date = fields.Date(required=True, string="Termín", tracking=True)
+    state = fields.Selection([("open", "Otevřeno"), ("submitted", "Podáno")], required=True, default="open", string="Stav", tracking=True)
     source = fields.Selection(
-        [("example", "Příklad"), ("manual", "Ručně"), ("sdat", "SDAT")], required=True, default="manual", string="Zdroj"
+        [("example", "Příklad"), ("manual", "Ručně"), ("sdat", "SDAT")], required=True, default="manual", string="Zdroj", tracking=True
     )
 
     _uniq = models.Constraint("unique(fund_id, report, period_end)", "Termín výkazu za období už existuje.")

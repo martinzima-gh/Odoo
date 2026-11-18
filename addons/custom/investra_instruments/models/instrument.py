@@ -77,37 +77,41 @@ class InvestraInstrumentType(models.Model):
     list ČNB a stáří ceny pro nástroj; rozhoduje účetní."""
 
     _name = "investra.instrument.type"
+    _inherit = ["mail.thread"]
     _description = "Typ nástroje"
     _order = "group, name"
 
-    code = fields.Char(required=True, string="Kód")
-    name = fields.Char(required=True, string="Název")
-    active = fields.Boolean(default=True, string="Aktivní")
+    code = fields.Char(required=True, string="Kód", tracking=True)
+    name = fields.Char(required=True, string="Název", tracking=True)
+    active = fields.Boolean(default=True, string="Aktivní", tracking=True)
     group = fields.Selection(
         [("listed", "Kótované"), ("debt", "Dluhové"), ("money_market", "Peněžní trh"), ("loan", "Úvěry a účasti"), ("derivative", "Deriváty"),
          ("other_holding", "Ostatní podíly")],
         required=True,
         string="Skupina",
+        tracking=True,
     )
     kind = fields.Selection(
         [("equity", "Akcie"), ("bond", "Dluhopis"), ("fund", "Fond"), ("participation", "Účast"), ("loan", "Úvěr"),
          ("derivative", "Derivát"), ("deposit", "Termínovaný vklad"), ("repo", "Repo"), ("other_holding", "Ostatní podíl")],
         required=True,
         string="Druh v portfoliu",
+        tracking=True,
     )
-    ifrs9_category = fields.Selection(IFRS9_CATEGORY, required=True, string="Navržená kategorie IFRS 9")
-    valuation_method = fields.Selection(VALUATION_METHOD, required=True, string="Navržený způsob ocenění")
-    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Navržená role účtu")
-    cnb_sheet = fields.Char(string="Navržený list ČNB")
+    ifrs9_category = fields.Selection(IFRS9_CATEGORY, required=True, string="Navržená kategorie IFRS 9", tracking=True)
+    valuation_method = fields.Selection(VALUATION_METHOD, required=True, string="Navržený způsob ocenění", tracking=True)
+    role_id = fields.Many2one("investra.account.role", required=True, ondelete="restrict", string="Navržená role účtu", tracking=True)
+    cnb_sheet = fields.Char(string="Navržený list ČNB", tracking=True)
     max_price_age = fields.Integer(
         string="Navržené maximální stáří ceny (dny)",
+        tracking=True,
         help="Návrh pro nové nástroje tohoto typu. 0 = ocenění upozorní na každou cenu starší než datum ocenění.",
     )
 
     isin_required = fields.Boolean(
-        string="Vyžaduje ISIN", help="Nástroj tohoto typu musí mít ISIN. Nástroj s ISIN je sdílený pro všechny fondy.",
+        string="Vyžaduje ISIN", tracking=True, help="Nástroj tohoto typu musí mít ISIN. Nástroj s ISIN je sdílený pro všechny fondy.",
     )
-    code_prefix = fields.Char(default="NAS", required=True, string="Prefix kódu nástroje", help="Např. AKC → AKC-000123.")
+    code_prefix = fields.Char(default="NAS", required=True, string="Prefix kódu nástroje", tracking=True, help="Např. AKC → AKC-000123.")
 
     _code_uniq = models.Constraint("unique(code)", "Kód typu nástroje musí být jedinečný.")
 

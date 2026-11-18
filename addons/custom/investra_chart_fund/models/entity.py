@@ -46,7 +46,9 @@ class InvestraEntity(models.Model):
         """Mapování rolí na účty šablony; existující mapování se nemění."""
         self.ensure_one()
         chart = self.env["account.chart.template"].sudo().with_company(self.company_id)
-        Mapping = self.env["investra.role.account"].sudo()
+        Mapping = self.env["investra.role.account"].sudo().with_context(
+            tracking_disable=True, mail_create_nolog=True
+        )
         mapped = Mapping.search([("company_id", "=", self.company_id.id)]).role_id
         roles = self.env["investra.account.role"].search([("code", "in", list(ROLE_ACCOUNTS))]) - mapped
         Mapping.create([
@@ -57,7 +59,7 @@ class InvestraEntity(models.Model):
             }
             for role in roles
         ])
-        self._assign_extra_accounts()
+        self.with_context(tracking_disable=True, mail_create_nolog=True)._assign_extra_accounts()
 
     def _assign_extra_accounts(self):
         """Další účty rolí: platby na cestě k roli cash_in_transit, účty bankovních deníků k roli bank.

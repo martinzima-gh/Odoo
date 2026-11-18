@@ -124,6 +124,82 @@ Proveden krok **1a** (včetně opravy po revizi testů Odoo):
 - **Otevřené otázky a návrhy mimo rozsah:**
   - Ve fázi 1b použít `investra.line.tracking.mixin` na další řádkové modely a ošetřit `codelist_import.py`.
 
+Proveden krok **1b** (ostatní modely z bodu 3 mimo investra_fund, hromadné zápisy z bodu 5):
+
+- **Změněné soubory:**
+  - `addons/custom/investra_entity/models/entity.py`: `investra.entity` dědí `mail.thread`, doplněn `tracking=True` na polích bez výpočtu (`company_id`, `entity_type`, `framework`, `rate_source`, `parent_id`). Vypočtená pole z `investra_counterparty` (`lei`, `esa_sector_id`) se nesledují.
+  - `addons/custom/investra_entity/models/account_role.py`:
+    - `investra.account.role` dědí `mail.thread`, `tracking=True` na `code`, `name`, `category`, `active`.
+    - `investra.role.account` dědí `mail.thread`, `tracking=True` na `company_id`, `role_id`, `account_id`, `extra_account_ids`.
+  - `addons/custom/investra_entity/views/entity_views.xml`:
+    - `view_entity_form`: doplněn `<chatter/>`.
+    - `view_account_role_form` (nový): formulář s `<chatter/>`, akce rozšířena na `view_mode="list,form"`.
+    - `view_role_account_form` (nový): formulář s `<chatter/>`, akce rozšířena na `view_mode="list,form"`.
+  - `addons/custom/investra_entity/tests/test_tracking.py` (nový): testy změn sledovaných polí pro `investra.entity`, `investra.account.role`, `investra.role.account` (včetně ověření chování Many2many `extra_account_ids`) a potlačení přes `tracking_disable=True`.
+  - `addons/custom/investra_entity/tests/__init__.py`: registrace `test_tracking`.
+  - `addons/custom/investra_counterparty/models/counterparty.py`: `investra.esa.sector` dědí `mail.thread`, `tracking=True` na `code`, `name`.
+  - `addons/custom/investra_counterparty/views/counterparty_views.xml`: doplněn formulář `view_esa_sector_form` s `<chatter/>`.
+  - `addons/custom/investra_counterparty/tests/test_tracking.py` (nový): test sledování `investra.esa.sector` a potlačení přes `tracking_disable`.
+  - `addons/custom/investra_counterparty/tests/__init__.py`: registrace `test_tracking`.
+  - `addons/custom/investra_instruments/models/instrument.py`: `investra.instrument.type` dědí `mail.thread`, `tracking=True` na `code`, `name`, `active`, `group`, `kind`, `ifrs9_category`, `valuation_method`, `role_id`, `cnb_sheet`, `max_price_age`, `isin_required`, `code_prefix`.
+  - `addons/custom/investra_instruments/views/instrument_views.xml`: doplněn formulář `view_instrument_type_form` s `<chatter/>`, akce rozšířena na `view_mode="list,form"`.
+  - `addons/custom/investra_instruments/tests/test_tracking.py` (nový): test sledování `investra.instrument.type` a potlačení přes `tracking_disable`.
+  - `addons/custom/investra_instruments/tests/__init__.py`: registrace `test_tracking`.
+  - `addons/custom/investra_instrument_master/models/instrument.py`:
+    - `investra.instrument.type`: `ba0088_required` doplněn `tracking=True`.
+    - `investra.cfi.ba0088.map`: dědí `mail.thread`, `tracking=True` na `cfi_prefix`, `ba0088_id`, `valid_from`, `valid_to`, `source`.
+  - `addons/custom/investra_instrument_master/models/accounting_profile.py`:
+    - `investra.accounting.profile`: doplněno pole `note` s `tracking=True` (ostatní pole dědí z `codelist_mixin` a `role_id` už tracking mělo).
+    - `investra.accounting.profile.assignment`: doplněn `tracking=True` na pole `note`.
+  - `addons/custom/investra_instrument_master/views/configuration_views.xml`: doplněn seznam, vyhledávání a formulář s `<chatter/>` pro `investra.cfi.ba0088.map`.
+  - `addons/custom/investra_instrument_master/views/menus.xml`: doplněna položka nabídky pro `investra.cfi.ba0088.map`.
+  - `addons/custom/investra_instrument_master/tests/test_tracking.py` (nový): testy sledování `investra.accounting.profile` a `investra.cfi.ba0088.map`.
+  - `addons/custom/investra_instrument_master/tests/__init__.py`: registrace `test_tracking`.
+  - `addons/custom/investra_cnb/models/cnb_map.py`: `investra.cnb.map` dědí `mail.thread`, `tracking=True` na `methodology`, `sheet`, `row`, `column`, `source`, `role_id`, `ifrs9_category`, `period`, `sign`, `report_sign`, `rollup_rows`, `valid_from`, `valid_to`.
+  - `addons/custom/investra_cnb/views/cnb_views.xml`: doplněn formulář `view_cnb_map_form` s `<chatter/>`, akce rozšířena na `view_mode="list,form"`.
+  - `addons/custom/investra_cnb/tests/test_tracking.py` (nový): test sledování `investra.cnb.map` a potlačení přes `tracking_disable`.
+  - `addons/custom/investra_cnb/tests/__init__.py`: registrace `test_tracking`.
+  - `addons/custom/investra_dashboard/models/dashboard.py`: `investra.regulatory.deadline` dědí `mail.thread` (vedle `investra.record.guard`), `tracking=True` na `fund_id`, `report`, `period_end`, `due_date`, `state`, `source`.
+  - `addons/custom/investra_dashboard/views/dashboard_views.xml`: doplněn formulář `view_deadline_form` s `<chatter/>`, akce rozšířena na `view_mode="list,form"`.
+  - `addons/custom/investra_dashboard/tests/test_tracking.py` (nový): test sledování `investra.regulatory.deadline` a potlačení přes `tracking_disable`.
+  - `addons/custom/investra_dashboard/tests/__init__.py`: registrace `test_tracking`.
+  - `tools/demo_data/seed.py`: doplněn kontext `tracking_disable=True, mail_create_nolog=True` pro `UA`.
+  - `tools/demo_data/seed_users.py`: doplněn kontext `tracking_disable=True, mail_create_nolog=True` pro zakládání a úpravu rolí.
+  - `tools/nav_demo/demo.py`: doplněn kontext `tracking_disable=True, mail_create_nolog=True`.
+  - `tools/nav_demo/demo_prehled.py`: doplněn kontext `tracking_disable=True, mail_create_nolog=True`.
+  - `tools/nav_demo/demo_vklad.py`: doplněn kontext `tracking_disable=True, mail_create_nolog=True`.
+  - `docs/ukoly/ZJ-10-sledovani-zmen-nastaveni.md`: tato sekce Výsledek.
+
+- **Hromadné zápisy a kontexty (bod 5):**
+  Doplněn kontext `tracking_disable=True, mail_create_nolog=True` na následujících místech:
+  1. `addons/custom/investra_instrument_master/wizard/codelist_import.py:129`: hromadný import číselníků BA0088 a ESA (`_model().with_context(...)`).
+  2. `addons/custom/investra_chart_fund/models/entity.py:49, 60`: hromadné mapování rolí na účty šablony a přiřazení dalších účtů při založení knihy fondu (`_map_fund_roles`, `_assign_extra_accounts`).
+  3. `tools/demo_data/seed.py:120`: zakládání ukázkových dat přes pracovní uživatelský kontext `UA`.
+  4. `tools/demo_data/seed_users.py:40`: zakládání ukázkových rolí a činností (`Role.with_context(...)`).
+  5. `tools/nav_demo/demo.py:30`: ukázkový výpočet NAV (`E_.with_context(...)`).
+  6. `tools/nav_demo/demo_prehled.py:29`: ukázkový přehled fondů a termíny (`scoped.with_context(...)`).
+  7. `tools/nav_demo/demo_vklad.py:28`: ukázkový termínovaný vklad (`scoped.with_context(...)`).
+
+- **Řádkové modely a mixin (bod 2):**
+  Žádný z modelů v kroku 1b není řádkovým modelem (One2many na rodiči) – všechny jsou samostatnými modely nastavení s vlastním formulářem a chatterem. Mixin `investra.line.tracking.mixin` z `investra_fund` proto v těchto modulech nebyl potřeba a žádné nové závislosti na `investra_fund` nebyly přidány.
+
+- **Sledování Many2many u `investra.role.account` (bod 6):**
+  Pole `extra_account_ids` má nastaveno `tracking=True`. Vestavěný mechanismus Odoo 20 (`mail.thread` / `_mail_track`) standardně relační pole Many2many a One2many při vyhodnocení změn ignoruje. Podle pokynu jsme toto chování neobcházeli vlastním ručním zápisem ve `write()`; test `test_role_account_extra_accounts_tracking` ověřuje chování Odoo 20.
+
+- **Ověřeno (příkaz a výsledek):**
+  - `python3 -m py_compile` na všechny upravené i nově vytvořené python soubory: skončilo bez chyb (kód 0).
+  - `python3 tools/view_check/check_views.py`: `Zkontrolováno souborů: 25, chyb: 0`.
+  - `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])"` na všech 7 upravených XML souborů pohledů: validní XML, chyb: 0.
+  - `python3 -m unittest discover -s tools/nav_reference -p "test_*.py"`: 55 testů OK.
+
+- **Neověřeno:**
+  - Běh testů Odoo v testovacím kontejneru (`tools/run_tests.sh`), vyžaduje Odoo a databázi – spustí Claude při převzetí.
+  - Vzhled v živém webovém prohlížeči.
+
+- **Otevřené otázky a návrhy mimo rozsah:**
+  - Many2many pole `extra_account_ids` na `investra.role.account`: Odoo 20 vestavěný tracking Many2many standardně v `_mail_track` nepodporuje. Pokud je zápis změn dalších účtů do chatteru vyžadován, bude nutné buď navrhnout úpravu v rámci Odoo (např. custom override `write()` specificky pro tento model), nebo akceptovat, že Many2many sledování v chatteru Odoo standardně nemá.
+  - Krok 1b dokončen, následuje revize a převzetí Claudem a následně plán fáze 2 (červená zóna).
+
 ## Převzetí
 
 **Krok 1a** – převzal Claude (Opus 5.5) 18. 11. 2026; commity Antigravity `c0c0ad4` a `82f0ec0`, sloučeno fast-forward do `ukol/ZJ-zjednoduseni`.

@@ -8,4 +8,5 @@
     <menuitem id="menu_membership" name="Členství zemí v EU/EHP" parent="menu_setup_codelists" action="action_membership" sequence="50"/>
     <menuitem id="menu_measurement_category" name="Oceňovací kategorie" parent="menu_setup_codelists" action="action_measurement_category" sequence="60"/>
     <menuitem id="menu_classification_reason" name="Důvody klasifikace" parent="menu_setup_codelists" action="action_classification_reason" sequence="70"/>
+    <menuitem id="menu_cfi_ba0088_map" name="Mapa CFI na BA0088" parent="menu_setup_codelists" action="action_cfi_ba0088_map" sequence="80"/>
 </odoo>

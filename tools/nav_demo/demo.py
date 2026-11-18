@@ -27,7 +27,7 @@ preparer = make_user("alfa_priprava", "investra_entity.group_valuation_preparer"
 approver = make_user("alfa_schvaleni", "investra_entity.group_valuation_approver")
 admin = env.ref("base.user_admin")
 admin.write({"company_ids": [(4, company.id)], "group_ids": [(4, env.ref("investra_entity.group_valuation_preparer").id), (4, env.ref("account.group_account_manager").id)]})
-E_ = env(context=dict(env.context, allowed_company_ids=[company.id]))
+E_ = env(context=dict(env.context, allowed_company_ids=[company.id], tracking_disable=True, mail_create_nolog=True))
 fund = E_["investra.fund"].create({"entity_id": book.id, "launch_date": "2026-12-31"})
 A = E_["investra.fund.class"].create({"fund_id": fund.id, "code": "CZK", "name": "Třída CZK", "currency_id": czk.id})
 B = E_["investra.fund.class"].create({"fund_id": fund.id, "code": "EUR", "name": "Třída EUR", "currency_id": eur.id, "price_digits": 5})

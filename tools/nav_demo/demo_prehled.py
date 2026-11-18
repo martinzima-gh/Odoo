@@ -26,7 +26,7 @@ def make_fund(name, prefix):
 
     preparer = user("priprava", "investra_entity.group_valuation_preparer")
     approver = user("schvaleni", "investra_entity.group_valuation_approver")
-    scoped = env(context=dict(env.context, allowed_company_ids=[company.id]))
+    scoped = env(context=dict(env.context, allowed_company_ids=[company.id], tracking_disable=True, mail_create_nolog=True))
     fund = scoped["investra.fund"].create({"entity_id": book.id, "launch_date": "2026-08-31"})
     fund_class = scoped["investra.fund.class"].create({"fund_id": fund.id, "code": "CZK", "name": "Třída CZK", "currency_id": czk.id})
     scoped["investra.class.movement"].create({

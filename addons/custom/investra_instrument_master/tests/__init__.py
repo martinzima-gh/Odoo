@@ -6,3 +6,4 @@ from . import test_portfolio
 from . import test_accounting_profile
 from . import test_code_list_import
 from . import test_new_book_identification
+from . import test_tracking
