@@ -54,6 +54,9 @@ def compute(scenario):
     # Daňový efekt minulého ocenění: {třída: e × spec_c} a e × Σ spec (přírůstkový přesun, ZJ-12 B.5).
     tax_effect_prev = {code: Decimal(0) for code in classes}
     tax_effect_total_prev = Decimal(0)
+    # Daň, kterou třída nesla (podíl pohybu daně − přesun daňového efektu); odměna po kroku 2 ji přičte zpět (ZJ-12 B.3).
+    # Model nekrystalizuje, přičítá se od začátku.
+    tax_borne = {code: Decimal(0) for code in classes}
     results = []
 
     for val in scenario["valuations"]:
@@ -86,8 +89,10 @@ def compute(scenario):
 
         perf_moves = {}
         for code, fee in val.get("perf_fee", {}).items():
+            if str(fee.get("step", "2")) != "2":
+                raise ValueError("Referenční model umí jen odměnu po kroku 2 (po úplatách tohoto ocenění).")
             nfk = fk - sum(delta.values())
-            gross = apt[code] * nfk + delta[code] + perf_accrued[code]
+            gross = apt[code] * nfk + delta[code] + perf_accrued[code] + tax_borne[code]
             excess = gross / units[code] - dec(fee["hwm"])
             required = money(dec(fee["rate"]) * max(excess, Decimal(0)) * units[code])
             move = required - perf_accrued[code]
@@ -123,6 +128,7 @@ def compute(scenario):
                 transfers[max(sorted(transfers), key=lambda c: abs(transfers[c]))] += rounding
             for c in classes:
                 delta[c] += transfers[c]
+                tax_borne[c] += apt[c] * tax_move - transfers[c]
 
         nfk = fk - sum(delta.values())
         fkt = split_with_remainder({c: apt[c] * nfk + delta[c] for c in classes})

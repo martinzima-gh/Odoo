@@ -932,7 +932,8 @@ class InvestraValuation(models.Model):
         tříd v tom ocenění. Řádky od ZJ-12 kroku 3 mají `expense` a `borne` v detailu. Starší řádky je nemají: náklad =
         částka × (1 − podíl příjemců pravidla), plátce-třída nese celou částku, společnou úplatu nesou třídy poměrem
         ocenění; podíl přijatý od jiných tříd se u nich nezná a vynechá se (odchylka jen u řádků před krokem 3).
-        Krytí (`covered_by`) je přesun mezi třídami, ne náklad; daň a její přesuny čte _tax_item.
+        Krytí (`covered_by`) je přesun mezi třídami, ne náklad. Daň (krok 4, pro základ odměny): třída nesla podíl pohybu
+        daně podle poměru ocenění minus přesun daňového efektu do třídy (`transfers` v detailu; starší řádky ho nemají).
         """
         result = []
         for valuation in self._earlier_valuations(after_day):
@@ -942,7 +943,15 @@ class InvestraValuation(models.Model):
             for line in valuation.fee_line_ids:
                 detail = json.loads(line.detail or "{}")
                 rule = line.rule_id or line.external_id.corrects_rule_id
-                if detail.get("covered_by") or (rule and rule.kind == "tax"):
+                if detail.get("covered_by"):
+                    continue
+                if rule and rule.kind == "tax":
+                    amount = d(line.amount)
+                    transfers = {int(key): d(value) for key, value in (detail.get("transfers") or {}).items()}
+                    result.append({
+                        "stage": engine.STAGE_TAX, "payer": None, "expense": amount, "units": units,
+                        "borne": {key: ratio * amount - transfers.get(key, Decimal(0)) for key, ratio in ratios.items()},
+                    })
                     continue
                 if line.rule_id.base_source == "average_fk":
                     # Před krokem 3 vznikal u průměrného FK s více třídami řádek za každou třídu se stejnou částkou
@@ -968,22 +977,23 @@ class InvestraValuation(models.Model):
                 })
         return result
 
-    def _fees_borne_since(self, fund_class, day, measure, units_now):
-        """Úplaty (krok 2), které třída nesla v dřívějších oceněních po dni `day` („přičti úplaty od data“, ZJ-12 B.3).
+    def _borne_since(self, fund_class, day, measure, units_now, stages):
+        """Úplaty (krok 2) a daň (krok 4), které třída nesla v dřívějších oceněních po dni `day` („přičti od data D“,
+        ZJ-12 B.3): {krok: částka} pro zadané kroky.
 
-        Úplaty tohoto ocenění se nepřičítají: základ po kroku 1 je stav před nimi. U měřítka hodnota na kus se přičte
-        úplata na kus podle kusů v každém ocenění, převedená na dnešní kusy.
+        Položky tohoto ocenění se nepřičítají: základ po kroku 1 nebo 2 je stav před nimi. U měřítka hodnota na kus se
+        přičte částka na kus podle kusů v každém ocenění, převedená na dnešní kusy.
         """
-        total = Decimal(0)
+        total = {stage: Decimal(0) for stage in stages}
         for item in self._earlier_fee_items(day):
-            if item["stage"] != engine.STAGE_FEE:
+            if item["stage"] not in total:
                 continue
             borne = item["borne"].get(fund_class.id, Decimal(0))
             if measure == "unit":
                 units = item["units"].get(fund_class.id)
-                total += borne / units * d(units_now) if units else Decimal(0)
+                total[item["stage"]] += borne / units * d(units_now) if units else Decimal(0)
             else:
-                total += borne
+                total[item["stage"]] += borne
         return total
 
     def _recipients(self, rule, values):
@@ -1040,8 +1050,8 @@ class InvestraValuation(models.Model):
     def _performance_item(self, rule, fund_class, context):
         """Výkonnostní odměna třídy: základ hodnota třídy po kroku 1, 2 nebo 4, nikdy po sobě samé.
 
-        Po kroku 1 se k hodnotě třídy přičtou úplaty, které třída nesla od poslední krystalizace (ZJ-12 B.3). Naběhlá
-        odměna se přičítá zpět; částka pro dopočet je přesný doplatek proti naběhlé odměně.
+        Od poslední krystalizace se k hodnotě třídy přičte, co třída nesla (ZJ-12 B.3): po kroku 1 úplaty a daň, po kroku 2
+        daň, po kroku 4 nic. Naběhlá odměna se přičítá zpět; částka pro dopočet je přesný doplatek proti naběhlé odměně.
         """
         version = rule._version_at(self.date)
         row = context[fund_class]
@@ -1072,15 +1082,17 @@ class InvestraValuation(models.Model):
         if version.hurdle_kind == "index":
             spec["index_start"] = version.benchmark_id._value_at(base_date)
             spec["index_end"] = version.benchmark_id._value_at(self.date)
-        added = Decimal(0)
-        if rule.base_step == "1":
-            added = self._fees_borne_since(fund_class, base_date, version.perf_measure, row["units"])
+        stages = {"1": (engine.STAGE_FEE, engine.STAGE_TAX), "2": (engine.STAGE_TAX,)}.get(rule.base_step, ())
+        borne = self._borne_since(fund_class, base_date, version.perf_measure, row["units"], stages)
+        added_fees = borne.get(engine.STAGE_FEE, Decimal(0))
+        added_tax = borne.get(engine.STAGE_TAX, Decimal(0))
 
         def full(value):
-            gross = value + accrued + added
+            gross = value + accrued + added_fees + added_tax
             result = engine.performance_fee(spec, base_date, self.date, gross, units=row["units"], flows=flows,
                                             accrued=accrued)
-            return {"gross": gross, "base_date": base_date, "base_step": rule.base_step, "added_fees": added, **result}
+            return {"gross": gross, "base_date": base_date, "base_step": rule.base_step, "added_fees": added_fees,
+                    "added_tax": added_tax, **result}
 
         state = {"reference": reference, "hwm": hwm, "base_date": base_date, "measure": version.perf_measure}
         return {"base": {"scope": "class", "class": fund_class.id, "step": int(rule.base_step)},
@@ -1109,6 +1121,8 @@ class InvestraValuation(models.Model):
         for fund_class, balance in groups:
             specific[fund_class.id] = d(balance).quantize(engine.CENT, rounding=ROUND_HALF_UP)
         for item in self._earlier_fee_items(self._year_start()):
+            if item["stage"] == engine.STAGE_TAX:
+                continue
             if item["stage"] > step:
                 result += item["expense"]
                 if item["payer"] in specific:

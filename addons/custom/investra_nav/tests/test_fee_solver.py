@@ -2,6 +2,7 @@
 
 import json
 from datetime import date
+from decimal import Decimal
 
 from odoo.tests import BaseCase, tagged
 
@@ -235,7 +236,10 @@ class TestFeeSolverValuation(NavCase):
         february = self.valuation(fund, date(2027, 2, 28))
         february.action_compute()
         a, b = self.cls(fund, "A"), self.cls(fund, "B")
-        self.assertAlmostEqual(self.amount(february, perf), -10000, places=2)
+        # Odměna po kroku 1 přičte lednovou daň třídy A (0,5 × 4 500 − 250 = 2 000): 1 038 000 − ρ_A × 100 000 + 10 000
+        # + 2 000 = 1 000 227,72 → 45,54 (doplatek −9 954,46); daň 0 (základ −45,54), efekt 0.
+        rho_a = 1038000 / 2085500
+        self.assertAlmostEqual(self.amount(february, perf), 0.2 * (2000 + 10000 - rho_a * 100000 + 38000) - 10000, places=2)
         self.assertAlmostEqual(self.amount(february, tax), -4500, places=2)
         self.assertEqual(self.tax_detail(january, tax)["transfers"], {str(a.id): "250.00", str(b.id): "-250.00"})
         effect = self.tax_detail(january, tax)["effect"]
@@ -246,9 +250,9 @@ class TestFeeSolverValuation(NavCase):
 
     def test_tax_effect_not_restated_by_later_subscription(self):
         # Leden jako C5 (efekt A 500, přesun A +250). Únor: úpis 8 000 000 do B, žádný výsledek.
-        # Odměna po kroku 1: 1 038 000 + 10 000 → 9 600 (−400; lednová daň třídy A se podle B.3 nepřičítá). Daň 0,05 × 90 400
-        # = 4 520 (+20). Efekt 480, ΔE_A = ΔΣE = −20, ρ_A = 1 038 000 / 10 085 500 → přesun A = −20 × (1 − ρ_A) = −17,94.
-        # Lednový přesun se novým poměrem nepřepočítá; kumulativní výpočet by dal 0,05 × 9 600 × (1 − ρ_A) − 250 = +180,59.
+        # Odměna po kroku 1 přičte lednovou daň, kterou A nesla (0,5 × 4 500 − 250 = 2 000): 1 038 000 + 10 000 + 2 000
+        # = 1 050 000 → 10 000, doplatek 0 (bez přičtení daně by byl −400). Daň ani efekt se nemění, přesun 0; lednový
+        # přesun se novým poměrem nepřepočítá (kumulativní výpočet by dal 0,05 × 10 000 × (1 − ρ_A) − 250 ≈ +198,54).
         fund = self.fund(classes=("A", "B"))
         self.common_result(fund, "v1", "2027-01-20", 100000)
         perf = self.performance(fund, "A", "1")
@@ -257,9 +261,72 @@ class TestFeeSolverValuation(NavCase):
         self.subscribe(self.cls(fund, "B"), "2027-02-10", 8000000, 8000)
         february = self.valuation(fund, date(2027, 2, 28))
         february.action_compute()
-        a, b = self.cls(fund, "A"), self.cls(fund, "B")
-        self.assertAlmostEqual(self.amount(february, perf), -400, places=2)
-        self.assertAlmostEqual(self.amount(february, tax), 20, places=2)
-        self.assertEqual(self.tax_detail(february, tax)["transfers"], {str(a.id): "-17.94", str(b.id): "17.94"})
-        self.assertAlmostEqual(self.result(february, "A").capital, 1038000 + 400 - 20 * 1038000 / 10085500 - 17.94, places=2)
+        detail = json.loads(february.fee_line_ids.filtered(lambda l: l.rule_id == perf).detail)
+        self.assertAlmostEqual(float(detail["added_tax"]), 2000, places=2)
+        self.assertAlmostEqual(self.amount(february, perf), 0, places=2)
+        self.assertAlmostEqual(self.amount(february, tax), 0, places=2)
+        self.assertEqual(self.tax_detail(february, tax)["transfers"], {})
+        self.assertAlmostEqual(self.result(february, "A").capital, 1038000, places=2)
+        self.assertAlmostEqual(self.result(february, "B").capital, 1047500 + 8000000, places=2)
         self.assert_consistent(february)
+
+    def test_tax_transfers_sum_to_zero_each_valuation(self):
+        # Tři třídy s nestejnými kapitály, odměna A po kroku 4 (vzájemný dopočet s daní), úplata B, tři ocenění se ztrátou
+        # a úpisem C. V každém ocenění se přesuny daňového efektu sečtou přesně na 0 a FK = kapitál + výsledek − náklady
+        # (přesuny FK nemění).
+        fund = self.make_fund(classes=[{"code": c} for c in ("A", "B", "C")])
+        for code, capital in (("A", 1000000), ("B", 700000), ("C", 333333.33)):
+            self.subscribe(self.cls(fund, code), "2027-01-01", capital, 1000)
+        self.performance(fund, "A", "4")
+        self.periodic(fund, 0.013, "1", base_source="class_fk", class_ids=[(6, 0, self.cls(fund, "B").ids)])
+        self.tax(fund)
+        capital = 2033333.33
+        months = [(JANUARY, 100000, 0), (date(2027, 2, 28), -30000, 0), (date(2027, 3, 31), 50000, 250000)]
+        for index, (day, result, subscription) in enumerate(months):
+            if subscription:
+                self.subscribe(self.cls(fund, "C"), day.replace(day=10).isoformat(), subscription, 750)
+            self.common_result(fund, f"v{index}", day.replace(day=20).isoformat(), result)
+            valuation = self.run_to_posted(self.valuation(fund, day))
+            transfers = [d for line in valuation.fee_line_ids for d in json.loads(line.detail or "{}").get("transfers", {}).values()]
+            self.assertEqual(sum(Decimal(v) for v in transfers), 0, str(day))
+            costs = sum(valuation.fee_line_ids.mapped("amount"))
+            capital = round(capital + subscription + result - costs, 2)
+            self.assertAlmostEqual(valuation.fund_capital, capital, places=2, msg=str(day))
+            self.assertAlmostEqual(sum(valuation.class_line_ids.mapped("capital")), valuation.fund_capital, places=2)
+            self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "clearing_zero").status, "ok")
+            self.assert_consistent(valuation)
+
+    def test_performance_adds_back_tax_since_crystallisation(self):
+        # Jedna třída, odměna 20 % po kroku 2, krystalizace čtvrtletně, daň 5 % po kroku 3 (odměna snižuje základ).
+        # Leden výsledek 100 000: odměna 20 000, daň 4 000. Únor 0: hodnota 1 076 000 + naběhlá 20 000 + daň 4 000
+        # = 1 100 000 → odměna beze změny (bez přičtení daně −800). Březen +50 000: 1 126 000 + 20 000 + 4 000 = 1 150 000
+        # → 30 000 (+10 000), daň 0,05 × 120 000 = 6 000 (+2 000). Krystalizace 31. 3.; duben přičítá daň až od 31. 3. (0).
+        fund = self.fund()
+        perf = self.performance(fund, "A", "2")
+        perf.crystallisation = "quarter"
+        tax = self.tax(fund)
+        expected = [(JANUARY, 100000, 20000, 4000, 0), (date(2027, 2, 28), 0, 0, 0, 4000),
+                    (date(2027, 3, 31), 50000, 10000, 2000, 4000), (date(2027, 4, 30), 0, None, None, 0)]
+        for index, (day, result, perf_move, tax_move, added) in enumerate(expected):
+            if result:
+                self.common_result(fund, f"v{index}", day.replace(day=20).isoformat(), result)
+            valuation = self.run_to_posted(self.valuation(fund, day))
+            detail = json.loads(valuation.fee_line_ids.filtered(lambda l: l.rule_id == perf).detail)
+            self.assertAlmostEqual(float(detail["added_tax"]), added, places=2, msg=str(day))
+            self.assertAlmostEqual(float(detail["added_fees"]), 0, places=2, msg=str(day))
+            if perf_move is not None:
+                self.assertAlmostEqual(self.amount(valuation, perf), perf_move, places=2, msg=str(day))
+                self.assertAlmostEqual(self.amount(valuation, tax), tax_move, places=2, msg=str(day))
+        self.assertEqual(self.result(valuation, "A").perf_base_date, date(2027, 3, 31))
+
+    def test_performance_after_publication_adds_nothing(self):
+        # Odměna po kroku 4 (zveřejněný NAV po dani): nic se nepřičítá ani v dalším ocenění.
+        fund = self.fund()
+        perf = self.performance(fund, "A", "4")
+        self.tax(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        self.run_to_posted(self.valuation(fund, JANUARY))
+        february = self.valuation(fund, date(2027, 2, 28))
+        february.action_compute()
+        detail = json.loads(february.fee_line_ids.filtered(lambda l: l.rule_id == perf).detail)
+        self.assertEqual((float(detail["added_fees"]), float(detail["added_tax"])), (0, 0))

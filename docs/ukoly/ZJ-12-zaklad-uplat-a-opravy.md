@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | kroky 1–3 hotové (2026-11-18), scénář s4 čeká na schválení; další krok 4 (opravy všech druhů) |
+| Stav | kroky 1–3 hotové (2026-11-18), daň v základu odměny (B.3) v práci, scénář s4 čeká na schválení; další krok 4 (opravy všech druhů) |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -29,7 +29,7 @@ Referenční model (PowerShell) a jeho očekávané hodnoty: `docs/ukoly/ZJ-12/`
 |---|---|---|---|
 | Časově rozlišená úplata, základ FK, kapitál třídy, průměrný FK | 1, 2, 3, 4 | 1 | stav NAV k datu ocenění po daném kroku; „po kroku 2“ zahrnuje i úplatu samotnou; 4 = výsledný (zveřejněný) FK |
 | Časově rozlišená úplata, základ aktiva nebo bez základu | bez volby (skrytá, ukládá 1) | 1 | úplaty jsou závazky a aktiva nemění |
-| Výkonnostní odměna | 1, 2, 4 | 2 | 1 = hodnota třídy **plus úplaty, které třída nesla od poslední krystalizace**; nikdy po sobě samé |
+| Výkonnostní odměna | 1, 2, 4 | 2 | 1 = hodnota třídy **plus úplaty a daň, které třída nesla od poslední krystalizace**; 2 = plus daň od krystalizace; 4 = zveřejněná hodnota (podle statutu: odměna z NAV po dani); nikdy po sobě samé |
 | Očekávaná daň | 1, 2, 3 | 3 | které náklady snižují základ: 1 žádné úplaty ani odměna, 2 úplaty, 3 úplaty i odměna (dnešní chování); nikdy po sobě samé |
 
 - Pořadí kroků 2 a 3 se nezadává, vyplývá ze základu: odměna „po kroku 1“ = před úplatami, úplata „po kroku 3“ = po odměně.
@@ -75,6 +75,11 @@ Referenční model (PowerShell) a jeho očekávané hodnoty: `docs/ukoly/ZJ-12/`
 
    Přičtená částka se uloží do detailu řádku. Implementovat jako obecnou funkci „přičti úplaty od data D“ (odměna: D = krystalizace; daň: D = 1. 1.).
    Časově rozlišené úplaty zůstávají u stavu k datu ocenění.
+
+   **Daň v základu odměny** (rozhodl Martin 18. 11. 2026): u odměny po kroku 1 a po kroku 2 se od `perf_base_date` přičte zpět i daň, kterou třída
+   nesla: podíl třídy na pohybech daně podle poměru každého ocenění minus přesuny daňového efektu do třídy. Stejnou funkcí „přičti od data D“.
+   Krok 1 = přičíst úplaty i daň, krok 2 = jen daň, krok 4 = nic. Starší řádky daně bez přesunů: jen podíl podle uloženého poměru ocenění.
+   Důvod: krok má znamenat totéž v jednom ocenění i za celé období odměny (stejný princip jako u úplat). Výchozí krok odměny zůstává 2.
 4. **Daň:**
    - základ = výsledek od začátku roku + zpět přičtené náklady kroků, které podle volby základ nesnižují, + opravy základu;
    - požadovaná daň = sazba × max(0, základ), účtuje se doplatek proti zaúčtované. Jeden doklad, „doúčtování po výkonnostní odměně“ (`tax:<id>:perf`) zaniká;
@@ -101,6 +106,14 @@ Referenční model (PowerShell) a jeho očekávané hodnoty: `docs/ukoly/ZJ-12/`
      - u „jen toto ocenění“ další ocenění zobrazí upozornění, že oprava skončila;
      - krystalizace a konec roku převzaté opravy ukončí.
    - **Oprava základu:** přičte se k základu pravidla. U daně je to ruční úprava základu ze ZJ-07 bod 2 (kladná = připočitatelná, záporná = odčitatelná), platí do konce roku.
+     U průměrného FK upravuje celoroční průměr a platí do konce roku jako převzatá oprava (vidět, lze ukončit). U úplaty ze stavu k datu (FK, kapitál
+     třídy) platí jen pro toto ocenění; další ocenění upozorní „Minulé ocenění mělo opravu základu u pravidla X“ (Martin 18. 11. 2026).
+   - **Potvrzení změny vypočtené částky** (kontrola stop z D4, Martin 18. 11. 2026): řádek opravy na záložce Úplaty má tlačítka „Ponechat rozdíl“
+     a „Ponechat výsledek“; obě aktualizují `computed_at_entry` a ocenění se přepočte. Kontrola platí jen pro opravy zadané v tomto ocenění, ne pro převzaté.
+   - **Zrušení úplaty** bez nové funkce (Martin 18. 11. 2026): v dialogu „Opravit“ zkratka „Vynulovat“ (cílová částka 0; krok 5). Pojistka: archivace
+     pravidla odměny nebo daně se zastaví, má-li z posledního ocenění nenulovou naběhlou nebo zaúčtovanou částku („Nejdřív nastavte verzi sazby 0 %…“);
+     ověřit, že archivované pravidlo naběhlou částku opravdu přestane rozpouštět. Manuál „Jak úplatu zrušit“ (jen toto ocenění = Vynulovat; od data =
+     verze sazby 0 %; omyl = archivace) v kroku 6.
 8. **Kontroly ocenění:**
    - **stop:**
      - konzistence: každé pravidlo bez pevné částky přepočtené z konečných čísel musí vyjít stejně (relativní tolerance);
@@ -292,6 +305,50 @@ i kurzy; kopie smazána. Referenční výpočet `tools/nav_reference` doplněn o
 | 28. 2. | FK | 2 020 340,32 | 2 020 296,12 |
 | 28. 2. | kapitál A / B | 1 009 364,60 / 1 010 975,72 | 1 009 359,83 / 1 010 936,29 |
 | 28. 2. | kurz A / B | 1 009,3646 / 1 010,9757 | 1 009,3598 / 1 010,9362 |
+
+**Daň v základu odměny (B.3, 2026-11-18):** `_earlier_fee_items` vrací i řádky daně (krok 4): třída nesla ρ_c(ocenění) × pohyb daně − přesun_c
+(přesuny z detailu, starší řádky jen poměrem); `_tax_item` je vynechá. `_borne_since(třída, D, měřítko, kusy, kroky)` nahrazuje `_fees_borne_since`:
+odměna po kroku 1 přičte úplaty i daň, po kroku 2 daň, po kroku 4 nic; detail odměny má `added_fees` a `added_tax`. Testy: úpis do B (únor 0 místo −400),
+odměna s daní přes krystalizaci (přičtení 0 / 4 000 / 4 000 / 0 po 31. 3.), krok 4 nic nepřičítá, přesuny v každém ocenění přesně 0 a FK = kapitál + výsledek
+− náklady (tři třídy, tři ocenění). `tools/nav_reference`: odměna (jen krok 2) přičítá nesenou daň, nový ruční test. `investra_nav` 452/452,
+`investra_nav+` 526/526. Kopie zálohy povýšená na 37.0: ocenění 35 a 39 beze změny (FK, úplaty, kapitály, kurzy).
+
+**Scénář s4 ke schválení (druhá verze, přírůstkový přesun a daň v základu odměny):** viz tabulka níže; nahrazuje předchozí návrh.
+
+| Datum | Položka | Dosud (commit) | Nově |
+|---|---|---|---|
+| 31. 1. | přesun A / B | – | +241,08 / −241,08 |
+| 31. 1. | kapitál A / B | 1 036 403,41 / 1 046 046,70 | 1 036 644,49 / 1 045 805,62 |
+| 31. 1. | kurz A / B | 1 036,4034 / 1 046,0467 | 1 036,6444 / 1 045,8056 |
+| 28. 2. | odměna A | −7 708,86 | −7 276,61 (přičtena lednová daň A 0,5 × 4 339,48 − 241,08 = 1 928,66) |
+| 28. 2. | daň | −3 268,94 | −3 290,55 |
+| 28. 2. | přesun A / B | – | −182,72 / +182,72 (ΔE_A = 0,05 × (2 366,68 − 9 643,29) = −363,83; × (1 − 0,4978004)) |
+| 28. 2. | FK | 2 020 340,32 | 2 019 929,68 |
+| 28. 2. | kapitál A / B | 1 009 364,60 / 1 010 975,72 | 1 008 993,39 / 1 010 936,29 |
+| 28. 2. | kurz A / B | 1 009,3646 / 1 010,9757 | 1 008,9933 / 1 010,9362 |
+
+## Plán kroku 4 (technický návrh, 2026-11-18; věcně rozhodnuto B.7–B.10)
+
+1. **Převzaté opravy** `_carried_corrections()`: řádky oprav s platností „do konce období“ z `_earlier_valuations(D)`, součet podle (pravidlo, třída, cíl);
+   D = `perf_base_date` u odměny, 31. 12. předchozího roku u daně a opravy základu průměrného FK. **Ukončení** = nová oprava o −převzatou částku
+   s povinnou poznámkou a `origin_id` na ukončovanou; tím součet klesne na 0 a další ocenění ji nepřevezme.
+2. **Dva průchody** `_apply_fees`: (1) bez jakýchkoli oprav (nových i převzatých) = Vypočteno do detailu; (2) `pinned[klíč]` = vypočteno + převzaté + nové
+   u oprav částky; oprava základu nepinuje, přičte se do základu položky (daň: výsledek; průměrný FK: průměr, převzatá do konce roku; FK a kapitál
+   třídy: jen toto ocenění). Ostatní pravidla se dopočítají k pevným částkám.
+3. **Naběhlá odměna** `perf_accrued` včetně oprav: „jen toto ocenění“ se dalším oceněním samo vrátí (požadovaný stav bez opravy), „do konce období“ drží
+   převzetí; při krystalizaci se oprava stane součástí splatné odměny a převzetí začne znovu. Daň: zaúčtovaná daň v knize opravu obsahuje, konec roku ji ukončí.
+4. **Daňový efekt:** opravy odměny a úplat tříd jsou specifické položky (plátce-třída); oprava daně ne (plátce fond).
+5. **Kontroly a stopa (B.8, B.9):** stop D4 jen pro opravy zadané v tomto ocenění (`computed_at_entry` ≠ Vypočteno), metody `action_keep_difference`
+   a `action_keep_result` (aktualizují snímek a přepočtou); stop při změně druhu/tříd/archivaci opraveného pravidla (`_check_correction` při výpočtu);
+   upozornění „Převzaté opravy (n)“, „Oprava jen pro toto ocenění skončila“, „Minulé ocenění mělo opravu základu u pravidla X“; seznam oprav v poznámce
+   kroků Spočítání a Odeslání ke schválení. Pojistka `_check_fee_steps` zaniká.
+6. **Převzetí z verze (B.10)** `action_copy_from_version`: kopíruje jen řádky zadané ve vrácené verzi (ruční úpravy a opravy, nová kopie přílohy, `origin_id`),
+   převzaté opravy ne (vzniknou znovu výpočtem).
+7. **Archivace pravidla odměny nebo daně:** `write(active=False)` se zastaví při nenulové naběhlé nebo zaúčtované částce z posledního ocenění; test, že
+   archivované pravidlo naběhlou částku přestane rozpouštět (důvod pojistky).
+8. **Části a commity:** 4a převzaté opravy částky a dva průchody (odměna, daň, úplaty) · 4b oprava základu · 4c kontroly, upozornění, Ponechat rozdíl/výsledek ·
+   4d stopa a převzetí z verze · 4e pojistka archivace. Každá část s testy `investra_nav`, před sloučením `investra_nav+`. Tlačítka a dialog v UI krok 5.
+   Otevřené: oprava základu daně souvisí s překryvem ZJ-07 × DA-01 (rozhoduje Martin).
 
 ## Výsledek
 

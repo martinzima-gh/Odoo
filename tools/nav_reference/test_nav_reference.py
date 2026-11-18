@@ -91,6 +91,19 @@ class Reference(unittest.TestCase):
         self.assertEqual(row["tax_transfers"], {"A": "0.50", "B": "-0.50"})
         self.assertEqual(row["fkt"], {"A": "1028.50", "B": "1047.50"})
 
+    def test_performance_adds_back_tax_borne(self):
+        # ZJ-12 B.3: jedna třída, HWM 1 000, odměna 20 % po kroku 2, daň 5 %. Leden +100 000: odměna 20 000, daň
+        # 0,05 × 80 000 = 4 000. Únor 0: hodnota 1 076 000 + naběhlá 20 000 + nesená daň 4 000 = 1 100 000 → doplatek 0.
+        rows = compute(fund([cls("A", 1000000, 1000)], [
+            {"date": "2027-01-31", "common_result": 100000, "perf_fee": {"A": {"rate": "0.2", "hwm": 1000}},
+             "tax": {"rate": "0.05"}},
+            {"date": "2027-02-28", "perf_fee": {"A": {"rate": "0.2", "hwm": 1000}}, "tax": {"rate": "0.05"}},
+        ]))
+        self.assertEqual(rows[0]["perf_moves"]["A"], "20000.00")
+        self.assertEqual(rows[0]["tax_move"], "4000.00")
+        self.assertEqual(rows[1]["perf_moves"]["A"], "0.00")
+        self.assertEqual(rows[1]["fk"], "1076000.00")
+
     def test_remainder_goes_to_largest_class(self):
         split = split_with_remainder({"A": Decimal("33.335"), "B": Decimal("33.335"), "C": Decimal("33.33")})
         self.assertEqual(sum(split.values()), Decimal("100.00"))
