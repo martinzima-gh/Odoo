@@ -362,5 +362,13 @@ $investra-badge-states: (
 // zprávy o změnách jsou krátké, proto pevná užší šířka a zbytek místa dostane formulář.
 .o-mail-Form-chatter.o-aside {
     flex-grow: 0;
-    width: calc(400px + var(--Chatter-asideExtraWidth));
+    // Šířka podle okna: nejméně 440 px, nejvíce 520 px. Pod 440 px se horní lišta chatteru (tlačítka, hledání, příloha,
+    // sledující) nevejde a Odoo v ní ukáže vodorovný posuvník.
+    width: calc(clamp(440px, 17vw, 520px) + var(--Chatter-asideExtraWidth));
+}
+
+// Formulář s chatterem vedle: Odoo 20 omezuje šířku formuláře na 1400 px, na širokém displeji tak zůstane prázdné místo
+// mezi formulářem a chatterem (Martin 2026-11-18). Strop se zvedá na 2000 px; formulář bez chatteru se nemění.
+.o_form_sheet_bg:has(+ .o-mail-Form-chatter.o-aside) {
+    max-width: 2000px;
 }
