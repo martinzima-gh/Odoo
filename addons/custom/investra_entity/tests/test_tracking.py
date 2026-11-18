@@ -106,13 +106,9 @@ class TestEntityTracking(TransactionCase):
 
         new_msgs = self.role_account.message_ids[:len(self.role_account.message_ids) - msg_count_before]
         bodies = [m.body or "" for m in new_msgs]
-        # Odoo 20 standardně v mail.thread nepodporuje tracking Many2many polí.
-        # Podle pokynu neobcházíme ručně ve write(); test zkontroluje chování Odoo 20:
-        has_tracking = any("(Další účty)" in b for b in bodies)
-        if not has_tracking:
-            self.assertEqual(len(new_msgs), 0)
-        else:
-            self.assertTrue(has_tracking)
+        # Odoo 20 sleduje i Many2many (mail_track_mixin, typy one2many/many2many/tags); změna se musí v chatteru ukázat.
+        # Převzetí ZJ-10 1b (Claude): původní test prošel v obou případech, nic neověřoval.
+        self.assertTrue(any("(Další účty)" in b for b in bodies), bodies)
 
     def test_tracking_disable_context(self):
         """Kontext tracking_disable=True potlačí zápis do chatteru."""
