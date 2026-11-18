@@ -45,6 +45,19 @@ class TestTrackingFees(TrackingMixin, NavCase):
         self.assertIn("Po kroku 2", text)
         self.assertIn("(Základ: po kroku)", text)
 
+    def test_rule_base_step_view_tracked_once(self):
+        """ZJ-12 krok 5: změna přes zobrazovací pole „Základ úplaty“ se zapíše jednou, jako změna base_step."""
+        from odoo.tests import Form
+        mark = self.mark(self.rule)
+        with Form(self.rule) as form:
+            form.base_step_fee = "4"
+        self.assertEqual(self.rule.base_step, "4")
+        bodies = self.new_bodies(self.rule, mark)
+        self.assertEqual(len(bodies), 1)
+        self.assertEqual(bodies[0].count("(Základ: po kroku)"), 1)
+        for label in ("Základ úplaty", "Základ odměny", "Základ daně"):
+            self.assertNotIn(label, bodies[0])
+
     def test_rule_many2many(self):
         mark = self.mark(self.rule)
         self.rule.write({"class_ids": [Command.set(self.cls(self.fund, "A").ids)]})
