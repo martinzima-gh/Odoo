@@ -430,3 +430,51 @@ class TestRuleFields(NavCase):
         fees = valuation.fee_line_ids
         self.assertAlmostEqual(fees.filtered(lambda f: f.rule_id.name == "Fond").amount, 20000.00, places=2)
         self.assertAlmostEqual(fees.filtered(lambda f: f.rule_id.name == "Třída A").amount, 9801.98, places=2)
+
+
+@tagged("post_install", "-at_install")
+class TestBaseModeRetroactive(NavCase):
+    """ZJ-10 fáze 2, plán bod 5: změna `base_mode` na pravidle se uložených ocenění nedotkne.
+
+    `base_mode` je pole hlavičky pravidla, ne verze „Platí od“ (viz ZJ-10 bod 7). Změna se proto projeví jen při
+    dalším výpočtu; již spočtené, uložené ani zaúčtované výsledky se sama nepřepočítají. Test fixuje dnešní chování
+    a nemění očekávané hodnoty referenčních scénářů.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.fund = self.make_fund(classes=[{"code": "A"}], launch="2026-12-31")
+        self.subscribe(self.cls(self.fund, "A"), "2027-01-01", 1000000, 1000)
+        self.rule = self.env["investra.fee.rule"].create({
+            "fund_id": self.fund.id, "name": "Úplata", "kind": "periodic", "base_mode": "before",
+            "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})],
+        })
+
+    def snapshot(self, valuation):
+        valuation.invalidate_recordset()
+        line = self.result(valuation, "A")
+        return (valuation.fee_line_ids.mapped("amount"), valuation.fund_capital, line.price, line.capital)
+
+    def test_posted_valuation_unchanged(self):
+        valuation = self.run_to_posted(self.valuation(self.fund, date(2027, 12, 31)))
+        before = self.snapshot(valuation)
+        self.assertAlmostEqual(before[0][0], 10000.00, places=2)
+        self.rule.write({"base_mode": "after"})
+        self.assertEqual(self.snapshot(valuation), before)
+        # Zaúčtované ocenění nejde znovu spočítat, takže ho změna pravidla nemá jak dohnat.
+        with self.assertRaises(UserError):
+            valuation.action_compute()
+        self.assertEqual(self.snapshot(valuation), before)
+
+    def test_draft_changes_only_on_recompute(self):
+        valuation = self.valuation(self.fund, date(2027, 12, 31))
+        valuation.action_compute()
+        before = self.snapshot(valuation)
+        self.assertAlmostEqual(before[0][0], 10000.00, places=2)
+        self.rule.write({"base_mode": "after"})
+        # Uložený návrh zůstává, dokud se výslovně nepřepočte.
+        self.assertEqual(self.snapshot(valuation), before)
+        # Nový výpočet návrhu použije aktuální nastavení: 1 % ze základu po úplatě = 990 000 × 0,01 / 1,01.
+        valuation.action_compute()
+        self.assertAlmostEqual(valuation.fee_line_ids.amount, 9900.99, places=2)
+        self.assertNotEqual(self.snapshot(valuation), before)

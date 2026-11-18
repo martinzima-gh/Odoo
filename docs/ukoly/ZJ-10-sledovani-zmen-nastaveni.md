@@ -247,4 +247,7 @@ Proveden krok **1b** (ostatní modely z bodu 3 mimo investra_fund, hromadné zá
   (`investra_entity, fund, chart_fund, cnb, counterparty, dashboard, instrument_master, instruments, allocation, fx_revaluation, nav`) v `investra`
   bez chyby (v logu jen docutils u popisů modulů); `investra-web` restartován, HTTP 200.
 - **Neověřeno:** vzhled chatteru a nového formuláře Benchmarky v prohlížeči (ověří Martin); skutečný objem `mail_message`; práva čtení chatteru
-  pro `account.group_account_readonly`; chování `base_mode` zpětně (plán bod 5) nezkoušeno samostatným testem.
+  pro `account.group_account_readonly`.
+- **Doplněno 2026-11-18:** `TestBaseModeRetroactive` (`investra_nav/tests/test_fees.py`, 2 testy prošly): změna `base_mode` nemění zaúčtované ocenění
+  (úplata, FK, kurz ani kapitál třídy; opakovaný výpočet zaúčtovaného ocenění skončí chybou) a uložený návrh mění až jeho nový výpočet
+  (10 000,00 → 9 900,99). Zámek `base_mode` po prvním výpočtu zůstává samostatné rozhodnutí.
