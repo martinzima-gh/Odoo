@@ -85,6 +85,12 @@ ruční úplaty bez opravy na konci. Účtování beze změny. Testy +3 (kontext
 `investra_nav` 423/423, `investra_nav+` 497/497 OK. Nová uložená pole se doplní při povýšení na 20.0.0.36.0 (verzi jsem nezvyšoval,
 `investra` ještě není povýšená). Zbývá krok 3 (protokol, XLS, manuál, deník).
 
+**Krok 3 hotový 2026-11-18 (Claude, spolu se ZJ-12 krokem 6).** Protokol pro depozitáře = list Úplaty XLS balíčku (jiný protokol v modulu není): u ocenění
+s opravou sloupce Vypočteno, Oprava, Výsledek, Zdůvodnění, Převzato z / Ukončuje opravu, hodnoty ze snímku detailu (commit ddcb48d, `test_package_fees`).
+Manuál kap. 9 část 3 (oprava úplaty) a 4 (zrušení úplaty), commit 4f7dddd. Deník: rozhodnutí 2026-11-18 „ZJ-12 krok 5 – odchylky rozhraní a omezení náhledu“.
+Pracovní `investra` povýšená na 20.0.0.37.0 (ZJ-11 i ZJ-12), stav v ZJ-12 „Povýšení pracovní databáze a zkouška rozhraní“. Úkol ZJ-11 je tím hotový; sloučení
+do `main` spolu se ZJ-12 na Martinův pokyn.
+
 ## Převzetí
 
-(doplní se po provedení)
+Kroky 1–3 udělal Claude přímo ve větvi `ukol/ZJ-zjednoduseni`; práce jiného agenta k převzetí není. Ověření: `investra_nav` 494/494 (2026-11-18), povýšení `investra` s kontrolou ocenění 35 a 39 beze změny.

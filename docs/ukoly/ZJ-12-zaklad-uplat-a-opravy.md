@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | kroky 1–5 hotové (2026-11-18), upřesnění kroku 4 schválena; další krok 6 (protokol, XLS, manuál, přemostění třídy) |
+| Stav | kroky 1–5 a 6a, 6b hotové (2026-11-18), `investra` povýšená na 20.0.0.37.0; **6c (přemostění třídy) čeká na schválení plánu**; do `main` nic |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -422,6 +422,76 @@ druhů, Vynulovat, Ukončit opravu, Ponechat rozdíl/výsledek, Převzít z verz
 - **Ověření:** testy `investra_nav` 489/489, `investra_nav+` 563/563 (12 nových: pole podle druhu, varování, předvolby, cyklus, náhled = výsledek solve_fees, sloupce, dialog včetně Form, Vynulovat, Ukončit opravu, převzetí z verze).
   Pohledy se při instalaci modulu validují; v prohlížeči na dočasné instanci se nezkoušelo (jen testy formulářů přes `odoo.tests.Form`), vzhled stránek tedy čeká na Martinovu kontrolu po povýšení.
 
+## Povýšení pracovní databáze a zkouška rozhraní (2026-11-18)
+
+- **Povýšení `investra`** (Martin schválil): záloha `zalohy/investra-2026-11-18-pred-ZJ12.dump` (pg_restore -l čitelné, 10 470 položek), testy na kódu 1d465e6
+  `investra_nav` 490/490 a `investra_nav+` 564/564, `-u investra_nav` 20.0.0.35.0 → 20.0.0.37.0 bez ERROR (migrace převedla 14 pravidel; log
+  `.test-logs/upgrade-investra-ZJ12.log`), restart `investra-web`, HTTP 200. Jiné moduly se od posledního povýšení nezměnily.
+- **Kontrola:** SQL snímek před povýšením, po povýšení a po přepočtu ocenění 35 a 39 (`action_compute` jako připravovatel): FK, kapitály, kurzy, úplaty,
+  otisky a `write_date` zaúčtovaných ocenění shodné. Změnilo se jen 10 nezaúčtovaných návrhů dokladů obou ocenění (přepočet je zakládá znovu; počet i součty stejné).
+- **Chatter pravidla:** změna Základu přes zobrazovací pole se zapíše jednou jako „(Základ: po kroku)“; zobrazovací pole se nezapisují (test `test_rule_base_step_view_tracked_once`).
+- **Zkouška rozhraní:** v relaci nebyl řízený prohlížeč (Chrome, Playwright ani Node nejsou nainstalované). Kroky se prošly na `investra` přes ORM stejnými akcemi
+  a onchange jako tlačítka a s vykreslenými pohledy z databáze (podmínky viditelnosti přes `Form`), v jedné transakci vrácené na konci (zkušební opravy zmizely,
+  ověřeno SELECT). Funguje: záložka Schéma výpočtu (tabulka, přípustné volby 1–4 / 1,2,4 / 1–3, úprava v tabulce, obě předvolby s potvrzením, pruh
+  Vzájemný dopočet po předvolbě Úplaty z výsledného FK, náhled); formulář pravidla (popisky Základ úplaty/odměny/daně, Zdroj skrytý u odměny a daně, varování
+  u odměny a daně, u úplaty z FK ne); ocenění 35 a 39: Opravit u úplaty, odměny i daně, Rozdíl ⇄ Cílová částka, Vynulovat, Platnost jen u odměny a daně
+  (výchozí Do konce období), sloupce oprav až po opravě, Ponechat rozdíl a Ponechat výsledek po změně vypočtené částky (kontrola stop, pak OK),
+  Převzít z předchozí verze u ocenění 39 (vrácená verze 2) a kontrola „Předchozí verze měla ruční úpravy (1)…“. **Neověřeno:** vzhled (rozložení, šířky,
+  ořez textu) a převzaté opravy s Ukončit opravu na skutečných datech (v DB není žádná oprava „do konce období“, založení by vyžadovalo zaúčtování; pokrývá
+  test `test_carried_corrections_list_and_end_wizard`).
+- **Opraveno (oranžová):** popisek skrytého pole `fix_kind` „Oprava“ → „Druh opravy“ (log hlásil dvojí popisek s `is_correction`). Na `investra` se projeví
+  až dalším povýšením (jen popisek skrytého sloupce).
+- **Postřehy bez změny:** (1) Oprava odměny nebo daně do záporu (vypočteno 0, oprava −500) projde bez varování; zadání to neřeší. (2) Náhled schématu
+  fondů 1 a 2 ukazuje u modelového FK 1 000 000 roční pevnou úplatu za administraci 540 000 / 420 000 a záporný základ daně; náhled je jen modelový, v manuálu
+  je to napsáno.
+
+## Zjištění kroku 6 (2026-11-18)
+
+**6a – list Úplaty balíčku pro depozitáře** (`models/package.py`, `_package_rows_fees`; jiný „protokol“ než XLS balíček v modulu není, seznam oprav ve stopě
+kroků má krok 4d). Sloupce Pravidlo, Třída, **Základ** („po kroku N“), **Částka základu**, Částka, Článek statutu; v ocenění s opravou navíc **Vypočteno, Oprava,
+Výsledek, Zdůvodnění, Převzato z / Ukončuje opravu**. Řádek pravidla: vypočteno = `detail.computed` (s převzatými opravami) nebo částka, oprava = převzaté +
+nové opravy částky; řádek opravy: částka, u opravy základu `base_correction`, poznámka, odkaz na verzi (`origin_id`) a na ukončovanou opravu (`ends`).
+Pravidlo jen s opravou základu nemá Vypočteno/Výsledek (částka bez opravy základu v detailu není, nedopočítává se). Hodnoty jen ze snímku detailu.
+**Starší ocenění:** v `investra` žádný detail klíč `base_mode` nemá (zapisoval ho kód jen mezi ZJ-07 a krokem 2); `base_mode`/`perf_base` se převádí mapou
+migrace 37.0, bez klíče zůstává Základ prázdný. Příklad: ocenění 33 má základ administrace 60 092 266,65 = základ obhospodařování − úplata, tedy tehdy „po úplatách“,
+ale detail to neuvádí, proto se nedoplňuje. Uložené balíčky se negenerují. Testy `test_package_fees` (4), `investra_nav` 494/494. Commit ddcb48d.
+
+**6b – manuál** kap. 9 `docs/manual/09-uplaty-a-opravy.md` (kroky a Základ, schéma výpočtu, okno Opravit a platnost, převzaté opravy a ukončení, Ponechat,
+převzetí z verze, „Jak úplatu zrušit“, daňová ztráta minulých let poměrem, list Úplaty); odkazy z kap. 2 a 4 a z osnovy. Commit 4f7dddd.
+
+## Plán kroku 6c – přemostění třídy, „Daňový efekt specifických položek“ (ke schválení Martinem, červená zóna)
+
+Dnes je přesun daňového efektu (vnitřní zúčtování s třídou, `_book_tax` → `transfers`) součástí položky **Ostatní specifické** (`other_amount = delta − úplaty −
+odměna − přesun podle pořadí`). Návrh:
+
+1. **Nové uložené pole** `tax_effect_amount` na `investra.valuation.class`, Float (20, 2), „Daňový efekt specifických položek“, nápověda „Přesun daňového efektu
+   položek výsledku třídy přes vnitřní zúčtování (+ zvyšuje kapitál třídy)“. Bez migračního skriptu: sloupec založí ORM, starší řádky mají 0 a efekt zůstává
+   v Ostatní (uložená ocenění se nepřepočítávají). Otisk ocenění (`_fingerprint`: kapitál, kusy, kurz) se nemění – zaúčtovaná ocenění zůstanou ověřitelná.
+   Verze modulu 20.0.0.38.0.
+2. **Rozklad** v `_class_bridge` (`valuation.py` ~1657): `tax_effect = Σ detail["transfers"][str(třída)]` z řádků daně ocenění (tytéž zaokrouhlené částky,
+   které jdou na doklad), `other_amount = delta − fee − performance − allocation − tax_effect`.
+3. **Kontrola** `_run_bridge_checks`: `specific_total` = úplaty + odměna + přesun podle pořadí + **daňový efekt** + ostatní; jiné kontroly beze změny.
+4. **Zobrazení:** sloupec v přemostění formuláře ocenění (`nav_views.xml:121`, za Přesun podle pořadí nároků) a v listu „Přemostění tříd“ XLS; manuál kap. 9 část 5.
+5. **Varianta (b), doporučuji:** opravy odměny (ruční úplata s `corrects_rule_id.kind == "performance"`) dnes padají do **Úplaty třídy** (`rule_id` je prázdné);
+   zařadit je do **Výkonnostní odměna**. Mění jen rozklad, ne součet ani FK.
+6. **Testy a očekávané hodnoty:** stávající očekávané hodnoty `test_bridge` se **nemění** (žádný test přemostění nemá daň: `other_amount` B −1 500 a nuly zůstávají).
+   Nový test podle scénáře s4 s daní (čísla ze `tests/scenarios/s4_uplata_odmena_dan.json`):
+
+   | Datum | Třída | Odměna | Daňový efekt (nové) | Ostatní dnes → nově | Specifická změna |
+   |---|---|---|---|---|---|
+   | 31. 1. | A | −9 643,29 | +241,08 | +241,08 → 0 | −9 402,21 |
+   | 31. 1. | B | 0 | −241,08 | −241,08 → 0 | −241,08 |
+   | 28. 2. | A | +7 276,61 | −182,72 | −182,72 → 0 | +7 093,89 |
+   | 28. 2. | B | 0 | +182,72 | +182,72 → 0 | +182,72 |
+
+   Kontroly přemostění OK, FK a kurzy tříd beze změny. Varianta (b): test s opravou odměny třídy (−1 000 v Odměna, ne v Úplaty).
+7. **Pracovní DB:** žádné uložené ocenění nemá přesun daňového efektu (`transfers` prázdné nebo chybí), přepočet ocenění 35 a 39 po povýšení rozklad nezmění.
+   Povýšení na 38.0 se zálohou a kontrolou jako u 37.0.
+
 ## Výsledek
 
 ## Převzetí
+
+Všechny kroky dělá Claude přímo ve větvi `ukol/ZJ-zjednoduseni` (žádná práce Antigravity ani Copilota k převzetí). Stav 2026-11-18: commity 31fa5d9, fc4802a,
+7962434, 1d465e6, ddcb48d, 4f7dddd a dokumentace pushnuté do `origin/ukol/ZJ-zjednoduseni`; `investra_nav` 494/494, `investra_nav+` viz předávka
+2026-11-18-zj12-krok6. Pracovní `investra` povýšená na 20.0.0.37.0. Zbývá 6c po schválení plánu, pak sloučení do `main` na Martinův pokyn.
