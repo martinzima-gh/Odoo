@@ -25,6 +25,7 @@ uživatel je může přepsat. Po přepsání zůstane nová hodnota, dokud se ne
 | Úpis – zadání přijaté platby | Poplatek ze sazby třídy; kusy zaokrouhlené podle pravidla třídy; rozdíl ze zaokrouhlení. |
 | Odkup podle kusů | Hrubou částku (kusy × cena), poplatek ze sazby, výplatu investorovi; rozdíl 0,00. |
 | Odkup podle částky (volba **Odkup podle: částky**) | Kusy z požadované částky zaokrouhlené podle třídy, hrubou částku (kusy × cena), poplatek ze sazby a rozdíl ze zaokrouhlení; výplata investorovi vyjde požadovaná částka − poplatek. |
+| Úpis – ruční změna kusů | Přepočte rozdíl ze zaokrouhlení. Kusy smějí mít méně míst, než třída povoluje (např. celé kusy), pokud jsou rovné přesné hodnotě zaokrouhlené podle pravidla třídy; jiné kusy zaúčtování zastaví. |
 | Úpis – ruční změna poplatku | Znovu dopočte kusy a rozdíl (poplatek je vstup pro kusy), zbytek zůstane 0,00. |
 | Třída bez sazby (0 %) | Poplatek 0,00 – lze zadat ručně; příjemce je pak povinný. |
 | První úpis třídy (bez zveřejněného ocenění) | Cena se nepředvyplní; v poli Důvod odlišné ceny se objeví nápověda „První úpis třídy". |
@@ -86,7 +87,7 @@ Tlačítko **Zaúčtovat**:
    - „Částky nesedí, zbytek … je větší než 0,01. Zkontrolujte data z IS.“
    - „Poplatek musí mít příjemce.“
    - **Úpis:** „Kusy … neodpovídají zaokrouhlení třídy (…)“ – kusy musí být (hrubá částka − poplatek) ÷ cena, zaokrouhlené podle třídy
-     (dolů, matematicky, nahoru; kap. 3). **Odkup** tuto kontrolu nemá.
+     (dolů, matematicky, nahoru; kap. 3), na všechna místa třídy nebo na méně míst (např. celé kusy; rozdíl ze zaokrouhlení pak vznikne sám). **Odkup** tuto kontrolu nemá.
    - „Kusy mají víc než … desetinných míst třídy.“
    - Zámek ocenění: pokud je ocenění fondu od stavu Ke schválení do Potvrzeno depozitářem a jeho datum je stejné nebo pozdější než Datum pohybu,
      pohyb nejde zadat, změnit ani smazat; ocenění je nutné vrátit, nebo použít pozdější datum.

@@ -7,6 +7,7 @@ projde `action_book`. Rok 2027 (ocenění k 31. 1.) je jen pro tyto testy; kurz 
 from datetime import date
 
 from odoo import fields
+from odoo.exceptions import UserError
 from odoo.tests import Form, tagged
 
 from .common import NavCase
@@ -114,6 +115,32 @@ class TestMovementOnchange(NavCase):
         movement.action_book()
         self.assertEqual(movement.state, "posted")
         self.assertEqual(movement.fee_amount_class, 500.0)
+
+    def test_units_with_fewer_decimals_pass_and_set_rounding(self):
+        """Kusy s méně místy, než třída povoluje, projdou; rozdíl ze zaokrouhlení se dopočte."""
+        form = self.form("subscription", self.a)
+        form.amount_class = 1000000
+        self.assertEqual(form.units, 955.004435)
+        form.units = 955  # celé kusy (odříznuto z přesných 955,004435)
+        self.assertEqual(form.rounding_amount_class, 4.60)  # 990 000 − 955 × 1 036,6444 (= 989 995,40)
+        self.assertEqual(form.residual_class, 0.0)
+        movement = form.save()
+        movement.action_book()
+        self.assertEqual(movement.state, "posted")
+        form = self.form("subscription", self.a)
+        form.amount_class = 1000000
+        form.units = 955.00443  # 5 míst dolů
+        form.save().action_book()
+
+    def test_units_not_matching_rounding_are_blocked(self):
+        """Kusy, které nejsou zaokrouhlením přesné hodnoty podle třídy, zaúčtování zastaví (i když zbytek vychází 0)."""
+        for units, message in ((954, "zaokrouhlení třídy"), (956, "zaokrouhlení třídy"), (955.00444, "zaokrouhlení třídy")):
+            form = self.form("subscription", self.a)
+            form.amount_class = 1000000
+            form.units = units
+            self.assertEqual(form.residual_class, 0.0, "rozdíl se dopočte, zbytek je 0; zastaví až pravidlo zaokrouhlení")
+            with self.assertRaisesRegex(UserError, message):
+                form.save().action_book()
 
     def test_save_as_preparer(self):
         """Formulář uloží běžný uživatel (role Příprava): do `create` se nedostane `valuation_id` ani jiné systémové pole."""

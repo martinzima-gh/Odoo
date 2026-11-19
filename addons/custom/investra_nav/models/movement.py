@@ -434,6 +434,14 @@ class InvestraClassMovement(models.Model):
                     movement.fee_recipient = movement.class_id.entry_fee_recipient
                 movement._subscription_units()
 
+    @api.onchange("units")
+    def _onchange_subscription_units(self):
+        """Úpis: ručně změněné kusy (např. celé kusy) přepočtou rozdíl ze zaokrouhlení, aby zbytek zůstal 0."""
+        for movement in self:
+            if movement._is_manual_draft() and movement.movement_type == "subscription" and movement.amount_class and movement.price:
+                net = money(movement.amount_class) - money(movement.fee_amount_class)
+                movement.rounding_amount_class = float(net - money(d(movement.units) * d(movement.price)))
+
     def _subscription_units(self):
         """Kusy (zaokrouhlení třídy, jako `_booking_valuation`) a rozdíl ze zaokrouhlení z platby bez poplatku."""
         self.ensure_one()
@@ -517,6 +525,17 @@ class InvestraClassMovement(models.Model):
             ("fund_id", "=", self.fund_id.id), ("state", "=", "published"), ("date", "<=", self.date),
         ], order="date desc, version desc", limit=1)
 
+    def _units_match_class(self, net):
+        """Kusy úpisu jsou přesná hodnota (platba bez poplatku / cena) zaokrouhlená podle třídy na 0 až `unit_digits` míst."""
+        self.ensure_one()
+        fund_class = self.class_id
+        exact = net / d(self.price)
+        mode = UNIT_ROUNDING[fund_class.unit_rounding]
+        return any(
+            d(self.units) == exact.quantize(Decimal(1).scaleb(-places), rounding=mode)
+            for places in range(fund_class.unit_digits, -1, -1)
+        )
+
     def _check_booking(self):
         """Kontroly B: kusy, cena a součet částek. Pohyb bez ceny se kontroluje jen ze součtu."""
         for movement in self:
@@ -552,7 +571,10 @@ class InvestraClassMovement(models.Model):
             if movement.movement_type == "subscription":
                 net = movement._gross_class() - money(movement.fee_amount_class)
                 expected = (net / d(movement.price)).quantize(digits, rounding=UNIT_ROUNDING[fund_class.unit_rounding])
-                if units != expected:
+                # Odchylka od původní kontroly (rozhodnutí 2026-11-19, schválil Martin): kusy smějí mít méně míst než třída,
+                # jsou-li rovné přesné hodnotě zaokrouhlené podle pravidla třídy na 0 až `unit_digits` míst; rozdíl ze
+                # zaokrouhlení je pak omezený hrubší přesností. Libovolné kusy s „vysvětlujícím“ rozdílem dál neprojdou.
+                if units != expected and not movement._units_match_class(net):
                     raise UserError(self.env._(
                         "%(name)s: kusy %(units)s neodpovídají zaokrouhlení třídy (%(expected)s).",
                         name=name, units=units, expected=expected,
