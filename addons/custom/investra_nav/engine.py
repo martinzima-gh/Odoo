@@ -166,6 +166,20 @@ def periodic_fee(rule, start, end, base, classes_count=1, max_steps=100):
     return {"amount": money(amount), "exact": amount, "steps": steps, "segments": rows}
 
 
+def average_fee(rule, start, end, points, current, booked=ZERO, shift=ZERO, classes_count=1):
+    """Úplata z průměru (ZJ-14): nárok za období (start, end] z prostého průměru bodů a dnešního bodu minus naúčtované.
+
+    points: dřívější body (kapitály), current: dnešní bod, shift: oprava základu přičtená k průměru (ZJ-12 B.7).
+    Pevné části, minimum, maximum a příplatky se uplatní jednou za volání (u tříd tedy za každou třídu).
+    """
+    points = [dec(p) for p in points]
+    average = (sum(points, ZERO) + dec(current)) / (len(points) + 1) + dec(shift)
+    result = periodic_fee(rule, start, end, average, classes_count=classes_count)
+    booked = dec(booked)
+    return {"average": average, "entitlement": result["amount"], "booked": booked, **result,
+            "move": result["amount"] - booked, "exact_move": result["exact"] - booked}
+
+
 def growth_factor(start, end, spec):
     """Kolikrát má vzrůst srovnávací hodnota za období (start, end]."""
     kind = spec.get("hurdle_kind", "none")

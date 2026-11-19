@@ -94,7 +94,9 @@ class InvestraFeeRule(models.Model):
         default="fk",
         tracking=True, string="Základ",
         help="Z čeho se úplata počítá: fondový kapitál, jeho průměr od začátku roku, kapitál třídy, aktiva, nebo bez základu "
-             "(jen pevná částka). U očekávané daně se nepoužívá.",
+             "(jen pevná částka). Průměrný FK bez tříd je úplata celého fondu z průměru FK; s vyplněnými Platí třídy se počítá "
+             "za každou třídu z průměru jejího kapitálu od 1. 1., od prvního úpisu třídy nebo od zařazení do pravidla "
+             "(pevné částky, minimum a maximum za každou třídu). U očekávané daně se nepoužívá.",
     )
     # ZJ-12 (rozhodnutí 2026-11-18 „Základ úplat, odměny a daně“): jedna volba „Základ: po kroku 1–4“ nahrazuje
     # base_mode a perf_base. Kroky: 1 FK před úplatami a daní, 2 časově rozlišené a ruční úplaty a opravy,
@@ -127,7 +129,8 @@ class InvestraFeeRule(models.Model):
     )
     class_ids = fields.Many2many("investra.fund.class", tracking=True, string="Platí třídy",
         help="Třídy téhož fondu, které úplatu nesou. Prázdné znamená společný náklad celého fondu (dělí se poměrem kapitálu). "
-             "Třída nesmí být zároveň přijímající.")
+             "U průměrného FK se úplata počítá za každou třídu z průměru jejího kapitálu; třídu přidanou v průběhu roku "
+             "počítá od ocenění, kdy v pravidle poprvé je. Třída nesmí být zároveň přijímající.")
     expense_role = fields.Selection(EXPENSE_ROLES, default="expense_other", required=True, tracking=True, string="Nákladová role",
         help="Nákladový účet, na který se úplata zaúčtuje (podle role účtu v Nastavení → Účtování).")
     recipient_share = fields.Float(digits=(6, 4), default=0, tracking=True, string="Podíl příjemcům z tříd",
@@ -292,9 +295,6 @@ class InvestraFeeRule(models.Model):
             if rule.kind == "periodic" and rule.base_source == "class_fk" and not rule.class_ids:
                 messages.append(_("Základ je Kapitál třídy, ale pole Třídy je prázdné: úplata se počítá z FK celého fondu. "
                                   "Vyplňte třídy, nebo zvolte základ FK."))
-            if rule.kind == "periodic" and rule.base_source == "average_fk" and rule.class_ids:
-                messages.append(_("Průměrný FK je úplata celého fondu: vyplněné Platí třídy se nepoužijí "
-                                  "(průměr po třídách zatím program neumí)."))
             if rule.kind != "tax" and rule.recipient_share and not rule.recipient_class_ids:
                 messages.append(_("Podíl příjemcům je vyplněný, ale nejsou zvolené přijímající třídy: celá úplata je náklad fondu."))
             if rule.kind != "tax" and rule.recipient_class_ids and not rule.recipient_share:

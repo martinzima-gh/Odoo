@@ -326,8 +326,9 @@ class TestFeeSchemeUi(NavCase):
         fund = self.make_fund(classes=[{"code": "A"}, {"code": "B"}])
         rule = self.periodic(fund, source="average_fk")
         self.assertFalse(rule.class_base_warning)
+        # ZJ-14: průměrný FK s třídami se počítá po třídách, upozornění zrušeno.
         rule.class_ids = self.cls(fund, "A")
-        self.assertIn("vyplněné Platí třídy se nepoužijí", rule.class_base_warning)
+        self.assertFalse(rule.class_base_warning)
         rule.class_ids = False
         rule.recipient_share = 0.5
         self.assertIn("nejsou zvolené přijímající třídy", rule.class_base_warning)

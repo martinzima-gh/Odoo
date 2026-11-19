@@ -15,8 +15,9 @@ class TestFeeCharacterization(NavCase):
         self.Rule = self.env["investra.fee.rule"]
 
     def test_average_fk_rule_with_two_classes(self):
-        # ZJ-12 B.6: pravidlo průměrného FK s více třídami dřív vytvořilo řádek rozpisu za každou třídu (doklad jeden).
-        # Od kroku 3 je to jedna položka dopočtu: jeden řádek, jeden doklad.
+        # ZJ-12 B.6: pravidlo průměrného FK s více třídami dřív vytvořilo řádek rozpisu za každou třídu se stejnou částkou
+        # (doklad jen jeden); krok 3 z toho udělal jednu položku celého fondu. ZJ-14: s vyplněnými třídami se počítá za každou
+        # třídu z jejího průměru: úpis 1. 1. → nárok od 1. 1. (30 dní), 500 000 × 0,0365 × 30/365 = 1 500 za třídu, dva doklady.
         fund = self.make_fund(classes=[{"code": "A"}, {"code": "B"}])
         self.subscribe(self.cls(fund, "A"), "2027-01-01", 500000, 500)
         self.subscribe(self.cls(fund, "B"), "2027-01-01", 500000, 500)
@@ -28,12 +29,14 @@ class TestFeeCharacterization(NavCase):
         january = self.valuation(fund, date(2027, 1, 31))
         january.action_compute()
         lines = january.fee_line_ids.filtered(lambda l: l.rule_id == rule)
-        self.assertEqual(lines.mapped("amount"), [3100.0])
+        self.assertEqual(sorted(lines.mapped("class_id.code")), ["A", "B"])
+        self.assertEqual(lines.mapped("amount"), [1500.0, 1500.0])
+        self.assertTrue(all(json.loads(line.detail)["per_class"] for line in lines))
         events = january.event_ids.filtered(lambda e: f":fee:{rule.id}:" in e.key)
-        self.assertEqual(len(events), 1, "doklad se nezdvojil (stejný klíč)")
+        self.assertEqual(len(events), 2, "doklad za každou třídu")
 
     def test_average_fk_two_classes_next_valuation_deducts_booked_twice(self):
-        # ZJ-12 B.6: únorové ocenění dřív odečetlo zaúčtovanou lednovou úplatu 3 100 dvakrát (6 200). Od kroku 3 jednou.
+        # ZJ-12 B.6: únorové ocenění dřív odečetlo zaúčtovanou lednovou úplatu dvakrát. ZJ-14: každá třída odečte svou.
         fund = self.make_fund(classes=[{"code": "A"}, {"code": "B"}])
         self.subscribe(self.cls(fund, "A"), "2027-01-01", 500000, 500)
         self.subscribe(self.cls(fund, "B"), "2027-01-01", 500000, 500)
@@ -45,5 +48,5 @@ class TestFeeCharacterization(NavCase):
         self.run_to_posted(self.valuation(fund, date(2027, 1, 31)))
         february = self.valuation(fund, date(2027, 2, 28))
         february.action_compute()
-        detail = json.loads(february.fee_line_ids.filtered(lambda l: l.rule_id == rule)[0].detail)
-        self.assertAlmostEqual(float(detail["booked"]), 3100.0, places=2)
+        for line in february.fee_line_ids.filtered(lambda l: l.rule_id == rule):
+            self.assertAlmostEqual(float(json.loads(line.detail)["booked"]), 1500.0, places=2)
