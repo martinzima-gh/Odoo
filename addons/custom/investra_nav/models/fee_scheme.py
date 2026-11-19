@@ -37,23 +37,32 @@ class InvestraFundFeeScheme(models.Model):
 
     # --- předvolby -----------------------------------------------------------------------------------------------
 
-    def _apply_scheme_preset(self, periodic, performance, tax):
-        """Nastaví základ aktivních pravidel; úplaty ze základu Aktiva nebo Bez základu volbu nemají (zůstávají 1)."""
+    def _apply_scheme_preset(self, periodic, performance, tax, name):
+        """Nastaví základ aktivních pravidel; úplaty ze základu Aktiva nebo Bez základu volbu nemají (zůstávají 1).
+
+        Změna se zapíše do historie každého pravidla (sledované pole) a souhrn do chatteru fondu (rozhodnutí 2026-11-19),
+        aby bylo z fondu vidět, že šlo o předvolbu. Bez změny pravidla se nic nezapisuje.
+        """
         self.ensure_one()
+        changes = []
         for rule in self.fee_rule_ids.filtered("active"):
             step = {"periodic": periodic, "performance": performance, "tax": tax}[rule.kind]
             if step and rule.base_step != step and not (rule.kind == "periodic" and rule.base_source in ("assets", "none")):
+                changes.append(f"{rule.name} {rule.base_step} → {step}")
                 rule.base_step = step
+        if changes:
+            self.message_post(body=self.env._("Použita předvolba „%(name)s“ ve Schématu výpočtu (Základ: po kroku): %(changes)s.",
+                                              name=name, changes=", ".join(changes)))
 
     def action_scheme_standard(self):
         """Standardní fond: úplaty po kroku 1, odměna po kroku 2, daň po kroku 3."""
         for fund in self:
-            fund._apply_scheme_preset("1", "2", "3")
+            fund._apply_scheme_preset("1", "2", "3", self.env._("Standardní fond"))
 
     def action_scheme_net_fk(self):
         """Úplaty z výsledného FK: úplaty po kroku 4, daň po kroku 2 (odměna beze změny)."""
         for fund in self:
-            fund._apply_scheme_preset("4", None, "2")
+            fund._apply_scheme_preset("4", None, "2", self.env._("Úplaty z výsledného FK"))
 
     # --- vzájemný dopočet ------------------------------------------------------------------------------------------
 

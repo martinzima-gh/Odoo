@@ -78,6 +78,16 @@ class TestFeeSchemeUi(NavCase):
         fee, perf, tax = self.periodic(fund), self.performance(fund, step="1"), self.tax(fund, step="1")
         fund.action_scheme_standard()
         self.assertEqual((fee.base_step, perf.base_step, tax.base_step), ("1", "2", "3"))
+        # Rozhodnutí 2026-11-19: souhrn předvolby v chatteru fondu (jen změněná pravidla); bez změny se nic nezapíše.
+        def notes():
+            return fund.message_ids.filtered(lambda m: "Použita předvolba" in (m.body or ""))
+        self.assertEqual(len(notes()), 1)
+        self.assertIn("„Standardní fond“", notes().body)
+        self.assertIn(f"{perf.name} 1 → 2", notes().body)
+        self.assertIn(f"{tax.name} 1 → 3", notes().body)
+        self.assertNotIn(fee.name, notes().body)
+        fund.action_scheme_standard()
+        self.assertEqual(len(notes()), 1)
         fund.action_scheme_net_fk()
         self.assertEqual((fee.base_step, perf.base_step, tax.base_step), ("4", "2", "2"))
         # Úplata ze základu Bez základu volbu nemá a předvolba ji nemění.

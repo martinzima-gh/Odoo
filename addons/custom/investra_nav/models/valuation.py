@@ -2457,7 +2457,11 @@ class InvestraValuationClass(models.Model):
     rounding_amount = fields.Float(digits=(20, 2), string="Z toho zaokrouhlení")
     fee_amount = fields.Float(digits=(20, 2), string="Úplaty třídy", help="Úplaty účtované na třídu, bez výkonnostní odměny.")
     performance_amount = fields.Float(digits=(20, 2), string="Výkonnostní odměna")
-    allocation_amount = fields.Float(digits=(20, 2), string="Přesun podle pořadí nároků")
+    allocation_amount = fields.Float(
+        digits=(20, 2), string="Přesun podle pořadí nároků",
+        help="Jen u fondu se schématem rozdělení „pořadí nároků“: rozdíl mezi výsledkem rozděleným podle pořadí nároků "
+             "a podle alokačního poměru, zaúčtovaný jako přesun mezi třídami přes vnitřní zúčtování (FK fondu nemění). "
+             "+ třída dostala víc, než by jí patřilo podle poměru; − méně.")
     tax_effect_amount = fields.Float(
         digits=(20, 2), string="Daňový efekt specifických položek",
         help="Přesun daňového efektu položek výsledku třídy přes vnitřní zúčtování (+ zvyšuje kapitál třídy).")

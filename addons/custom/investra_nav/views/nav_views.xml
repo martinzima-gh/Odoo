@@ -96,48 +96,52 @@
             <form string="Přemostění třídy">
                 <sheet>
                     <div class="oe_title"><h2><field name="class_id" readonly="1"/></h2></div>
-                    <div class="text-muted mb-3">FK (t−1) + úpisy − odkupy − dividendy + změna společná + změna specifická = FK.</div>
-                    <group>
-                        <group string="Počáteční stav">
-                            <field name="opening_capital"/>
-                            <field name="opening_units"/>
-                            <field name="opening_price"/>
-                        </group>
-                        <group string="Pohyby">
-                            <field name="subscription_amount"/>
-                            <field name="subscription_units"/>
-                            <field name="redemption_amount"/>
-                            <field name="redemption_units"/>
-                            <field name="dividend_amount"/>
-                            <field name="pre_capital" string="Upravený FK"/>
-                        </group>
-                        <group string="Rozdělení výsledku">
-                            <field name="ratio" string="Alokační poměr" widget="percentage" options="{'digits': [16, 6]}"/>
-                            <field name="shared_result"/>
-                            <field name="rounding_amount"/>
-                            <field name="delta" string="Změna specifická"/>
-                            <field name="fee_amount"/>
-                            <field name="performance_amount"/>
-                            <field name="allocation_amount"/>
-                            <field name="tax_effect_amount"/>
-                            <field name="other_amount"/>
-                        </group>
-                        <group string="Konečný stav">
-                            <field name="capital" string="FK"/>
-                            <field name="units" string="Kusy"/>
-                            <field name="price" string="Kurz"/>
-                            <field name="price_change_pct" decoration-success="price_change_pct &gt; 0" decoration-danger="price_change_pct &lt; 0"/>
-                        </group>
-                        <group string="V měně třídy" invisible="not foreign_currency">
-                            <field name="currency_name"/>
-                            <field name="fx_rate"/>
-                            <field name="opening_capital_class"/>
-                            <field name="subscription_amount_class"/>
-                            <field name="redemption_amount_class"/>
-                            <field name="capital_class"/>
-                        </group>
-                        <field name="foreign_currency" invisible="1"/>
+                    <div class="text-muted mb-3">Čte se shora dolů: počáteční stav + pohyby = upravený FK; upravený FK + změna společná
+                        + změna specifická = konečný stav.</div>
+                    <!-- Rozhodnutí 2026-11-19: jedna svislá cesta počáteční stav → změny → konečný stav, částky a kusy v jednom řádku. -->
+                    <group string="1. Počáteční stav (minulé ocenění)" col="4">
+                        <field name="opening_capital"/>
+                        <field name="opening_units"/>
+                        <field name="opening_price"/>
                     </group>
+                    <group string="2. Pohyby" col="4">
+                        <field name="subscription_amount" string="+ Úpisy"/>
+                        <field name="subscription_units"/>
+                        <field name="redemption_amount" string="− Odkupy"/>
+                        <field name="redemption_units"/>
+                        <field name="dividend_amount" string="− Dividendy"/>
+                        <newline/>
+                        <field name="pre_capital" string="= Upravený FK"/>
+                    </group>
+                    <group string="3. Změna hodnoty" col="4">
+                        <field name="ratio" string="Alokační poměr" widget="percentage" options="{'digits': [16, 6]}"/>
+                        <newline/>
+                        <field name="shared_result" string="+ Změna společná"/>
+                        <field name="rounding_amount"/>
+                        <field name="delta" string="+ Změna specifická"/>
+                    </group>
+                    <group string="Změna specifická – z toho" col="4">
+                        <field name="fee_amount"/>
+                        <field name="performance_amount"/>
+                        <field name="allocation_amount"/>
+                        <field name="tax_effect_amount"/>
+                        <field name="other_amount"/>
+                    </group>
+                    <group string="4. Konečný stav" col="4">
+                        <field name="capital" string="= FK"/>
+                        <field name="units" string="Kusy"/>
+                        <field name="price" string="Kurz"/>
+                        <field name="price_change_pct" decoration-success="price_change_pct &gt; 0" decoration-danger="price_change_pct &lt; 0"/>
+                    </group>
+                    <group string="V měně třídy" col="4" invisible="not foreign_currency">
+                        <field name="currency_name"/>
+                        <field name="fx_rate"/>
+                        <field name="opening_capital_class"/>
+                        <field name="capital_class"/>
+                        <field name="subscription_amount_class"/>
+                        <field name="redemption_amount_class"/>
+                    </group>
+                    <field name="foreign_currency" invisible="1"/>
                 </sheet>
             </form>
         </field>
