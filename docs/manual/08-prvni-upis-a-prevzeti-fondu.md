@@ -6,13 +6,30 @@ Kapitola popisuje **pohyb kapitálu třídy**: úpis (investor vkládá peníze 
 Navazuje na kap. 2–4 (fond, třídy, ocenění a matice) a kap. 7 (kurzy). **Převzetí fondu od jiného administrátora zatím v systému
 neexistuje** – viz poslední oddíl.
 
-## Zásada: Odoo nic nedopočítává
+## Zadávání pohybů
 
-Kusy, cenu, hrubou částku, poplatek a rozdíl ze zaokrouhlení kusů určuje informační systém (IS), který vypořádává úpisy a odkupy.
-Odoo je jen **kontroluje a účtuje**. Do napojení IS se pohyb zadává ručně (zdroj **Ruční zadání**, s povinným důvodem).
-Částky se zadávají v měně kurzu třídy; doklad vzniká ve funkční měně fondu.
+### Zdroj IS: jen kontrola a zaúčtování
 
-Vzorce, podle kterých Odoo kontroluje součet:
+Pokud úpisy a odkupy zpracovává **informační systém (IS)**, Odoo je jen kontroluje a účtuje.
+Kusy, cenu, hrubou částku, poplatek a rozdíl ze zaokrouhlení kusů určuje IS; Odoo je přebírá beze změny.
+Do napojení IS se pohyb zadává ručně (zdroj **Ruční zadání**, s povinným důvodem).
+
+### Ruční zadání: formulář navrhne hodnoty
+
+U zdroje **Ruční zadání** formulář při každé změně vstupních polí sám dopočítá závislé hodnoty –
+uživatel je může přepsat. Po přepsání zůstane nová hodnota, dokud se nezmění vstup, který ji ovlivňuje.
+
+| Situace | Co formulář navrhne |
+|---|---|
+| Výběr třídy a data | Cenu za kus ze zveřejněného ocenění fondu k datu; kurz z vyhlášeného kurzu (u třídy v cizí měně). |
+| Úpis – zadání přijaté platby | Poplatek ze sazby třídy; kusy zaokrouhlené podle pravidla třídy; rozdíl ze zaokrouhlení. |
+| Odkup – zadání kusů | Hrubou částku (kusy × cena), poplatek ze sazby, výplatu investorovi. |
+| Třída bez sazby (0 %) | Poplatek 0,00 – lze zadat ručně; příjemce je pak povinný. |
+| První úpis třídy (bez zveřejněného ocenění) | Cena se nepředvyplní; v poli Důvod odlišné ceny se objeví nápověda „První úpis třídy". |
+
+Výpočetní pravidla jsou stejná jako kontroly před zaúčtováním – předvyplněný pohyb projde **Zaúčtovat** beze změny.
+
+Vzorce pro součet:
 
 - **Úpis:** hrubá částka (přijatá platba) = kusy × cena + poplatek + rozdíl ze zaokrouhlení + zbytek.
 - **Odkup:** hrubá částka = kusy × cena + zbytek; výplata investorovi = hrubá částka − poplatek − rozdíl ze zaokrouhlení.
@@ -138,3 +155,35 @@ etapa 2). Do jejího dokončení platí:
   historii kapitálu převzatého fondu.
 - Převzatá historická ocenění brání pravidla pořadí ocenění (nové ocenění až po zveřejnění předchozího, kap. 4); řešení je otevřený bod.
 - Postup převzetí proto před nasazením ostrého fondu vyžaduje rozhodnutí podle návrhu etapy; kapitola se doplní po jeho schválení a provedení.
+
+## Příklad: vzorový úpis s přesným výpočtem
+
+Třída **B** v CZK, 6 desetinných míst kusů, zaokrouhlení dolů, vstupní poplatek 1 %, zveřejněný kurz 1 036,6444 CZK/kus.
+
+| Položka | Hodnota | Výpočet |
+|---|---|---|
+| Přijatá platba | 1 000 000,00 CZK | zadáno |
+| Cena za kus | 1 036,6444 | předvyplněna ze zveřejněného kurzu |
+| Poplatek (1 %) | 10 000,00 | 1 000 000 × 0,01 |
+| Čistá platba | 990 000,00 | 1 000 000 − 10 000 |
+| Kusy (dolů, 6 míst) | 955,004437 | 990 000 ÷ 1 036,6444, dolů na 6 míst |
+| Kusy × cena | 990 000,00 | 955,004437 × 1 036,6444 (na haléře) |
+| Rozdíl ze zaokrouhlení | 0,00 | 990 000 − 990 000 |
+| Zbytek | 0,00 | (kontrola součtu) |
+
+Všechny hodnoty formulář dopočítá automaticky; zbývá jen zadat Důvod ručního zadání a stisknout **Zaúčtovat**.
+
+## Příklad: odkup podle kusů
+
+Třída **B**, kurz 1 050,00 CZK, výstupní poplatek 1 %, investor vrací 100 kusů.
+
+| Položka | Hodnota | Výpočet |
+|---|---|---|
+| Kusy | 100,000000 | zadáno |
+| Cena za kus | 1 050,00 | předvyplněna |
+| Hrubá částka | 105 000,00 | 100 × 1 050 |
+| Poplatek (1 %) | 1 050,00 | 105 000 × 0,01 |
+| Výplata investorovi | 103 950,00 | 105 000 − 1 050 |
+| Zbytek | 0,00 | (kontrola součtu) |
+
+*Čísla jsou ukázková, bez vazby na skutečný fond.*

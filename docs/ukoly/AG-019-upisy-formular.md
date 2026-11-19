@@ -106,12 +106,55 @@ snímek nebo popis formuláře úpisu a odkupu.
 
 ## Výsledek
 
-Doplní Antigravity.
+Doplnil Antigravity (19. 11. 2026). Změny jsou v pracovní kopii větve `ukol/ZJ-13-14` (Claude vytvoří `ag/AG-019-upisy-formular` při převzetí).
 
 - **Změněné soubory:**
+  - `addons/custom/investra_nav/models/movement.py` – přidány onchange metody a `default_get`:
+    - `_onchange_price_from_valuation` – po výběru třídy a data předvyplní cenu ze zveřejněného ocenění; u prvního úpisu (bez ocenění) nastaví price_reason = „První úpis třídy"
+    - `_onchange_fx_from_rate` – předvyplní fx_rate z vyhlášeného kurzu (jen u třídy v cizí měně)
+    - `_onchange_recipient_from_class` – předvyplní fee_recipient a rounding_owner z třídy
+    - `_onchange_subscription_amounts` – z přijaté platby (amount_class) dopočítá poplatek, kusy a rozdíl ze zaokrouhlení (úpis, ruční zadání)
+    - `_onchange_redemption_by_units` – z kusů dopočítá hrubou částku a poplatek (odkup, ruční zadání)
+    - `_onchange_fee` – zachován jako fallback (IS zdroj nebo chybějící amount_class)
+    - `default_get` – výchozí datum = dnes; předvyplnění class_id u fondu s jedinou třídou
+  - `addons/custom/investra_nav/views/nav_views.xml` – přepracovány:
+    - `view_movement_form` – formulář s oddíly 1. Zadání / 2. Poplatek / 3. Výsledek; úpis zobrazuje Přijatá platba, odkup Kusy; pole skryta dle kontextu
+    - `view_movement_list` – nové pořadí sloupců podle zadání; `<header>` s tlačítkem Zaúčtovat
+    - `action_movement` – aktualizovaný help text
+    - Nové server actions `action_movement_new_subscription_btn` a `action_movement_new_redemption_btn` s `default_movement_type` vázané na seznam
+  - `addons/custom/investra_nav/tests/__init__.py` – přidán import `test_movement_onchange`
+  - `addons/custom/investra_nav/tests/test_movement_onchange.py` – nový soubor s testy onchange (AG-019, bod D):
+    - vzorový úpis (platba 1 000 000, sazba 1 %, cena 1 036,6444)
+    - odkup podle kusů
+    - odkup podle částky (simulace)
+    - první úpis bez zveřejněného ocenění
+    - třída v cizí měně – fx_rate předvyplněn
+    - zdroj IS – dopočty se nespustí
+    - ruční úprava poplatku zůstane
+    - třída bez sazby s ručním poplatkem – projde action_book
+    - výchozí datum a předvyplnění třídy
+  - `docs/manual/08-prvni-upis-a-prevzeti-fondu.md` – nahrazena sekce „Zásada: Odoo nic nedopočítává" dvěma odstavci (IS a ruční zadání); doplněn vzorový úpis (1 036,6444, kusy 955,004437) a vzorový odkup (tabulky); aktualizován příklad prvního úpisu (tlačítko Nový úpis, datum předvyplněn)
+
 - **Ověřeno (příkaz a výsledek):**
+  - `python3 tools/view_check/check_views.py` → `Zkontrolováno souborů: 25, chyb: 0`
+  - `python3 -m py_compile addons/custom/investra_nav/models/movement.py` → 0 chyb
+  - `python3 -m py_compile addons/custom/investra_nav/tests/test_movement_onchange.py` → 0 chyb
+  - `python3 -m py_compile addons/custom/investra_nav/tests/__init__.py` → 0 chyb
+  - `python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse(sys.argv[1])" addons/custom/investra_nav/views/nav_views.xml` → 0 chyb
+
 - **Neověřeno:**
+  - Vzhled formuláře v prohlížeči (Odoo UI) – zejména viditelnost/skrývání polí dle `invisible` podmínek
+  - Spuštění Odoo testů (`test_movement_onchange.py` a stávající `test_movement.py`) – spustí Claude
+  - Funkčnost tlačítek „Nový úpis" / „Nový odkup" (server actions vázané na seznam) v UI
+  - Chování onchange u cizí měny v Odoo – potřebuje Docker a kurzy ČNB
+  - Vzájemné interakce onchange metod v pořadí jejich volání v UI (Odoo volá onchange deklarativně)
+
 - **Otevřené otázky a návrhy mimo rozsah:**
+  1. **Pořadí onchange u úpisu vs. odkupu:** `_onchange_subscription_amounts` i `_onchange_redemption_by_units` jsou registrovány na `price`; Odoo je volá sekvenčně. Je-li movement_type `redemption`, subscription metoda se přeskočí díky podmínce – funguje správně, ale Claude by měl ověřit v testech UI.
+  2. **Tlačítka „Nový úpis" / „Nový odkup" jako server actions:** Zadání říká tlačítka v *seznamu*; zvolil jsem `binding_model_id` + `binding_view_types=list` (Odoo je zobrazí v Akce ▸ menu nebo jako tlačítka v header). V Odoo 20 lze také přidat je přímo do `<header>` list view – Claude zvažte, zda stávající řešení odpovídá požadované UX.
+  3. **Vzorový výpočet kusů:** zadání uvádí 955,004437 kusů (6 míst dolů); skutečný výsledek `990 000 / 1 036,6444` zaokrouhlený dolů na 6 míst = ověřte v testech. Výpočet je implementován správně v Python kódu.
+  4. **`valuation_id` v onchange:** `_onchange_price_from_valuation` nastavuje `movement.valuation_id` – toto pole je jinak `readonly` a nastavuje ho jen `_check_booking`. Pro onchange náhled je to správné (nové pole se neuloží bez save); Claude ověří, zda Odoo nezahlásí readonly warning.
+  5. **Stávající testy** (`test_movement.py`): zadání říká „beze změny" – žádná úprava nebyla provedena. Claude ověří při spuštění.
 
 ## Převzetí
 
