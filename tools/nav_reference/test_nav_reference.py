@@ -80,6 +80,30 @@ class Reference(unittest.TestCase):
         self.assertEqual(rows[1]["tax_move"], "-5.00")
         self.assertEqual(rows[1]["fk"], "900.00")
 
+    def test_tax_effect_of_class_specific_items(self):
+        # ZJ-12 B.5 (příklad C5 bez odměny): A, B po 1 000, výsledek společný 100, specifický náklad A −20.
+        # Daň 0,05 × 80 = 4; efekt nákladu A 0,05 × (20 − 0,5 × 20) = 0,50 třídě A; součet přesunů 0.
+        # FK 2 000 + 100 − 20 − 4 = 2 076; neutrální 2 096. Třídy: A 0,5 × 2 096 − 20 + 0,50 = 1 028,50; B 1 048 − 0,50 = 1 047,50.
+        row = compute(fund([cls("A", 1000, 100), cls("B", 1000, 100)], [
+            {"date": "2027-01-31", "common_result": 100, "specific": {"A": -20}, "tax": {"rate": "0.05"}},
+        ]))[0]
+        self.assertEqual(row["tax_move"], "4.00")
+        self.assertEqual(row["tax_transfers"], {"A": "0.50", "B": "-0.50"})
+        self.assertEqual(row["fkt"], {"A": "1028.50", "B": "1047.50"})
+
+    def test_performance_adds_back_tax_borne(self):
+        # ZJ-12 B.3: jedna třída, HWM 1 000, odměna 20 % po kroku 2, daň 5 %. Leden +100 000: odměna 20 000, daň
+        # 0,05 × 80 000 = 4 000. Únor 0: hodnota 1 076 000 + naběhlá 20 000 + nesená daň 4 000 = 1 100 000 → doplatek 0.
+        rows = compute(fund([cls("A", 1000000, 1000)], [
+            {"date": "2027-01-31", "common_result": 100000, "perf_fee": {"A": {"rate": "0.2", "hwm": 1000}},
+             "tax": {"rate": "0.05"}},
+            {"date": "2027-02-28", "perf_fee": {"A": {"rate": "0.2", "hwm": 1000}}, "tax": {"rate": "0.05"}},
+        ]))
+        self.assertEqual(rows[0]["perf_moves"]["A"], "20000.00")
+        self.assertEqual(rows[0]["tax_move"], "4000.00")
+        self.assertEqual(rows[1]["perf_moves"]["A"], "0.00")
+        self.assertEqual(rows[1]["fk"], "1076000.00")
+
     def test_remainder_goes_to_largest_class(self):
         split = split_with_remainder({"A": Decimal("33.335"), "B": Decimal("33.335"), "C": Decimal("33.33")})
         self.assertEqual(sum(split.values()), Decimal("100.00"))

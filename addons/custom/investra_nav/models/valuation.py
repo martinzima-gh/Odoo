@@ -237,11 +237,39 @@ class InvestraValuation(models.Model):
         ])
 
     def _compute_note(self):
-        """Souhrn výpočtu do historie: FK a kurzy tříd."""
+        """Souhrn výpočtu do historie: FK, kurzy tříd a opravy (ZJ-12 B.9)."""
         self.ensure_one()
         prices = ", ".join(f"{line.class_id.code} {line.price}" for line in self.class_line_ids)
-        return self.env._("FK %(fk).2f %(currency)s; kurzy tříd: %(prices)s",
+        note = self.env._("FK %(fk).2f %(currency)s; kurzy tříd: %(prices)s",
                           fk=self.fund_capital, currency=self.currency_id.name or "", prices=prices or "-")
+        corrections = self._corrections_summary()
+        return f"{note}\n{corrections}" if corrections else note
+
+    def _corrections_summary(self):
+        """Seznam oprav ocenění pro stopu (ZJ-12 B.9): pravidlo, třída, vypočteno → oprava, platnost, zdůvodnění, kdo
+        zadal; ukončení a převzetí z verze jsou rozlišené. Na konci počet převzatých oprav dřívějších ocenění."""
+        self.ensure_one()
+        validity = dict(self.env["investra.valuation.external"]._fields["validity"].selection)
+        rows = []
+        for entry in self.external_fee_ids.filtered("corrects_rule_id"):
+            head = " ".join(filter(None, [entry.corrects_rule_id.name, entry.class_id.code]))
+            if entry.correction_target == "base":
+                what = self.env._("oprava základu %s", f"{entry.amount:+.2f}")
+            else:
+                what = self.env._("vypočteno %(computed)s → %(result)s (oprava %(amount)s)",
+                                  computed=f"{entry.computed_now:.2f}", result=f"{entry.computed_now + entry.amount:.2f}",
+                                  amount=f"{entry.amount:+.2f}")
+            extra = []
+            if entry.ended_id:
+                extra.append(self.env._("ukončuje opravu z %s", entry.ended_id.valuation_id.display_name))
+            if entry.origin_id:
+                extra.append(self.env._("převzato z verze %s", entry.origin_id.valuation_id.version))
+            rows.append("; ".join([f"{head}: {what}", validity.get(entry.validity, ""), entry.note or "",
+                                   self.env._("zadal %s", entry.create_uid.name), *extra]))
+        carried = self.check_ids.filtered(lambda c: c.code == "carried_corrections" and c.status != "ok")
+        if carried:
+            rows.append(carried.name)
+        return (self.env._("Opravy: ") + " | ".join(rows)) if rows else ""
 
     def _require_state(self, *states):
         for record in self:
@@ -406,26 +434,10 @@ class InvestraValuation(models.Model):
         self._compute_portfolio()
         self._compute_bank_fx()
         self._compute_unsettled()
-        # Pevné pořadí podle druhu (ZJ-06 bod 7, rozhodnutí 2026-11-17; nahrazuje pořadí pravidel z 2026-11-05):
-        # časově rozlišené a ručně doložené úplaty → výkonnostní odměna (po nich, před sebou) → daň nakonec.
-        # Výkonnostní odměna má základ před úplatami, po úplatách, nebo po dani; „po dani“ se počítá až po dani
-        # a daň se pak ve stejném ocenění doúčtuje o odměnu, která šla do výsledku (rozhodnutí 2026-11-17).
+        # ZJ-12 krok 3: společný dopočet úplat, výkonnostní odměny a daně (engine.solve_fees) místo pevného pořadí
+        # podle druhu (ZJ-06 bod 7). Základ každého pravidla volí „Základ: po kroku 1–4“; doklady vznikají až po ustálení.
         rules = self.env["investra.fee.rule"].search([("fund_id", "=", self.fund_id.id)])
-        performance = rules.filtered(lambda r: r.kind == "performance")
-        taxes = rules.filtered(lambda r: r.kind == "tax")
-        before_fees = {fund_class: self._class_value(fund_class, context) for fund_class in context} \
-            if any(rule.perf_base == "before_fees" for rule in performance) else {}
-        self._apply_periodic_fees(rules.filtered(lambda r: r.kind == "periodic"), context)
-        for rule in performance.filtered(lambda r: r.perf_base != "after_tax"):
-            self._apply_performance(rule, context, before_fees)
-        for rule in taxes:
-            self._apply_tax(rule)
-        late = performance.filtered(lambda r: r.perf_base == "after_tax")
-        for rule in late:
-            self._apply_performance(rule, context, before_fees)
-        if late:
-            for rule in taxes:
-                self._apply_tax(rule, correction=True)
+        self._apply_fees(rules, context)
         self._apply_scheme(context)
         self._finish(context)
         self.state = "computed"
@@ -842,17 +854,13 @@ class InvestraValuation(models.Model):
         neutral = self._net_assets() - sum(deltas.values())
         return context[fund_class]["ratio"] * neutral + deltas[fund_class]
 
-    def _fee_base(self, rule, context, fund_class=None):
-        if rule.base_source == "none":
-            return Decimal(0)
-        if rule.base_source == "assets":
-            return self._assets()
-        if rule.base_source == "class_fk" and fund_class:
-            return self._class_value(fund_class, context)
-        return self._net_assets()
+    def _book_fee(self, rule, amount, fund_class, movement="fee", payable="fee_payable", kind_suffix="", name=None,
+                  weights=None):
+        """Zaúčtuje úplatu: část příjemcům z tříd přes vnitřní zúčtování, zbytek jako náklad a závazek.
 
-    def _book_fee(self, rule, amount, fund_class, movement="fee", payable="fee_payable", kind_suffix=""):
-        """Zaúčtuje úplatu: část příjemcům z tříd přes vnitřní zúčtování, zbytek jako náklad a závazek."""
+        Částka smí být záporná (oprava úplaty, ZJ-11): náklad, závazek i přesun mezi třídami mají opačné znaménko.
+        `weights` = hodnoty tříd, se kterými počítal společný dopočet (po kroku 1).
+        """
         class_id = fund_class.id if fund_class else False
         share = d(rule.recipient_share) if rule.recipient_class_ids else Decimal(0)
         to_classes = engine.money(amount * share)
@@ -864,124 +872,56 @@ class InvestraValuation(models.Model):
                 {"role": payable, "amount": -external, "class_id": class_id, "movement_type": movement},
             ]
         if to_classes:
-            lines += self._transfer_lines(fund_class, self._recipient_parts(rule, to_classes))
-        self._add_event(f"fee:{rule.id}:{class_id}{kind_suffix}", rule.name, lines)
+            lines += self._transfer_lines(fund_class, self._recipient_parts(rule, to_classes, weights))
+        self._add_event(f"fee:{rule.id}:{class_id}{kind_suffix}", name or rule.name, lines)
 
-    def _recipient_parts(self, rule, amount):
-        context = self._class_context()
-        weights = {c: self._class_value(c, context) for c in rule.recipient_class_ids}
-        weights = {c.code: max(v, Decimal(0)) for c, v in weights.items()}
-        parts = engine.split_amount(amount, weights)
+    def _recipient_parts(self, rule, amount, weights=None):
+        """Podíl přijímajícím třídám podle jejich hodnoty (záporná hodnota = váha 0).
+
+        ZJ-12 krok 3: váhy jsou hodnoty tříd po kroku 1, stejné jako v dopočtu; dřív aktuální stav knihy v okamžiku
+        zaúčtování, který závisel na pořadí dokladů. Bez `weights` zůstává dřívější chování.
+        """
+        if weights is None:
+            context = self._class_context()
+            weights = {c: self._class_value(c, context) for c in rule.recipient_class_ids}
+        weights = self._recipient_weights(rule, weights)
+        if not any(weights.values()):
+            raise UserError(self.env._(
+                "Pravidlo %s: žádná přijímající třída nemá kladnou hodnotu, podíl příjemcům nelze rozdělit.", rule.name))
+        parts = engine.split_amount(amount, {c.code: weight for c, weight in weights.items()})
         return {c: parts[c.code] for c in rule.recipient_class_ids}
 
+    @staticmethod
+    def _recipient_weights(rule, values):
+        """Váhy přijímajících tříd (rozhodnutí 2026-11-19) – stejné pro dopočet, doklad i uložený rozpad.
+
+        Jediná přijímající třída dostane celý podíl bez ohledu na svou hodnotu (i nulovou: třída, která se neúčastní
+        výsledku portfolia a jen přijímá odměnu, může začínat bez kapitálu). Více tříd: váha = kladná hodnota, nekladné
+        nedostanou nic; když není kladná žádná, `_recipient_parts` ocenění zastaví srozumitelnou chybou.
+        """
+        classes = rule.recipient_class_ids
+        if len(classes) == 1:
+            return {classes: Decimal(1)}
+        return {c: max(d(values[c]), Decimal(0)) for c in classes}
+
     def _transfer_lines(self, payer, parts):
-        """Přesun hodnoty mezi třídami: účet vnitřního zúčtování má v součtu nulu, FK se nemění."""
+        """Přesun hodnoty mezi třídami: účet vnitřního zúčtování má v součtu nulu, FK se nemění.
+
+        Plátce prázdný = celý fond (úplata fondu s příjemci, rozhodnutí 2026-11-19): řádek bez třídy nesou třídy poměrem,
+        stejně jako v dopočtu (`engine.fee_effects`, plátce None).
+        """
         total = sum(parts.values())
-        lines = [{"role": "internal_clearing", "amount": -total, "class_id": payer.id, "movement_type": "class_transfer"}]
+        lines = [{"role": "internal_clearing", "amount": -total, "class_id": payer.id if payer else False,
+                  "movement_type": "class_transfer"}]
         for fund_class, amount in parts.items():
             lines.append({"role": "internal_clearing", "amount": amount, "class_id": fund_class.id, "movement_type": "class_transfer"})
         return lines
 
-    def _apply_average(self, rule, current):
-        """Úplata z průměrného FK: nárok od začátku roku minus to, co už je v tomto roce naúčtované.
-
-        `current` = FK k datu ocenění před všemi úplatami (ZJ-06 bod 7); dřívější ocenění vstupují zveřejněným FK.
-        """
-        year_start = date_type(self.date.year - 1, 12, 31)
-        start = max(year_start, self.fund_id.launch_date or year_start)
-        earlier = self.search([
-            ("fund_id", "=", self.fund_id.id), ("date", ">", year_start), ("date", "<", self.date),
-            ("state", "in", ("posted", "sent", "confirmed", "published")),
-        ])
-        capitals = [d(v.fund_capital) for v in earlier] + [current]
-        average = sum(capitals) / len(capitals)
-        result = engine.periodic_fee(
-            rule._engine_rule(start, self.date), start, self.date, average, classes_count=len(self.fund_id.class_ids)
-        )
-        booked = sum(
-            (d(line.amount) for line in earlier.fee_line_ids.filtered(lambda l: l.rule_id == rule)), Decimal(0)
-        )
-        amount = result["amount"] - booked
-        self._fee_record(rule, amount, None, {"average": average, "booked": booked, **result})
-        self._book_fee(rule, amount, None)
-
     def _periodic_amount(self, rule, base):
-        """Částka časově rozlišené úplaty z daného základu; základ před/po řeší volající, ne engine."""
+        """Částka časově rozlišené úplaty z daného základu; základ podle kroku řeší společný dopočet, ne engine."""
         start, end = self._period_start(), self.date
-        spec = dict(rule._engine_rule(start, end), base_mode="before")
+        spec = rule._engine_rule(start, end)
         return engine.periodic_fee(spec, start, end, base, classes_count=len(self.fund_id.class_ids))
-
-    def _apply_periodic_fees(self, rules, context):
-        """Časově rozlišené a ručně doložené úplaty (ZJ-06 bod 7, rozhodnutí 2026-11-17).
-
-        Základ „před“ = stav před všemi úplatami v ocenění (snímek před první úplatou); úplaty se navzájem neovlivňují.
-        Základ „po“ = stav po všech časově rozlišených a ručně doložených úplatách včetně počítané; úplaty „po“ se
-        dopočtou společně opakováním do ustálení. Průměrný FK, Aktiva a Bez základu volbu nemají (počítají jako „před“).
-        Ručně doložené úplaty (ZJ-03) mají pevnou částku; zaúčtují se po úplatách „před“ a před dopočtem úplat „po“.
-        """
-        payers = [(rule, fund_class) for rule in rules for fund_class in (rule.class_ids or [None])]
-        after = [key for key in payers if key[0].base_mode == "after" and key[0].base_source in ("fk", "class_fk")]
-        # Snímek před první úplatou: základy úplat „před“ a váhy přijímajících tříd pro odhad dopadu úplat „po“.
-        fund_before = self._net_assets()
-        class_before = {fund_class: self._class_value(fund_class, context) for fund_class in context} if after else {}
-        bases = {key: self._fee_base(key[0], context, key[1]) for key in payers
-                 if key not in after and key[0].base_source != "average_fk"}
-        for rule, fund_class in payers:
-            if (rule, fund_class) in after:
-                continue
-            if rule.base_source == "average_fk":
-                self._apply_average(rule, fund_before)
-                continue
-            base = bases[(rule, fund_class)]
-            result = self._periodic_amount(rule, base)
-            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_mode": "before", **result})
-            self._book_fee(rule, result["amount"], fund_class)
-        self._apply_manual_fees()
-        if not after:
-            return
-        # Stav knihy po úplatách „před“ a ručně doložených úplatách; od něj se odečítají úplaty „po“ (včetně sebe).
-        current = {key: self._fee_base(key[0], context, key[1]) for key in after}
-        exact = dict.fromkeys(after, Decimal(0))
-        for _step in range(100):
-            updated = {
-                key: self._periodic_amount(key[0], current[key] - self._after_effect(key, exact, context, class_before))["exact"]
-                for key in after
-            }
-            settled = all(abs(updated[key] - exact[key]) < Decimal("0.000001") for key in after)
-            exact = updated
-            if settled:
-                break
-        else:
-            raise UserError(self.env._("Výpočet úplat se základem po všech úplatách se neustálil."))
-        for key in after:
-            rule, fund_class = key
-            base = current[key] - self._after_effect(key, exact, context, class_before)
-            result = self._periodic_amount(rule, base)
-            self._fee_record(rule, result["amount"], fund_class, {"base": base, "base_mode": "after", **result})
-            self._book_fee(rule, result["amount"], fund_class)
-
-    def _after_effect(self, key, amounts, context, class_before):
-        """O kolik úplaty „po“ (ještě nezaúčtované) sníží základ pravidla `key`.
-
-        Fondový kapitál: náklad mimo fond (bez podílu přijímajícím třídám). Kapitál třídy: úplaty té třídy celé,
-        úplaty celého fondu poměrem třídy, a naopak podíl, který třída z úplat dostane (váhy podle kapitálu před úplatami).
-        """
-        rule, fund_class = key
-        total = Decimal(0)
-        for (other, payer), amount in amounts.items():
-            share = d(other.recipient_share) if other.recipient_class_ids else Decimal(0)
-            if rule.base_source == "fk" or fund_class is None:
-                total += amount * (1 - share)
-                continue
-            if payer == fund_class:
-                total += amount
-            elif not payer:
-                total += amount * context[fund_class]["ratio"]
-            if share and fund_class in other.recipient_class_ids:
-                weights = {c: max(class_before[c], Decimal(0)) for c in other.recipient_class_ids}
-                if sum(weights.values()):
-                    total -= amount * share * weights[fund_class] / sum(weights.values())
-        return total
 
     def _performance_state(self, rule, fund_class, row, version):
         """Srovnávací hodnoty, naběhlá odměna a období od poslední krystalizace."""
@@ -1005,106 +945,698 @@ class InvestraValuation(models.Model):
             return month_end and day.month == 12
         return False
 
-    def _apply_performance(self, rule, context, before_fees=None):
-        version = rule._version_at(self.date)
-        for fund_class in rule.class_ids:
-            row = context[fund_class]
-            reference, hwm, accrued, base_date = self._performance_state(rule, fund_class, row, version)
-            # Základ „před úplatami“ = hodnota třídy před úplatami tohoto ocenění; jinak aktuální stav knihy
-            # (po úplatách, u „po dani“ i po dani). Naběhlá odměna se přičítá zpět: odměna počítá před sebou samou.
-            value = before_fees[fund_class] if rule.perf_base == "before_fees" else self._class_value(fund_class, context)
-            gross = value + accrued
-            flows = []
-            if version.perf_measure == "capital":
-                movements = self.env["investra.class.movement"].sudo().search([
-                    ("class_id", "=", fund_class.id), ("date", ">", base_date), ("date", "<=", self.date),
-                    ("state", "!=", "reversed"),
-                ])
-                flows = [(m.date, m.signed_amount) for m in movements]
-            spec = {
-                "measure": version.perf_measure,
-                "rate": version.rate,
-                "reference": reference,
-                "hwm": hwm if version.perf_use_hwm else None,
-                "hurdle_kind": version.hurdle_kind,
-                "hurdle_rate": version.hurdle_rate,
-                "hurdle_margin": version.hurdle_margin,
-                "hurdle_type": version.hurdle_type,
-                "catch_up": version.catch_up,
-                "hurdle_floor_zero": version.hurdle_floor_zero,
-                "basis": rule.basis,
-                "require_positive_return": version.require_positive_return,
-                "probability": version.probability,
-                "cap_rate": version.cap_rate or None,
-            }
-            if version.hurdle_kind == "index":
-                spec["index_start"] = version.benchmark_id._value_at(base_date)
-                spec["index_end"] = version.benchmark_id._value_at(self.date)
-            result = engine.performance_fee(spec, base_date, self.date, gross, units=row["units"], flows=flows, accrued=accrued)
-            self._fee_record(rule, result["move"], fund_class, {"gross": gross, "base_date": base_date, **result})
-            self._book_fee(rule, result["move"], fund_class, payable="performance_payable")
-            row["perf"] = {
-                "reference": reference, "hwm": hwm, "accrued": result["required"], "base_date": base_date,
-                "crystallise": self._is_crystallisation(rule) and result["required"] > 0,
-                "measure": version.perf_measure,
-            }
-            if rule.cover_class_id and result["shortfall"] > 0:
-                available = max(self._class_value(rule.cover_class_id, context), Decimal(0))
-                covered = min(result["shortfall"], engine.money(available))
-                lines = self._transfer_lines(rule.cover_class_id, {fund_class: covered})
-                self._add_event(f"cover:{rule.id}:{fund_class.id}", f"Krytí {rule.name}", lines)
-                self._fee_record(rule, -covered, fund_class, {"covered_by": rule.cover_class_id.code})
+    # --- společný dopočet úplat, odměny a daně (ZJ-12 krok 3) ----------------------------------------------------
 
-    def _apply_tax(self, rule, correction=False):
-        """Očekávaná daň jako doplatek do požadovaného zůstatku; základ je výsledek od začátku roku.
+    def _year_start(self):
+        """Poslední den předchozího roku: ocenění „od 1. 1.“ mají datum po něm."""
+        return date_type(self.date.year - 1, 12, 31)
 
-        `correction` = doúčtování daně po výkonnostní odměně se základem po dani (rozhodnutí 2026-11-17): výsledek
-        už obsahuje odměnu, která šla do výsledovky; podíl převedený třídám výsledek nemění.
+    def _earlier_valuations(self, after_day):
+        """Zaúčtovaná dřívější ocenění fondu po dni `after_day` a před tímto oceněním."""
+        return self.search([
+            ("fund_id", "=", self.fund_id.id), ("date", ">", after_day), ("date", "<", self.date),
+            ("state", "in", ("posted", "sent", "confirmed", "published")),
+        ], order="date, version")
+
+    def _earlier_fee_items(self, after_day):
+        """Úplaty, ruční úplaty, opravy a výkonnostní odměny dřívějších ocenění po dni `after_day` (ZJ-12 B.3, B.4).
+
+        Položka: krok (2 úplaty, 3 odměna), plátce, náklad mimo fond (`expense`), částka nesená třídami (`borne`) a kusy
+        tříd v tom ocenění. Řádky od ZJ-12 kroku 3 mají `expense` a `borne` v detailu. Starší řádky je nemají: náklad =
+        částka × (1 − podíl příjemců pravidla), plátce-třída nese celou částku, společnou úplatu nesou třídy poměrem
+        ocenění; podíl přijatý od jiných tříd se u nich nezná a vynechá se (odchylka jen u řádků před krokem 3).
+        Krytí (`covered_by`) je přesun mezi třídami, ne náklad. Daň (krok 4, pro základ odměny): třída nesla podíl pohybu
+        daně podle poměru ocenění minus přesun daňového efektu do třídy (`transfers` v detailu; starší řádky ho nemají).
+        """
+        result = []
+        for valuation in self._earlier_valuations(after_day):
+            ratios = {line.class_id.id: d(line.ratio) for line in valuation.class_line_ids}
+            units = {line.class_id.id: d(line.units) for line in valuation.class_line_ids}
+            averages = set()
+            for line in valuation.fee_line_ids:
+                detail = json.loads(line.detail or "{}")
+                rule = line.rule_id or line.external_id.corrects_rule_id
+                if detail.get("covered_by") or detail.get("target") == "base":
+                    continue
+                if rule and rule.kind == "tax":
+                    amount = d(line.amount)
+                    transfers = {int(key): d(value) for key, value in (detail.get("transfers") or {}).items()}
+                    result.append({
+                        "stage": engine.STAGE_TAX, "payer": None, "expense": amount, "units": units,
+                        "borne": {key: ratio * amount - transfers.get(key, Decimal(0)) for key, ratio in ratios.items()},
+                    })
+                    continue
+                if line.rule_id.base_source == "average_fk":
+                    # Před krokem 3 vznikal u průměrného FK s více třídami řádek za každou třídu se stejnou částkou
+                    # (doklad jen jeden, B.6): z ocenění se bere jen první řádek pravidla.
+                    if line.rule_id in averages:
+                        continue
+                    averages.add(line.rule_id)
+                amount = d(line.amount)
+                if "expense" in detail:
+                    expense = d(detail["expense"])
+                else:
+                    share = d(rule.recipient_share) if rule and rule.recipient_class_ids else Decimal(0)
+                    expense = amount * (1 - share)
+                if "borne" in detail:
+                    borne = {int(key): d(value) for key, value in detail["borne"].items()}
+                elif line.class_id:
+                    borne = {line.class_id.id: amount}
+                else:
+                    borne = {key: ratio * amount for key, ratio in ratios.items()}
+                result.append({
+                    "stage": engine.STAGE_PERFORMANCE if rule and rule.kind == "performance" else engine.STAGE_FEE,
+                    "payer": line.class_id.id or None, "expense": expense, "borne": borne, "units": units,
+                })
+        return result
+
+    def _borne_since(self, fund_class, day, measure, units_now, stages):
+        """Úplaty (krok 2) a daň (krok 4), které třída nesla v dřívějších oceněních po dni `day` („přičti od data D“,
+        ZJ-12 B.3): {krok: částka} pro zadané kroky.
+
+        Položky tohoto ocenění se nepřičítají: základ po kroku 1 nebo 2 je stav před nimi. U měřítka hodnota na kus se
+        přičte částka na kus podle kusů v každém ocenění, převedená na dnešní kusy.
+        """
+        total = {stage: Decimal(0) for stage in stages}
+        for item in self._earlier_fee_items(day):
+            if item["stage"] not in total:
+                continue
+            borne = item["borne"].get(fund_class.id, Decimal(0))
+            if measure == "unit":
+                units = item["units"].get(fund_class.id)
+                total[item["stage"]] += borne / units * d(units_now) if units else Decimal(0)
+            else:
+                total[item["stage"]] += borne
+        return total
+
+    def _recipients(self, rule, values):
+        """Podíl a váhy přijímajících tříd pro dopočet: hodnoty tříd po kroku 1 (stejné váhy pak zaúčtování)."""
+        if not rule.recipient_class_ids:
+            return {}
+        return {"share": d(rule.recipient_share),
+                "recipients": {c.id: weight for c, weight in self._recipient_weights(rule, values).items()}}
+
+    def _periodic_item(self, rule, fund_class):
+        """Časově rozlišená úplata: základ FK nebo kapitál třídy po zvoleném kroku; aktiva a bez základu jsou pevné."""
+        constant = base = None
+        shift = {"base": Decimal(0)}
+        if rule.base_source in ("none", "assets"):
+            constant = Decimal(0) if rule.base_source == "none" else self._assets()
+        elif rule.base_source == "class_fk" and fund_class:
+            base = {"scope": "class", "class": fund_class.id, "step": int(rule.base_step)}
+        else:
+            base = {"scope": "fund", "step": int(rule.base_step)}
+
+        def full(value):
+            # Oprava základu (B.7) se přičte ke stavu k datu jen v tomto ocenění.
+            value = (constant if base is None else value) + shift["base"]
+            result = self._periodic_amount(rule, value)
+            return {"base": value, "base_step": rule.base_step, **result, "move": result["amount"]}
+
+        return {"base": base, "amount": lambda value: full(value)["exact"], "full": full, "shift": shift}
+
+    def _average_item(self, rule):
+        """Úplata z průměrného FK (ZJ-12 B.6): nárok od začátku roku minus to, co už je v roce naúčtované.
+
+        Průměr prostý: dřívější body jsou zveřejněné FK, dnešní bod je FK po zvoleném kroku (v dopočtu váha 1/n).
+        Pravidlo dává jednu položku bez ohledu na třídy (oprava B.6: dřív řádek za každou třídu a dvojí „booked“).
+        """
+        year_start = self._year_start()
+        start = max(year_start, self.fund_id.launch_date or year_start)
+        earlier = self._earlier_valuations(year_start)
+        capitals = [d(v.fund_capital) for v in earlier]
+        booked = Decimal(0)
+        for valuation in earlier:
+            # Starší ocenění mohou mít řádek za každou třídu se stejnou částkou (B.6): bere se jeden.
+            lines = valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule)
+            booked += d(lines[0].amount) if lines else Decimal(0)
+        spec = rule._engine_rule(start, self.date)
+        count = len(self.fund_id.class_ids)
+        shift = {"base": Decimal(0)}
+
+        def full(current):
+            # Oprava základu (B.7) upravuje celoroční průměr; převzatá platí do konce roku.
+            average = (sum(capitals, Decimal(0)) + current) / (len(capitals) + 1) + shift["base"]
+            result = engine.periodic_fee(spec, start, self.date, average, classes_count=count)
+            return {"average": average, "booked": booked, "base_step": rule.base_step, **result,
+                    "move": result["amount"] - booked}
+
+        return {"base": {"scope": "fund", "step": int(rule.base_step)},
+                "amount": lambda current: full(current)["exact"] - booked, "full": full, "shift": shift}
+
+    def _performance_item(self, rule, fund_class, context):
+        """Výkonnostní odměna třídy: základ hodnota třídy po kroku 1, 2 nebo 4, nikdy po sobě samé.
+
+        Od poslední krystalizace se k hodnotě třídy přičte, co třída nesla (ZJ-12 B.3): po kroku 1 úplaty a daň, po kroku 2
+        daň, po kroku 4 nic. Naběhlá odměna se přičítá zpět; částka pro dopočet je přesný doplatek proti naběhlé odměně.
         """
         version = rule._version_at(self.date)
+        row = context[fund_class]
+        reference, hwm, accrued, base_date = self._performance_state(rule, fund_class, row, version)
+        flows = []
+        if version.perf_measure == "capital":
+            movements = self.env["investra.class.movement"].sudo().search([
+                ("class_id", "=", fund_class.id), ("date", ">", base_date), ("date", "<=", self.date),
+                ("state", "!=", "reversed"),
+            ])
+            flows = [(m.date, m.signed_amount) for m in movements]
+        spec = {
+            "measure": version.perf_measure,
+            "rate": version.rate,
+            "reference": reference,
+            "hwm": hwm if version.perf_use_hwm else None,
+            "hurdle_kind": version.hurdle_kind,
+            "hurdle_rate": version.hurdle_rate,
+            "hurdle_margin": version.hurdle_margin,
+            "hurdle_type": version.hurdle_type,
+            "catch_up": version.catch_up,
+            "hurdle_floor_zero": version.hurdle_floor_zero,
+            "basis": rule.basis,
+            "require_positive_return": version.require_positive_return,
+            "probability": version.probability,
+            "cap_rate": version.cap_rate or None,
+        }
+        if version.hurdle_kind == "index":
+            spec["index_start"] = version.benchmark_id._value_at(base_date)
+            spec["index_end"] = version.benchmark_id._value_at(self.date)
+        stages = {"1": (engine.STAGE_FEE, engine.STAGE_TAX), "2": (engine.STAGE_TAX,)}.get(rule.base_step, ())
+        borne = self._borne_since(fund_class, base_date, version.perf_measure, row["units"], stages)
+        added_fees = borne.get(engine.STAGE_FEE, Decimal(0))
+        added_tax = borne.get(engine.STAGE_TAX, Decimal(0))
+
+        shift = {"base": Decimal(0)}
+
+        def full(value):
+            gross = value + accrued + added_fees + added_tax + shift["base"]
+            result = engine.performance_fee(spec, base_date, self.date, gross, units=row["units"], flows=flows,
+                                            accrued=accrued)
+            return {"gross": gross, "base_date": base_date, "base_step": rule.base_step, "added_fees": added_fees,
+                    "added_tax": added_tax, **result}
+
+        state = {"reference": reference, "hwm": hwm, "base_date": base_date, "measure": version.perf_measure}
+        return {"base": {"scope": "class", "class": fund_class.id, "step": int(rule.base_step)},
+                "amount": lambda value: full(value)["exact"] - accrued, "full": full, "state": state, "shift": shift}
+
+    def _tax_item(self, rule):
+        """Očekávaná daň (ZJ-12 B.4, B.5): vstupy dopočtu z knihy po kroku 1 a z dřívějších ocenění od 1. 1.
+
+        Výsledek od 1. 1. bez účtu daně; náklady dřívějších ocenění, které podle volby základ nesnižují (krok 1:
+        úplaty a odměna, krok 2: odměna), se přičtou zpět. Specifické položky tříd = výsledkové řádky s třídou od 1. 1.
+        (úplaty a odměna tříd, opravy, zajištění) bez nezapočitatelných. Daňový efekt minulého ocenění v roce (pro
+        přírůstkový přesun) je v detailu jeho řádku daně (`effect`, `effect_total`).
+        """
+        version = rule._version_at(self.date)
+        step = int(rule.base_step)
         year_start = date_type(self.date.year, 1, 1)
         tax_account = self.env["investra.account.role"].account_for(self.company_id, "expense_tax")
-        result = -(
-            self._sum(("date", ">=", year_start), ("account_id.account_type", "=like", "income%"))
-            + self._sum(("date", ">=", year_start), ("account_id.account_type", "=like", "expense%"), ("account_id", "!=", tax_account.id))
+        pnl = [("date", ">=", year_start), ("account_id", "!=", tax_account.id),
+               "|", ("account_id.account_type", "=like", "income%"), ("account_id.account_type", "=like", "expense%")]
+        result = -self._sum(*pnl)
+        specific = {c.id: Decimal(0) for c in self.fund_id.class_ids}
+        groups = self.env["account.move.line"].sudo()._read_group(
+            self._line_domain(*pnl, ("investra_class_id", "in", self.fund_id.class_ids.ids)),
+            groupby=["investra_class_id"], aggregates=["balance:sum"],
         )
-        required = engine.money(max(result, Decimal(0)) * d(version.rate))
+        for fund_class, balance in groups:
+            specific[fund_class.id] = d(balance).quantize(engine.CENT, rounding=ROUND_HALF_UP)
+        for item in self._earlier_fee_items(self._year_start()):
+            if item["stage"] == engine.STAGE_TAX:
+                continue
+            if item["stage"] > step:
+                result += item["expense"]
+                if item["payer"] in specific:
+                    specific[item["payer"]] -= item["expense"]
+        previous, previous_total = self._previous_tax_effect(rule)
         booked = self._sum(("date", ">=", year_start), ("account_id", "=", tax_account.id))
-        move = required - booked
-        self._fee_record(rule, move, None, {"base": result, "required": required, "booked": booked, "correction": correction})
-        suffix = ":perf" if correction else ""
-        name = self.env._("%s – doúčtování po výkonnostní odměně", rule.name) if correction else rule.name
-        self._add_event(f"tax:{rule.id}{suffix}", name, [
-            {"role": "expense_tax", "amount": move, "movement_type": "fee"},
-            {"role": "tax_payable", "amount": -move, "movement_type": "fee"},
-        ])
+        transfers_booked, transfers_exact = self._tax_transfer_history(rule)
+        return {"stage": engine.STAGE_TAX, "payer": None, "tax": {
+            "rate": d(version.rate), "step": step, "result": result, "booked": booked, "specific": specific,
+            "previous_effect": previous, "previous_effect_total": previous_total,
+            "transfers_booked": transfers_booked, "transfers_exact": transfers_exact,
+        }}
 
-    def _apply_manual_fees(self):
-        """Ručně doložené úplaty (ZJ-03): částka spočtená mimo Odoo na zvolený nákladový účet, protiúčet závazek z úplat.
+    def _tax_transfer_history(self, rule):
+        """Přesuny daňového efektu od 1. 1. (rozhodnutí 2026-11-19): zaúčtované po třídách a přesný součet.
+
+        Zaúčtované = součet `transfers` řádků daně dřívějších ocenění v roce. Přesný (nezaokrouhlený) součet je
+        `transfers_exact` posledního řádku, který ho má; starší řádky ho nemají, pak přesný součet = zaúčtované přesuny.
+        """
+        booked, exact = {}, None
+        for valuation in self._earlier_valuations(self._year_start()):
+            for line in valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule):
+                detail = json.loads(line.detail or "{}")
+                for key, value in (detail.get("transfers") or {}).items():
+                    booked[int(key)] = booked.get(int(key), Decimal(0)) + d(value)
+                if "transfers_exact" in detail:
+                    exact = {int(k): d(v) for k, v in detail["transfers_exact"].items()}
+        return booked, (dict(booked) if exact is None else exact)
+
+    def _previous_tax_effect(self, rule):
+        """Daňový efekt tříd posledního dřívějšího ocenění v roce ({třída: e × spec_c}, e × Σ spec), ZJ-12 B.5.
+
+        Řádky z kroku 3 před přírůstkovým přesunem efekt neukládají: dopočte se z `effective_rate` a `specific`
+        (zaokrouhlené na haléře, rozdíl nejvýš e × 0,005 na třídu). Řádek bez efektivní sazby (před krokem 3) = 0.
+        """
+        for valuation in reversed(self._earlier_valuations(self._year_start())):
+            line = valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule)[:1]
+            if not line:
+                continue
+            detail = json.loads(line.detail or "{}")
+            if "effect" in detail:
+                return ({int(k): d(v) for k, v in detail["effect"].items()}, d(detail["effect_total"]))
+            rate = d(detail.get("effective_rate") or 0)
+            effect = {int(k): rate * d(v) for k, v in (detail.get("specific") or {}).items()}
+            return effect, sum(effect.values(), Decimal(0))
+        return {}, Decimal(0)
+
+    def _manual_item(self, entry, values):
+        """Ručně doložená úplata nebo oprava (ZJ-03, ZJ-11, ZJ-12 B.7): pevná částka v měně fondu.
+
+        Ručně doložená úplata a oprava úplaty jsou krok 2, oprava odměny krok 3 (plátce třída), oprava daně krok 4
+        (plátce fond; do základu daně nevstupuje, je to daň). `corrects` = klíč opraveného pravidla v dopočtu.
+        """
+        currency = entry.currency_id or self.fund_id.currency_id
+        original = engine.money(d(entry.amount))
+        rate = self._fx(currency)
+        item = {"key": ("manual", entry.id), "stage": engine.STAGE_FEE, "payer": entry.class_id.id or None,
+                "base": None, "amount": engine.money(original * rate), "kind": "manual", "entry": entry,
+                "original": original, "rate": rate, "currency": currency}
+        rule = entry.corrects_rule_id
+        if rule:
+            item["corrects"] = self._correction_key(rule, entry.class_id.id or None)
+            if rule.kind == "tax":
+                item.update(stage=engine.STAGE_TAX, payer=None)
+                return item
+            item.update(self._recipients(rule, values))
+            if rule.kind == "performance":
+                item["stage"] = engine.STAGE_PERFORMANCE
+        return item
+
+    @staticmethod
+    def _correction_key(rule, class_id):
+        """Klíč položky pravidla v dopočtu, ke které se oprava vztahuje."""
+        if rule.kind == "tax":
+            return ("tax", rule.id)
+        if rule.kind == "performance":
+            return ("perf", rule.id, class_id)
+        return ("fee", rule.id, None if rule.base_source == "average_fk" else class_id)
+
+    def _carried_corrections(self, rule, fund_class, since, target="amount"):
+        """Převzaté opravy částky (ZJ-12 B.7): opravy s platností „do konce období“ z dřívějších ocenění po dni `since`.
+
+        Odměna od poslední krystalizace, daň od 1. 1.; časově rozlišená úplata se nepřebírá (oprava je trvalá).
+        Ukončení (`ended_id`) je oprava o −částku s toutéž platností, proto se v součtu s ukončenou vyruší.
+        """
+        earlier = self._earlier_valuations(since)
+        if not earlier:
+            return self.env["investra.valuation.external"]
+        return self.env["investra.valuation.external"].sudo().search([
+            ("valuation_id", "in", earlier.ids), ("corrects_rule_id", "=", rule.id),
+            ("correction_target", "=", target), ("validity", "=", "period"),
+            ("class_id", "=", fund_class.id if fund_class else False),
+        ], order="id")
+
+    def _apply_base_correction(self, item, base_entries):
+        """Oprava základu (ZJ-12 B.7): nové opravy tohoto ocenění a převzaté „do konce období“ se přičtou k základu.
+
+        Daň: k základu (ruční úprava ZJ-07 bod 2), převzatá od 1. 1. Průměrný FK: k celoročnímu průměru, převzatá od 1. 1.
+        Odměna: k hodnotě třídy, převzatá od krystalizace. Úplata ze stavu k datu (FK, kapitál třídy, aktiva): jen toto
+        ocenění. Oprava základu nepevní částku: pravidlo se z opraveného základu spočítá (i v průchodu „Vypočteno“,
+        kde jsou vynechané jen opravy částky).
+        """
+        if item["kind"] not in ("periodic", "performance", "tax"):
+            return
+        rule, fund_class = item["rule"], item.get("fund_class")
+        new = base_entries.filtered(
+            lambda e: self._correction_key(e.corrects_rule_id, e.class_id.id or None) == item["key"])
+        if item["kind"] == "tax" or rule.base_source == "average_fk":
+            carried = self._carried_corrections(rule, None, self._year_start(), target="base")
+        elif item["kind"] == "performance":
+            carried = self._carried_corrections(rule, fund_class, item["state"]["base_date"], target="base")
+        else:
+            carried = self.env["investra.valuation.external"]
+        entries = carried | new
+        if not entries:
+            return
+        total = sum((engine.money(d(e.amount)) for e in entries), Decimal(0))
+        item.update(base_entries=entries, base_correction=total)
+        if item["kind"] == "tax":
+            item["tax"]["base_correction"] = total
+        else:
+            item["shift"]["base"] = total
+
+    def _check_corrected_rules(self):
+        """Stop (ZJ-12 B.8): oprava odkazuje na pravidlo, které mezitím změnilo druh nebo třídy nebo je archivované."""
+        for entry in self.external_fee_ids.filtered("corrects_rule_id"):
+            rule = entry.corrects_rule_id
+            if not rule.active:
+                raise UserError(self.env._(
+                    "Oprava %s: pravidlo je archivované. Opravu smažte, nebo pravidlo znovu aktivujte.", rule.name))
+            try:
+                entry._check_correction(self.fund_id)
+            except ValidationError as error:
+                raise UserError(self.env._(
+                    "Oprava %(rule)s už neodpovídá pravidlu (změna druhu nebo tříd): %(error)s",
+                    rule=rule.name, error=error.args[0])) from error
+
+    def _capture_computed(self, items, corrections, first):
+        """Snímek „Vypočteno“ u oprav částky zadaných v tomto ocenění a kontrola změny (ZJ-12 B.8, D4).
+
+        Vypočteno = průchod bez oprav částky + převzaté opravy (= částka řádku pravidla bez nových oprav). Snímek bez
+        tlačítka Opravit (`computed_captured` nevyplněné) se pořídí při prvním výpočtu. Liší-li se nový výpočet od snímku,
+        ocenění se zastaví; uživatel zvolí „Ponechat rozdíl“ nebo „Ponechat výsledek“ (`computed_now` = nynější hodnota).
+        Převzaté opravy dřívějších ocenění se nekontrolují.
+        """
+        targets = {item["key"]: item for item in items}
+        changed = []
+        for item in corrections:
+            entry, target = item["entry"], targets[item["corrects"]]
+            computed = engine.money(first["amounts"][item["corrects"]] + target.get("carried", Decimal(0)))
+            values = {"computed_now": float(computed)}
+            if not entry.computed_captured:
+                values.update(computed_at_entry=float(computed), computed_captured=True)
+            entry.sudo().write(values)
+            if engine.money(d(entry.computed_at_entry)) != computed:
+                changed.append(self.env._(
+                    "%(rule)s: při opravě %(then)s, nyní %(now)s; oprava %(amount)s",
+                    rule=entry.corrects_rule_id.name, then=f"{entry.computed_at_entry:.2f}", now=f"{computed:.2f}",
+                    amount=f"{entry.amount:.2f}"))
+        self._check("correction_changed", self.env._("Vypočtená částka opravených úplat se od zadání opravy nezměnila"),
+                    not changed, "; ".join(changed))
+
+    def _previous_valuation(self):
+        return self.search([
+            ("fund_id", "=", self.fund_id.id), ("date", "<", self.date),
+            ("state", "in", ("posted", "sent", "confirmed", "published")),
+        ], order="date desc, version desc", limit=1)
+
+    def _check_previous_corrections(self):
+        """Upozornění (ZJ-12 B.7, B.8): opravy minulého ocenění, které v tomto už neplatí.
+
+        Oprava základu úplaty ze stavu k datu platí jen pro své ocenění; oprava odměny nebo daně „jen toto ocenění“ se
+        tímto oceněním vrací na vypočtený stav.
+        """
+        previous = self._previous_valuation()
+        corrections = previous.external_fee_ids.filtered("corrects_rule_id")
+        base = corrections.filtered(
+            lambda e: e.correction_target == "base" and e.corrects_rule_id.kind == "periodic"
+            and e.corrects_rule_id.base_source != "average_fk")
+        names = ", ".join(sorted(set(base.mapped("corrects_rule_id.name"))))
+        self._check("base_correction_ended", self.env._("Oprava základu z minulého ocenění skončila"), not base,
+                    self.env._("Minulé ocenění mělo opravu základu u pravidla %s.", names) if base else "",
+                    severity="warning")
+        once = corrections.filtered(lambda e: e.validity == "valuation")
+        names = ", ".join(sorted(set(once.mapped("corrects_rule_id.name"))))
+        self._check("correction_once_ended", self.env._("Opravy „jen toto ocenění“ z minulého ocenění skončily"),
+                    not once, self.env._("Skončila oprava „jen toto ocenění“ u pravidla %s.", names) if once else "",
+                    severity="warning")
+
+    def _check_carried(self, items):
+        """Upozornění (ZJ-12 B.8): ocenění obsahuje převzaté opravy (n); ukončené dvojice se nepočítají."""
+        carried = self.env["investra.valuation.external"]
+        for item in items:
+            carried |= item.get("carried_entries") or carried.browse()
+            carried |= (item.get("base_entries") or carried.browse()).filtered(lambda e: e.valuation_id != self)
+        ending = self.external_fee_ids.filtered("ended_id")
+        ended = carried.mapped("ended_id") | ending.mapped("ended_id")
+        live = carried.filtered(lambda e: e not in ended and not (e.ended_id and e.ended_id in carried))
+        detail = "; ".join(f"{e.corrects_rule_id.name} {e.class_id.code or ''} {e.amount:.2f} ({e.valuation_id.display_name})"
+                           for e in live)
+        self._check("carried_corrections", self.env._("Obsahuje převzaté opravy (%s)", len(live)), not live, detail,
+                    severity="warning")
+
+    def end_correction(self, entry, note):
+        """Ukončí převzatou opravu (ZJ-12 B.7): nová oprava o −její částku s povinnou poznámkou a odkazem `ended_id`.
+
+        Tlačítko „Ukončit opravu“ u převzatých oprav přidá krok 5; kontroly ukončení jsou v `_check_ending`.
+        """
+        self.ensure_one()
+        if not (note or "").strip():
+            raise UserError(self.env._("Ukončení opravy musí mít poznámku."))
+        self.write({"external_fee_ids": [(0, 0, {
+            "corrects_rule_id": entry.corrects_rule_id.id, "class_id": entry.class_id.id,
+            "correction_target": entry.correction_target, "validity": "period", "amount": -entry.amount,
+            "currency_id": entry.currency_id.id, "note": note, "ended_id": entry.id,
+        })]})
+        return self.external_fee_ids.filtered(lambda row: row.ended_id == entry)
+
+    def _solve_fees(self, classes, items, pinned=None):
+        try:
+            return engine.solve_fees(classes, items, pinned)
+        except ValueError as error:
+            raise UserError(self.env._("Ocenění %(name)s: %(error)s", name=self.display_name, error=error)) from error
+
+    def _apply_fees(self, rules, context):
+        """Společný dopočet (ZJ-12 B.1): všechny částky z engine.solve_fees, zaúčtování až po ustálení.
+
+        Opravy (B.7) ve dvou průchodech: bez oprav = „Vypočteno“; pak má opravené pravidlo pevnou vypočtenou částku,
+        oprava se přidá jako samostatná položka a ostatní pravidla se dopočtou k ní. Výsledek = vypočteno + oprava.
+        """
+        values = {c: self._class_value(c, context) for c in context}
+        classes = {c.id: {"value": values[c], "ratio": context[c]["ratio"]} for c in context}
+        items = []
+        for rule in rules.filtered(lambda r: r.kind == "periodic"):
+            if rule.base_source == "average_fk":
+                # Rozhodnutí 2026-11-19: příjemci i u průměrného FK, aby dopočet počítal stejně jako doklad (`_book_fee`).
+                items.append({"key": ("fee", rule.id, None), "stage": engine.STAGE_FEE, "payer": None,
+                              "kind": "periodic", "rule": rule, "fund_class": None,
+                              **self._recipients(rule, values), **self._average_item(rule)})
+                continue
+            for fund_class in rule.class_ids or [None]:
+                class_id = fund_class.id if fund_class else None
+                items.append({"key": ("fee", rule.id, class_id), "stage": engine.STAGE_FEE, "payer": class_id,
+                              "kind": "periodic", "rule": rule, "fund_class": fund_class,
+                              **self._recipients(rule, values), **self._periodic_item(rule, fund_class)})
+        base_entries = self.external_fee_ids.filtered(
+            lambda e: e.corrects_rule_id and e.correction_target == "base")
+        manual = [self._manual_item(entry, values) for entry in self.external_fee_ids - base_entries]
+        items += manual
+        for rule in rules.filtered(lambda r: r.kind == "performance"):
+            for fund_class in rule.class_ids:
+                items.append({"key": ("perf", rule.id, fund_class.id), "stage": engine.STAGE_PERFORMANCE,
+                              "payer": fund_class.id, "kind": "performance", "rule": rule, "fund_class": fund_class,
+                              **self._recipients(rule, values), **self._performance_item(rule, fund_class, context)})
+        for rule in rules.filtered(lambda r: r.kind == "tax"):
+            items.append({"key": ("tax", rule.id), "kind": "tax", "rule": rule, **self._tax_item(rule)})
+        for item in items:
+            self._apply_base_correction(item, base_entries)
+        for item in items:
+            if item["kind"] == "performance":
+                carried = self._carried_corrections(item["rule"], item["fund_class"], item["state"]["base_date"])
+            elif item["kind"] == "tax":
+                carried = self._carried_corrections(item["rule"], None, self._year_start())
+            else:
+                continue
+            item["carried_entries"] = carried
+            item["carried"] = sum((engine.money(d(e.amount)) for e in carried), Decimal(0))
+        self._check_corrected_rules()
+        first = self._solve_fees(classes, [item for item in items if not item.get("corrects")])
+        solved, pinned = first, {}
+        corrections = [item for item in manual if item.get("corrects")]
+        for item in corrections:
+            if item["corrects"] not in first["amounts"]:
+                raise UserError(self.env._(
+                    "Oprava %(rule)s: pravidlo se v tomto ocenění nepočítá pro tuto třídu.",
+                    rule=item["entry"].corrects_rule_id.name,
+                ))
+            pinned[item["corrects"]] = first["amounts"][item["corrects"]]
+        self._capture_computed(items, corrections, first)
+        for item in items:
+            # Převzaté opravy: opravené pravidlo má pevnou částku vypočteno + převzaté (B.7).
+            if item.get("carried_entries"):
+                pinned[item["key"]] = first["amounts"][item["key"]] + item["carried"]
+        for item in corrections:
+            target = next(i for i in items if i["key"] == item["corrects"])
+            target["new_corrections"] = target.get("new_corrections", Decimal(0)) + item["amount"]
+        if pinned:
+            solved = self._solve_fees(classes, items, pinned)
+        residual = solved["residual"]
+        self._check("fee_consistency", self.env._("Společný dopočet úplat je konzistentní"),
+                    residual <= Decimal("1e-10"), f"kroků {solved['steps']}, relativní zbytek {float(residual):.1e}")
+        ratios = {c.id: context[c]["ratio"] for c in context}
+        for entry in base_entries:
+            self._fee_record(None, Decimal(0), entry.class_id, {
+                "manual": True, "corrects": entry.corrects_rule_id.name, "corrects_kind": entry.corrects_rule_id.kind,
+                "target": "base", "base_correction": engine.money(d(entry.amount)), "validity": entry.validity,
+                "note": entry.note, **({"ends": entry.ended_id.id} if entry.ended_id else {}),
+            }, manual=entry)
+        self._check_previous_corrections()
+        self._check_carried(items)
+        self._check_version_copies()
+        negative = []
+        for item in items:
+            # Opravené pravidlo: částka i základ z průchodu bez oprav („Vypočteno“).
+            source = first if item["key"] in pinned else solved
+            if item["kind"] == "tax":
+                result = self._book_tax(item, solved["tax"], first["tax"] if item["key"] in pinned else None)
+            elif item["kind"] == "manual":
+                self._book_manual(item, ratios, values)
+                continue
+            else:
+                result = self._book_rule_fee(
+                    item, source["bases"].get(item["key"]), item["key"] in pinned, ratios, values, context)
+            if ("new_corrections" in item or item.get("carried_entries")) and engine.money(result) < 0:
+                fund_class = item.get("fund_class")
+                negative.append((" ".join(filter(None, [item["rule"].name, fund_class and fund_class.code])),
+                                 engine.money(result)))
+        self._check_negative_corrections(negative)
+
+    def _check_negative_corrections(self, negative):
+        """Upozornění (rozhodnutí 2026-11-19): výsledek opravy je záporný; ocenění nezastaví.
+
+        Výsledek = stav pravidla po opravách částky (nových i převzatých): u úplaty částka řádku pravidla + opravy,
+        u výkonnostní odměny naběhlá odměna, u daně požadovaná daň. Odměna a daň se porovnávají se stavem, ne s pohybem,
+        protože záporný pohyb (rozpuštění naběhlé odměny, vrácení daně) je běžný.
+        """
+        names = ", ".join(label for label, _value in negative)
+        name = (self.env._("Výsledek opravy %s je záporný", names) if negative
+                else self.env._("Výsledek oprav úplat není záporný"))
+        self._check("correction_negative", name, not negative,
+                    "; ".join(f"{label}: {value:.2f}" for label, value in negative), severity="warning")
+
+    def _effect_detail(self, item, amount, ratios, values):
+        """Náklad mimo fond a částky nesené třídami (pro přičtení úplat od data v dalších oceněních, B.3 a B.4).
+
+        Podíl příjemcům se dělí stejnou funkcí jako na dokladu (`money(částka × podíl)`, `_recipient_parts`, zbytkový haléř
+        třídě s největší vahou), aby rozpad odpovídal zaúčtování (revize CP-2026-11-19, nález 1).
+        """
+        rule = item.get("rule") or (item["entry"].corrects_rule_id if item.get("entry") else None)
+        payer = item.get("payer")
+        borne = {key: (amount if payer == key else (rho * amount if payer is None else Decimal(0)))
+                 for key, rho in ratios.items()}
+        to_classes = Decimal(0)
+        if rule and item.get("recipients"):
+            to_classes = engine.money(amount * d(item["share"]))
+            if to_classes:
+                for fund_class, part in self._recipient_parts(rule, to_classes, values).items():
+                    borne[fund_class.id] = borne.get(fund_class.id, Decimal(0)) - part
+        return {"expense": engine.money(amount - to_classes),
+                "borne": {str(key): str(engine.money(value)) for key, value in borne.items() if engine.money(value)}}
+
+    def _book_rule_fee(self, item, base, corrected, ratios, values, context):
+        rule, fund_class = item["rule"], item["fund_class"]
+        full = item["full"](base)
+        carried = item.get("carried", Decimal(0))
+        amount = full["move"] + carried
+        detail = {**full, **self._effect_detail(item, amount, ratios, values)}
+        if corrected:
+            detail["corrected"] = True
+        if item.get("base_entries"):
+            detail.update(base_correction=item["base_correction"], base_correction_ids=item["base_entries"].ids)
+        if item.get("carried_entries"):
+            # Vypočteno (bez oprav) a převzaté opravy; řádek pravidla zaúčtuje oboje, nové opravy mají vlastní řádky.
+            detail.update(computed=full["move"], carried=carried, carried_ids=item["carried_entries"].ids)
+        self._fee_record(rule, amount, fund_class, detail)
+        if item["kind"] != "performance":
+            self._book_fee(rule, amount, fund_class, weights=values)
+            return amount + item.get("new_corrections", Decimal(0))
+        self._book_fee(rule, amount, fund_class, payable="performance_payable", weights=values)
+        state = item["state"]
+        # Naběhlá odměna včetně oprav (B.7): „jen toto ocenění“ se dalším oceněním vrátí, „do konce období“ drží
+        # převzetí; při krystalizaci je oprava součástí splatné odměny.
+        accrued = full["required"] + carried + item.get("new_corrections", Decimal(0))
+        context[fund_class]["perf"] = {
+            "reference": state["reference"], "hwm": state["hwm"], "accrued": accrued,
+            "base_date": state["base_date"], "crystallise": self._is_crystallisation(rule) and accrued > 0,
+            "measure": state["measure"],
+        }
+        if rule.cover_class_id and full["shortfall"] > 0:
+            available = max(self._class_value(rule.cover_class_id, context), Decimal(0))
+            covered = min(full["shortfall"], engine.money(available))
+            lines = self._transfer_lines(rule.cover_class_id, {fund_class: covered})
+            self._add_event(f"cover:{rule.id}:{fund_class.id}", f"Krytí {rule.name}", lines)
+            self._fee_record(rule, -covered, fund_class, {"covered_by": rule.cover_class_id.code})
+        return accrued
+
+    def _book_manual(self, item, ratios, values):
+        """Ručně doložená úplata (ZJ-03) na zvolený nákladový účet, nebo oprava úplaty (ZJ-11) jako úplata pravidla.
 
         Třída prázdná = společný náklad celého fondu (dělí se poměrem), jinak jen dané třídě. Cizí měna se přepočte
         kurzem k datu ocenění ze zdroje kurzů fondu; řádky nesou i původní měnu, aby závazek přecenilo FX přecenění.
+        Oprava se účtuje přes `_book_fee` (nákladová role pravidla, podíl příjemcům z tříd); jen v měně fondu. Řádek
+        rozpisu nemá pravidlo, proto ho průměrný FK v dalším ocenění neodečítá a oprava platí trvale.
         """
-        fund_currency = self.fund_id.currency_id
-        for entry in self.external_fee_ids:
-            currency = entry.currency_id or fund_currency
-            original = engine.money(d(entry.amount))
-            rate = self._fx(currency)
-            amount = engine.money(original * rate)
-            class_id = entry.class_id.id or False
-            foreign = {} if currency == fund_currency else {"currency_id": currency.id}
-            lines = [
-                {"role": "expense_other", "amount": amount, "class_id": class_id, "movement_type": "fee",
-                 "extra": {"account_id": entry.account_id.id},
-                 **({"amount_currency": original, **foreign} if foreign else {})},
-                {"role": "fee_payable", "amount": -amount, "class_id": class_id, "movement_type": "fee",
-                 **({"amount_currency": -original, **foreign} if foreign else {})},
-            ]
+        entry, amount, original, currency = item["entry"], item["amount"], item["original"], item["currency"]
+        effect = self._effect_detail(item, amount, ratios, values)
+        rule = entry.corrects_rule_id
+        if rule:
             self._fee_record(None, amount, entry.class_id, {
-                "manual": True, "note": entry.note, "account": entry.account_id.code,
-                "currency": currency.name, "amount_currency": str(original), "rate": str(rate),
+                "manual": True, "corrects": rule.name, "corrects_kind": rule.kind, "validity": entry.validity,
+                "note": entry.note, "currency": currency.name, **effect,
+                **({"ends": entry.ended_id.id} if entry.ended_id else {}),
             }, manual=entry)
-            self._add_event(f"fee:manual:{entry.id}", self.env._("Ručně doložená úplata"), lines)
+            name = {"tax": self.env._("Oprava daně %s", rule.name),
+                    "performance": self.env._("Oprava odměny %s", rule.name)}.get(
+                        rule.kind, self.env._("Oprava úplaty %s", rule.name))
+            if rule.kind == "tax":
+                self._add_event(f"tax:{rule.id}:manual:{entry.id}", name, [
+                    {"role": "expense_tax", "amount": amount, "movement_type": "fee"},
+                    {"role": "tax_payable", "amount": -amount, "movement_type": "fee"},
+                ])
+                return
+            payable = "performance_payable" if rule.kind == "performance" else "fee_payable"
+            self._book_fee(rule, amount, entry.class_id or None, kind_suffix=f":manual:{entry.id}", name=name,
+                           payable=payable, weights=values)
+            return
+        class_id = entry.class_id.id or False
+        foreign = {} if currency == self.fund_id.currency_id else {"currency_id": currency.id}
+        lines = [
+            {"role": "expense_other", "amount": amount, "class_id": class_id, "movement_type": "fee",
+             "extra": {"account_id": entry.account_id.id},
+             **({"amount_currency": original, **foreign} if foreign else {})},
+            {"role": "fee_payable", "amount": -amount, "class_id": class_id, "movement_type": "fee",
+             **({"amount_currency": -original, **foreign} if foreign else {})},
+        ]
+        self._fee_record(None, amount, entry.class_id, {
+            "manual": True, "note": entry.note, "account": entry.account_id.code,
+            "currency": currency.name, "amount_currency": str(original), "rate": str(item["rate"]), **effect,
+        }, manual=entry)
+        self._add_event(f"fee:manual:{entry.id}", self.env._("Ručně doložená úplata"), lines)
+
+    def _book_tax(self, item, tax, computed=None):
+        """Daň jedním dokladem (ZJ-12 B.4): doplatek do požadované daně a přesun daňového efektu tříd (B.5).
+
+        Přesuny se dorovnávají proti přesnému součtu od 1. 1. (`transfers_exact`, rozhodnutí 2026-11-19); rozdíl, aby byl
+        součet v ocenění nulový, nese přesun s největší absolutní hodnotou.
+        Doúčtování po výkonnostní odměně (`tax:<id>:perf`) zaniká, odměnu a daň počítá společný dopočet.
+        Opravená daň (`computed` = průchod bez oprav, B.7): doplatek z vypočtené daně + převzaté opravy; nové opravy
+        mají vlastní doklady. Přesuny daňového efektu jsou z konečného stavu (oprava daně do nich nevstupuje).
+        """
+        rule, spec = item["rule"], item["tax"]
+        carried = item.get("carried", Decimal(0))
+        required = engine.money((computed or tax)["required"])
+        move = required - spec["booked"] + carried
+        # Dorovnání mezi oceněními (rozhodnutí 2026-11-19): přesun = money(přesný součet od 1. 1.) − už zaúčtované přesuny
+        # třídy od 1. 1.; uvnitř ocenění zbytek do nuly nese přesun s největší absolutní hodnotou.
+        booked_transfers, previous_exact = spec.get("transfers_booked") or {}, spec.get("transfers_exact") or {}
+        exact = {key: previous_exact.get(key, Decimal(0)) + value for key, value in tax["transfers"].items()}
+        for key, value in previous_exact.items():
+            exact.setdefault(key, value)
+        transfers = {key: engine.money(value) - booked_transfers.get(key, Decimal(0)) for key, value in exact.items()}
+        rounding = -sum(transfers.values(), Decimal(0))
+        if rounding and transfers:
+            transfers[max(sorted(transfers), key=lambda key: abs(transfers[key]))] += rounding
+        transfers = {key: value for key, value in transfers.items() if value}
+        self._fee_record(rule, move, None, {
+            "base": tax["base"], "base_step": rule.base_step, "required": required, "booked": spec["booked"],
+            "result": spec["result"], "specific": {str(k): str(engine.money(v)) for k, v in tax["specific"].items()},
+            "effective_rate": tax["effective_rate"], "transfers": {str(k): str(v) for k, v in transfers.items()},
+            "transfers_exact": {str(k): str(v) for k, v in exact.items()},
+            "effect": {str(k): str(v) for k, v in tax["effect"].items()}, "effect_total": str(tax["effect_total"]),
+            **({"corrected": True} if computed else {}),
+            **({"base_correction": item["base_correction"], "base_correction_ids": item["base_entries"].ids}
+               if item.get("base_entries") else {}),
+            **({"computed": required - spec["booked"], "carried": carried,
+                "carried_ids": item["carried_entries"].ids} if item.get("carried_entries") else {}),
+        })
+        lines = [
+            {"role": "expense_tax", "amount": move, "movement_type": "fee"},
+            {"role": "tax_payable", "amount": -move, "movement_type": "fee"},
+        ] + [{"role": "internal_clearing", "amount": value, "class_id": key, "movement_type": "class_transfer"}
+             for key, value in transfers.items()]
+        self._add_event(f"tax:{rule.id}", rule.name, lines)
+        # Požadovaná daň po opravách (pro upozornění na záporný výsledek opravy).
+        return required + carried + item.get("new_corrections", Decimal(0))
 
     def _apply_scheme(self, context):
         """U pořadí nároků zaúčtuje rozdíl proti alokačnímu poměru jako přesun mezi třídami."""
@@ -1204,15 +1736,26 @@ class InvestraValuation(models.Model):
 
         FK (t−1) + úpisy − odkupy − dividendy = upravený FK (základ poměru);
         upravený FK + společná změna + specifická změna = FK. Společná změna obsahuje zaokrouhlení,
-        specifická změna se dál dělí na úplaty, výkonnostní odměnu, přesun podle pořadí nároků a ostatní.
+        specifická změna se dál dělí na úplaty, výkonnostní odměnu, přesun podle pořadí nároků, daňový efekt a ostatní.
         Výsledek ocenění se tím nemění, jen se ukládá rozpad, který výpočet zná.
         """
         previous = row["previous"]
         same_currency = fund_class.currency_id == self.fund_id.currency_id
         fees = self.fee_line_ids.filtered(lambda line: line.class_id == fund_class)
-        performance = -sum((d(l.amount) for l in fees if l.rule_id.kind == "performance"), Decimal(0))
-        fee = -sum((d(l.amount) for l in fees if l.rule_id.kind != "performance"), Decimal(0))
+
+        def kind(line):
+            # ZJ-12 krok 6c (b): oprava odměny (řádek bez pravidla) patří do Výkonnostní odměny, ne do Úplat třídy.
+            return (line.rule_id or line.external_id.corrects_rule_id).kind
+
+        performance = -sum((d(l.amount) for l in fees if kind(l) == "performance"), Decimal(0))
+        fee = -sum((d(l.amount) for l in fees if kind(l) != "performance"), Decimal(0))
         allocation = d(row.get("allocation"))
+        # ZJ-12 krok 6c: přesun daňového efektu (vnitřní zúčtování z `_book_tax`), tytéž zaokrouhlené částky jako na dokladu.
+        # Starší ocenění `transfers` nemají, efekt pak zůstává v Ostatní specifické.
+        tax_effect = Decimal(0)
+        for line in self.fee_line_ids.filtered(lambda l: l.rule_id.kind == "tax"):
+            transfers = json.loads(line.detail or "{}").get("transfers") or {}
+            tax_effect += d(transfers.get(str(fund_class.id), 0))
         shared = value - row["pre_capital"] - delta
         shared_raw = engine.money(row["ratio"] * neutral) - row["pre_capital"]
 
@@ -1248,7 +1791,8 @@ class InvestraValuation(models.Model):
             "fee_amount": fee,
             "performance_amount": performance,
             "allocation_amount": allocation,
-            "other_amount": delta - fee - performance - allocation,
+            "tax_effect_amount": tax_effect,
+            "other_amount": delta - fee - performance - allocation - tax_effect,
             "fx_rate": fx_rate,
             "opening_capital_class": engine.money(opening_class),
             "subscription_amount_class": engine.money(sum((in_class_currency(m) for m in row["subscriptions"]), Decimal(0))),
@@ -1270,7 +1814,8 @@ class InvestraValuation(models.Model):
             count = b["opening_units"] + b["subscription_units"] - b["redemption_units"]
             if abs(count - row["units"]) > Decimal("0.000001"):
                 units.append(f"{code}: {count} ≠ {row['units']}")
-            specific_total = b["fee_amount"] + b["performance_amount"] + b["allocation_amount"] + b["other_amount"]
+            specific_total = (b["fee_amount"] + b["performance_amount"] + b["allocation_amount"] + b["tax_effect_amount"]
+                              + b["other_amount"])
             end = row["pre_capital"] + b["shared_result"] + specific_total
             if abs(end - rounded[fund_class]) > tolerance:
                 result.append(f"{code}: {end} ≠ {rounded[fund_class]}")
@@ -1596,7 +2141,7 @@ class InvestraValuation(models.Model):
             record.event_ids._lock_events()
             payload, digest = record._fingerprint()
             record.write({"snapshot": payload, "snapshot_hash": digest, "state": "submitted"})
-            record._log_step("submitted")
+            record._log_step("submitted", record._corrections_summary() or False)
             # Kroky schválení podle schvalovací matice platné v okamžiku předložení (rozhodnutí 2026-11-11).
             rule = self.env["investra.approval.matrix"]._rule("valuation_approve")
             rule.check_performer(self.env)
@@ -1680,6 +2225,51 @@ class InvestraValuation(models.Model):
     def _new_version(self):
         self.ensure_one()
         return self.create({"fund_id": self.fund_id.id, "date": self.date, "version": self.version + 1})
+
+    def _previous_version(self):
+        """Vrácená nebo stornovaná verze, ze které tato verze vznikla (ZJ-12 B.10)."""
+        self.ensure_one()
+        return self.search([("fund_id", "=", self.fund_id.id), ("date", "=", self.date),
+                            ("version", "=", self.version - 1), ("state", "in", ("returned", "reversed"))], limit=1)
+
+    def _copy_fields(self, line):
+        return {
+            "class_id": line.class_id.id, "amount": line.amount, "currency_id": line.currency_id.id,
+            "account_id": line.account_id.id, "note": line.note, "corrects_rule_id": line.corrects_rule_id.id,
+            "correction_target": line.correction_target, "validity": line.validity,
+            "computed_at_entry": line.computed_at_entry, "computed_captured": line.computed_captured,
+            "ended_id": line.ended_id.id, "origin_id": line.id,
+        }
+
+    def action_copy_from_version(self):
+        """Převzít z verze n (ZJ-12 B.10): zkopíruje ruční úpravy a opravy zadané ve vrácené verzi (ne převzaté opravy
+        dřívějších ocenění, ty vzniknou výpočtem znovu), s novou kopií přílohy patřící této verzi a `origin_id`.
+        Už převzaté řádky se nekopírují znovu; nechtěné se v návrhu smažou."""
+        self.ensure_one()
+        self._require_state("draft", "computed")
+        previous = self._previous_version()
+        if not previous:
+            raise UserError(self.env._("Ocenění nemá vrácenou ani stornovanou předchozí verzi."))
+        copied = self.external_fee_ids.mapped("origin_id")
+        commands = []
+        for line in previous.external_fee_ids - copied:
+            values = self._copy_fields(line)
+            if line.attachment_id:
+                values["attachment_id"] = line.attachment_id.sudo().copy(
+                    {"res_model": "investra.valuation", "res_id": self.id}).id
+            commands.append((0, 0, values))
+        if commands:
+            self.write({"external_fee_ids": commands})
+        return len(commands)
+
+    def _check_version_copies(self):
+        """Upozornění (ZJ-12 B.8): předchozí verze měla ruční úpravy (n), které v této verzi nejsou."""
+        previous = self._previous_version() if self.version > 1 else self.browse()
+        missing = previous.external_fee_ids - self.external_fee_ids.mapped("origin_id")
+        self._check("version_entries_missing",
+                    self.env._("Předchozí verze měla ruční úpravy (%s), které v této verzi nejsou", len(missing)),
+                    not missing, "; ".join(f"{l.corrects_rule_id.name or l.note} {l.amount:.2f}" for l in missing),
+                    severity="warning")
 
     def action_post(self):
         """Zaúčtuje návrhy jedním krokem, jen pokud sedí se schváleným snímkem."""
@@ -1874,7 +2464,14 @@ class InvestraValuationClass(models.Model):
     rounding_amount = fields.Float(digits=(20, 2), string="Z toho zaokrouhlení")
     fee_amount = fields.Float(digits=(20, 2), string="Úplaty třídy", help="Úplaty účtované na třídu, bez výkonnostní odměny.")
     performance_amount = fields.Float(digits=(20, 2), string="Výkonnostní odměna")
-    allocation_amount = fields.Float(digits=(20, 2), string="Přesun podle pořadí nároků")
+    allocation_amount = fields.Float(
+        digits=(20, 2), string="Přesun podle pořadí nároků",
+        help="Jen u fondu se schématem rozdělení „pořadí nároků“: rozdíl mezi výsledkem rozděleným podle pořadí nároků "
+             "a podle alokačního poměru, zaúčtovaný jako přesun mezi třídami přes vnitřní zúčtování (FK fondu nemění). "
+             "+ třída dostala víc, než by jí patřilo podle poměru; − méně.")
+    tax_effect_amount = fields.Float(
+        digits=(20, 2), string="Daňový efekt specifických položek",
+        help="Přesun daňového efektu položek výsledku třídy přes vnitřní zúčtování (+ zvyšuje kapitál třídy).")
     other_amount = fields.Float(digits=(20, 2), string="Ostatní specifické",
                                 help="Ostatní položky třídy, např. měnové zajištění nebo podíl na úplatě jiné třídy.")
     fx_rate = fields.Float(digits=(16, 8), string="Kurz přepočtu", help="Funkční měna fondu za 1 jednotku měny třídy.")
@@ -1923,6 +2520,8 @@ class InvestraValuationClass(models.Model):
 class InvestraValuationFee(models.Model):
     _name = "investra.valuation.fee"
     _description = "Rozpis úplaty"
+    # ZJ-11: oprava se řadí hned pod původní úplatu (skupina = pravidlo, oprava za původními řádky), ruční úplaty na konec.
+    _order = "valuation_id, group_key, is_correction, id"
 
     valuation_id = fields.Many2one("investra.valuation", required=True, ondelete="cascade", index=True, string="Ocenění")
     company_id = fields.Many2one(related="valuation_id.company_id", store=True, index=True)
@@ -1933,15 +2532,57 @@ class InvestraValuationFee(models.Model):
     class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída")
     amount = fields.Float(digits=(20, 2), string="Částka")
     detail = fields.Text(string="Výpočet")
+    group_key = fields.Integer(compute="_compute_group_key", store=True, string="Skupina řazení")
+    is_correction = fields.Boolean(compute="_compute_group_key", store=True, string="Oprava")
+    can_correct = fields.Boolean(compute="_compute_can_correct", string="Lze opravit")
 
-    @api.depends("rule_id.name", "external_id.note")
+    @api.depends("rule_id", "external_id.corrects_rule_id")
+    def _compute_group_key(self):
+        for line in self:
+            corrected = line.external_id.corrects_rule_id
+            rule = line.rule_id or corrected
+            line.group_key = rule.id if rule else 2**31 - 1
+            line.is_correction = bool(corrected)
+
+    @api.depends("rule_id.kind", "valuation_id.state")
+    def _compute_can_correct(self):
+        for line in self:
+            # ZJ-12 krok 5: opravit jde pravidlo každého druhu (úplata, odměna, daň).
+            line.can_correct = bool(line.rule_id) and line.valuation_id.state in ("draft", "computed")
+
+    def action_correct(self):
+        """Otevře formulář ruční úplaty s předvyplněným „Opravuje úplatu“ (ZJ-11); uloží se až s částkou a poznámkou."""
+        self.ensure_one()
+        if not self.can_correct:
+            raise UserError(self.env._("Opravit jde jen úplatu, odměnu nebo daň v ocenění ve stavu Návrh nebo Spočteno."))
+        valuation = self.valuation_id
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Oprava úplaty %s", self.rule_id.name),
+            "res_model": "investra.valuation.external",
+            "view_mode": "form",
+            "views": [(self.env.ref("investra_nav.view_valuation_external_correction_form").id, "form")],
+            "target": "new",
+            "context": {
+                "default_valuation_id": valuation.id,
+                "default_corrects_rule_id": self.rule_id.id,
+                "default_class_id": self.class_id.id,
+                "default_currency_id": valuation.fund_id.currency_id.id,
+                # ZJ-12 A.3: snímek vypočtené částky při zadání; krok 4 ho porovná s novým výpočtem (kontrola B.8).
+                "default_computed_at_entry": self.amount,
+            },
+        }
+
+    @api.depends("rule_id.name", "external_id.note", "external_id.corrects_rule_id.name")
     def _compute_name(self):
         for line in self:
             if line.rule_id:
                 line.name = line.rule_id.name
             else:
                 note = (line.external_id.note or "").splitlines()
-                line.name = self.env._("Ručně doložená úplata") + (f": {note[0]}" if note else "")
+                corrected = line.external_id.corrects_rule_id
+                label = self.env._("Oprava úplaty %s", corrected.name) if corrected else self.env._("Ručně doložená úplata")
+                line.name = label + (f": {note[0]}" if note else "")
 
 
 class InvestraValuationExternal(models.Model):
@@ -1949,6 +2590,8 @@ class InvestraValuationExternal(models.Model):
 
     Třída prázdná = celý fond. Částka smí být záporná (oprava), ne nulová. Poznámka je povinná, příloha nepovinná.
     Účtuje se k datu ocenění na zvolený nákladový účet, protiúčet je vždy závazek z úplat.
+
+    Oprava úplaty (ZJ-11): s vyplněným „Opravuje úplatu“ se nákladový účet nezadává, účtuje se jako úplata pravidla.
     """
 
     _name = "investra.valuation.external"
@@ -1968,6 +2611,49 @@ class InvestraValuationExternal(models.Model):
     account_id = fields.Many2one("account.account", ondelete="restrict", string="Nákladový účet",
                                  domain="[('account_type', '=like', 'expense%')]")
     note = fields.Text(string="Poznámka")
+    # ZJ-12 A.3, B.7: opravit jde pravidlo každého druhu, částku i základ (výpočet od kroku 4). Formuláře zatím nabízejí
+    # jen časově rozlišenou úplatu (domény ve views); rozšíří je krok 5.
+    corrects_rule_id = fields.Many2one(
+        "investra.fee.rule", ondelete="restrict", string="Opravuje úplatu",
+        help="Oprava vypočtené úplaty, výkonnostní odměny nebo daně (zaokrouhlení podle faktury, dohoda s depozitářem). "
+             "Účtuje se jako úplata pravidla; nákladový účet se nezadává. Oprava časově rozlišené úplaty platí trvale: "
+             "průměrný FK ji v dalším ocenění nedorovná.",
+    )
+    correction_target = fields.Selection(
+        [("amount", "Částka"), ("base", "Základ")], default="amount", required=True, string="Co opravuje",
+        help="Částka: oprava se přičte k vypočtené částce pravidla. Základ: přičte se k základu pravidla; u daně je to "
+             "ruční úprava základu (kladná = připočitatelná, záporná = odčitatelná položka), platí do konce roku.",
+    )
+    validity = fields.Selection(
+        [("period", "Do konce období"), ("valuation", "Jen toto ocenění")], default="period", required=True,
+        string="Platnost",
+        help="Jen oprava výkonnostní odměny a daně. Do konce období: další ocenění opravu převezmou (odměna do "
+             "krystalizace, daň do konce roku). Jen toto ocenění: další ocenění upozorní, že oprava skončila.",
+    )
+    computed_at_entry = fields.Float(
+        digits=(20, 2), readonly=True, string="Vypočteno při zadání",
+        help="Vypočtená částka pravidla v okamžiku zadání opravy (snímek). Liší-li se nový výpočet, ocenění opravu "
+             "zastaví k potvrzení.",
+    )
+    origin_id = fields.Many2one(
+        "investra.valuation.external", ondelete="set null", readonly=True, copy=False, index="btree_not_null",
+        string="Převzato z",
+        help="Řádek předchozí verze ocenění nebo dřívějšího ocenění, ze kterého se ruční úprava nebo oprava převzala.",
+    )
+    computed_captured = fields.Boolean(
+        readonly=True, copy=False, string="Snímek pořízen",
+        help="Snímek „Vypočteno při zadání“ je uložený (tlačítkem Opravit, nebo prvním výpočtem po zadání opravy).",
+    )
+    computed_now = fields.Float(
+        digits=(20, 2), readonly=True, copy=False, string="Vypočteno nyní",
+        help="Vypočtená částka pravidla v posledním výpočtu ocenění (pro Ponechat rozdíl / Ponechat výsledek).",
+    )
+    ended_id = fields.Many2one(
+        "investra.valuation.external", ondelete="restrict", readonly=True, copy=False, index="btree_not_null",
+        string="Ukončuje opravu",
+        help="Převzatá oprava dřívějšího ocenění, kterou tento řádek ukončuje (oprava o −její částku, ZJ-12 B.7). "
+             "Liší se od „Převzato z“ (převzetí z verze ocenění).",
+    )
     attachment_id = fields.Many2one("ir.attachment", string="Výpočet", ondelete="restrict")
     # Nahrání souboru přímo v řádku; ukládá se jako příloha ocenění do attachment_id.
     document = fields.Binary(string="Soubor s výpočtem", compute="_compute_document", inverse="_inverse_document")
@@ -2005,14 +2691,23 @@ class InvestraValuationExternal(models.Model):
         valuation = self.env["investra.valuation"].browse(self.env.context.get("default_valuation_id"))
         return valuation.fund_id.currency_id if valuation.exists() else False
 
-    @api.constrains("valuation_id", "class_id", "amount", "account_id", "note")
+    @api.constrains("valuation_id", "class_id", "amount", "account_id", "note", "corrects_rule_id", "currency_id",
+                    "correction_target", "validity", "ended_id")
     def _check_fund(self):
         # Třída a účet musí patřit fondu ocenění; formulář je nabízí jen z něj, kontrola chrání i import a API.
         for row in self:
             fund = row.valuation_id.fund_id
             if row.class_id and row.class_id.fund_id != fund:
                 raise ValidationError(self.env._("Třída ručně doložené úplaty musí patřit fondu ocenění %s.", fund.display_name))
-            if not row.account_id or not row.account_id.account_type.startswith("expense"):
+            if row.ended_id and not row.corrects_rule_id:
+                raise ValidationError(self.env._("Ukončit jde jen převzatou opravu úplaty."))
+            if row.corrects_rule_id:
+                row._check_correction(fund)
+                if row.ended_id:
+                    row._check_ending()
+            elif row.correction_target != "amount" or row.validity != "period":
+                raise ValidationError(self.env._("Co opravuje a Platnost se vyplňují jen u opravy úplaty."))
+            elif not row.account_id or not row.account_id.account_type.startswith("expense"):
                 raise ValidationError(self.env._("Ručně doložená úplata potřebuje nákladový účet."))
             if row.account_id.company_ids and row.valuation_id.company_id not in row.account_id.company_ids:
                 raise ValidationError(self.env._("Nákladový účet ručně doložené úplaty musí patřit knize fondu %s.", fund.display_name))
@@ -2021,11 +2716,93 @@ class InvestraValuationExternal(models.Model):
             if not round(row.amount, 2):
                 raise ValidationError(self.env._("Částka ručně doložené úplaty nesmí být nulová."))
 
+    def _check_correction(self, fund):
+        """Oprava úplaty (ZJ-11, ZJ-12 A.3): pravidlo fondu ocenění (každého druhu), třída podle pravidla, bez nákladového
+        účtu, měna fondu. Platnost „jen toto ocenění“ má smysl jen u odměny a daně (časově rozlišená úplata je trvalá)."""
+        rule = self.corrects_rule_id
+        if rule.fund_id != fund:
+            raise ValidationError(self.env._("Opravovaná úplata %(rule)s nepatří fondu ocenění %(fund)s.",
+                                             rule=rule.name, fund=fund.display_name))
+        if self.correction_target == "base" and rule.kind == "periodic" and rule.base_source == "none":
+            raise ValidationError(self.env._("Úplata %s nemá základ; opravte její částku.", rule.name))
+        if self.validity != "period" and rule.kind == "periodic":
+            raise ValidationError(self.env._(
+                "Oprava časově rozlišené úplaty %s platí trvale; platnost „Jen toto ocenění“ je jen u odměny a daně.",
+                rule.name))
+        if rule.class_ids and self.class_id not in rule.class_ids:
+            raise ValidationError(self.env._("Oprava úplaty %(rule)s musí mít třídu, která úplatu platí: %(classes)s.",
+                                             rule=rule.name, classes=", ".join(rule.class_ids.mapped("code"))))
+        if not rule.class_ids and self.class_id:
+            raise ValidationError(self.env._("Úplata %s je úplatou celého fondu; oprava nesmí mít třídu.", rule.name))
+        if self.account_id:
+            raise ValidationError(self.env._("Oprava úplaty se účtuje na nákladovou roli pravidla; nákladový účet nevyplňujte."))
+        if self.currency_id and self.currency_id != fund.currency_id:
+            raise ValidationError(self.env._("Oprava úplaty musí být v měně fondu %s.", fund.currency_id.name))
+
+    def _check_ending(self):
+        """Ukončení převzaté opravy (ZJ-12 B.7): stejné pravidlo, třída a cíl, ukončovaná je oprava „do konce období“
+        z dřívějšího ocenění téhož fondu, částka přesně −její částka, platnost „do konce období“, každá jen jednou."""
+        ended = self.ended_id
+        same = (ended.corrects_rule_id, ended.class_id, ended.correction_target) == (
+            self.corrects_rule_id, self.class_id, self.correction_target)
+        earlier = (ended.valuation_id.fund_id == self.valuation_id.fund_id and ended.valuation_id.date < self.valuation_id.date
+                   and ended.valuation_id.state not in ("returned", "reversed"))
+        if not same or not earlier or ended.validity != "period" or ended.ended_id:
+            raise ValidationError(self.env._(
+                "Ukončit jde jen převzatou opravu „do konce období“ téhož pravidla a třídy z dřívějšího ocenění."))
+        if self.validity != "period" or round(self.amount + ended.amount, 2):
+            raise ValidationError(self.env._(
+                "Ukončení opravy má částku %(amount)s (−částka ukončované opravy) a platnost „Do konce období“.",
+                amount=-ended.amount))
+        # Ukončení ve vrácené nebo stornované verzi neplatí (nová verze ho smí převzít, B.10).
+        if self.search_count([("ended_id", "=", ended.id), ("id", "!=", self.id),
+                              ("valuation_id.state", "not in", ("returned", "reversed"))]):
+            raise ValidationError(self.env._("Oprava %s už je ukončená.", ended.display_name))
+
+    def action_keep_difference(self):
+        """Ponechat rozdíl (ZJ-12 B.8): oprava zůstává, snímek se přepíše nynější vypočtenou částkou; přepočet."""
+        self.ensure_one()
+        self.write({"computed_at_entry": self.computed_now, "computed_captured": True})
+        if not self.env.context.get("investra_skip_compute"):
+            self.valuation_id.action_compute()
+
+    def action_keep_result(self):
+        """Ponechat výsledek (ZJ-12 B.8): výsledek při zadání (snímek + oprava) zůstává, oprava se dopočte k nynější
+        vypočtené částce; snímek se přepíše; přepočet."""
+        self.ensure_one()
+        amount = round(self.computed_at_entry + self.amount - self.computed_now, 2)
+        if not amount:
+            raise UserError(self.env._(
+                "Výsledek se rovná nynější vypočtené částce, oprava by byla nulová. Řádek opravy smažte."))
+        self.write({"amount": amount, "computed_at_entry": self.computed_now, "computed_captured": True})
+        if not self.env.context.get("investra_skip_compute"):
+            self.valuation_id.action_compute()
+
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if "computed_at_entry" in vals:
+                vals.setdefault("computed_captured", True)
+            else:
+                self._capture_from_existing_row(vals)
         records = super().create(vals_list)
         records._check_open()
         return records
+
+    @api.model
+    def _capture_from_existing_row(self, vals):
+        """Snímek „Vypočteno při zadání“ u opravy částky zadané bez tlačítka Opravit (ZJ-12, upřesnění kroku 4, bod 3).
+
+        Je-li ocenění už spočtené, snímek se vezme hned při uložení z řádku rozpisu téhož pravidla a třídy (částka řádku =
+        vypočteno + převzaté opravy, bez nových oprav). Řádek rozpisu ještě není: snímek pořídí první výpočet (`_capture_computed`).
+        """
+        if not vals.get("corrects_rule_id") or vals.get("correction_target", "amount") != "amount":
+            return
+        line = self.env["investra.valuation.fee"].sudo().search([
+            ("valuation_id", "=", vals.get("valuation_id")), ("rule_id", "=", vals["corrects_rule_id"]),
+            ("class_id", "=", vals.get("class_id") or False)], limit=1)
+        if line:
+            vals.update(computed_at_entry=line.amount, computed_captured=True)
 
     def write(self, vals):
         self._check_open()

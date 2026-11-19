@@ -14,3 +14,11 @@ from . import test_stale_compute
 from . import test_fee_rule_zj06
 from . import test_valuation_steps
 from . import test_tracking_zj10
+from . import test_fee_correction
+from . import test_fee_reference_model
+from . import test_fee_characterization
+from . import test_fee_base_step
+from . import test_fee_solver
+from . import test_fee_carried
+from . import test_fee_ui
+from . import test_package_fees

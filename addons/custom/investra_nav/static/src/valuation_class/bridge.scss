@@ -1,0 +1,17 @@
+// Přemostění třídy (rozhodnutí 2026-11-19): jedna mřížka se stejnými sloupci ve všech částech – popisek | částka | popisek
+// kusů | kusy; čísla zarovnaná vpravo, sloupce pevné šířky, aby částky i kusy stály pod sebou.
+.o_investra_bridge .o_inner_group {
+    @include media-breakpoint-up(md) {
+        grid-template-columns: 300px 170px 110px 150px;
+        justify-content: start;
+    }
+    .o_wrap_input .o_field_widget,
+    .o_wrap_input .o_field_widget span,
+    .o_wrap_input .o_field_widget input {
+        width: 100%;
+        text-align: right;
+    }
+    .o_wrap_label .o_form_label {
+        white-space: pre;
+    }
+}

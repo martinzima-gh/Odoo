@@ -233,15 +233,175 @@ def performance_fee(spec, start, end, gross, units=None, flows=(), accrued=ZERO)
         required = min(required, dec(spec["cap_rate"]) * dec(spec.get("cap_base") or gross))
     if spec.get("net_floor") not in (None, False):
         required = min(required, max(gross - dec(spec["net_floor"]), ZERO))
+    # Přesná částka pro společný dopočet (solve_fees ustaluje bez zaokrouhlení, zaokrouhluje se až zaúčtování).
+    exact = required
     required = money(required)
     return {
         "required": required,
+        "exact": exact,
         "move": required - money(accrued),
         "shortfall": money(max(-excess, ZERO) * multiplier),
         "target": str(target),
         "excess": str(excess),
         "factor": str(factor),
     }
+
+
+# --- Společný dopočet úplat, výkonnostní odměny a daně (ZJ-12 B.1–B.5) ------------------------------------------------
+
+STAGE_FEE, STAGE_PERFORMANCE, STAGE_TAX = 2, 3, 4
+
+
+def _recipient_weights(item):
+    weights = {code: dec(w) for code, w in (item.get("recipients") or {}).items()}
+    total = sum(weights.values(), ZERO)
+    return {code: w / total for code, w in weights.items()} if total else {}
+
+
+def fee_effects(item, amount, ratios, transfers=None):
+    """Změna hodnoty tříd a fondu, kterou způsobí položka s částkou `amount` (náklad kladný).
+
+    Plátce třída: třída nese celou částku. Plátce fond (None): dělí se poměrem tříd. Podíl `share` jde přijímajícím
+    třídám podle vah `recipients` (vnitřní zúčtování, FK nemění). Daň (`transfers`) přidá přesun daňového efektu tříd.
+    Vrací (změna FK, {třída: změna}).
+    """
+    amount = dec(amount)
+    payer = item.get("payer")
+    share = dec(item.get("share")) if item.get("recipients") else ZERO
+    effects = {}
+    for code, rho in ratios.items():
+        effects[code] = -(amount if payer == code else (rho * amount if payer is None else ZERO))
+    for code, weight in _recipient_weights(item).items():
+        effects[code] += amount * share * weight
+    for code, move in (transfers or {}).items():
+        effects[code] += move
+    return -amount * (1 - share), effects
+
+
+def fee_expense(item, amount):
+    """Náklad mimo fond (do výsledku a daně); podíl přijímajícím třídám je vnitřní přesun."""
+    share = dec(item.get("share")) if item.get("recipients") else ZERO
+    return dec(amount) * (1 - share)
+
+
+def _included(item, other, step):
+    """Patří položka `other` do stavu po kroku `step` pro základ položky `item`? Odměna ani daň nikdy po sobě samé."""
+    if other["stage"] > step:
+        return False
+    return not (other is item and item["stage"] >= STAGE_PERFORMANCE)
+
+
+def _tax(spec, items, amounts, ratios):
+    """Očekávaná daň (doplatek) a přesun daňového efektu specifických položek tříd (ZJ-12 B.4 a B.5).
+
+    spec: rate, step (1–3: které náklady snižují základ), result (výsledek od 1. 1. po kroku 1 už se zpět přičtenými
+    náklady dřívějších ocenění, které podle kroku základ nesnižují), booked (zaúčtovaná daň od 1. 1.), specific
+    ({třída: specifické náklady od 1. 1. před tímto oceněním, které základ snižují}), previous_effect ({třída: e × spec_c
+    minulého ocenění v roce}), previous_effect_total (e × Σ spec minulého ocenění).
+    Daňový efekt od 1. 1.: E_c = e × spec_c, e = efektivní sazba specifických položek. Přesun je přírůstkový:
+    přesun_c = ΔE_c − ρ_c × ΔΣE, Δ proti minulému ocenění, ρ dnešní. Dřívější přesuny se dnešním poměrem nepřepočítávají
+    (stejně jako se dnes nepřepočítává daň rozdělená v minulých oceněních); součet přesunů je nula.
+    """
+    rate, step = dec(spec["rate"]), int(spec["step"])
+    deductible = ZERO
+    specific = {code: dec((spec.get("specific") or {}).get(code)) for code in ratios}
+    for item in items:
+        if item["stage"] == STAGE_TAX or item["stage"] > step:
+            continue
+        expense = fee_expense(item, amounts[item["key"]])
+        deductible += expense
+        if item.get("payer") is not None:
+            specific[item["payer"]] += expense
+    # Oprava základu daně (ZJ-12 B.7, ZJ-07 bod 2): kladná = připočitatelná, záporná = odčitatelná položka.
+    base = dec(spec["result"]) - deductible + dec(spec.get("base_correction"))
+    required = rate * max(base, ZERO)
+    total_specific = sum(specific.values(), ZERO)
+    effective = ZERO
+    if total_specific:
+        effective = (rate * max(base + total_specific, ZERO) - required) / total_specific
+    previous = spec.get("previous_effect") or {}
+    effect = {code: effective * specific[code] for code in ratios}
+    effect_total = effective * total_specific
+    change_total = effect_total - dec(spec.get("previous_effect_total"))
+    transfers = {
+        code: effect[code] - dec(previous.get(code)) - ratios[code] * change_total
+        for code in ratios
+    }
+    return {
+        "amount": required - dec(spec.get("booked")),
+        "base": base, "required": required, "specific": specific, "effective_rate": effective,
+        "effect": effect, "effect_total": effect_total, "transfers": transfers,
+    }
+
+
+def solve_fees(classes, items, pinned=None, max_steps=500, rel_tol=Decimal("1e-12")):
+    """Společný dopočet úplat, výkonnostní odměny a daně jedné valuace (ZJ-12 B.1): iterace pevného bodu (Jacobi).
+
+    classes: {třída: {"value": hodnota třídy po kroku 1, "ratio": poměr ρ}}; FK po kroku 1 = součet hodnot.
+    items: položky v pevném pořadí, každá s
+      key        jednoznačný klíč,
+      stage      2 úplata, ruční úplata, oprava úplaty; 3 výkonnostní odměna a její oprava; 4 daň a její oprava,
+      payer      třída, nebo None = fond (dělí se poměrem),
+      share, recipients  podíl přijímajícím třídám a jejich váhy (ocenění je bere z hodnot tříd po kroku 1),
+      base       None = základ nezávislý na dopočtu (aktiva, bez základu, pevná částka),
+                 {"scope": "fund", "step": s} = FK po kroku s, {"scope": "class", "class": c, "step": s} = hodnota třídy,
+      amount     funkce základ → přesná částka (bez zaokrouhlení); u pevné částky konstanta,
+      tax        jen pravidlo daně (nejvýš jedno): popis podle _tax (místo base a amount); oprava daně je pevná
+                 položka kroku 4 bez `tax` (plátce fond, do základu daně nevstupuje).
+    Stav po kroku s obsahuje položky se stage ≤ s; „po kroku 2“ zahrnuje i úplatu samotnou, odměna a daň nikdy samy sebe.
+    pinned: {klíč: pevná částka} (opravy, B.7). Tolerance relativní: rel_tol × max(1, největší částka).
+    Vrací částky, základy, výsledek daně, počet kroků a zbytek konzistence (B.8); neustálí-li se, ValueError.
+    """
+    pinned = pinned or {}
+    ratios = {code: dec(row["ratio"]) for code, row in classes.items()}
+    values = {code: dec(row["value"]) for code, row in classes.items()}
+    fund_value = sum(values.values(), ZERO)
+    taxes = [item for item in items if item.get("tax")]
+    if len(taxes) > 1:
+        raise ValueError("Společný dopočet umí jedno pravidlo daně na fond.")
+
+    def evaluate(amounts):
+        tax = _tax(taxes[0]["tax"], items, amounts, ratios) if taxes else None
+        effects = {}
+        for item in items:
+            transfers = tax["transfers"] if item.get("tax") else None
+            effects[item["key"]] = fee_effects(item, amounts[item["key"]], ratios, transfers)
+        bases, result = {}, {}
+        for item in items:
+            key = item["key"]
+            if item.get("tax"):
+                result[key] = tax["amount"]
+            else:
+                base = item.get("base")
+                if base is not None:
+                    step = int(base["step"])
+                    included = [o["key"] for o in items if _included(item, o, step)]
+                    if base["scope"] == "class":
+                        base = values[base["class"]] + sum((effects[k][1][base["class"]] for k in included), ZERO)
+                    else:
+                        base = fund_value + sum((effects[k][0] for k in included), ZERO)
+                bases[key] = base
+                amount = item["amount"]
+                result[key] = dec(amount(base) if callable(amount) else amount)
+            if key in pinned:
+                result[key] = dec(pinned[key])
+        return result, bases, tax
+
+    amounts = {item["key"]: ZERO for item in items}
+    last = None
+    for steps in range(1, max_steps + 1):
+        updated, bases, tax = evaluate(amounts)
+        scale = max([Decimal(1)] + [abs(v) for v in updated.values()])
+        last = max([ZERO] + [abs(updated[k] - amounts[k]) for k in amounts])
+        amounts = updated
+        if last <= rel_tol * scale:
+            break
+    else:
+        raise ValueError(f"Společný dopočet úplat se neustálil ani po {max_steps} krocích (poslední rozdíl {last}).")
+    check, bases, tax = evaluate(amounts)
+    scale = max([Decimal(1)] + [abs(v) for v in amounts.values()])
+    residual = max([ZERO] + [abs(check[k] - amounts[k]) for k in amounts if k not in pinned])
+    return {"amounts": amounts, "bases": bases, "tax": tax, "steps": steps, "residual": residual / scale}
 
 
 def crystallise_on_redemption(accrued, redeemed_units, units_before):

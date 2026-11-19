@@ -128,7 +128,7 @@ class TestFees(NavCase):
         # Kurz 109, přebytek nad 108 je 1: 0,2 × 1 × 10 = 2
         self.assertAlmostEqual(second.fee_line_ids.amount, 2, places=2)
 
-    def perf_case(self, perf_base, periodic=False, tax=False):
+    def perf_case(self, base_step, periodic=False, tax=False):
         # Třída A 1 000 / 10 kusů, výsledek 100 → kurz 110 před odměnou; odměna 20 % nad 100, bez krystalizace
         fund = self.make_fund(classes=[{"code": "A"}], launch="2026-12-31")
         self.subscribe(self.cls(fund, "A"), "2027-01-01", 1000, 10)
@@ -137,7 +137,7 @@ class TestFees(NavCase):
             self.Rule.create({"fund_id": fund.id, "name": "Úplata", "kind": "periodic",
                               "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
         self.Rule.create({"fund_id": fund.id, "name": "Odměna", "kind": "performance", "crystallisation": "none",
-                          "perf_base": perf_base, "class_ids": [(6, 0, self.cls(fund, "A").ids)],
+                          "base_step": base_step, "class_ids": [(6, 0, self.cls(fund, "A").ids)],
                           "expense_role": "expense_performance",
                           "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit",
                                                   "initial_reference": 100})]})
@@ -153,21 +153,24 @@ class TestFees(NavCase):
     def test_perf_base_before_or_after_fees(self):
         # Úplata 1 % z 1 100 za 31 dní = 0,93. Před úplatami: 0,2 × 10 × 10 = 20,00;
         # po úplatách: kurz 109,907 → 0,2 × 9,907 × 10 = 19,81
-        self.assertAlmostEqual(self.perf_case("before_fees", periodic=True)[0], 20.00, places=2)
-        self.assertAlmostEqual(self.perf_case("after_fees", periodic=True)[0], 19.81, places=2)
+        self.assertAlmostEqual(self.perf_case("1", periodic=True)[0], 20.00, places=2)
+        self.assertAlmostEqual(self.perf_case("2", periodic=True)[0], 19.81, places=2)
 
     def test_perf_before_tax_is_in_tax(self):
         # Odměna 20,00 jde do daně: 0,05 × (100 − 20) = 4,00
-        perf, tax = self.perf_case("after_fees", tax=True)
+        perf, tax = self.perf_case("2", tax=True)
         self.assertAlmostEqual(perf, 20.00, places=2)
         self.assertAlmostEqual(tax, 4.00, places=2)
 
     def test_perf_after_tax_then_tax_is_topped_up(self):
-        # Daň 0,05 × 100 = 5,00; kurz 109,5 → odměna 0,2 × 9,5 × 10 = 19,00; doúčtování daně
-        # na 0,05 × (100 − 19) = 4,05, tj. −0,95; obě kroky daně jsou v ocenění
-        fund_perf, tax = self.perf_case("after_tax", tax=True)
-        self.assertAlmostEqual(fund_perf, 19.00, places=2)
-        self.assertAlmostEqual(tax, 4.05, places=2)
+        # ZJ-12 krok 3 (schváleno 2026-11-18, příklad C3): odměna po kroku 4 a daň po kroku 3 se dopočtou společně.
+        # P = 0,2 × (100 − 0,05 × 100) / (1 − 0,2 × 0,05) = 19,19; daň 0,05 × (100 − 19,19) = 4,04; jeden doklad daně.
+        # Dřív pevné pořadí: odměna 19,00 a doúčtování daně na 4,05 druhým dokladem (tax:<id>:perf).
+        fund_perf, tax = self.perf_case("4", tax=True)
+        self.assertAlmostEqual(fund_perf, 19.19, places=2)
+        self.assertAlmostEqual(tax, 4.04, places=2)
+        valuation = self.env["investra.valuation"].search([], order="id desc", limit=1)
+        self.assertEqual(len(valuation.event_ids.filtered(lambda e: ":tax:" in e.key)), 1)
 
     def test_waterfall_gives_priority_class_target_and_junior_the_rest(self):
         # 365 dní, PIA 1 000 s cílem 6 %, VIA 100; výnos 110: PIA 60, VIA 50
@@ -376,11 +379,11 @@ class TestRuleFields(NavCase):
         self.assertAlmostEqual(self.result(valuation, "P").capital, 337.5, places=2)
         self.assertAlmostEqual(self.result(valuation, "V").capital, 162.5, places=2)
 
-    def two_fees(self, fund, management="before", administration="before"):
+    def two_fees(self, fund, management="1", administration="1"):
         # ZJ-06 bod 7: obhospodařování 1 %, administrace 0,1 % ročně; pořadí pravidel nerozhoduje
-        self.Rule.create({"fund_id": fund.id, "name": "Obhospodařování", "kind": "periodic", "base_mode": management,
+        self.Rule.create({"fund_id": fund.id, "name": "Obhospodařování", "kind": "periodic", "base_step": management,
                           "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
-        self.Rule.create({"fund_id": fund.id, "name": "Administrace", "kind": "periodic", "base_mode": administration,
+        self.Rule.create({"fund_id": fund.id, "name": "Administrace", "kind": "periodic", "base_step": administration,
                           "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.001})]})
         valuation = self.valuation(fund, date(2027, 12, 31))
         valuation.action_compute()
@@ -395,21 +398,21 @@ class TestRuleFields(NavCase):
 
     def test_base_after_all_fees(self):
         # Obě po všech úplatách: S = 0,011 × (F − S) → S = 11 000 / 1,011 = 10 880,3165; F − S = 989 119,6835
-        management, administration = self.two_fees(self.fund(1000000), "after", "after")
+        management, administration = self.two_fees(self.fund(1000000), "2", "2")
         self.assertAlmostEqual(management, 9891.20, places=2)
         self.assertAlmostEqual(administration, 989.12, places=2)
 
     def test_base_mixed(self):
         # Obhospodařování před (10 000), administrace po: a = 0,001 × (990 000 − a) → a = 989,01
-        management, administration = self.two_fees(self.fund(1000000), "before", "after")
+        management, administration = self.two_fees(self.fund(1000000), "1", "2")
         self.assertAlmostEqual(management, 10000.00, places=2)
         self.assertAlmostEqual(administration, 989.01, places=2)
 
     def test_manual_fee_lowers_base_after_not_before(self):
         # Ručně doložená úplata 10 000: „po“ 1 % = 990 000 × 0,01 / 1,01 = 9 801,98; „před“ 1 % zůstává 10 000
-        for mode, expected in (("after", 9801.98), ("before", 10000.00)):
+        for mode, expected in (("2", 9801.98), ("1", 10000.00)):
             fund = self.fund(1000000)
-            self.Rule.create({"fund_id": fund.id, "name": "Úplata", "kind": "periodic", "base_mode": mode,
+            self.Rule.create({"fund_id": fund.id, "name": "Úplata", "kind": "periodic", "base_step": mode,
                               "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
             valuation = self.valuation(fund, date(2027, 12, 31))
             self.manual_fee(valuation, 10000)
@@ -423,7 +426,7 @@ class TestRuleFields(NavCase):
         self.Rule.create({"fund_id": fund.id, "name": "Fond", "kind": "periodic",
                           "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
         self.Rule.create({"fund_id": fund.id, "name": "Třída A", "kind": "periodic", "base_source": "class_fk",
-                          "base_mode": "after", "class_ids": [(6, 0, self.cls(fund, "A").ids)],
+                          "base_step": "2", "class_ids": [(6, 0, self.cls(fund, "A").ids)],
                           "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})]})
         valuation = self.valuation(fund, date(2027, 12, 31))
         valuation.action_compute()
@@ -433,10 +436,10 @@ class TestRuleFields(NavCase):
 
 
 @tagged("post_install", "-at_install")
-class TestBaseModeRetroactive(NavCase):
-    """ZJ-10 fáze 2, plán bod 5: změna `base_mode` na pravidle se uložených ocenění nedotkne.
+class TestBaseStepRetroactive(NavCase):
+    """ZJ-10 fáze 2, plán bod 5: změna základu (`base_step`, dříve `base_mode`) na pravidle se uložených ocenění nedotkne.
 
-    `base_mode` je pole hlavičky pravidla, ne verze „Platí od“ (viz ZJ-10 bod 7). Změna se proto projeví jen při
+    `base_step` je pole hlavičky pravidla, ne verze „Platí od“ (viz ZJ-10 bod 7). Změna se proto projeví jen při
     dalším výpočtu; již spočtené, uložené ani zaúčtované výsledky se sama nepřepočítají. Test fixuje dnešní chování
     a nemění očekávané hodnoty referenčních scénářů.
     """
@@ -446,7 +449,7 @@ class TestBaseModeRetroactive(NavCase):
         self.fund = self.make_fund(classes=[{"code": "A"}], launch="2026-12-31")
         self.subscribe(self.cls(self.fund, "A"), "2027-01-01", 1000000, 1000)
         self.rule = self.env["investra.fee.rule"].create({
-            "fund_id": self.fund.id, "name": "Úplata", "kind": "periodic", "base_mode": "before",
+            "fund_id": self.fund.id, "name": "Úplata", "kind": "periodic", "base_step": "1",
             "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})],
         })
 
@@ -459,7 +462,7 @@ class TestBaseModeRetroactive(NavCase):
         valuation = self.run_to_posted(self.valuation(self.fund, date(2027, 12, 31)))
         before = self.snapshot(valuation)
         self.assertAlmostEqual(before[0][0], 10000.00, places=2)
-        self.rule.write({"base_mode": "after"})
+        self.rule.write({"base_step": "2"})
         self.assertEqual(self.snapshot(valuation), before)
         # Zaúčtované ocenění nejde znovu spočítat, takže ho změna pravidla nemá jak dohnat.
         with self.assertRaises(UserError):
@@ -471,7 +474,7 @@ class TestBaseModeRetroactive(NavCase):
         valuation.action_compute()
         before = self.snapshot(valuation)
         self.assertAlmostEqual(before[0][0], 10000.00, places=2)
-        self.rule.write({"base_mode": "after"})
+        self.rule.write({"base_step": "2"})
         # Uložený návrh zůstává, dokud se výslovně nepřepočte.
         self.assertEqual(self.snapshot(valuation), before)
         # Nový výpočet návrhu použije aktuální nastavení: 1 % ze základu po úplatě = 990 000 × 0,01 / 1,01.

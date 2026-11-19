@@ -57,7 +57,8 @@ výchozí hodnoty ve fondu zrušilo ZJ-03 (rozhodnutí 2026-11-17 „Poplatky fo
   Článek statutu a **Souběh**. Pravidlo se otevře šipkou na řádku; formulář má Článek statutu a **Poznámku** (později se ukážou i v XLS
   pro depozitáře, otevřený bod). Souběh jen **upozorní** (žlutý pruh ve formuláři pravidla, sloupec Souběh a kontrola ocenění „Úplaty téže role
   nejsou zároveň na fondu a na třídách“ jako varování): úplata téže nákladové role je na celém fondu i na třídě, nebo má třída dvě pravidla téže role.
-  Uložení ani výpočet se nezastaví; daň se neposuzuje. Úplatu, kterou Odoo nespočte, zadáte v ocenění jako ručně doloženou (kap. 4, část 5).
+  Uložení ani výpočet se nezastaví; daň se neposuzuje. Úplatu, kterou Odoo nespočte, zadáte v ocenění jako ručně doloženou (kap. 4, část 4).
+- **Schéma výpočtu:** volba Základ všech pravidel fondu, předvolby a náhled s čísly (kap. 9, část 2).
 - **Obchodní modely:** portfolia fondu (kap. 6).
 - Pod formulářem je **historie** (chatter).
 

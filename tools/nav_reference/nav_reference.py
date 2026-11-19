@@ -49,6 +49,17 @@ def compute(scenario):
     perf_accrued = {code: Decimal(0) for code in classes}
     tax_accrued = Decimal(0)
     ytd_result = Decimal(0)
+    # ZJ-12 B.5: specifické náklady tříd od 1. 1. (odměna, specifické položky) a zaúčtované přesuny daňového efektu.
+    ytd_specific = {code: Decimal(0) for code in classes}
+    # Daňový efekt minulého ocenění: {třída: e × spec_c} a e × Σ spec (přírůstkový přesun, ZJ-12 B.5).
+    tax_effect_prev = {code: Decimal(0) for code in classes}
+    tax_effect_total_prev = Decimal(0)
+    # Přesuny daňového efektu od 1. 1.: přesný součet a zaúčtované (dorovnání mezi oceněními, rozhodnutí 2026-11-19).
+    transfers_exact = {code: Decimal(0) for code in classes}
+    transfers_booked = {code: Decimal(0) for code in classes}
+    # Daň, kterou třída nesla (podíl pohybu daně − přesun daňového efektu); odměna po kroku 2 ji přičte zpět (ZJ-12 B.3).
+    # Model nekrystalizuje, přičítá se od začátku.
+    tax_borne = {code: Decimal(0) for code in classes}
     results = []
 
     for val in scenario["valuations"]:
@@ -66,6 +77,8 @@ def compute(scenario):
         delta = {c: dec(val.get("specific", {}).get(c, 0)) for c in classes}
         fk = pfk + common + sum(delta.values())
         result = common + sum(delta.values())
+        for code in classes:
+            ytd_specific[code] -= delta[code]
 
         mgmt_fee = Decimal(0)
         if val.get("mgmt_fee"):
@@ -79,8 +92,10 @@ def compute(scenario):
 
         perf_moves = {}
         for code, fee in val.get("perf_fee", {}).items():
+            if str(fee.get("step", "2")) != "2":
+                raise ValueError("Referenční model umí jen odměnu po kroku 2 (po úplatách tohoto ocenění).")
             nfk = fk - sum(delta.values())
-            gross = apt[code] * nfk + delta[code] + perf_accrued[code]
+            gross = apt[code] * nfk + delta[code] + perf_accrued[code] + tax_borne[code]
             excess = gross / units[code] - dec(fee["hwm"])
             required = money(dec(fee["rate"]) * max(excess, Decimal(0)) * units[code])
             move = required - perf_accrued[code]
@@ -89,14 +104,37 @@ def compute(scenario):
             delta[code] -= move
             fk -= move
             result -= move
+            ytd_specific[code] += move
 
         ytd_result += result
         tax_move = Decimal(0)
+        transfers = {}
         if val.get("tax"):
-            required = money(max(ytd_result, Decimal(0)) * dec(val["tax"]["rate"]))
+            rate = dec(val["tax"]["rate"])
+            exact = max(ytd_result, Decimal(0)) * rate
+            required = money(exact)
             tax_move = required - tax_accrued
             tax_accrued = required
             fk -= tax_move
+            # Daňový efekt specifických položek (ZJ-12 B.5): e = (daň bez nich − daň s nimi) / Σ spec; přesun do třídy
+            # c = Δ(e × spec_c) − ρ_c × Δ(e × Σ spec), Δ proti minulému ocenění, ρ dnešní (dřívější přesuny se nepřepočítávají);
+            # dorovnání mezi oceněními (rozhodnutí 2026-11-19): zaúčtuje se money(přesný součet od 1. 1.) − už zaúčtované
+            # přesuny třídy; zbytek do nuly uvnitř ocenění nese největší přesun.
+            total = sum(ytd_specific.values())
+            effective = (rate * max(ytd_result + total, Decimal(0)) - exact) / total if total else Decimal(0)
+            effect = {c: effective * ytd_specific[c] for c in classes}
+            effect_total = effective * total
+            for c in classes:
+                transfers_exact[c] += effect[c] - tax_effect_prev[c] - apt[c] * (effect_total - tax_effect_total_prev)
+            transfers = {c: money(transfers_exact[c]) - transfers_booked[c] for c in classes}
+            tax_effect_prev, tax_effect_total_prev = effect, effect_total
+            rounding = -sum(transfers.values())
+            if rounding:
+                transfers[max(sorted(transfers), key=lambda c: abs(transfers[c]))] += rounding
+            for c in classes:
+                transfers_booked[c] += transfers[c]
+                delta[c] += transfers[c]
+                tax_borne[c] += apt[c] * tax_move - transfers[c]
 
         nfk = fk - sum(delta.values())
         fkt = split_with_remainder({c: apt[c] * nfk + delta[c] for c in classes})
@@ -116,6 +154,7 @@ def compute(scenario):
             "mgmt_fee": str(mgmt_fee),
             "tax_move": str(tax_move),
             "perf_moves": {k: str(v) for k, v in sorted(perf_moves.items())},
+            **({"tax_transfers": {c: str(transfers[c]) for c in sorted(classes)}} if val.get("tax") else {}),
             "apt": {c: str(apt[c].quantize(Decimal("0.0000000001"))) for c in sorted(classes)},
             "delta": {c: str(money(delta[c])) for c in sorted(classes)},
             "fkt": {c: str(fkt[c]) for c in sorted(classes)},

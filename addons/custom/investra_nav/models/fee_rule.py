@@ -1,5 +1,32 @@
+from datetime import date
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+
+BASE_STEPS = [
+    ("1", "Po kroku 1"),
+    ("2", "Po kroku 2"),
+    ("3", "Po kroku 3"),
+    ("4", "Po kroku 4"),
+]
+
+# ZJ-12 krok 5: popisky voleb základu podle druhu pravidla (stejná hodnota base_step, jiný popis a jen přípustné volby).
+BASE_STEPS_FEE = [
+    ("1", "Po kroku 1 – před úplatami tohoto ocenění"),
+    ("2", "Po kroku 2 – včetně úplat tohoto ocenění"),
+    ("3", "Po kroku 3 – po výkonnostní odměně"),
+    ("4", "Po kroku 4 – výsledný FK (po úplatách, odměně a dani)"),
+]
+BASE_STEPS_PERFORMANCE = [
+    ("1", "Po kroku 1 – před úplatami a daní od začátku období odměny"),
+    ("2", "Po kroku 2 – po úplatách, před daní od začátku období odměny"),
+    ("4", "Po kroku 4 – zveřejněná hodnota po úplatách a dani"),
+]
+BASE_STEPS_TAX = [
+    ("1", "Po kroku 1 – základ nesnižují úplaty ani odměna"),
+    ("2", "Po kroku 2 – základ snižují úplaty"),
+    ("3", "Po kroku 3 – základ snižují úplaty i odměna"),
+]
 
 EXPENSE_ROLES = [
     ("expense_management", "Úplata za obhospodařování"),
@@ -69,19 +96,34 @@ class InvestraFeeRule(models.Model):
         help="Z čeho se úplata počítá: fondový kapitál, jeho průměr od začátku roku, kapitál třídy, aktiva, nebo bez základu "
              "(jen pevná částka). U očekávané daně se nepoužívá.",
     )
-    base_mode = fields.Selection(
-        [("before", "Před úplatami"), ("after", "Po všech úplatách")], required=True, default="before",
-        tracking=True, string="Základ před/po úplatách",
-        help="Jen časově rozlišená úplata ze základu Fondový kapitál nebo Kapitál třídy. Před úplatami: stav před všemi "
-             "úplatami v ocenění. Po všech úplatách: stav po všech časově rozlišených a ručně doložených úplatách včetně "
-             "této; úplaty se dopočtou společně. Výkonnostní odměna se počítá vždy po úplatách, daň nakonec.",
+    # ZJ-12 (rozhodnutí 2026-11-18 „Základ úplat, odměny a daně“): jedna volba „Základ: po kroku 1–4“ nahrazuje
+    # base_mode a perf_base. Kroky: 1 FK před úplatami a daní, 2 časově rozlišené a ruční úplaty a opravy,
+    # 3 výkonnostní odměna, 4 daň. Přípustné volby podle druhu hlídá _check_base_step; výchozí podle druhu
+    # doplní výpočet (_compute_base_step), uživatel ji může přepsat.
+    base_step = fields.Selection(
+        BASE_STEPS, compute="_compute_base_step", store=True, readonly=False, precompute=True, required=True,
+        tracking=True, string="Základ: po kroku",
+        help="Stav NAV k datu ocenění, ze kterého se pravidlo počítá. 1 = FK před úplatami a daní, 2 = po časově "
+             "rozlišených a ručních úplatách a opravách (včetně této úplaty), 3 = navíc po výkonnostní odměně, "
+             "4 = navíc po dani (výsledný FK). Výkonnostní odměna: 1, 2 nebo 4 (výchozí 2), nikdy po sobě samé. "
+             "Očekávaná daň: které náklady snižují základ – 1 žádné, 2 úplaty, 3 úplaty i odměna (výchozí). "
+             "Úplata ze základu Aktiva nebo Bez základu volbu nemá.",
     )
-    perf_base = fields.Selection(
-        [("before_fees", "Před úplatami"), ("after_fees", "Po úplatách"), ("after_tax", "Po dani")],
-        required=True, default="after_fees", tracking=True, string="Základ výkonnostní odměny",
-        help="Jen výkonnostní odměna. Před úplatami: hodnota třídy před úplatami tohoto ocenění. Po úplatách: po časově "
-             "rozlišených a ručně doložených úplatách. Po dani: navíc po očekávané dani; daň se ve stejném ocenění "
-             "doúčtuje o odměnu, která jde do výsledku. Odměna se vždy počítá před sebou samou.",
+    # Pohledy na base_step podle druhu (ZJ-12 krok 5): formulář i tabulka schématu ukazují jen přípustné volby a popisky
+    # svého druhu. Hodnotu drží base_step (sledování změn, kontrola přípustnosti); pohled ji při uložení zapíše zpět.
+    base_step_fee = fields.Selection(
+        BASE_STEPS_FEE, compute="_compute_base_step_views", inverse="_inverse_base_step_views", string="Základ úplaty",
+        help="Z jakého stavu NAV k datu ocenění se úplata počítá. Před úplatami tohoto ocenění (1) je výchozí; po kroku 2 se "
+             "základ snižuje i o tuto úplatu, po kroku 4 se úplata počítá z výsledného (zveřejněného) FK a s daní se dopočte společně.",
+    )
+    base_step_performance = fields.Selection(
+        BASE_STEPS_PERFORMANCE, compute="_compute_base_step_views", inverse="_inverse_base_step_views", string="Základ odměny",
+        help="Hodnota třídy, ze které se odměna počítá. Před úplatami a daní (1): k hodnotě třídy se přičtou úplaty i daň, které třída "
+             "nesla od začátku období odměny. Po kroku 2 (výchozí): přičte se jen daň. Po kroku 4: zveřejněná hodnota po úplatách a dani.",
+    )
+    base_step_tax = fields.Selection(
+        BASE_STEPS_TAX, compute="_compute_base_step_views", inverse="_inverse_base_step_views", string="Základ daně",
+        help="Které náklady snižují základ očekávané daně: žádné (1), úplaty (2), úplaty i výkonnostní odměna (3, výchozí).",
     )
     class_ids = fields.Many2many("investra.fund.class", tracking=True, string="Platí třídy",
         help="Třídy téhož fondu, které úplatu nesou. Prázdné znamená společný náklad celého fondu (dělí se poměrem kapitálu). "
@@ -117,6 +159,147 @@ class InvestraFeeRule(models.Model):
     )
     version_ids = fields.One2many("investra.fee.version", "rule_id", string="Verze")
     overlap_warning = fields.Text(compute="_compute_overlap_warning", string="Upozornění na souběh")
+    class_base_warning = fields.Text(compute="_compute_class_base_warning", string="Upozornění na nastavení")
+
+    @api.model
+    def _base_steps(self, kind, base_source):
+        """Přípustné volby základu podle druhu (ZJ-12, tabulka „Kroky výpočtu a volba základu“) a výchozí volba."""
+        if kind == "performance":
+            return ("1", "2", "4"), "2"
+        if kind == "tax":
+            return ("1", "2", "3"), "3"
+        if base_source in ("assets", "none"):
+            # Úplaty jsou závazky a aktiva nemění; volba je skrytá a ukládá 1.
+            return ("1",), "1"
+        return ("1", "2", "3", "4"), "1"
+
+    @api.depends("kind", "base_source")
+    def _compute_base_step(self):
+        """Nepřípustná nebo prázdná volba se po změně druhu či zdroje základu nahradí výchozí volbou druhu."""
+        for rule in self:
+            allowed, default = self._base_steps(rule.kind, rule.base_source)
+            if rule.base_step not in allowed:
+                rule.base_step = default
+
+    @api.depends("kind", "base_step")
+    def _compute_base_step_views(self):
+        for rule in self:
+            rule.base_step_fee = rule.base_step if rule.kind == "periodic" else False
+            rule.base_step_performance = rule.base_step if rule.kind == "performance" else False
+            rule.base_step_tax = rule.base_step if rule.kind == "tax" else False
+
+    def _inverse_base_step_views(self):
+        for rule in self:
+            value = {"periodic": rule.base_step_fee, "performance": rule.base_step_performance,
+                     "tax": rule.base_step_tax}.get(rule.kind)
+            if value and value != rule.base_step:
+                rule.base_step = value
+
+    @api.onchange("base_step_fee", "base_step_performance", "base_step_tax")
+    def _onchange_base_step_warning(self):
+        """Změna základu průměrného FK, odměny a daně se projeví i za dosavadní část roku nebo období odměny (ZJ-12 C.2)."""
+        rule = self
+        value = {"periodic": rule.base_step_fee, "performance": rule.base_step_performance,
+                 "tax": rule.base_step_tax}.get(rule.kind)
+        if not rule._origin.id or not value or value == rule._origin.base_step:
+            return None
+        if rule.kind == "periodic" and rule.base_source != "average_fk":
+            return None
+        return {"warning": {
+            "title": self.env._("Změna základu"),
+            "message": self.env._(
+                "Změna se projeví i za dosavadní část roku nebo období odměny; rozdíl se doúčtuje v dalším ocenění."),
+        }}
+
+    @api.constrains("kind", "base_source", "base_step")
+    def _check_base_step(self):
+        labels = dict(self._fields["kind"]._description_selection(self.env))
+        for rule in self:
+            allowed, _default = self._base_steps(rule.kind, rule.base_source)
+            if rule.base_step not in allowed:
+                raise ValidationError(self.env._(
+                    "Pravidlo %(rule)s (%(kind)s): základ po kroku %(step)s není přípustný; zvolte %(allowed)s.",
+                    rule=rule.name, kind=labels.get(rule.kind, rule.kind), step=rule.base_step,
+                    allowed=", ".join(allowed),
+                ))
+
+    @api.constrains("fund_id", "kind", "class_ids", "active")
+    def _check_single_performance_and_tax(self):
+        """Nejvýš jedna aktivní výkonnostní odměna na třídu a nejvýš jedno aktivní pravidlo daně na fond (ZJ-12 A.2).
+
+        Dělení odměny mezi více příjemců jde přes podíl příjemcům, ne přes druhé pravidlo. Pravidlo bez tříd
+        (úplata celého fondu, daň) se do kontroly odměn nepočítá; daň se posuzuje za fond bez ohledu na třídy.
+        """
+        for rule in self.filtered("active"):
+            if rule.kind == "performance" and rule.class_ids:
+                others = self.search([
+                    ("id", "!=", rule.id), ("fund_id", "=", rule.fund_id.id), ("kind", "=", "performance"),
+                    ("class_ids", "in", rule.class_ids.ids),
+                ])
+                if others:
+                    shared = rule.class_ids & others.class_ids
+                    raise ValidationError(self.env._(
+                        "Třída %(classes)s už má výkonnostní odměnu %(others)s. Třída smí mít nejvýš jednu aktivní "
+                        "výkonnostní odměnu; dělení mezi příjemce zadejte podílem příjemcům.",
+                        classes=", ".join(shared.mapped("code")), others=", ".join(others.mapped("name")),
+                    ))
+            if rule.kind == "tax":
+                others = self.search([
+                    ("id", "!=", rule.id), ("fund_id", "=", rule.fund_id.id), ("kind", "=", "tax"),
+                ])
+                if others:
+                    raise ValidationError(self.env._(
+                        "Fond %(fund)s už má pravidlo daně %(others)s. Fond smí mít nejvýš jedno aktivní pravidlo daně.",
+                        fund=rule.fund_id.name, others=", ".join(others.mapped("name")),
+                    ))
+
+    def write(self, vals):
+        if "active" in vals and not vals["active"]:
+            self._check_archive()
+        return super().write(vals)
+
+    def _check_archive(self):
+        """Pojistka archivace (ZJ-12 krok 4, rozhodnutí 2026-11-18): archivované pravidlo se v dalším ocenění nepočítá,
+        naběhlou odměnu ani zaúčtovanou daň by proto už nerozpustilo. Archivace se zastaví, má-li pravidlo odměny nebo daně
+        z posledního zaúčtovaného ocenění nenulovou naběhlou odměnu (třídy pravidla) nebo daň zaúčtovanou od 1. 1."""
+        Valuation = self.env["investra.valuation"].sudo()
+        for rule in self.filtered(lambda r: r.active and r.kind in ("performance", "tax")):
+            last = Valuation.search([
+                ("fund_id", "=", rule.fund_id.id), ("state", "in", ("posted", "sent", "confirmed", "published")),
+            ], order="date desc, version desc", limit=1)
+            if not last:
+                continue
+            if rule.kind == "performance":
+                lines = last.class_line_ids.filtered(lambda line: line.class_id in rule.class_ids)
+                amount, what = sum(lines.mapped("perf_accrued")), self.env._("naběhlou odměnu")
+            else:
+                account = self.env["investra.account.role"].sudo().account_for(rule.company_id, "expense_tax")
+                amount = float(last._sum(("date", ">=", date(last.date.year, 1, 1)), ("account_id", "=", account.id)))
+                what = self.env._("zaúčtovanou daň od 1. 1.")
+            if round(amount, 2):
+                raise UserError(self.env._(
+                    "Pravidlo %(rule)s má z posledního ocenění %(valuation)s %(what)s %(amount)s. Archivované pravidlo by ji "
+                    "už nerozpustilo. Nejdřív nastavte verzi sazby 0 %% od data dalšího ocenění, ocenění zaúčtujte a pravidlo "
+                    "archivujte potom. Omylem založené pravidlo bez částky archivovat jde.",
+                    rule=rule.name, valuation=last.display_name, what=what, amount=f"{amount:.2f}"))
+
+    @api.depends("kind", "base_source", "class_ids", "recipient_share", "recipient_class_ids")
+    def _compute_class_base_warning(self):
+        """Upozornění na pole, která výpočet v dané kombinaci nepoužije (rozhodnutí 2026-11-19); uložení nezastaví."""
+        _ = self.env._
+        for rule in self:
+            messages = []
+            if rule.kind == "periodic" and rule.base_source == "class_fk" and not rule.class_ids:
+                messages.append(_("Základ je Kapitál třídy, ale pole Třídy je prázdné: úplata se počítá z FK celého fondu. "
+                                  "Vyplňte třídy, nebo zvolte základ FK."))
+            if rule.kind == "periodic" and rule.base_source == "average_fk" and rule.class_ids:
+                messages.append(_("Průměrný FK je úplata celého fondu: vyplněné Platí třídy se nepoužijí "
+                                  "(průměr po třídách zatím program neumí)."))
+            if rule.kind != "tax" and rule.recipient_share and not rule.recipient_class_ids:
+                messages.append(_("Podíl příjemcům je vyplněný, ale nejsou zvolené přijímající třídy: celá úplata je náklad fondu."))
+            if rule.kind != "tax" and rule.recipient_class_ids and not rule.recipient_share:
+                messages.append(_("Přijímající třídy jsou zvolené, ale podíl příjemcům je 0: nic se jim nepřesune."))
+            rule.class_base_warning = "\n".join(messages) or False
 
     @api.depends("fund_id", "class_ids", "expense_role", "kind", "active")
     def _compute_overlap_warning(self):
@@ -174,6 +357,14 @@ class InvestraFeeRule(models.Model):
             if rule.cover_class_id.fund_id != rule.fund_id:
                 rule.cover_class_id = False
 
+    @api.onchange("kind")
+    def _onchange_kind_tax(self):
+        """Daň třídy ani příjemce nemá (rozhodnutí 2026-11-19): při změně druhu na daň se pole vyprázdní."""
+        for rule in self:
+            if rule.kind == "tax":
+                rule.class_ids = rule.recipient_class_ids = False
+                rule.recipient_share = 0
+
     @api.onchange("fund_id", "kind")
     def _onchange_single_class(self):
         """Výkonnostní odměna fondu s jedinou třídou: třída se předvyplní (rozhodnutí 2026-11-17)."""
@@ -181,7 +372,7 @@ class InvestraFeeRule(models.Model):
             if rule.kind == "performance" and not rule.class_ids and len(rule.fund_id.class_ids) == 1:
                 rule.class_ids = rule.fund_id.class_ids
 
-    @api.constrains("fund_id", "kind", "class_ids", "recipient_class_ids", "cover_class_id")
+    @api.constrains("fund_id", "kind", "class_ids", "recipient_class_ids", "cover_class_id", "recipient_share")
     def _check_classes(self):
         """Třídy musí být z fondu pravidla; třída nesmí být platící i přijímající a třída krytí nesmí být platící.
 
@@ -192,6 +383,10 @@ class InvestraFeeRule(models.Model):
             if rule.kind == "performance" and not rule.class_ids:
                 raise ValidationError(self.env._(
                     "Výkonnostní odměna %s musí mít aspoň jednu třídu v poli Platí třídy.", rule.name))
+            # Rozhodnutí 2026-11-19: daň výpočet počítá za celý fond a mezi třídy dělí sám (poměr + daňový efekt).
+            if rule.kind == "tax" and (rule.class_ids or rule.recipient_class_ids or rule.recipient_share):
+                raise ValidationError(self.env._(
+                    "%s: daň je náklad celého fondu; třídy ani příjemce nemá.", rule.name))
             classes = rule.class_ids | rule.recipient_class_ids | rule.cover_class_id
             foreign = classes.filtered(lambda c: c.fund_id != rule.fund_id)
             if foreign:
@@ -222,7 +417,8 @@ class InvestraFeeRule(models.Model):
         versions = [v._engine_values() for v in self.version_ids]
         if not versions:
             raise UserError(self.env._("Pravidlo %s nemá žádnou sazbu.", self.name))
-        return {"basis": self.basis, "base_mode": self.base_mode, "versions": versions}
+        # ZJ-12 krok 2: engine počítá vždy ze základu, který mu předá ocenění; volbu kroku řeší ocenění.
+        return {"basis": self.basis, "versions": versions}
 
     def _version_at(self, day):
         self.ensure_one()

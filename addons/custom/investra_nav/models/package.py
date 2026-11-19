@@ -1,4 +1,5 @@
 import io
+import json
 
 import xlsxwriter
 
@@ -12,6 +13,15 @@ PORTFOLIO_COLUMNS = [
     ("Kurz", "fx_rate"), ("Zdroj kurzu", "fx_source"), ("Reálná hodnota v měně fondu", "fair_value"),
     ("Změna proti pořízení", "change"), ("Podíl na FK", "weight"),
 ]
+
+# List Úplaty (ZJ-12 E, ZJ-11 krok 3): základní sloupce vždy, sloupce oprav jen v ocenění s opravou.
+FEE_COLUMNS = [("Pravidlo", "name"), ("Třída", "class"), ("Základ", "step"), ("Částka základu", "base"), ("Částka", "amount"),
+               ("Článek statutu", "statute")]
+FEE_FIX_COLUMNS = [("Vypočteno", "computed"), ("Oprava", "correction"), ("Výsledek", "result"), ("Zdůvodnění", "note"),
+                   ("Převzato z / Ukončuje opravu", "link")]
+# Starší ocenění (ZJ-07 až ZJ-12 krok 2) mají v detailu base_mode nebo perf_base; převod stejný jako migrace 20.0.0.37.0.
+LEGACY_BASE_MODE = {"before": "1", "after": "2"}
+LEGACY_PERF_BASE = {"before_fees": "1", "after_fees": "2", "after_tax": "4"}
 
 
 class InvestraValuation(models.Model):
@@ -55,6 +65,90 @@ class InvestraValuation(models.Model):
                 "weight": line.fair_value / total,
             })
         return rows
+
+    @staticmethod
+    def _fee_detail_step(detail):
+        """Krok základu ze snímku řádku; starší klíče převedené, bez klíče prázdné (z dnešního pravidla se nedoplňuje)."""
+        if detail.get("base_step"):
+            return str(detail["base_step"])
+        if detail.get("perf_base") in LEGACY_PERF_BASE:
+            return LEGACY_PERF_BASE[detail["perf_base"]]
+        return LEGACY_BASE_MODE.get(detail.get("base_mode"), "")
+
+    @staticmethod
+    def _fee_detail_base(detail):
+        """Částka základu ze snímku: FK nebo kapitál třídy, průměrný FK, hodnota třídy u odměny, základ daně."""
+        for key in ("base", "average", "gross"):
+            value = detail.get(key)
+            if isinstance(value, (int, float, str)) and not isinstance(value, bool):
+                try:
+                    return float(value)
+                except ValueError:
+                    continue
+        return None
+
+    def _package_rows_fees(self):
+        """Řádky listu Úplaty a příznak, zda ocenění má opravu (sloupce oprav). Hodnoty jen ze snímku v detailu řádku."""
+        lines = self.fee_line_ids
+        details = {line.id: json.loads(line.detail or "{}") for line in lines}
+
+        def label(entry):
+            valuation = entry.valuation_id
+            return f"{valuation.date} v{valuation.version}: {entry.corrects_rule_id.name or ''}".strip()
+
+        def rule_key(line, detail):
+            if line.rule_id:
+                return line.rule_id.id, line.class_id.id
+            if detail.get("corrects") and detail.get("target") != "base":
+                return line.external_id.corrects_rule_id.id, line.class_id.id
+            return None
+
+        new_fixes = {}
+        for line in lines:
+            detail = details[line.id]
+            if not line.rule_id and rule_key(line, detail):
+                key = rule_key(line, detail)
+                new_fixes[key] = new_fixes.get(key, 0.0) + line.amount
+        has_fix = any(details[l.id].get("corrects") or details[l.id].get("carried_ids") or details[l.id].get("base_correction_ids")
+                      for l in lines)
+        Entry = self.env["investra.valuation.external"].sudo()
+        rows = []
+        for line in lines:
+            detail = details[line.id]
+            step = self._fee_detail_step(detail)
+            row = {"name": line.name, "class": line.class_id.code or "", "step": f"po kroku {step}" if step else "",
+                   "base": self._fee_detail_base(detail) if line.rule_id else None, "amount": line.amount,
+                   "statute": line.rule_id.statute_ref or "",
+                   "computed": None, "correction": None, "result": None, "note": "", "link": ""}
+            if line.rule_id:
+                key = rule_key(line, detail)
+                computed = float(detail["computed"]) if "computed" in detail else line.amount
+                correction = (line.amount - computed) + new_fixes.get(key, 0.0)
+                # Oprava základu se promítne do základu a částky; částka bez ní v detailu není, proto se nedopočítává.
+                if detail.get("carried_ids") or key in new_fixes:
+                    row.update(computed=computed, correction=correction, result=computed + correction)
+                links = []
+                if detail.get("carried_ids"):
+                    links.append("převzato z " + ", ".join(label(e) for e in Entry.browse(detail["carried_ids"]).exists()))
+                if detail.get("base_correction_ids"):
+                    links.append("oprava základu " + ", ".join(label(e) for e in Entry.browse(detail["base_correction_ids"]).exists()))
+                row["link"] = "; ".join(links)
+            elif detail.get("corrects"):
+                base_fix = detail.get("target") == "base"
+                row.update(step="oprava základu" if base_fix else "",
+                           correction=float(detail["base_correction"]) if base_fix else line.amount, note=detail.get("note") or "")
+                links = []
+                if line.external_id.origin_id:
+                    links.append("převzato z verze " + str(line.external_id.origin_id.valuation_id.version))
+                if detail.get("ends"):
+                    links.append("ukončuje " + ", ".join(label(e) for e in Entry.browse([detail["ends"]]).exists()))
+                row["link"] = "; ".join(links)
+            else:
+                row["note"] = detail.get("note") or ""
+                if line.external_id.origin_id:
+                    row["link"] = "převzato z verze " + str(line.external_id.origin_id.valuation_id.version)
+            rows.append(row)
+        return rows, bool(has_fix)
 
     def _trial_balance(self):
         """Předvaha k datu ze zaúčtovaných dokladů, účet a zůstatek."""
@@ -152,6 +246,7 @@ class InvestraValuation(models.Model):
             ("Úplaty třídy", lambda l: l.fee_amount, amount),
             ("Výkonnostní odměna", lambda l: l.performance_amount, amount),
             ("Přesun podle pořadí nároků", lambda l: l.allocation_amount, amount),
+            ("Daňový efekt specifických položek", lambda l: l.tax_effect_amount, amount),
             ("Ostatní specifické", lambda l: l.other_amount, amount),
             ("FK", lambda l: l.capital, amount),
             ("FK v měně třídy", lambda l: l.capital_class, amount),
@@ -178,14 +273,18 @@ class InvestraValuation(models.Model):
 
         sheet = book.add_worksheet("Úplaty")
         header(sheet, "Úplaty")
-        for column, label in enumerate(("Pravidlo", "Třída", "Částka", "Článek statutu")):
+        # ZJ-12 E: základ a opravy ze snímku v detailu řádku; sloupce oprav jen v ocenění s opravou.
+        # ZJ-03 (odchylka od „XLS neměnit“): ruční úplata nemá pravidlo, název bere z rozpisu.
+        fee_rows, has_fix = record._package_rows_fees()
+        columns = FEE_COLUMNS + (FEE_FIX_COLUMNS if has_fix else [])
+        for column, (label, _key) in enumerate(columns):
             sheet.write(2, column, label, bold)
-        for row_index, line in enumerate(record.fee_line_ids, start=3):
-            # ZJ-03 (odchylka od „XLS neměnit“): ruční úplata nemá pravidlo, název bere z rozpisu, jinak by buňka byla FALSE.
-            sheet.write(row_index, 0, line.name)
-            sheet.write(row_index, 1, line.class_id.code or "")
-            sheet.write(row_index, 2, line.amount, amount)
-            sheet.write(row_index, 3, line.rule_id.statute_ref or "")
+        for row_index, row in enumerate(fee_rows, start=3):
+            for column, (_label, key) in enumerate(columns):
+                value = row[key]
+                if value is None:
+                    continue
+                sheet.write(row_index, column, value, amount if isinstance(value, float) else None)
         book.close()
         attachment = self.env["ir.attachment"].sudo().create({
             "name": f"balicek-{record.fund_id.name}-{record.date}-v{record.version}.xlsx",
