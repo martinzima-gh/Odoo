@@ -23,7 +23,9 @@ uživatel je může přepsat. Po přepsání zůstane nová hodnota, dokud se ne
 |---|---|
 | Výběr třídy a data | Cenu za kus ze zveřejněného ocenění fondu k datu; kurz z vyhlášeného kurzu (u třídy v cizí měně). |
 | Úpis – zadání přijaté platby | Poplatek ze sazby třídy; kusy zaokrouhlené podle pravidla třídy; rozdíl ze zaokrouhlení. |
-| Odkup – zadání kusů | Hrubou částku (kusy × cena), poplatek ze sazby, výplatu investorovi. |
+| Odkup podle kusů | Hrubou částku (kusy × cena), poplatek ze sazby, výplatu investorovi; rozdíl 0,00. |
+| Odkup podle částky (volba **Odkup podle: částky**) | Kusy z požadované částky zaokrouhlené podle třídy, hrubou částku (kusy × cena), poplatek ze sazby a rozdíl ze zaokrouhlení; výplata investorovi vyjde požadovaná částka − poplatek. |
+| Úpis – ruční změna poplatku | Znovu dopočte kusy a rozdíl (poplatek je vstup pro kusy), zbytek zůstane 0,00. |
 | Třída bez sazby (0 %) | Poplatek 0,00 – lze zadat ručně; příjemce je pak povinný. |
 | První úpis třídy (bez zveřejněného ocenění) | Cena se nepředvyplní; v poli Důvod odlišné ceny se objeví nápověda „První úpis třídy". |
 
@@ -57,6 +59,8 @@ Pole lze měnit jen ve stavu **Nezaúčtováno**. Zaúčtovaný pohyb nejde změ
 | **Cena za kus** | pro zaúčtování | Cena v měně kurzu. Bez ceny pohyb nejde zaúčtovat („chybí cena za kus“). |
 | **Hrubá částka v měně kurzu** | ano (nebo částka ve funkční měně) | Úpis: přijatá platba. Odkup: kusy × cena před poplatkem. |
 | **Kurz** | ne | Funkční měna za jednotku měny třídy. Prázdný = vyhlášený kurz k Datu (kap. 7). U třídy ve funkční měně fondu se nepoužije. |
+| **Odkup podle** a **Požadovaná částka** | jen odkup, ruční zadání | Jen volba zadání, neukládá se: z **kusů** se dopočte částka, z **požadované částky** kusy. |
+| **Sazba třídy**, **zveřejněný kurz k …** | jen čtení | Sazba poplatku třídy a poslední zveřejněná cena třídy (zelená fajfka, když se cena shoduje). Důvod odlišné ceny se zobrazí jen při odlišné nebo chybějící zveřejněné ceně. |
 | **Hrubá částka ve funkční měně** | dopočte se | Při uložení = hrubá částka v měně kurzu × Kurz. |
 | **Důvod odlišné ceny** | podle kontroly | Viz „Kontrola ceny“ níže. |
 | **Poplatek** | ne | V měně kurzu. Při ručním zadání se předvyplní ze sazby třídy (vstupní u úpisu, výstupní u odkupu); lze přepsat. |
@@ -132,7 +136,7 @@ zaúčtujte. Pokud je mezitím ocenění k tomuto datu uzamčeno, oprava ani sto
 Fond **Alfa Růst** (CZK), třída **A** v CZK, 3 desetinná místa kusů, zaokrouhlení kusů dolů, vstupní poplatek 1,5 %, příjemce Obhospodařovatel
 (kap. 2–3). Fond ještě nemá zveřejněné ocenění. Uživatel je ve skupině Investra: příprava ocenění. Datum vzniku fondu je 1. 1. 2027.
 
-1. **Investra › Úpisy a odkupy › Nový.** Třída: Alfa Růst A; Typ: Úpis; Zdroj: Ruční zadání.
+1. **Investra › Úpisy a odkupy › Nový úpis.** Třída: Alfa Růst A; Zdroj: Ruční zadání.
 2. Datum 4. 1. 2027; Důvod ručního zadání: „První úpis, podklad z IS“.
 3. Hrubá částka v měně kurzu: 1 000 000,00. Poplatek se předvyplní na 15 000,00 (1,5 %), příjemce Obhospodařovatel.
 4. Cena za kus: 100,00. Kusy: (1 000 000 − 15 000) ÷ 100 = **9 850,000**.
@@ -145,17 +149,6 @@ Fond **Alfa Růst** (CZK), třída **A** v CZK, 3 desetinná místa kusů, zaokr
 
 *Čísla jsou ukázková, bez vazby na skutečný fond.*
 
-## Převzetí fondu od jiného administrátora
-
-**Tato funkce zatím není hotová.** Je naplánována jako samostatná etapa (návrh: den přechodu, počáteční rozvaha, pozice po nástrojích
-s pořizovací cenou a kurzem, třídy a počty podílů, poslední kurz, importní šablony a protokol o odsouhlasení; `docs/plan-dalsiho-vyvoje.md`,
-etapa 2). Do jejího dokončení platí:
-
-- **Úpis nepoužívejte jako počáteční stav.** Zaúčtuje peníze na bankovní účet proti kapitálu třídy, nezaloží pozice v nástrojích a nevytvoří
-  historii kapitálu převzatého fondu.
-- Převzatá historická ocenění brání pravidla pořadí ocenění (nové ocenění až po zveřejnění předchozího, kap. 4); řešení je otevřený bod.
-- Postup převzetí proto před nasazením ostrého fondu vyžaduje rozhodnutí podle návrhu etapy; kapitola se doplní po jeho schválení a provedení.
-
 ## Příklad: vzorový úpis s přesným výpočtem
 
 Třída **B** v CZK, 6 desetinných míst kusů, zaokrouhlení dolů, vstupní poplatek 1 %, zveřejněný kurz 1 036,6444 CZK/kus.
@@ -166,8 +159,8 @@ Třída **B** v CZK, 6 desetinných míst kusů, zaokrouhlení dolů, vstupní p
 | Cena za kus | 1 036,6444 | předvyplněna ze zveřejněného kurzu |
 | Poplatek (1 %) | 10 000,00 | 1 000 000 × 0,01 |
 | Čistá platba | 990 000,00 | 1 000 000 − 10 000 |
-| Kusy (dolů, 6 míst) | 955,004437 | 990 000 ÷ 1 036,6444, dolů na 6 míst |
-| Kusy × cena | 990 000,00 | 955,004437 × 1 036,6444 (na haléře) |
+| Kusy (dolů, 6 míst) | 955,004435 | 990 000 ÷ 1 036,6444, dolů na 6 míst |
+| Kusy × cena | 990 000,00 | 955,004435 × 1 036,6444 (na haléře) |
 | Rozdíl ze zaokrouhlení | 0,00 | 990 000 − 990 000 |
 | Zbytek | 0,00 | (kontrola součtu) |
 
@@ -186,4 +179,31 @@ Třída **B**, kurz 1 050,00 CZK, výstupní poplatek 1 %, investor vrací 100 k
 | Výplata investorovi | 103 950,00 | 105 000 − 1 050 |
 | Zbytek | 0,00 | (kontrola součtu) |
 
+## Příklad: odkup podle částky
+
+Třída se **2 desetinnými místy kusů** (zaokrouhlení dolů), výstupní poplatek 1 %, zveřejněný kurz 1 036,6444. Investor žádá odkup za 100 000,00.
+
+| Položka | Hodnota | Výpočet |
+|---|---|---|
+| Požadovaná částka | 100 000,00 | zadáno (Odkup podle: částky) |
+| Kusy | 96,46 | 100 000 ÷ 1 036,6444, dolů na 2 místa |
+| Hrubá částka | 99 994,72 | 96,46 × 1 036,6444 |
+| Poplatek (1 %) | 999,95 | 99 994,72 × 0,01 |
+| Rozdíl ze zaokrouhlení kusů | −5,28 | hrubá částka − požadovaná částka (záporný: fond doplácí investorovi) |
+| Výplata investorovi | 99 000,05 | 99 994,72 − 999,95 − (−5,28) = požadovaná částka − poplatek |
+| Zbytek | 0,00 | (kontrola součtu) |
+
+Komu rozdíl patří, určuje pole **Rozdíl patří** (výchozí hodnota třídy).
+
 *Čísla jsou ukázková, bez vazby na skutečný fond.*
+
+## Převzetí fondu od jiného administrátora
+
+**Tato funkce zatím není hotová.** Je naplánována jako samostatná etapa (návrh: den přechodu, počáteční rozvaha, pozice po nástrojích
+s pořizovací cenou a kurzem, třídy a počty podílů, poslední kurz, importní šablony a protokol o odsouhlasení; `docs/plan-dalsiho-vyvoje.md`,
+etapa 2). Do jejího dokončení platí:
+
+- **Úpis nepoužívejte jako počáteční stav.** Zaúčtuje peníze na bankovní účet proti kapitálu třídy, nezaloží pozice v nástrojích a nevytvoří
+  historii kapitálu převzatého fondu.
+- Převzatá historická ocenění brání pravidla pořadí ocenění (nové ocenění až po zveřejnění předchozího, kap. 4); řešení je otevřený bod.
+- Postup převzetí proto před nasazením ostrého fondu vyžaduje rozhodnutí podle návrhu etapy; kapitola se doplní po jeho schválení a provedení.

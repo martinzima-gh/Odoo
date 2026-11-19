@@ -115,6 +115,20 @@ class InvestraClassMovement(models.Model):
         help="Změna kapitálu třídy ve funkční měně se znaménkem: úpis kladně, odkup záporně. Jen zobrazení.",
     )
 
+    # Jen pro zobrazení a zadání ve formuláři (neukládají se, účetní hodnoty je nepoužívají; AG-019).
+    redemption_by = fields.Selection(
+        [("units", "kusů"), ("amount", "částky")], default="units", store=False, string="Odkup podle",
+        help="Jen volba zadání: z kusů se dopočte částka, z požadované částky kusy.",
+    )
+    requested_amount = fields.Float(digits=(20, 2), store=False, string="Požadovaná částka", help="Odkup podle částky; v měně kurzu.")
+    published_price = fields.Float(compute="_compute_published", digits=(24, 10), string="Zveřejněný kurz třídy")
+    published_date = fields.Date(compute="_compute_published", string="Zveřejněný kurz k")
+    price_matches = fields.Boolean(compute="_compute_published", string="Cena odpovídá zveřejněnému kurzu")
+    foreign_currency = fields.Boolean(compute="_compute_foreign_currency", string="Třída v cizí měně")
+    fee_rate_percent = fields.Float(compute="_compute_fee_rate_percent", digits=(16, 4), string="Sazba poplatku třídy (%)")
+    fee_warning = fields.Char(compute="_compute_fee_warning", string="Upozornění k poplatku")
+    units_hint = fields.Char(compute="_compute_units_hint", string="Zaokrouhlení kusů")
+
     # D. Storno a oprava
     event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
     replaced_id = fields.Many2one("investra.class.movement", readonly=True, ondelete="restrict", tracking=True, string="Opravuje pohyb")
@@ -310,84 +324,172 @@ class InvestraClassMovement(models.Model):
             if movement.source == "is" and not movement.external_ref:
                 raise ValidationError(self.env._("Pohyb z IS musí mít identifikátor z IS."))
 
+    # --- dopočty při ručním zadání (AG-019) ----------------------------------------------------------
+    # Jen předvyplnění formuláře: kontroly a zaúčtování (`_booking_valuation`, `_lines_functional`...) se nemění.
+    # Změna vstupu přepočte závislá pole, ruční úprava závislého pole platí do další změny vstupu.
+
+    def _is_manual_draft(self):
+        return self.source == "manual" and self.state == "draft" and bool(self.class_id)
+
+    @api.depends("class_id", "date", "price")
+    def _compute_published(self):
+        for movement in self:
+            line = movement.env["investra.valuation.class"]
+            valuation = movement.env["investra.valuation"]
+            if movement.class_id and movement.date:
+                valuation = movement._published_valuation()
+                line = valuation.class_line_ids.filtered(lambda l: l.class_id == movement.class_id)[:1]
+            movement.published_date = valuation.date if line else False
+            movement.published_price = float(line.price) if line else 0.0
+            movement.price_matches = bool(line) and d(line.price) == d(movement.price)
+
+    @api.depends("class_id")
+    def _compute_foreign_currency(self):
+        for movement in self:
+            movement.foreign_currency = bool(movement.class_id) and movement.currency_id != movement.fund_id.currency_id
+
+    @api.depends("class_id", "movement_type")
+    def _compute_fee_rate_percent(self):
+        for movement in self:
+            movement.fee_rate_percent = float(movement._fee_rate() * 100) if movement.class_id and movement.movement_type else 0.0
+
+    @api.depends("fee_amount_class", "fee_expected_class", "fee_rate_percent", "source", "state")
+    def _compute_fee_warning(self):
+        for movement in self:
+            warning = False
+            if movement.source == "manual" and movement.state == "draft" and movement.class_id and movement.fee_amount_class:
+                if not movement.fee_rate_percent:
+                    warning = self.env._("Třída nemá sazbu poplatku; poplatek zadán ručně.")
+                elif abs(movement.fee_amount_class - movement.fee_expected_class) > 0.005:
+                    warning = self.env._(
+                        "Poplatek se liší od sazby třídy (%(rate)s %% = %(expected)s).",
+                        rate=movement.fee_rate_percent, expected=movement.fee_expected_class,
+                    )
+            movement.fee_warning = warning
+
+    @api.depends("class_id")
+    def _compute_units_hint(self):
+        labels = {"down": self.env._("dolů"), "half_up": self.env._("matematicky"), "up": self.env._("nahoru")}
+        for movement in self:
+            fund_class = movement.class_id
+            movement.units_hint = self.env._(
+                "zaokrouhleno %(how)s na %(digits)s míst", how=labels.get(fund_class.unit_rounding, ""), digits=fund_class.unit_digits,
+            ) if fund_class else False
+
     @api.onchange("class_id", "date")
     def _onchange_price_from_valuation(self):
-        """Ruční zadání: po výběru třídy a data předvyplnit cenu za kus ze zveřejněného ocenění."""
+        """Ruční zadání: po výběru třídy a data předvyplnit cenu ze zveřejněného ocenění (poslední známý kurz třídy).
+
+        Bez zveřejněného ocenění (první úpis třídy) se cena nepředvyplní a důvod odlišné ceny dostane nápovědu.
+        """
+        first = self.env._("První úpis třídy")
         for movement in self:
-            if movement.source != "manual" or movement.state != "draft":
-                continue
-            if not (movement.class_id and movement.date):
+            if not movement._is_manual_draft() or not movement.date:
                 continue
             valuation = movement._published_valuation()
-            line = valuation.class_line_ids.filtered(lambda l: l.class_id == movement.class_id)[:1] if valuation else None
+            line = valuation.class_line_ids.filtered(lambda l: l.class_id == movement.class_id)[:1]
             if line:
                 movement.price = float(line.price)
                 movement.valuation_id = valuation
+                if movement.price_reason == first:
+                    movement.price_reason = False
             else:
                 movement.price = 0.0
                 movement.valuation_id = False
                 if not movement.price_reason:
-                    movement.price_reason = self.env._("První úpis třídy")
+                    movement.price_reason = first
 
     @api.onchange("class_id", "date")
     def _onchange_fx_from_rate(self):
-        """Ruční zadání: předvyplnit kurz z vyhlášeného kurzu k datu (jen u třídy v cizí měně)."""
+        """Ruční zadání, třída v cizí měně: kurz z vyhlášeného kurzu k datu.
+
+        Chybějící kurz (výchozí datum bez kurzu, kniha bez zdroje kurzů) formulář nezastaví, kurz se jen nepředvyplní;
+        `create` a zaúčtování ho vyžadují dál.
+        """
         for movement in self:
-            if movement.source != "manual" or movement.state != "draft":
-                continue
-            if not (movement.class_id and movement.date):
-                continue
-            if movement.currency_id and movement.currency_id != movement.fund_id.currency_id:
+            if movement._is_manual_draft() and movement.date and movement.foreign_currency:
                 try:
-                    rate = float(movement.fund_id._fx_at(movement.currency_id, movement.date))
-                    movement.fx_rate = rate
-                except Exception:
-                    pass
+                    movement.fx_rate = float(movement.fund_id._fx_at(movement.currency_id, movement.date))
+                except UserError:
+                    movement.fx_rate = 0.0
 
     @api.onchange("class_id", "movement_type", "amount_class", "price")
     def _onchange_subscription_amounts(self):
-        """Ruční zadání úpisu: z přijaté platby (amount_class) dopočítat poplatek, kusy a rozdíl ze zaokrouhlení."""
+        """Úpis: z přijaté platby poplatek ze sazby třídy; kusy a rozdíl pak z platby bez poplatku."""
         for movement in self:
-            if movement.source != "manual" or movement.state != "draft":
+            if not movement._is_manual_draft() or movement.movement_type != "subscription":
                 continue
-            if movement.movement_type != "subscription":
-                continue
-            if not (movement.class_id and movement.amount_class and movement.price):
-                continue
-            gross = money(movement.amount_class)
-            fee = money(gross * movement._fee_rate())
+            fee = money(money(movement.amount_class) * movement._fee_rate())
             movement.fee_amount_class = float(fee)
-            net = gross - fee
-            digits = Decimal(1).scaleb(-movement.class_id.unit_digits)
-            units = (net / d(movement.price)).quantize(digits, rounding=UNIT_ROUNDING[movement.class_id.unit_rounding])
-            movement.units = float(units)
-            rounding = net - money(units * d(movement.price))
-            movement.rounding_amount_class = float(rounding)
-            # Příjemce poplatku z třídy, pokud ještě není nastaven
-            if not movement.fee_recipient and movement.class_id:
+            if fee and not movement.fee_recipient:
                 movement.fee_recipient = movement.class_id.entry_fee_recipient
+            movement._subscription_units()
 
-    @api.onchange("class_id", "movement_type", "units", "price")
-    def _onchange_redemption_by_units(self):
-        """Ruční zadání odkupu podle kusů: z kusů dopočítat hrubou částku, poplatek a výplatu."""
+    @api.onchange("fee_amount_class")
+    def _onchange_subscription_fee(self):
+        """Úpis: poplatek je vstup pro kusy, takže i ručně změněný poplatek přepočte kusy a rozdíl (jinak by zbytek nevyšel 0)."""
         for movement in self:
-            if movement.source != "manual" or movement.state != "draft":
+            if movement._is_manual_draft() and movement.movement_type == "subscription":
+                if movement.fee_amount_class and not movement.fee_recipient:
+                    movement.fee_recipient = movement.class_id.entry_fee_recipient
+                movement._subscription_units()
+
+    def _subscription_units(self):
+        """Kusy (zaokrouhlení třídy, jako `_booking_valuation`) a rozdíl ze zaokrouhlení z platby bez poplatku."""
+        self.ensure_one()
+        gross = money(self.amount_class)
+        if not (gross and self.price):
+            return
+        net = gross - money(self.fee_amount_class)
+        digits = Decimal(1).scaleb(-self.class_id.unit_digits)
+        units = (net / d(self.price)).quantize(digits, rounding=UNIT_ROUNDING[self.class_id.unit_rounding])
+        self.units = float(units)
+        self.rounding_amount_class = float(net - money(units * d(self.price)))
+
+    @api.onchange("class_id", "movement_type", "price", "units", "requested_amount", "redemption_by")
+    def _onchange_redemption_amounts(self):
+        """Odkup podle kusů nebo podle požadované částky: hrubá částka, poplatek a rozdíl.
+
+        Odchylka od zadání AG-019 A3 (označeno, rozhodnutí 2026-11-19): rozdíl ze zaokrouhlení kusů u odkupu je
+        **hrubá částka − požadovaná částka**, ne naopak. Výplata investorovi je podle vzorce odkupu
+        hrubá − poplatek − rozdíl, takže jen s tímto znaménkem vyjde výplata = požadovaná částka − poplatek
+        (se zadaným znaménkem by se rozdíl odečetl podruhé). Podle kusů je rozdíl 0.
+        """
+        for movement in self:
+            if not movement._is_manual_draft() or movement.movement_type != "redemption" or not movement.price:
                 continue
-            if movement.movement_type != "redemption":
+            price = d(movement.price)
+            by_amount = movement.redemption_by == "amount"
+            if by_amount:
+                if not movement.requested_amount:
+                    continue
+                digits = Decimal(1).scaleb(-movement.class_id.unit_digits)
+                units = (d(movement.requested_amount) / price).quantize(digits, rounding=UNIT_ROUNDING[movement.class_id.unit_rounding])
+                movement.units = float(units)
+            elif not movement.units:
                 continue
-            if not (movement.class_id and movement.units and movement.price):
-                continue
-            gross = money(d(movement.units) * d(movement.price))
-            movement.amount_class = float(gross)
+            gross = money(d(movement.units) * price)
             fee = money(gross * movement._fee_rate())
+            movement.amount_class = float(gross)
             movement.fee_amount_class = float(fee)
-            movement.rounding_amount_class = 0.0
-            if not movement.fee_recipient and movement.class_id:
+            movement.rounding_amount_class = float(gross - money(movement.requested_amount)) if by_amount else 0.0
+            if fee and not movement.fee_recipient:
                 movement.fee_recipient = movement.class_id.exit_fee_recipient
 
-    @api.onchange("class_id", "movement_type", "amount_class", "price")
+    @api.onchange("class_id", "date", "amount_class", "fx_rate")
+    def _onchange_functional_amount(self):
+        """Třída v cizí měně: hrubá částka ve funkční měně z kurzu (jako `create`); u třídy v měně fondu se nezobrazuje."""
+        for movement in self:
+            if movement._is_manual_draft() and movement.foreign_currency and movement.amount_class and movement.fx_rate:
+                movement.amount = movement.fund_id.currency_id.round(movement.amount_class * movement.fx_rate)
+
+    @api.onchange("class_id", "movement_type", "amount_class", "amount")
     def _onchange_fee(self):
-        """Ruční zadání: poplatek se předvyplní ze sazby třídy, jen u IS nebo když amount_class chybí (záloha pro starý kód)."""
+        """Ruční zadání: poplatek se předvyplní ze sazby třídy, uživatel ho může upravit (původní chování, AG-019 ho nemění).
+
+        Dopočet poplatku z platby a ceny v úpisu a v odkupu dělají metody výše; tato zůstává pro prázdný poplatek.
+        Dále příjemce poplatku a komu patří rozdíl z třídy.
+        """
         for movement in self:
             if movement.source == "manual" and movement.class_id and movement.movement_type and not movement.fee_amount_class:
                 movement.fee_amount_class = float(money(movement._gross_class() * movement._fee_rate()))
