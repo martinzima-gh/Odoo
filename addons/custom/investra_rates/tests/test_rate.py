@@ -65,6 +65,20 @@ class TestRate(TransactionCase):
         with self.assertRaises(UserError):
             record.unlink()
 
+    def test_inactive_currency_is_not_stored(self):
+        """ZJ-13: kurz neaktivní měny (HUF) se neuloží, aktivní (EUR, JPY; z ECB USD a CZK) ano."""
+        huf = self.env.ref("base.HUF")
+        self.assertFalse(huf.active)
+        self.assertEqual(sorted(self.stored.mapped("currency_id.name")), ["EUR", "JPY"])
+        self.env.ref("base.USD").active = True
+        ecb = self.Rate._store("ecb", *parse_ecb(ECB), ECB)
+        self.assertEqual(sorted(ecb.mapped("currency_id.name")), ["CZK", "USD"])
+        self.assertFalse(self.Rate._store("ecb", date(2026, 11, 9), {"HUF": (Decimal(1), Decimal("390"))}, "ecb-huf"))
+        # Aktivovaná měna se uloží dalším stažením (už uložené kurzy jiných měn se nepřidají znovu).
+        huf.active = True
+        again = self.Rate._store("cnb", *parse_cnb(CNB), CNB)
+        self.assertEqual(again.mapped("currency_id"), huf)
+
     def test_second_store_adds_nothing(self):
         self.assertFalse(self.Rate._store("cnb", *parse_cnb(CNB), CNB))
 

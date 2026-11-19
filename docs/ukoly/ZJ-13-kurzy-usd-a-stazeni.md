@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 19. 11. 2026 (varianta 2 z odpovědi na hlášení „Chybí kurz USD k 31. 10. 2026“) |
 | Řešitel | Claude (zápis do databáze); jiný agent do `investra` nezapisuje |
 | Navazuje na | rozhodnutí 2026-11-10 „Ochrana kurzů“, 2026-11-11 „Platnost kurzů“ |
-| Stav | **hotovo 19. 11. 2026 (data v `investra`, žádná změna kódu)** |
+| Stav | **hotovo 19. 11. 2026** (data v `investra`; doplněk: `_store` jen aktivní měny, schválil Martin, červená zóna) |
 
 **Příčina:** `Spočítat` u ocenění s ruční úplatou v USD končí chybou „Chybí kurz USD ke dni 2026-10-31“. V pracovní databázi je jen
 ČNB/EUR a ECB/CZK (338 záznamů, 1. 8. 2025 – 17. 11. 2026); USD tam nikdy nebylo a cron „Investra: stažení kurzů“ je vypnutý
@@ -54,3 +54,19 @@ ruční úplata 1 000 USD se spočítala (21 814,00 CZK, kurz 21,814); zkouška 
 kontejneru; čeká na Martinův pokyn). Do té doby kurzy stahovat ručně.
 
 **Otevřené:** (a) omezit `_store` jen na měny používané knihami (změna kódu, červená zóna – rozhodnutí Martina); (b) historie ECB pro EUR jednotku.
+
+## Doplnění (19. 11. 2026, rozhodl Martin)
+
+**(a) `_store` jen aktivní měny** (malá změna v červené zóně, schválil Martin): `investra.rate._store` ukládá kurzy jen měn s `res.currency.active`;
+neaktivní měna ze zdroje se přeskočí. Už uložené záznamy neaktivních měn zůstávají (ochrana kurzů: nemazat, neměnit). Seznam **Kurzy měn**
+má výchozí filtr **Aktivní měny** (odškrtnutím se ukážou i dříve uložené kurzy neaktivních měn). Měnu aktivovanou později doplní nové
+stažení za potřebné dny. Test `test_inactive_currency_is_not_stored` (HUF se neuloží, EUR, JPY, z ECB USD a CZK ano, aktivovaná HUF dalším
+stažením ano). Testy: `investra_rates` 42/42, `investra_rates+` 874/874.
+
+**(b) Cron a pracovní databáze:** cron „Investra: stažení kurzů“ zůstává zapnutý, `investra-web` dál běží s `--max-cron-threads=0` (beze změny,
+bez restartu), takže sám nepoběží. **V pracovní databázi se kurzy stahují ručně:** dnešní lístky (denní ČNB, měsíční ČNB za minulý a běžný
+měsíc, ECB) v režimu vývojáře **Nastavení › Technické › Naplánované akce › Investra: stažení kurzů › Spustit ručně** (v prohlížeči
+neověřeno); zpětně za vybrané dny přes ORM v `odoo shell` (`env["investra.rate"].fetch_cnb(den)._publish()`, jak v kroku 2 výše; dělá Claude).
+Naplánované úlohy (vlákna cronu, sledování selhání) se řeší při přípravě ostrého provozu.
+
+**(c) Historie ECB** pro jednotku v EUR: zapsáno do `docs/otevrene-body.md` (řešit, až bude potřeba).

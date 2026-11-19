@@ -93,9 +93,13 @@ class InvestraRate(models.Model):
 
     @api.model
     def _store(self, source, published, rates, document, periodicity="daily"):
-        """Uloží vyhlášené kurzy; kurz 0 (zdroj ho nevyhlašuje) a už uložený kurz přeskočí."""
+        """Uloží vyhlášené kurzy aktivních měn; kurz 0 (zdroj ho nevyhlašuje) a už uložený kurz přeskočí.
+
+        Jen aktivní měny (Martin 2026-11-19, ZJ-13): zdroj vyhlašuje desítky měn, evidence má mít jen ty, které Odoo
+        používá. Kurz měny aktivované později se doplní novým stažením za potřebné dny.
+        """
         digest = hashlib.sha256(document.encode()).hexdigest()
-        currencies = self.env["res.currency"].with_context(active_test=False).search([("name", "in", list(rates))])
+        currencies = self.env["res.currency"].search([("name", "in", list(rates)), ("active", "=", True)])
         by_name = {c.name: c for c in currencies}
         existing = self.search([
             ("source", "=", source), ("date", "=", published), ("origin", "in", ("published", "manual")),

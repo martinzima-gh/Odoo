@@ -32,6 +32,17 @@ Knihu v jiné funkční měně lze založit, ale dokud pro ni není implementov�
 
 Evidence je neměnná. Oprava se provede novým ručním přepisem, který zůstane propojený s předchozím záznamem.
 
+Ukládají se jen kurzy **aktivních měn** Odoo; ostatní měny z lístku se přeskočí. Seznam má výchozí filtr **Aktivní měny**; po jeho odebrání
+se ukážou i dříve uložené kurzy měn, které dnes aktivní nejsou (zůstávají v evidenci, nic je nepoužívá). Po aktivaci další měny se její
+kurzy doplní dalším stažením; za minulé dny je stáhne správce.
+
+### Stahování kurzů v pracovní databázi
+
+Automatická úloha **Investra: stažení kurzů** je zapnutá, ale pracovní instance běží bez naplánovaných úloh, takže sama nepoběží.
+Dnešní kurzovní lístky (denní ČNB, měsíční ČNB za minulý a běžný měsíc, ECB) stáhne v režimu vývojáře **Nastavení › Technické ›
+Naplánované akce › Investra: stažení kurzů › Spustit ručně** (v prohlížeči neověřeno). Kurzy za minulé dny stahuje správce přes ORM.
+Spouštění naplánovaných úloh se nastaví při přípravě ostrého provozu.
+
 ## Ruční kurz nebo přepis
 
 Ruční záznam smí zadat schvalovatel ocenění a vždy vyžaduje důvod. V seznamu použijte **Nový ruční kurz**, nebo na konkrétním kurzu **Přepsat kurz**. Při přepisu se výchozí zdroj, měna, datum, množství a kurz převezmou z původního záznamu.
