@@ -20,6 +20,14 @@ AG-020 → **AG-021** → AG-022. Navazuje na AG-020 (názvy Portfolio, nabídka
 `investra_instruments/models/instrument.py` (jen onchange, výchozí hodnoty a computed pro zobrazení),
 `investra_nav/models/trade_preview.py` (jen zobrazení), testy, překlady.
 
+**Upřesnění rozsahu (19. 11. 2026, na dotaz Copilota):** do `investra_instruments/models/instrument.py` smějí přibýt dvě úzké obslužné metody tlačítek:
+(a) „Prodat vše“ na obchodu: jen u nezaúčtovaného obchodu s `side = sell` zapíše `units :=` držené kusy k datu (stejná výpočetní funkce
+jako nápověda „Drženo k datu“, nová logika držení se nevytváří); nic dalšího nemění a nezaúčtovává;
+(b) hromadné „Schválit“ v seznamu cen: metoda, která z vybraných cen vezme jen ty ve stavu návrh a pro ně **zavolá nezměněnou**
+`action_approve`; ostatní vynechá bez chyby (volitelně zpráva „Vynecháno N cen mimo návrh“). `action_approve` ani schvalovací
+matice se nemění; kdo cenu smí schválit, rozhoduje dál matice. Obě metody mají test (včetně výběru smíšených stavů). Cokoli dalšího
+v modelu zůstává mimo rozsah.
+
 **Mimo rozsah:** zaúčtování, kontroly (constraints), `_book*`, `_validate`, `_check*`, logika náhledu zaúčtování; konvence T+n
 se nezavádí. Když by úprava vyžadovala jejich změnu, **zastavit a úkol vrátit Claudovi** (červená zóna). Testy Odoo, commit, push
 a povýšení modulu dělá Claude při převzetí.
