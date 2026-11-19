@@ -2363,6 +2363,13 @@ class InvestraValuation(models.Model):
     def create(self, vals_list):
         if not self.env.su and any(SYSTEM_FIELDS & set(vals) for vals in vals_list):
             raise UserError(self.env._("Stav a výsledky ocenění nastavuje jen postup ocenění."))
+        # Odchylka: nové ocenění k datu, ke kterému jsou jen vrácené nebo stornované verze (např. po zrušení návrhu),
+        # dostane další číslo verze; dřív dostalo 1 a narazilo na unique(fond, datum, verze). Aktivní verzi to nepřebije.
+        for vals in vals_list:
+            if "version" not in vals and vals.get("fund_id") and vals.get("date"):
+                existing = self.sudo().search([("fund_id", "=", vals["fund_id"]), ("date", "=", vals["date"])])
+                if existing and all(v.state in ("returned", "reversed") for v in existing):
+                    vals["version"] = max(existing.mapped("version")) + 1
         records = super().create(vals_list)
         records._check_previous_published()
         records._check_no_later_valuation()

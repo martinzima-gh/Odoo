@@ -36,11 +36,11 @@ cen, účetních událostí, derivátů i uložených ručních úplat jsou jen 
 se kvůli chybě neuložila). Aktivní měny v Odoo: CZK, EUR, USD. Rozsah tedy: USD, 1. 8. 2025 – 19. 11. 2026.
 
 **2. Stažení** přes ORM (`fetch_cnb` po dnech + `_publish`, `fetch_ecb`), bez SQL zápisu; ČNB a ECB z kontejneru dostupné (zkouška 30. 10. 2026:
-USD 21,814). 475 dní ČNB bez chyby, 0 rozdílů proti Odoo. USD ČNB: 325 vyhlášených dnů (14 dnů bez USD jsou české státní svátky,
+USD 21,814). 476 dní ČNB bez chyby, 0 rozdílů proti Odoo. USD ČNB: 325 vyhlášených dnů (14 dnů bez USD jsou české státní svátky,
 kdy ČNB nevyhlašuje; kurz platí z předchozího dne). USD ECB: jen vyhlášení z 18. 11. 2026 (`fetch_ecb` bere jen aktuální soubor; historii ECB
 kód nestahuje, mimo rozsah).
 
-**3. Vedlejší účinek (nahlásit):** `_store` ukládá všechny měny, které v `res.currency` existují (i neaktivní), nejen USD. Vzniklo 9 572
+**3. Vedlejší účinek (nahlásit):** `_store` ukládá všechny měny, které v `res.currency` existují (i neaktivní), nejen USD. Vzniklo 9 234
 záznamů v `investra.rate` (do 9 910) pro ~29 měn (AUD, GBP, JPY, CHF, PLN …; ČNB i BGN do 12/2025) a odpovídající neaktivní kurzy
 v `res.currency.rate` (10 249). Záznamy kurzů se nesmějí mazat ani měnit (ochrana kurzů), takže zůstávají; nemají vliv na výpočty
 (měny jsou neaktivní a nic je nepoužívá) a stejně by je cron přinášel denně. Chování je v kódu `_store`, neměnil jsem ho.
