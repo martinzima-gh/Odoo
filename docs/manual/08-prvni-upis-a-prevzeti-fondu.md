@@ -26,6 +26,7 @@ uživatel je může přepsat. Po přepsání zůstane nová hodnota, dokud se ne
 | Odkup podle kusů | Hrubou částku (kusy × cena), poplatek ze sazby, výplatu investorovi; rozdíl 0,00. |
 | Odkup podle částky (volba **Odkup podle: částky**) | Kusy z požadované částky zaokrouhlené podle třídy, hrubou částku (kusy × cena), poplatek ze sazby a rozdíl ze zaokrouhlení; výplata investorovi vyjde požadovaná částka − poplatek. |
 | Úpis – ruční změna kusů | Přepočte rozdíl ze zaokrouhlení. Kusy smějí mít méně míst, než třída povoluje (např. celé kusy), pokud jsou rovné přesné hodnotě zaokrouhlené podle pravidla třídy; jiné kusy zaúčtování zastaví. |
+| Poplatek zadaný v % (pole **Poplatek (%)**) | Částku poplatku (hrubá částka × % na haléře); u úpisu i kusy a rozdíl. Ze zadané částky se naopak dopočte procento. Změna platby, ceny nebo kusů dopočítá poplatek znovu ze sazby třídy. |
 | Úpis – ruční změna poplatku | Znovu dopočte kusy a rozdíl (poplatek je vstup pro kusy), zbytek zůstane 0,00. |
 | Třída bez sazby (0 %) | Poplatek 0,00 – lze zadat ručně; příjemce je pak povinný. |
 | První úpis třídy (bez zveřejněného ocenění) | Cena se nepředvyplní; v poli Důvod odlišné ceny se objeví nápověda „První úpis třídy". |

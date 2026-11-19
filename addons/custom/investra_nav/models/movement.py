@@ -125,6 +125,10 @@ class InvestraClassMovement(models.Model):
     published_date = fields.Date(compute="_compute_published", string="Zveřejněný kurz k")
     price_matches = fields.Boolean(compute="_compute_published", string="Cena odpovídá zveřejněnému kurzu")
     foreign_currency = fields.Boolean(compute="_compute_foreign_currency", string="Třída v cizí měně")
+    fee_percent = fields.Float(
+        digits=(16, 4), store=False, string="Poplatek (%)",
+        help="Jen zadání: z procenta se dopočte částka poplatku, z částky procento. Ukládá se jen částka poplatku.",
+    )
     fee_rate_percent = fields.Float(compute="_compute_fee_rate_percent", digits=(16, 4), string="Sazba poplatku třídy (%)")
     fee_warning = fields.Char(compute="_compute_fee_warning", string="Upozornění k poplatku")
     units_hint = fields.Char(compute="_compute_units_hint", string="Zaokrouhlení kusů")
@@ -433,6 +437,33 @@ class InvestraClassMovement(models.Model):
                 if movement.fee_amount_class and not movement.fee_recipient:
                     movement.fee_recipient = movement.class_id.entry_fee_recipient
                 movement._subscription_units()
+
+    @api.onchange("fee_percent")
+    def _onchange_fee_percent(self):
+        """Poplatek zadaný v %: částka = hrubá částka (úpis: přijatá platba) × % / 100 na haléře; kusy u úpisu přepočte změna poplatku."""
+        for movement in self:
+            if movement._is_manual_draft() and movement.movement_type:
+                gross = money(movement.amount_class)
+                fee = money(gross * d(movement.fee_percent) / 100)
+                # Procento přepsané zpětným dopočtem z částky (4 místa) částku nemění: stačí odchylka větší než jeho zaokrouhlení.
+                if abs(fee - money(movement.fee_amount_class)) <= gross * Decimal("0.0000005") + CENT / 2:
+                    continue
+                movement.fee_amount_class = float(fee)
+                if movement.fee_amount_class and not movement.fee_recipient:
+                    prefix = "entry" if movement.movement_type == "subscription" else "exit"
+                    movement.fee_recipient = movement.class_id[f"{prefix}_fee_recipient"]
+
+    @api.onchange("class_id", "movement_type", "fee_amount_class")
+    def _onchange_fee_percent_sync(self):
+        """Procento poplatku ukazuje poplatek / hrubá částka (bez částky sazbu třídy); zadané procento zůstane, pokud dává tutéž částku."""
+        for movement in self:
+            if not (movement.class_id and movement.movement_type):
+                continue
+            gross = money(movement.amount_class)
+            if not gross:
+                movement.fee_percent = float(movement._fee_rate() * 100)
+            elif money(gross * d(movement.fee_percent) / 100) != money(movement.fee_amount_class):
+                movement.fee_percent = float(money(movement.fee_amount_class) / gross * 100)
 
     @api.onchange("units")
     def _onchange_subscription_units(self):

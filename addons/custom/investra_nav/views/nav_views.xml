@@ -840,6 +840,7 @@
                     <!-- 2. Poplatek -->
                     <group string="2. Poplatek">
                         <field name="fee_rate_percent" string="Sazba třídy (%)"/>
+                        <field name="fee_percent" invisible="state != 'draft' or source != 'manual'"/>
                         <field name="fee_amount_class" readonly="state != 'draft'"/>
                         <div class="alert alert-info mb-0" colspan="2" invisible="not fee_warning or state != 'draft'">
                             <field name="fee_warning" nolabel="1"/>

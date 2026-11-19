@@ -142,6 +142,38 @@ class TestMovementOnchange(NavCase):
             with self.assertRaisesRegex(UserError, message):
                 form.save().action_book()
 
+    def test_fee_in_percent(self):
+        """Poplatek jde zadat v %: částka se dopočte, u úpisu i kusy; ze zadané částky se dopočte procento."""
+        form = self.form("subscription", self.a)
+        form.amount_class = 1000000
+        self.assertEqual(form.fee_percent, 1.0)
+        form.fee_percent = 2
+        self.assertEqual(form.fee_amount_class, 20000.0)
+        self.assertEqual(form.fee_percent, 2.0, "zadané procento zůstane")
+        self.assertEqual(form.residual_class, 0.0)
+        self.assertIn("liší", form.fee_warning)
+        form.fee_amount_class = 5000
+        self.assertEqual(form.fee_percent, 0.5)
+        form.fee_percent = 2
+        movement = form.save()
+        movement.action_book()
+        self.assertEqual(movement.fee_amount_class, 20000.0)
+
+    def test_fee_in_percent_zero_rate_class_and_redemption(self):
+        form = self.form("subscription", self.b)
+        form.amount_class = 100000
+        self.assertEqual(form.fee_percent, 0.0)
+        form.fee_percent = 1.5
+        self.assertEqual(form.fee_amount_class, 1500.0)
+        self.assertEqual(form.fee_recipient, "manager")
+        form.save().action_book()
+        form = self.form("redemption", self.a)
+        form.units = 100
+        form.fee_percent = 2
+        self.assertEqual(form.fee_amount_class, 2073.29)  # 103 664,44 × 2 %
+        self.assertEqual(form.payout_class, 101591.15)
+        form.save().action_book()
+
     def test_save_as_preparer(self):
         """Formulář uloží běžný uživatel (role Příprava): do `create` se nedostane `valuation_id` ani jiné systémové pole."""
         movements = self.Movement.with_user(self.preparer)
