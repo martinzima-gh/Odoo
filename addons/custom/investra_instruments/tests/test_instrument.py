@@ -65,6 +65,19 @@ class TestInstrument(InstrumentCase):
         self.assertEqual(price.state, "approved")
         self.assertEqual(price.approved_by, self.approver)
 
+    def test_bulk_approval_skips_prices_outside_draft(self):
+        draft = self.price()
+        approved = self.env["investra.instrument.price"].with_user(self.preparer).create({
+            "instrument_id": self.instrument.id, "fund_id": self.fund.id, "date": "2026-12-01",
+            "price": 11, "source": "test",
+        })
+        approved.with_user(self.approver).action_approve()
+
+        (draft | approved).with_user(self.approver).action_approve_drafts()
+
+        self.assertEqual(draft.state, "approved")
+        self.assertEqual(approved.state, "approved")
+
     def test_entered_by_cannot_approve_own(self):
         grant_legacy(self.env, self.approver, preparer=True)
         price = self.price(self.approver)

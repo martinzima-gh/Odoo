@@ -67,13 +67,20 @@ nohou a funkční měnou, swap s předvyplněnou vzdálenou nohou, předvyplněn
 
 ## Výsledek
 
-Doplní Antigravity.
-
 - **Změněné soubory:**
+  - `addons/custom/investra_nav/models/instrument_accrual.py` — předvyplnění kurzu splátky, příznak cizí měny a název pole Portfolio.
+  - `addons/custom/investra_nav/views/nav_views.xml` — pořadí a blok částek splátky, podmíněná pole, výchozí filtr a seskupení.
+  - `addons/custom/investra_nav/tests/test_accrual.py` — Form testy kurzů, mimořádné splátky a pořadí polí.
+  - `addons/custom/investra_derivative/models/derivative.py` — výchozí nohy a funkční měna, předvyplnění vzdálené nohy swapu, název pole Portfolio.
+  - `addons/custom/investra_derivative/views/derivative_views.xml` — zobrazení evidence, ručních hodnot a stavových kurzů.
+  - `addons/custom/investra_derivative/tests/test_derivative.py` — Form testy forwardu/swapu; upraven jediný test nalezený přes `grep "leg_ids.new"` dle upřesnění.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+  - `python3 tools/view_check/check_views.py` — 25 souborů, 0 chyb.
+  - `python3 -m py_compile ...` pro čtyři změněné Python soubory v AG-022 — úspěšně.
+  - `rg "leg_ids\\.new" addons/custom/investra_derivative/tests` — bez dalších výskytů.
+- **Neověřeno:** Odoo Form testy a zaúčtování/sjednání; podle zadání je spustí Claude při převzetí.
+- **Otevřené otázky a návrhy mimo rozsah:** Žádné.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+Převzal Claude 19. 11. 2026 z pracovní kopie `~/odoo-review` (Copilot zastoupil Antigravity; společný souhrn `docs/ukoly/CP-2026-11-19-AG020-022.md`), větev `ukol/ZJ-13-14`. Ověřeno: testy Odoo `investra_instruments+` (838 testů, 0 selhání, 0 chyb), `check_views.py` bez chyb. Nález revize: předvyplnění vzdálené nohy swapu v onchange nohy nefungovalo (noha nevidí ostatní nohy) → onchange přesunut na `leg_ids` derivátu. Kurz splátky: `float()` a ošetření chybějícího kurzu jako u obchodu. Upozornění: výchozí nohy v `default_get` se použijí i při `create` bez `leg_ids`; stávající testy to neovlivnilo (všechny prošly). Povýšení `investra` ani migrace se nedělá (bez nových uložených polí).

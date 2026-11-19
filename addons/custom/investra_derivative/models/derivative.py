@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 # Spot je stejná výměna měn jako forward, jen s krátkým vypořádáním; druh se volí při zadání (pokyn Martina 2026-11-15).
@@ -37,7 +37,7 @@ class InvestraDerivative(models.Model):
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     functional_currency_id = fields.Many2one(related="fund_id.company_id.currency_id", string="Funkční měna")
     portfolio_id = fields.Many2one(
-        "investra.fund.portfolio", required=True, ondelete="restrict", index=True, string="Obchodní model",
+        "investra.fund.portfolio", required=True, ondelete="restrict", index=True, string="Portfolio",
         domain="[('fund_id', '=', fund_id)]",
     )
     partner_id = fields.Many2one("res.partner", required=True, ondelete="restrict", string="Protistrana", tracking=True)
@@ -54,6 +54,24 @@ class InvestraDerivative(models.Model):
     _instrument_uniq = models.UniqueIndex("(instrument_id) WHERE instrument_id IS NOT NULL", "Nástroj už patří jiné smlouvě.")
 
     # --- název -------------------------------------------------------------------------------------------------------
+
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        if "leg_ids" in fields_list and not values.get("leg_ids"):
+            kind = values.get("kind") or "forward"
+            count = 2 if kind == "swap" else 1
+            fund_id = values.get("fund_id") or self.env.context.get("default_fund_id")
+            fund = self.env["investra.fund"].browse(fund_id).exists() if fund_id else self.env["investra.fund"]
+            functional = fund.company_id.currency_id
+            values["leg_ids"] = [
+                Command.create({
+                    "sequence": (index + 1) * 10,
+                    **({"buy_currency_id": functional.id} if functional else {}),
+                })
+                for index in range(count)
+            ]
+        return values
 
     def _pair_label(self):
         """Měnový pár „cizí/funkční“ a poslední datum vypořádání pro název smlouvy a nástroje."""
@@ -79,6 +97,74 @@ class InvestraDerivative(models.Model):
     def _onchange_fund_id(self):
         if self.fund_id and self.portfolio_id.fund_id != self.fund_id:
             self.portfolio_id = self.fund_id._default_portfolio()
+        self._prefill_functional_currency()
+
+    @api.onchange("kind")
+    def _onchange_kind_legs(self):
+        for derivative in self:
+            if derivative.kind not in dict(KIND):
+                continue
+            count = 2 if derivative.kind == "swap" else 1
+            legs = derivative.leg_ids.sorted("sequence")
+            if len(legs) > count:
+                retained = legs[:count]
+                commands = [Command.clear()]
+                for index, leg in enumerate(retained):
+                    commands.append(Command.create({
+                        "sequence": (index + 1) * 10,
+                        "settlement_date": leg.settlement_date,
+                        "buy_currency_id": leg.buy_currency_id.id,
+                        "buy_amount": leg.buy_amount,
+                        "sell_currency_id": leg.sell_currency_id.id,
+                        "sell_amount": leg.sell_amount,
+                    }))
+                derivative.leg_ids = commands
+            elif len(legs) < count:
+                derivative.leg_ids = [
+                    Command.create({"sequence": (index + 1) * 10})
+                    for index in range(len(legs), count)
+                ]
+            derivative._prefill_functional_currency()
+
+    @api.onchange("leg_ids")
+    def _onchange_leg_ids_prefill(self):
+        """Po úpravě nohy: jedna měna = funkční měna fondu a u swapu opačná vzdálená noha (výchozí návrh, lze přepsat)."""
+        self._prefill_functional_currency()
+        self._prefill_swap_far_leg()
+
+    def _prefill_functional_currency(self):
+        for derivative in self:
+            functional = derivative.fund_id.company_id.currency_id
+            if not functional:
+                continue
+            for leg in derivative.leg_ids:
+                if functional.id in (leg.buy_currency_id.id, leg.sell_currency_id.id):
+                    continue
+                if not leg.buy_currency_id:
+                    leg.buy_currency_id = functional
+                elif not leg.sell_currency_id:
+                    leg.sell_currency_id = functional
+
+    def _prefill_swap_far_leg(self):
+        for derivative in self:
+            if derivative.kind != "swap" or len(derivative.leg_ids) != 2:
+                continue
+            near, far = derivative.leg_ids.sorted("sequence")
+            if not (
+                near.buy_currency_id and near.sell_currency_id
+                and near.buy_amount and near.sell_amount
+            ):
+                continue
+            functional = derivative.fund_id.company_id.currency_id
+            far_is_default = (
+                not far.sell_currency_id and not far.buy_amount and not far.sell_amount and not far.settlement_date
+                and far.buy_currency_id.id in (False, functional.id)
+            )
+            if far_is_default:
+                far.buy_currency_id = near.sell_currency_id
+                far.buy_amount = near.sell_amount
+                far.sell_currency_id = near.buy_currency_id
+                far.sell_amount = near.buy_amount
 
     @api.constrains("fund_id", "portfolio_id")
     def _check_portfolio(self):

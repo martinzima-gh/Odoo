@@ -1095,15 +1095,20 @@ if isinstance(result, dict):
                     <field name="allowed_instrument_ids" invisible="1"/>
                     <field name="allowed_portfolio_ids" invisible="1"/>
                     <field name="portfolio_choice" invisible="1"/>
+                    <field name="foreign_currency" invisible="1"/>
                     <div class="alert alert-warning" role="alert" invisible="not write_off_amount">
                         Pozice se uzavře, ale jistina <field name="write_off_amount" class="oe_inline" readonly="1"/> zůstane
                         neuhrazená: ocenění ji (s naběhlým úrokem) odúčtuje do výsledku. Jde-li o částečnou splátku, zrušte volbu
                         Uzavírá pozici.
                     </div>
                     <div class="oe_title">
-                        <h1>Splátka nástroje – <field name="date" nolabel="1" readonly="state != 'draft'"/></h1>
+                        <h1>Splátka nástroje</h1>
                     </div>
                     <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="kind"/>
+                            <field name="kind" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
                         <div class="o_investra_metadata_item">
                             <label for="fund_id"/>
                             <field name="fund_id" nolabel="1" readonly="state != 'draft'"/>
@@ -1112,9 +1117,13 @@ if isinstance(result, dict):
                             <label for="instrument_id"/>
                             <field name="instrument_id" nolabel="1" options="{'no_create': True}" readonly="state != 'draft'"/>
                         </div>
-                        <div class="o_investra_metadata_item">
+                        <div class="o_investra_metadata_item" invisible="not portfolio_choice">
                             <label for="portfolio_id"/>
                             <field name="portfolio_id" nolabel="1" options="{'no_create': True}" readonly="state != 'draft' or not portfolio_choice" force_save="1"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="date"/>
+                            <field name="date" nolabel="1" readonly="state != 'draft'"/>
                         </div>
                     </div>
                     <div class="o_investra_metric_strip">
@@ -1127,23 +1136,29 @@ if isinstance(result, dict):
                             <field name="interest_amount" nolabel="1" readonly="state != 'draft'"/>
                         </div>
                         <div class="o_investra_metric_item">
+                            <label for="fee_amount"/>
+                            <field name="fee_amount" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metric_item">
                             <label for="amount"/>
                             <field name="amount" nolabel="1"/>
                         </div>
+                        <div class="o_investra_metric_item">
+                            <label for="remaining_before"/>
+                            <field name="remaining_before"/>
+                            <label for="remaining_after"/>
+                            <field name="remaining_after"/>
+                        </div>
                     </div>
                     <group>
-                        <group string="Pozice">
-                            <field name="remaining_before"/>
-                            <field name="remaining_after"/>
-                        </group>
                         <group string="Splátka">
-                            <field name="kind" readonly="state != 'draft'"/>
                             <field name="closes_position" readonly="state != 'draft'" invisible="kind != 'extraordinary'"/>
-                            <field name="fee_amount" readonly="state != 'draft'"/>
-                            <field name="fx_rate" readonly="state != 'draft'"/>
+                            <field name="fx_rate" readonly="state != 'draft'" invisible="not foreign_currency"/>
+                        </group>
+                        <group string="Záznam">
+                            <field name="event_id" invisible="not event_id"/>
                             <field name="replaced_id" invisible="not replaced_id"/>
-                            <field name="event_id"/>
-                            <field name="reversal_reason" invisible="state != 'reversed'"/>
+                            <field name="reversal_reason" invisible="not reversal_reason"/>
                         </group>
                     </group>
                     <notebook invisible="not posting_preview">
@@ -1178,12 +1193,13 @@ if isinstance(result, dict):
     <record id="action_repayment" model="ir.actions.act_window">
         <field name="name">Splátky nástrojů</field><field name="res_model">investra.instrument.repayment</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_repayment_search"/>
+        <field name="context">{'search_default_filter_unposted': 1, 'search_default_group_by_instrument': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Zatím tu není žádná splátka</p>
             <p>Splátky jistiny a úroku držených nástrojů, například úvěru nebo termínovaného vkladu, v naběhlé i reálné hodnotě. Splátka účtuje na inkasa na cestě, která vynuluje bankovní výpis; jistina snižuje zbývající jistinu pozice a rozdíl proti očekávání doúčtuje ocenění.</p>
         </field>
     </record>
-    <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="30"/>
+    <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="20"/>
     <menuitem id="menu_valuation" name="Ocenění" parent="investra_entity.menu_root" action="action_valuation" sequence="10"/>
     <menuitem id="menu_movement" name="Úpisy a odkupy" parent="investra_entity.menu_root" action="action_movement" sequence="30"/>
     <menuitem id="menu_fee_rule" name="Pravidla úplat" parent="investra_entity.menu_setup_funds" action="action_fee_rule" sequence="30"/>

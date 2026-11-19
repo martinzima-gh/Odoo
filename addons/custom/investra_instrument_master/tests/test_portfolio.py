@@ -1,5 +1,6 @@
 from odoo.exceptions import UserError, ValidationError
-from odoo.tests import tagged
+from odoo import fields
+from odoo.tests import Form, tagged
 from odoo.tools import mute_logger
 
 from odoo.addons.investra_instruments.tests.common import with_ids
@@ -27,6 +28,15 @@ class TestPortfolioCategory(InstrumentCase):
             "fund_id": self.fund.id, "name": f"{category} {model}", "measurement_category_id": self.category(category).id,
             "business_model": model, **vals,
         })
+
+    def test_portfolio_form_prefills_model_and_valid_from(self):
+        expected = {"AC": "hold_to_collect", "FVOCI_D": "hold_collect_sell", "FVOCI_E": "na"}
+        for category, business_model in expected.items():
+            form = Form(self.Portfolio)  # bez uložení: ke schválení se v návrhu vyžadují další pole
+            form.fund_id = self.fund
+            form.measurement_category_id = self.category(category)
+            self.assertEqual(form.business_model, business_model)
+            self.assertEqual(form.valid_from, fields.Date.context_today(self.Portfolio))
 
     def make(self, kind, **vals):
         return self.env["investra.instrument"].create(with_ids(self.env, {

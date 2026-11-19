@@ -111,7 +111,7 @@
                     <button name="%(action_derivative_reverse_wizard)d" type="action" string="Stornovat"
                             context="{'default_derivative_id': id, 'default_mode': 'reverse'}"
                             groups="investra_entity.group_valuation_preparer" invisible="state not in ('agreed', 'settled')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,agreed,settled"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,agreed,settled,reversed"/>
                 </header>
                 <sheet>
                     <!-- MN-18: upozornění na čekající žádost (mixin investra.approval.pending.mixin) -->
@@ -143,7 +143,7 @@
                             <field name="contract_ref" readonly="state != 'draft'"/>
                             <field name="trade_date" readonly="state != 'draft'"/>
                         </group>
-                        <group string="Evidence">
+                        <group string="Po sjednání" invisible="state == 'draft'">
                             <field name="functional_currency_id"/>
                             <field name="instrument_id"/>
                             <field name="event_id"/>
@@ -162,16 +162,16 @@
                                     <field name="sell_currency_id" options="{'no_create': True}"/>
                                     <field name="sell_amount"/>
                                     <field name="rate"/>
-                                    <field name="b0" optional="show"/>
-                                    <field name="buy_rate0" optional="hide"/>
-                                    <field name="sell_rate0" optional="hide"/>
+                                    <field name="b0" optional="show" column_invisible="parent.state == 'draft'"/>
+                                    <field name="buy_rate0" optional="hide" column_invisible="parent.state == 'draft'"/>
+                                    <field name="sell_rate0" optional="hide" column_invisible="parent.state == 'draft'"/>
                                     <field name="settlement_event_id" optional="hide"/>
                                     <field name="offbalance_event_id" optional="hide"/>
                                     <field name="state" widget="badge" decoration-info="state == 'open'" decoration-success="state == 'settled'"/>
                                 </list>
                             </field>
                         </page>
-                        <page name="values" string="Ruční hodnoty">
+                        <page name="values" string="Ruční hodnoty" invisible="state == 'draft'">
                             <p class="text-muted">Reálná hodnota smlouvy zadaná ručně (např. z potvrzení banky). K datu ocenění má přednost před spočtenou hodnotou.</p>
                             <field name="value_ids" readonly="state == 'reversed'">
                                 <list editable="bottom">
@@ -202,5 +202,5 @@
             <p>Měnové spoty, forwardy a swapy fondu vypořádané dodáním obou měn. Ke každé smlouvě vzniká nástroj typu Mimoburzovní derivát.</p>
         </field>
     </record>
-    <menuitem id="menu_derivative" name="Deriváty" parent="investra_instruments.menu_instruments" action="action_derivative" sequence="40"/>
+    <menuitem id="menu_derivative" name="Deriváty" parent="investra_instruments.menu_instruments" action="action_derivative" sequence="30"/>
 </odoo>

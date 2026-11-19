@@ -38,6 +38,84 @@ class TestTradePreview(NavCase):
         trade._book()
         return trade
 
+    def test_form_defaults_rates_and_books_trade(self):
+        self.rate("2029-02-01", 25)
+        equity = self.instrument("equity", currency=self.eur)
+        form = Form(self.env["investra.trade"].with_context(default_side="buy"))
+        self.assertEqual(form.side, "buy")
+        self.assertEqual(form.fund_id, self.fund)
+        form.instrument_id = equity
+        self.assertEqual(form.portfolio_id, self.fund.portfolio_ids)
+        form.trade_date = date(2029, 2, 1)
+        form.units = 10
+        form.price = 100
+        self.assertEqual(form.settlement_date, date(2029, 2, 1))
+        self.assertEqual(form.fx_rate, 25)
+        self.assertEqual(form.settlement_fx_rate, 25)
+        self.assertIn("Zařazení: FVTPL", form.classification_summary)
+        trade = form.save()
+
+        trade.with_user(self.preparer).action_book()
+        self.assertTrue(trade.event_id)
+
+    def test_form_hides_home_currency_rates(self):
+        equity = self.instrument("equity", currency=self.czk)
+        form = Form(self.env["investra.trade"])
+        form.fund_id = self.fund
+        form.instrument_id = equity
+        form.trade_date = date(2029, 2, 1)
+        form.units = 1
+        form.price = 100
+        self.assertFalse(form.foreign_currency)
+        self.assertEqual(form.fx_rate, 1)
+        self.assertEqual(form.settlement_fx_rate, 1)
+        arch = self.env.ref("investra_instruments.view_trade_form").arch
+        self.assertIn('invisible="not foreign_currency"', arch)
+
+    def test_sell_all_uses_held_quantity(self):
+        equity = self.instrument("equity")
+        self.trade(equity, "2029-01-01", 10, 100)
+        form = Form(self.env["investra.trade"])
+        form.fund_id = self.fund
+        form.side = "sell"
+        form.trade_date = date(2029, 2, 1)
+        form.instrument_id = equity
+        form.units = 1
+        form.price = 110
+        sale = form.save()
+
+        sale.action_sell_all()
+        self.assertEqual(sale.units, 10)
+        self.assertEqual(sale.quantity, -10)
+
+    def test_trade_price_hint_uses_last_approved_price(self):
+        equity = self.instrument("equity")
+        price = self.env["investra.instrument.price"].with_user(self.preparer).create({
+            "fund_id": self.fund.id, "instrument_id": equity.id, "date": "2029-01-15",
+            "price": 100, "source": "Test",
+        })
+        price.with_user(self.approver).action_approve()
+
+        form = Form(self.env["investra.trade"])
+        form.fund_id = self.fund
+        form.instrument_id = equity
+        form.trade_date = date(2029, 2, 1)
+        form.units = 1
+        form.price = 100
+        self.assertIn("CZK", form.price_hint)
+
+    def test_price_form_defaults_fund_for_unshared_instrument(self):
+        deposit = self.instrument("deposit")
+        form = Form(self.env["investra.instrument.price"])
+        form.instrument_id = deposit
+        self.assertEqual(form.fund_id, self.fund)
+        form.price = 100
+        form.source = "Posudek"
+        price = form.save()
+
+        self.assertEqual(price.fund_id, self.fund)
+        self.assertEqual(price.currency_id, self.czk)
+
     def value(self, instrument, day, value):
         price = self.env["investra.instrument.price"].with_user(self.preparer).create({
             "fund_id": self.fund.id, "instrument_id": instrument.id, "date": day, "price": value, "source": "Test",
@@ -156,7 +234,6 @@ class TestTradePreview(NavCase):
             form.fund_id = self.fund
             form.side = "sell"
             form.instrument_id = equity
-            form.portfolio_id = self.portfolio(self.fund)
             form.trade_date = date(2029, 3, 1)
             form.units = 4
             form.price = 10

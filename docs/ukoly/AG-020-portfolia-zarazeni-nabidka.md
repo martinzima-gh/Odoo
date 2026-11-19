@@ -57,13 +57,11 @@ bez chyb.
 
 ## Výsledek
 
-Doplní Antigravity.
-
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_instruments/models/portfolio.py`, `addons/custom/investra_instrument_master/models/portfolio.py`, `addons/custom/investra_instruments/views/instrument_views.xml`, `addons/custom/investra_instrument_master/views/portfolio_views.xml`, `addons/custom/investra_nav/views/nav_views.xml`, `addons/custom/investra_derivative/views/derivative_views.xml`, `addons/custom/investra_instruments/tests/test_classification.py`, `addons/custom/investra_instrument_master/tests/test_portfolio.py`, `addons/custom/investra_derivative/tests/test_derivative.py`.
+- **Ověřeno (příkaz a výsledek):** `python3 tools/view_check/check_views.py` — 25 souborů, 0 chyb. `python3 -m py_compile` nad pěti změněnými Python soubory — úspěšně, bez chyb.
+- **Neověřeno:** Odoo Form testy, instalace/načtení modulů a chování v instanci; dle zadání nebyly spuštěny testy Odoo, Docker ani databáze.
+- **Otevřené otázky a návrhy mimo rozsah:** Žádné. Po upřesnění rozsahu je onchange kategorie → obchodní model v `investra_instrument_master/models/portfolio.py`; `CATEGORY_MODEL` i kontroly zůstaly beze změny.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+Převzal Claude 19. 11. 2026 z pracovní kopie `~/odoo-review` (Copilot zastoupil Antigravity; společný souhrn `docs/ukoly/CP-2026-11-19-AG020-022.md`), větev `ukol/ZJ-13-14`. Ověřeno: testy Odoo `investra_instruments+` (838 testů, 0 selhání, 0 chyb), `check_views.py` bez chyb. Zóna dodržena (onchange v `investra_instrument_master`, mapa a kontroly beze změny). Opraveny chyby v nových testech Copilota (Form bez povinných polí se neukládá). Povýšení `investra` ani migrace se nedělá (bez nových uložených polí).

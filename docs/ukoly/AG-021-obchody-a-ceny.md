@@ -77,13 +77,19 @@ prodat vše, nápověda ceny, cena fondu u nástroje bez ISIN, předvyplněný o
 
 ## Výsledek
 
-Doplní Antigravity.
-
 - **Změněné soubory:**
+  - `addons/custom/investra_instruments/models/instrument.py` — výchozí hodnoty, nápověda předchozí ceny, předvyplnění kurzů, obsluha tlačítek „Prodat vše“ a hromadné schválení.
+  - `addons/custom/investra_instruments/views/instrument_views.xml` — pořadí a sloupce obchodu/ceny, tlačítka nákupu a prodeje, skrytá pole a filtrování nástroje.
+  - `addons/custom/investra_instruments/tests/test_instrument.py` — smíšený výběr návrhů a schválených cen.
+  - `addons/custom/investra_nav/models/trade_preview.py` — pouze nápověda ceny a souhrn zařazení.
+  - `addons/custom/investra_nav/views/trade_views.xml` — zobrazení nápovědy a souhrnu v obchodním formuláři.
+  - `addons/custom/investra_nav/tests/test_trade_preview.py` — Form testy výchozího obchodu, kurzů, prodeje všeho, nápovědy a ceny fondu.
 - **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+  - `python3 tools/view_check/check_views.py` — 25 souborů, 0 chyb.
+  - `python3 -m py_compile ...` pro čtyři změněné Python soubory — úspěšně.
+- **Neověřeno:** Odoo Form testy a běh `action_book`; podle zadání je spustí Claude při převzetí.
+- **Otevřené otázky a návrhy mimo rozsah:** Žádné.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+Převzal Claude 19. 11. 2026 z pracovní kopie `~/odoo-review` (Copilot zastoupil Antigravity; společný souhrn `docs/ukoly/CP-2026-11-19-AG020-022.md`), větev `ukol/ZJ-13-14`. Ověřeno: testy Odoo `investra_instruments+` (838 testů, 0 selhání, 0 chyb), `check_views.py` bez chyb. Nález revize: onchange kurzu volal `fund._fx_at` z `investra_instruments`, funkce je ale v `investra_nav` (vrací Decimal a při chybějícím kurzu hází chybu) → onchange cizí měny přesunut do rozšíření obchodu v `investra_nav/models/trade_preview.py` (`float()`, chybějící kurz formulář nezastaví). Nález: výchozí datum vypořádání v `default_get` platilo i při `create` bez pole (test s pozdějším sjednáním padal na kontrole data) → předvyplnění jen přes onchange (`trade_date`, `instrument_id`). Skryté Portfolio při jediném portfoliu fondu: tři starší testy už portfolio do Formu nezadávají. Omezení: při opakované změně data sjednání v novém formuláři se datum vypořádání přepíše jen poprvé (dále je považováno za ruční). Povýšení `investra` ani migrace se nedělá (bez nových uložených polí).
