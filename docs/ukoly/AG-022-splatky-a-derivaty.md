@@ -21,6 +21,12 @@ a kontroly se nemění.
 výchozí hodnoty a zobrazení), `investra_derivative/views/derivative_views.xml`, `investra_derivative/models/derivative.py`
 (jen onchange, výchozí hodnoty a zobrazení), testy, překlady.
 
+**Upřesnění (19. 11. 2026, na dotaz Copilota):** stávající Form test `test_swap_saves_in_form` v `investra_derivative/tests/test_derivative.py`
+po volbě swapu přidává dvě nohy ručně; s automatickým založením by jich vznikly čtyři. Test se **smí upravit** (je to záměrná změna
+chování, ne oslabení kontroly): místo `leg_ids.new()` se nohy po volbě druhu **upraví** (`with form.leg_ids.edit(0)` a `edit(1)`);
+kontroly (počet nohou 2, instrument, portfolio) zůstávají. Totéž u dalších testů, které po volbě druhu přidávají nohy ručně
+(`grep "leg_ids.new" tests/`). Žádný jiný stávající test se neoslabuje; jakoukoli další změnu očekávané hodnoty zapsat do otevřených otázek.
+
 **Mimo rozsah:** zaúčtování, kontroly (constraints), `_book*`, `_validate`, `_check*`, sjednání a vypořádání derivátu;
 spot T+2 se nezavádí. Když by úprava vyžadovala jejich změnu, **zastavit a úkol vrátit Claudovi** (červená zóna). Testy Odoo,
 commit, push a povýšení modulu dělá Claude při převzetí.
