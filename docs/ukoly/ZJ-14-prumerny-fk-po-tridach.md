@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 19. 11. 2026 |
 | Řešitel | Claude |
 | Navazuje na | ZJ-12 (B.6 průměrný FK, B.7 opravy základu), rozhodnutí 2026-11-19 „Průměrný FK po třídách – zásady“ |
-| Stav | **hotovo 19. 11. 2026** (větev `ukol/ZJ-13-14`; `investra` bez povýšení – žádné nové pole) |
+| Stav | **hotovo 19. 11. 2026** (větev `ukol/ZJ-13-14`; `investra` povýšena, čeká na kontrolu Martina v prohlížeči) |
 
 **Cíl:** pravidlo s Základem **Průměrný FK** a vyplněným polem Platí třídy počítá úplatu za každou třídu z průměru jejího kapitálu
 (dnes je průměrný FK vždy úplata celého fondu a třídy se nepoužijí; pravidlo to ukazuje upozorněním).
@@ -88,7 +88,7 @@ Manuál `docs/manual/09-uplaty-a-opravy.md`. Data: v `investra` není žádné p
 | B | 31. 3. | 500 000; dnes 505 000 | 502 500 | 44 | 2 211,00 | 1 561,00 | 2 211,00 / 1 561,00 ✓ |
 | C | 31. 3. | dnes 300 000 (začátek 28. 2.) | 300 000 | 31 | 930,00 | 930,00 | 930,00 ✓ |
 
-**Odchylky a upřesnění:** (1) Test v Odoo běží s krokem 2: u kroku 1 je dnešní bod hodnota před úplatou a uložený kapitál po ní, takže by
+**Odchylky a upřesnění** (schválil Martin 19. 11. 2026, deník „Průměrný FK po třídách – začátek nároku a odchylky ZJ-14“): (1) Test v Odoo běží s krokem 2: u kroku 1 je dnešní bod hodnota před úplatou a uložený kapitál po ní, takže by
 lednový bod nemohl být zároveň 1 000 000 dnes i 1 000 000 v únoru; s krokem 2 je dnešní bod = uložený kapitál a ruční čísla platí přesně
 (hodnoty tříd nastavené specifickými výsledky). Krok 1 má samostatný test (dnešní bod 1 006 900 před úplatou, bod ledna 996 900 po ní,
 nárok 5 911,21). Čistá funkce počítá ruční příklad přímo z bodů. (2) Fond v testu vzniká 30. 12. 2026 a úpisy A a C jsou 31. 12. 2026:
@@ -100,5 +100,14 @@ fondu vzal jen jeden řádek. (5) Kapitál třídy je pole `capital` modelu `inv
 **Testy:** `test_fee_average_class.py` 10 (referenční příklad, krok 1, obě pojistky, přerušení s upozorněním, oprava základu třídy převzatá
 do konce roku, oprava částky třídy trvale, příjemce s podílem, pravidlo bez tříd beze změny, náhled); upravené `test_fee_characterization.py`
 (2) a `test_fee_ui.py` (upozornění zrušeno). `investra_nav` 521/521, `investra_nav+` 595/595, `all` 1025/1025; `tools/nav_reference` 60/60.
+
+### Povýšení `investra` (2026-11-19, Martin schválil)
+
+Záloha `zalohy/investra-2026-11-19-pred-ZJ13-14.dump` (`pg_restore -l` čitelné, 10 488 položek). `-u investra_rates,investra_nav` s kódem
+`5a9b1e5` bez ERROR (log `.test-logs/upgrade-investra-ZJ13-14.log`), restart `investra-web`, HTTP 200. Filtr Aktivní měny je v pohledu
+a výchozí v akci Kurzy měn. Snímek `docs/sql/28-snimek-oceneni.sql` (ocenění, třídy, úplaty, doklady podle stavu, kontroly) před a po povýšení
+shodný. Po přepočtu ocenění 35 (`action_compute` jako admin) beze změny FK, tříd, úplat, kontrol i zaúčtovaných a navržených dokladů;
+změnilo se jen `write_date` a předchozí návrhy dokladů přešly do „zahozeno“ (12 → 16). Ocenění 39 je ve stavu vráceno, nepřepočítává se;
+snímek beze změny.
 
 ## Převzetí
