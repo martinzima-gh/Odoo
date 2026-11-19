@@ -57,7 +57,9 @@ class TestValuationSequence(NavCase):
         valuation.action_submit()
         draft = valuation.with_user(self.approver).action_return("Oprava")
         draft.action_cancel_draft()
-        new = self.valuation(self.fund, date(2027, 1, 31))
+        # Jako formulář: bez čísla verze.
+        new = self.env["investra.valuation"].with_user(self.preparer).create(
+            {"fund_id": self.fund.id, "date": date(2027, 1, 31)})
         self.assertEqual(new.version, 2)
 
     def test_returned_and_reversed_versions_are_skipped(self):
