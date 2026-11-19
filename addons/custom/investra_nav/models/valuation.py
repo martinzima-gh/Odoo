@@ -884,9 +884,25 @@ class InvestraValuation(models.Model):
         if weights is None:
             context = self._class_context()
             weights = {c: self._class_value(c, context) for c in rule.recipient_class_ids}
-        weights = {c.code: max(d(weights[c]), Decimal(0)) for c in rule.recipient_class_ids}
-        parts = engine.split_amount(amount, weights)
+        weights = self._recipient_weights(rule, weights)
+        if not any(weights.values()):
+            raise UserError(self.env._(
+                "Pravidlo %s: žádná přijímající třída nemá kladnou hodnotu, podíl příjemcům nelze rozdělit.", rule.name))
+        parts = engine.split_amount(amount, {c.code: weight for c, weight in weights.items()})
         return {c: parts[c.code] for c in rule.recipient_class_ids}
+
+    @staticmethod
+    def _recipient_weights(rule, values):
+        """Váhy přijímajících tříd (rozhodnutí 2026-11-19) – stejné pro dopočet, doklad i uložený rozpad.
+
+        Jediná přijímající třída dostane celý podíl bez ohledu na svou hodnotu (i nulovou: třída, která se neúčastní
+        výsledku portfolia a jen přijímá odměnu, může začínat bez kapitálu). Více tříd: váha = kladná hodnota, nekladné
+        nedostanou nic; když není kladná žádná, `_recipient_parts` ocenění zastaví srozumitelnou chybou.
+        """
+        classes = rule.recipient_class_ids
+        if len(classes) == 1:
+            return {classes: Decimal(1)}
+        return {c: max(d(values[c]), Decimal(0)) for c in classes}
 
     def _transfer_lines(self, payer, parts):
         """Přesun hodnoty mezi třídami: účet vnitřního zúčtování má v součtu nulu, FK se nemění."""
@@ -1013,7 +1029,7 @@ class InvestraValuation(models.Model):
         if not rule.recipient_class_ids:
             return {}
         return {"share": d(rule.recipient_share),
-                "recipients": {c.id: max(values[c], Decimal(0)) for c in rule.recipient_class_ids}}
+                "recipients": {c.id: weight for c, weight in self._recipient_weights(rule, values).items()}}
 
     def _periodic_item(self, rule, fund_class):
         """Časově rozlišená úplata: základ FK nebo kapitál třídy po zvoleném kroku; aktiva a bez základu jsou pevné."""
@@ -1471,18 +1487,31 @@ class InvestraValuation(models.Model):
         self._check("correction_negative", name, not negative,
                     "; ".join(f"{label}: {value:.2f}" for label, value in negative), severity="warning")
 
-    def _effect_detail(self, item, amount, ratios):
-        """Náklad mimo fond a částky nesené třídami (pro přičtení úplat od data v dalších oceněních, B.3 a B.4)."""
-        _fund, effects = engine.fee_effects(item, amount, ratios)
-        return {"expense": engine.money(engine.fee_expense(item, amount)),
-                "borne": {str(key): str(engine.money(-value)) for key, value in effects.items() if engine.money(value)}}
+    def _effect_detail(self, item, amount, ratios, values):
+        """Náklad mimo fond a částky nesené třídami (pro přičtení úplat od data v dalších oceněních, B.3 a B.4).
+
+        Podíl příjemcům se dělí stejnou funkcí jako na dokladu (`money(částka × podíl)`, `_recipient_parts`, zbytkový haléř
+        třídě s největší vahou), aby rozpad odpovídal zaúčtování (revize CP-2026-11-19, nález 1).
+        """
+        rule = item.get("rule") or (item["entry"].corrects_rule_id if item.get("entry") else None)
+        payer = item.get("payer")
+        borne = {key: (amount if payer == key else (rho * amount if payer is None else Decimal(0)))
+                 for key, rho in ratios.items()}
+        to_classes = Decimal(0)
+        if rule and item.get("recipients"):
+            to_classes = engine.money(amount * d(item["share"]))
+            if to_classes:
+                for fund_class, part in self._recipient_parts(rule, to_classes, values).items():
+                    borne[fund_class.id] = borne.get(fund_class.id, Decimal(0)) - part
+        return {"expense": engine.money(amount - to_classes),
+                "borne": {str(key): str(engine.money(value)) for key, value in borne.items() if engine.money(value)}}
 
     def _book_rule_fee(self, item, base, corrected, ratios, values, context):
         rule, fund_class = item["rule"], item["fund_class"]
         full = item["full"](base)
         carried = item.get("carried", Decimal(0))
         amount = full["move"] + carried
-        detail = {**full, **self._effect_detail(item, amount, ratios)}
+        detail = {**full, **self._effect_detail(item, amount, ratios, values)}
         if corrected:
             detail["corrected"] = True
         if item.get("base_entries"):
@@ -1521,7 +1550,7 @@ class InvestraValuation(models.Model):
         rozpisu nemá pravidlo, proto ho průměrný FK v dalším ocenění neodečítá a oprava platí trvale.
         """
         entry, amount, original, currency = item["entry"], item["amount"], item["original"], item["currency"]
-        effect = self._effect_detail(item, amount, ratios)
+        effect = self._effect_detail(item, amount, ratios, values)
         rule = entry.corrects_rule_id
         if rule:
             self._fee_record(None, amount, entry.class_id, {

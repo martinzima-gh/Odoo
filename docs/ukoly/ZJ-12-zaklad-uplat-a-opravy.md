@@ -523,6 +523,11 @@ odměna − přesun podle pořadí`). Návrh:
   1 010 936,28, kurz A 1 008,9934 (schváleno). Test `test_tax_transfers_true_up_between_valuations`. `investra_nav` 499/499, `investra_nav+` 573/573.
 - Pracovní `investra`: žádné uložené ocenění nemá přesun daňového efektu, `investra` se nepovyšuje (jen restart `investra-web`, až bude potřeba).
 
+### Revize Copilota (2026-11-19)
+
+Revize `docs/ukoly/CP-2026-11-19-ZJ12-revize.md` (13 bodů, rozsah `1c08179..23e8b4a`): dva střední nálezy (haléřový zbytek podílu příjemcům v rozpadu,
+nulové váhy příjemců) opraveny podle rozhodnutí 2026-11-19 „Váhy přijímajících tříd a rozpad podílu příjemcům“; ostatní body v pořádku.
+
 ### Testy před sloučením
 
 - `tools/run_tests.sh all` 2026-11-19: 1001/1001 (16 vlastních modulů, 302 s).

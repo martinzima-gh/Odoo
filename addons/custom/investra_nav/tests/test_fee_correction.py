@@ -1,5 +1,6 @@
 """ZJ-11: oprava vypočtené úplaty ruční úplatou s polem „Opravuje úplatu“ (rozhodnutí 2026-11-18)."""
 
+import json
 from datetime import date
 
 from odoo.exceptions import UserError, ValidationError
@@ -116,6 +117,73 @@ class TestFeeCorrection(NavCase):
         # FK klesne jen o náklad mimo fond; třídy dohromady = FK.
         self.assertAlmostEqual(self.result(valuation, "B").capital - 1000 + 2000 - valuation.fund_capital, 84.00, places=2)
         self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "clearing_zero").status, "ok")
+
+    # --- váhy přijímajících tříd (revize CP-2026-11-19, rozhodnutí 2026-11-19) ---------------------------------------
+
+    def recipient_fund(self, recipients, subscribed=("A",)):
+        fund = self.make_fund(classes=[{"code": c} for c in ("A",) + recipients])
+        for code in subscribed:
+            self.subscribe(self.cls(fund, code), "2027-01-01", 1000, 1000)
+        rule = self.rule(fund, rate=1.0, name="Dělená", base_source="class_fk",
+                         class_ids=[(6, 0, self.cls(fund, "A").ids)], recipient_share=0.5, expense_role="expense_other",
+                         recipient_class_ids=[(6, 0, [self.cls(fund, c).id for c in recipients])])
+        return fund, rule
+
+    def transfers(self, valuation, rule):
+        """Přesuny podílu příjemcům na dokladu úplaty podle třídy (účet vnitřního zúčtování)."""
+        clearing = self.expense_account(valuation.fund_id, "internal_clearing").code
+        event = valuation.event_ids.filtered(lambda e: f":fee:{rule.id}:" in e.key)
+        return {code: amount for (account, code), amount in self.balances(event).items() if account == clearing}
+
+    def test_single_recipient_with_zero_capital_gets_whole_share(self):
+        # Třída B (jen přijímá odměnu) zatím bez kapitálu: celý podíl 42,47 dostane B; dopočet = doklad = rozpad.
+        fund, rule = self.recipient_fund(("B",))
+        valuation = self.valuation(fund, YEAR_END)
+        valuation.action_compute()
+        line = valuation.fee_line_ids.filtered("rule_id")
+        to_b = round(line.amount * 0.5, 2)
+        self.assertEqual(self.transfers(valuation, rule).get("B"), to_b)
+        self.assertAlmostEqual(self.result(valuation, "B").capital, to_b, places=2)
+        detail = json.loads(line.detail)
+        self.assertAlmostEqual(float(detail["borne"][str(self.cls(fund, "B").id)]), -to_b, places=2)
+        self.assertAlmostEqual(float(detail["expense"]), line.amount - to_b, places=2)
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "clearing_zero").status, "ok")
+
+    def test_two_recipients_nonpositive_gets_nothing(self):
+        # B s kapitálem, C bez kapitálu: celý podíl dostane B, C nic (jako dosud).
+        fund, rule = self.recipient_fund(("B", "C"), subscribed=("A", "B"))
+        valuation = self.valuation(fund, YEAR_END)
+        valuation.action_compute()
+        line = valuation.fee_line_ids.filtered("rule_id")
+        transfers = self.transfers(valuation, rule)
+        self.assertEqual(transfers.get("B"), round(line.amount * 0.5, 2))
+        self.assertFalse(transfers.get("C"))
+        self.assertAlmostEqual(self.result(valuation, "C").capital, 0, places=2)
+
+    def test_two_recipients_without_positive_value_stop(self):
+        fund, rule = self.recipient_fund(("B", "C"))
+        valuation = self.valuation(fund, YEAR_END)
+        with self.assertRaisesRegex(UserError, "Pravidlo Dělená: žádná přijímající třída nemá kladnou hodnotu"):
+            valuation.action_compute()
+
+    def test_effect_detail_splits_recipients_like_posting(self):
+        # Nález 1: úplata 0,01, celý podíl třem příjemcům se stejnou vahou → doklad 0,01 / 0 / 0, rozpad stejně.
+        from decimal import Decimal
+        fund, rule = self.recipient_fund(("B", "C", "D"), subscribed=("A", "B", "C", "D"))
+        rule.recipient_share = 1.0
+        valuation = self.valuation(fund, YEAR_END)
+        classes = {c: self.cls(fund, c) for c in ("A", "B", "C", "D")}
+        values = {cls: Decimal(1000) for cls in classes.values()}
+        item = {"rule": rule, "payer": classes["A"].id, "share": Decimal(1),
+                "recipients": {cls.id: Decimal(1) for code, cls in classes.items() if code != "A"}}
+        ratios = {cls.id: Decimal("0.25") for cls in classes.values()}
+        posted = valuation._recipient_parts(rule, Decimal("0.01"), values)
+        self.assertEqual(sorted(str(v) for v in posted.values()), ["0.00", "0.00", "0.01"])
+        detail = valuation._effect_detail(item, Decimal("0.01"), ratios, values)
+        expected = {str(cls.id): -part for cls, part in posted.items() if part}
+        expected[str(classes["A"].id)] = Decimal("0.01")
+        self.assertEqual({k: Decimal(v) for k, v in detail["borne"].items()}, expected)
+        self.assertEqual(detail["expense"], Decimal("0.00"))
 
     # --- zámek a přepočet -------------------------------------------------------------------------------------
 
