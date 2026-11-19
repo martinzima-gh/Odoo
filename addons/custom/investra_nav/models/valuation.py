@@ -1422,15 +1422,36 @@ class InvestraValuation(models.Model):
         self._check_previous_corrections()
         self._check_carried(items)
         self._check_version_copies()
+        negative = []
         for item in items:
             # Opravené pravidlo: částka i základ z průchodu bez oprav („Vypočteno“).
             source = first if item["key"] in pinned else solved
             if item["kind"] == "tax":
-                self._book_tax(item, solved["tax"], first["tax"] if item["key"] in pinned else None)
+                result = self._book_tax(item, solved["tax"], first["tax"] if item["key"] in pinned else None)
             elif item["kind"] == "manual":
                 self._book_manual(item, ratios, values)
+                continue
             else:
-                self._book_rule_fee(item, source["bases"].get(item["key"]), item["key"] in pinned, ratios, values, context)
+                result = self._book_rule_fee(
+                    item, source["bases"].get(item["key"]), item["key"] in pinned, ratios, values, context)
+            if ("new_corrections" in item or item.get("carried_entries")) and engine.money(result) < 0:
+                fund_class = item.get("fund_class")
+                negative.append((" ".join(filter(None, [item["rule"].name, fund_class and fund_class.code])),
+                                 engine.money(result)))
+        self._check_negative_corrections(negative)
+
+    def _check_negative_corrections(self, negative):
+        """Upozornění (rozhodnutí 2026-11-19): výsledek opravy je záporný; ocenění nezastaví.
+
+        Výsledek = stav pravidla po opravách částky (nových i převzatých): u úplaty částka řádku pravidla + opravy,
+        u výkonnostní odměny naběhlá odměna, u daně požadovaná daň. Odměna a daň se porovnávají se stavem, ne s pohybem,
+        protože záporný pohyb (rozpuštění naběhlé odměny, vrácení daně) je běžný.
+        """
+        names = ", ".join(label for label, _value in negative)
+        name = (self.env._("Výsledek opravy %s je záporný", names) if negative
+                else self.env._("Výsledek oprav úplat není záporný"))
+        self._check("correction_negative", name, not negative,
+                    "; ".join(f"{label}: {value:.2f}" for label, value in negative), severity="warning")
 
     def _effect_detail(self, item, amount, ratios):
         """Náklad mimo fond a částky nesené třídami (pro přičtení úplat od data v dalších oceněních, B.3 a B.4)."""
@@ -1454,7 +1475,7 @@ class InvestraValuation(models.Model):
         self._fee_record(rule, amount, fund_class, detail)
         if item["kind"] != "performance":
             self._book_fee(rule, amount, fund_class, weights=values)
-            return
+            return amount + item.get("new_corrections", Decimal(0))
         self._book_fee(rule, amount, fund_class, payable="performance_payable", weights=values)
         state = item["state"]
         # Naběhlá odměna včetně oprav (B.7): „jen toto ocenění“ se dalším oceněním vrátí, „do konce období“ drží
@@ -1471,6 +1492,7 @@ class InvestraValuation(models.Model):
             lines = self._transfer_lines(rule.cover_class_id, {fund_class: covered})
             self._add_event(f"cover:{rule.id}:{fund_class.id}", f"Krytí {rule.name}", lines)
             self._fee_record(rule, -covered, fund_class, {"covered_by": rule.cover_class_id.code})
+        return accrued
 
     def _book_manual(self, item, ratios, values):
         """Ručně doložená úplata (ZJ-03) na zvolený nákladový účet, nebo oprava úplaty (ZJ-11) jako úplata pravidla.
@@ -1551,6 +1573,8 @@ class InvestraValuation(models.Model):
         ] + [{"role": "internal_clearing", "amount": value, "class_id": key, "movement_type": "class_transfer"}
              for key, value in transfers.items()]
         self._add_event(f"tax:{rule.id}", rule.name, lines)
+        # Požadovaná daň po opravách (pro upozornění na záporný výsledek opravy).
+        return required + carried + item.get("new_corrections", Decimal(0))
 
     def _apply_scheme(self, context):
         """U pořadí nároků zaúčtuje rozdíl proti alokačnímu poměru jako přesun mezi třídami."""
@@ -1650,15 +1674,26 @@ class InvestraValuation(models.Model):
 
         FK (t−1) + úpisy − odkupy − dividendy = upravený FK (základ poměru);
         upravený FK + společná změna + specifická změna = FK. Společná změna obsahuje zaokrouhlení,
-        specifická změna se dál dělí na úplaty, výkonnostní odměnu, přesun podle pořadí nároků a ostatní.
+        specifická změna se dál dělí na úplaty, výkonnostní odměnu, přesun podle pořadí nároků, daňový efekt a ostatní.
         Výsledek ocenění se tím nemění, jen se ukládá rozpad, který výpočet zná.
         """
         previous = row["previous"]
         same_currency = fund_class.currency_id == self.fund_id.currency_id
         fees = self.fee_line_ids.filtered(lambda line: line.class_id == fund_class)
-        performance = -sum((d(l.amount) for l in fees if l.rule_id.kind == "performance"), Decimal(0))
-        fee = -sum((d(l.amount) for l in fees if l.rule_id.kind != "performance"), Decimal(0))
+
+        def kind(line):
+            # ZJ-12 krok 6c (b): oprava odměny (řádek bez pravidla) patří do Výkonnostní odměny, ne do Úplat třídy.
+            return (line.rule_id or line.external_id.corrects_rule_id).kind
+
+        performance = -sum((d(l.amount) for l in fees if kind(l) == "performance"), Decimal(0))
+        fee = -sum((d(l.amount) for l in fees if kind(l) != "performance"), Decimal(0))
         allocation = d(row.get("allocation"))
+        # ZJ-12 krok 6c: přesun daňového efektu (vnitřní zúčtování z `_book_tax`), tytéž zaokrouhlené částky jako na dokladu.
+        # Starší ocenění `transfers` nemají, efekt pak zůstává v Ostatní specifické.
+        tax_effect = Decimal(0)
+        for line in self.fee_line_ids.filtered(lambda l: l.rule_id.kind == "tax"):
+            transfers = json.loads(line.detail or "{}").get("transfers") or {}
+            tax_effect += d(transfers.get(str(fund_class.id), 0))
         shared = value - row["pre_capital"] - delta
         shared_raw = engine.money(row["ratio"] * neutral) - row["pre_capital"]
 
@@ -1694,7 +1729,8 @@ class InvestraValuation(models.Model):
             "fee_amount": fee,
             "performance_amount": performance,
             "allocation_amount": allocation,
-            "other_amount": delta - fee - performance - allocation,
+            "tax_effect_amount": tax_effect,
+            "other_amount": delta - fee - performance - allocation - tax_effect,
             "fx_rate": fx_rate,
             "opening_capital_class": engine.money(opening_class),
             "subscription_amount_class": engine.money(sum((in_class_currency(m) for m in row["subscriptions"]), Decimal(0))),
@@ -1716,7 +1752,8 @@ class InvestraValuation(models.Model):
             count = b["opening_units"] + b["subscription_units"] - b["redemption_units"]
             if abs(count - row["units"]) > Decimal("0.000001"):
                 units.append(f"{code}: {count} ≠ {row['units']}")
-            specific_total = b["fee_amount"] + b["performance_amount"] + b["allocation_amount"] + b["other_amount"]
+            specific_total = (b["fee_amount"] + b["performance_amount"] + b["allocation_amount"] + b["tax_effect_amount"]
+                              + b["other_amount"])
             end = row["pre_capital"] + b["shared_result"] + specific_total
             if abs(end - rounded[fund_class]) > tolerance:
                 result.append(f"{code}: {end} ≠ {rounded[fund_class]}")
@@ -2366,6 +2403,9 @@ class InvestraValuationClass(models.Model):
     fee_amount = fields.Float(digits=(20, 2), string="Úplaty třídy", help="Úplaty účtované na třídu, bez výkonnostní odměny.")
     performance_amount = fields.Float(digits=(20, 2), string="Výkonnostní odměna")
     allocation_amount = fields.Float(digits=(20, 2), string="Přesun podle pořadí nároků")
+    tax_effect_amount = fields.Float(
+        digits=(20, 2), string="Daňový efekt specifických položek",
+        help="Přesun daňového efektu položek výsledku třídy přes vnitřní zúčtování (+ zvyšuje kapitál třídy).")
     other_amount = fields.Float(digits=(20, 2), string="Ostatní specifické",
                                 help="Ostatní položky třídy, např. měnové zajištění nebo podíl na úplatě jiné třídy.")
     fx_rate = fields.Float(digits=(16, 8), string="Kurz přepočtu", help="Funkční měna fondu za 1 jednotku měny třídy.")

@@ -490,6 +490,21 @@ odměna − přesun podle pořadí`). Návrh:
 
 ## Výsledek
 
+### Krok 6c (2026-11-19, schváleno Martinem včetně varianty (b))
+
+- `models/valuation.py` `_class_bridge`: `tax_effect_amount` = součet `transfers[třída]` z řádků daně ocenění (tytéž zaokrouhlené částky jako na dokladu);
+  `other_amount = delta − úplaty − odměna − přesun podle pořadí − daňový efekt`; druh řádku = druh pravidla, u opravy druh opravovaného pravidla
+  (oprava odměny → Výkonnostní odměna). `_run_bridge_checks` sčítá i daňový efekt. Pole na `investra.valuation.class`, formulář ocenění
+  (Rozdělení výsledku), list Přemostění tříd v XLS, manuál kap. 9 část 5. Verze 20.0.0.38.0, bez migračního skriptu.
+- Upozornění na záporný výsledek opravy (rozhodnutí 2026-11-19, 1b): kontrola `correction_negative` („Výsledek opravy X je záporný“, upozornění).
+  Výsledek = stav pravidla po opravách částky (nových i převzatých): úplata = řádek pravidla + opravy, odměna = naběhlá odměna, daň = požadovaná daň.
+  **Upřesnění:** u odměny a daně se neposuzuje pohyb (Výsledek na záložce Úplaty), protože záporný pohyb je běžné rozpuštění naběhlé odměny
+  nebo vrácení daně a upozornění by bylo plané. Manuál kap. 9 část 3.
+- Testy: `test_bridge.test_tax_effect_has_own_column` (s4: A +241,08 / −182,72, B −241,08 / +182,72, Ostatní 0, kontroly OK),
+  `test_bridge.test_performance_correction_in_performance_column`, `test_fee_carried.test_negative_correction_result_warns` (úplata, odměna, daň:
+  vypočteno 0, oprava −500) a `test_positive_correction_result_is_ok`. Stávající očekávané hodnoty beze změny.
+  `investra_nav` 498/498, `investra_nav+` 572/572.
+
 ## Převzetí
 
 Všechny kroky dělá Claude přímo ve větvi `ukol/ZJ-zjednoduseni` (žádná práce Antigravity ani Copilota k převzetí). Stav 2026-11-18: commity 31fa5d9, fc4802a,

@@ -246,6 +246,7 @@ class InvestraValuation(models.Model):
             ("Úplaty třídy", lambda l: l.fee_amount, amount),
             ("Výkonnostní odměna", lambda l: l.performance_amount, amount),
             ("Přesun podle pořadí nároků", lambda l: l.allocation_amount, amount),
+            ("Daňový efekt specifických položek", lambda l: l.tax_effect_amount, amount),
             ("Ostatní specifické", lambda l: l.other_amount, amount),
             ("FK", lambda l: l.capital, amount),
             ("FK v měně třídy", lambda l: l.capital_class, amount),

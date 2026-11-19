@@ -77,6 +77,10 @@ v ocenění bez opravy jsou skryté. Na řádku pravidla je vypočteno, součet 
   U průměrného FK upravuje celoroční průměr a platí do konce roku jako převzatá oprava. U úplaty z FK nebo kapitálu třídy platí jen pro toto ocenění
   a další ocenění upozorní „Oprava základu z minulého ocenění skončila“.
 
+**Záporný výsledek opravy.** Když po opravě vyjde záporný stav pravidla (u úplaty částka řádku pravidla + opravy, u odměny naběhlá odměna, u daně
+požadovaná daň), kontrola „Výsledek opravy … je záporný“ je **upozornění**; ocenění nezastaví. Záporný pohyb odměny nebo daně (rozpuštění, vrácení)
+sám upozornění nevyvolá.
+
 **Převzaté opravy.** Pod tabulkou záložky Úplaty je seznam **Převzaté opravy** (jen pro čtení): z ocenění, pravidlo, třída, co opravuje, částka,
 platnost, poznámka. Kontrola „Obsahuje převzaté opravy (n)“ je upozornění. Tlačítko **Ukončit opravu** otevře okno s povinnou poznámkou a založí
 opravu o opačnou částku s odkazem „Ukončuje opravu“; další ocenění ji už nepřevezme.
@@ -106,6 +110,10 @@ Když je vynecháváte záměrně, upozornění nechte být.
 Daň fondu je společná. Daňový efekt položek výsledku, které nese jen jedna třída (výkonnostní odměna, úplaty a ruční úplaty třídy, opravy), se
 přesune té třídě přes vnitřní zúčtování; daň celého fondu se tím nemění. **Zjednodušení:** úspora z daňové ztráty minulých let se dělí mezi
 třídy poměrem; ztráta se po třídách nesleduje.
+
+**Přemostění třídy** (formulář ocenění, řádek třídy, skupina Rozdělení výsledku; list Přemostění tříd v XLS) dělí specifickou změnu na **Úplaty třídy**,
+**Výkonnostní odměna** (včetně oprav odměny), **Přesun podle pořadí nároků**, **Daňový efekt specifických položek** (tento přesun; + zvyšuje kapitál
+třídy) a **Ostatní specifické**. Ocenění spočtená před verzí 38.0 mají daňový efekt 0 a přesun je v Ostatní specifické.
 
 ## 6. Balíček pro depozitáře, list Úplaty
 

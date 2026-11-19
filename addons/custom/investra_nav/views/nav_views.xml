@@ -119,6 +119,7 @@
                             <field name="fee_amount"/>
                             <field name="performance_amount"/>
                             <field name="allocation_amount"/>
+                            <field name="tax_effect_amount"/>
                             <field name="other_amount"/>
                         </group>
                         <group string="Konečný stav">

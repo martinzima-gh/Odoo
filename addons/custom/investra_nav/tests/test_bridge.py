@@ -102,6 +102,65 @@ class TestBridge(NavCase):
         self.assertEqual((b.fee_amount, b.performance_amount, b.other_amount), (0, 0, 0))
         self.assertBridgeChecksOk(valuation)
 
+    def s4_fund(self):
+        """Scénář s4: úplata 2 % ze společné části, odměna třídy A 20 % (HWM 1 000 na kus), daň 5 %."""
+        fund = self.make_fund(classes=[{"code": "A", "price_digits": 4}, {"code": "B", "price_digits": 4}])
+        self.subscribe(self.cls(fund, "A"), "2027-01-01", 1000000, 1000)
+        self.subscribe(self.cls(fund, "B"), "2027-01-01", 1000000, 1000)
+        Rule = self.env["investra.fee.rule"]
+        Rule.create({
+            "fund_id": fund.id, "name": "Úplata", "kind": "periodic", "basis": "act365",
+            "base_step": "1", "expense_role": "expense_management",
+            "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.02})],
+        })
+        perf = Rule.create({
+            "fund_id": fund.id, "name": "Odměna A", "kind": "performance",
+            "class_ids": [(6, 0, self.cls(fund, "A").ids)], "expense_role": "expense_performance",
+            "crystallisation": "none",
+            "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit",
+                                    "initial_reference": 1000})],
+        })
+        Rule.create({"fund_id": fund.id, "name": "Daň", "kind": "tax",
+                     "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+        return fund, perf
+
+    def test_tax_effect_has_own_column(self):
+        # ZJ-12 krok 6c (schváleno 2026-11-19), čísla ze scénáře s4 (tax_transfers): přesun daňového efektu má vlastní
+        # sloupec, Ostatní specifické zůstane 0. FK a kurzy tříd se nemění (kontroluje test_s4).
+        fund, _perf = self.s4_fund()
+        expected = {
+            "2027-01-31": {"A": (-9643.29, 241.08, -9402.21), "B": (0, -241.08, -241.08)},
+            "2027-02-28": {"A": (7276.61, -182.72, 7093.89), "B": (0, 182.72, 182.72)},
+        }
+        for index, (day, classes) in enumerate(expected.items()):
+            self.common_result(fund, f"common{index}", day, (100000, -70000)[index])
+            valuation = self.run_to_posted(self.valuation(fund, day))
+            for code, (performance, tax_effect, delta) in classes.items():
+                line = self.result(valuation, code)
+                self.assertAlmostEqual(line.performance_amount, performance, places=2, msg=f"{code} {day}")
+                self.assertAlmostEqual(line.tax_effect_amount, tax_effect, places=2, msg=f"{code} {day}")
+                self.assertAlmostEqual(line.other_amount, 0, places=2, msg=f"{code} {day}")
+                self.assertAlmostEqual(line.fee_amount, 0, places=2, msg=f"{code} {day}")
+                self.assertAlmostEqual(line.delta, delta, places=2, msg=f"{code} {day}")
+            self.assertBridgeChecksOk(valuation)
+
+    def test_performance_correction_in_performance_column(self):
+        # ZJ-12 krok 6c varianta (b): oprava odměny třídy A −1 000 patří do Výkonnostní odměny, ne do Úplat třídy.
+        fund, perf = self.s4_fund()
+        self.common_result(fund, "common0", "2027-01-31", 100000)
+        valuation = self.valuation(fund, "2027-01-31")
+        self.manual_fee(valuation, -1000, note="Dohoda s depozitářem", account_id=False, corrects_rule_id=perf.id,
+                        class_id=self.cls(fund, "A").id)
+        valuation.action_compute()
+        a = self.result(valuation, "A")
+        corrections = valuation.fee_line_ids.filtered(lambda l: l.external_id.corrects_rule_id == perf)
+        self.assertAlmostEqual(sum(corrections.mapped("amount")), -1000, places=2)
+        rule_line = valuation.fee_line_ids.filtered(lambda l: l.rule_id == perf)
+        self.assertAlmostEqual(a.performance_amount, -(rule_line.amount - 1000), places=2)
+        self.assertAlmostEqual(a.fee_amount, 0, places=2)
+        self.assertAlmostEqual(a.other_amount, 0, places=2)
+        self.assertBridgeChecksOk(valuation)
+
     def test_waterfall_transfer_has_own_column(self):
         # Stejně jako test_fees: PIA 1 000 s cílem 6 %, VIA 100, výnos 110 za rok → PIA 1 060, VIA 150.
         # Podle poměru 10 : 1 by PIA dostala 100 a VIA 10; pořadí nároků přesune 40 z PIA do VIA.

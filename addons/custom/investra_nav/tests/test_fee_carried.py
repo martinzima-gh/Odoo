@@ -538,3 +538,42 @@ class TestCarriedCorrections(NavCase):
         self.run_to_posted(self.valuation(fund, JANUARY))
         tax.action_archive()
         self.assertFalse(tax.active)
+
+    # --- záporný výsledek opravy (rozhodnutí 2026-11-19) ---------------------------------------------------------------
+
+    def negative_check(self, valuation):
+        return valuation.check_ids.filtered(lambda c: c.code == "correction_negative")
+
+    def test_negative_correction_result_warns(self):
+        # Vypočteno 0 (fond bez výsledku), oprava −500 → výsledek −500: upozornění, ocenění se nezastaví.
+        for kind in ("periodic", "performance", "tax"):
+            with self.subTest(kind=kind):
+                fund = self.fund()
+                if kind == "periodic":
+                    rule = self.Rule.create({
+                        "fund_id": fund.id, "name": "Úplata", "kind": "periodic", "expense_role": "expense_management",
+                        "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.0})]})
+                    code = None
+                elif kind == "performance":
+                    rule, code = self.performance(fund), "A"
+                else:
+                    rule, code = self.tax(fund), None
+                january = self.valuation(fund, JANUARY)
+                self.correct(january, rule, -500, code)
+                january.action_compute()
+                check = self.negative_check(january)
+                self.assertEqual(check.status, "warning", check.detail)
+                self.assertIn(rule.name, check.name)
+                self.assertIn("-500.00", check.detail)
+                self.assertFalse(january.check_ids.filtered(lambda c: c.status == "stop"),
+                                 january.check_ids.filtered(lambda c: c.status == "stop").mapped("detail"))
+
+    def test_positive_correction_result_is_ok(self):
+        # Odměna 20 000, oprava −1 000 → naběhlá 19 000: bez upozornění. Bez oprav kontrola také OK.
+        fund = self.fund()
+        perf = self.performance(fund)
+        self.common_result(fund, "v1", "2027-01-20", 100000)
+        january = self.valuation(fund, JANUARY)
+        self.correct(january, perf, -1000, "A")
+        january.action_compute()
+        self.assertEqual(self.negative_check(january).status, "ok")
