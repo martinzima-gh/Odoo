@@ -174,6 +174,24 @@ class TestMovementOnchange(NavCase):
         self.assertEqual(form.payout_class, 101591.15)
         form.save().action_book()
 
+    def test_preview_in_form_equals_saved_preview(self):
+        """Náhled zaúčtování v neuloženém formuláři je stejný jako u uloženého pohybu (hrubá částka ve funkční měně se plní hned)."""
+        form = self.form("redemption", self.a)
+        form.redemption_by = "amount"
+        form.requested_amount = 100000
+        self.assertEqual(form.amount, form.amount_class, "třída v měně fondu: kurz 1, funkční částka = částka třídy")
+        preview = form.posting_preview
+        self.assertTrue(preview)
+        movement = form.save()
+        self.assertEqual(str(preview), str(movement.posting_preview))
+        self.assertIn(f"{movement.payout_class:,.2f}", str(preview), "banka = výplata investorovi")
+        form = self.form("subscription", self.a)
+        form.amount_class = 1000000
+        preview = form.posting_preview
+        movement = form.save()
+        self.assertEqual(str(preview), str(movement.posting_preview))
+        self.assertIn("1,000,000.00", str(preview))
+
     def test_save_as_preparer(self):
         """Formulář uloží běžný uživatel (role Příprava): do `create` se nedostane `valuation_id` ani jiné systémové pole."""
         movements = self.Movement.with_user(self.preparer)

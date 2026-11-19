@@ -514,13 +514,26 @@ class InvestraClassMovement(models.Model):
             movement.rounding_amount_class = float(gross - money(movement.requested_amount)) if by_amount else 0.0
             if fee and not movement.fee_recipient:
                 movement.fee_recipient = movement.class_id.exit_fee_recipient
+            movement._fill_functional_amount()
 
     @api.onchange("class_id", "date", "amount_class", "fx_rate")
     def _onchange_functional_amount(self):
-        """Třída v cizí měně: hrubá částka ve funkční měně z kurzu (jako `create`); u třídy v měně fondu se nezobrazuje."""
         for movement in self:
-            if movement._is_manual_draft() and movement.foreign_currency and movement.amount_class and movement.fx_rate:
-                movement.amount = movement.fund_id.currency_id.round(movement.amount_class * movement.fx_rate)
+            movement._fill_functional_amount()
+
+    def _fill_functional_amount(self):
+        """Hrubá částka ve funkční měně (z ní se skládá doklad i náhled zaúčtování) hned při zadání, jako ji plní `create`.
+
+        Třída v měně fondu: kurz 1; bez toho by náhled neuloženého pohybu počítal s nulovou hrubou částkou. Volá se i
+        z dopočtu odkupu, protože změna `amount_class` provedená v onchange další onchange nespustí.
+        """
+        self.ensure_one()
+        if not (self._is_manual_draft() and self.amount_class):
+            return
+        if not self.foreign_currency:
+            self.fx_rate = 1.0
+        if self.fx_rate:
+            self.amount = self.fund_id.currency_id.round(self.amount_class * self.fx_rate)
 
     @api.onchange("class_id", "movement_type", "amount_class", "amount")
     def _onchange_fee(self):
