@@ -19,7 +19,7 @@ a Zařazení nástrojů.
 
 **Rozsah souborů:** `investra_instruments/views/instrument_views.xml`, `investra_instrument_master/views/*.xml`, menu
 (jen `menuitem`) v `investra_nav/views/nav_views.xml` a `investra_derivative/views/derivative_views.xml`,
-`investra_instruments/models/portfolio.py` (jen onchange, výchozí hodnoty a popisky), testy v příslušných modulech, překlady.
+`investra_instruments/models/portfolio.py` a `investra_instrument_master/models/portfolio.py` (jen onchange, výchozí hodnoty a popisky; onchange kategorie → model patří do `investra_instrument_master`, kde je definovaná `CATEGORY_MODEL`, protože `investra_instruments` ji nevidí; mapu ani kontrolu na ní nepřesouvat ani neměnit), testy v příslušných modulech, překlady.
 
 **Mimo rozsah:** zaúčtování, kontroly (constraints), `_book*`, `_validate`, `_check*`, náhledy zaúčtování; mapa `CATEGORY_MODEL`
 se jen čte. Když by úprava vyžadovala jejich změnu, **zastavit a úkol vrátit Claudovi** (červená zóna). Testy Odoo, commit, push
