@@ -93,53 +93,67 @@
         <field name="name">investra.valuation.class.form</field>
         <field name="model">investra.valuation.class</field>
         <field name="arch" type="xml">
-            <form string="Přemostění třídy">
+            <form string="Přemostění třídy" class="o_investra_bridge">
                 <sheet>
                     <div class="oe_title"><h2><field name="class_id" readonly="1"/></h2></div>
                     <div class="text-muted mb-3">Čte se shora dolů: počáteční stav + pohyby = upravený FK; upravený FK + změna společná
                         + změna specifická = konečný stav.</div>
-                    <!-- Rozhodnutí 2026-11-19: jedna svislá cesta počáteční stav → změny → konečný stav, částky a kusy v jednom řádku. -->
-                    <group string="1. Počáteční stav (minulé ocenění)" col="4">
+                    <!-- Rozhodnutí 2026-11-19: jedna mřížka (stejné sloupce ve všech částech), vlevo částky, vpravo jen kusy,
+                         čísla vpravo (static/src/valuation_class/bridge.scss). -->
+                    <group col="4">
+                        <separator string="1. Počáteční stav (minulé ocenění)" colspan="4"/>
                         <field name="opening_capital"/>
                         <field name="opening_units"/>
                         <field name="opening_price"/>
-                    </group>
-                    <group string="2. Pohyby" col="4">
+                        <div colspan="2"/>
+                        <separator string="2. Pohyby" colspan="4"/>
                         <field name="subscription_amount" string="+ Úpisy"/>
                         <field name="subscription_units"/>
                         <field name="redemption_amount" string="− Odkupy"/>
                         <field name="redemption_units"/>
                         <field name="dividend_amount" string="− Dividendy"/>
-                        <newline/>
+                        <div colspan="2"/>
                         <field name="pre_capital" string="= Upravený FK"/>
-                    </group>
-                    <group string="3. Změna hodnoty" col="4">
+                        <div colspan="2"/>
+                        <separator string="3. Změna hodnoty" colspan="4"/>
                         <field name="ratio" string="Alokační poměr" widget="percentage" options="{'digits': [16, 6]}"/>
-                        <newline/>
+                        <div colspan="2"/>
                         <field name="shared_result" string="+ Změna společná"/>
-                        <field name="rounding_amount"/>
+                        <div colspan="2"/>
+                        <field name="rounding_amount" string="   z toho zaokrouhlení"/>
+                        <div colspan="2"/>
                         <field name="delta" string="+ Změna specifická"/>
-                    </group>
-                    <group string="Změna specifická – z toho" col="4">
-                        <field name="fee_amount"/>
-                        <field name="performance_amount"/>
-                        <field name="allocation_amount"/>
-                        <field name="tax_effect_amount"/>
-                        <field name="other_amount"/>
-                    </group>
-                    <group string="4. Konečný stav" col="4">
+                        <div colspan="2"/>
+                        <field name="fee_amount" string="   z toho úplaty třídy"/>
+                        <div colspan="2"/>
+                        <field name="performance_amount" string="   z toho výkonnostní odměna"/>
+                        <div colspan="2"/>
+                        <field name="allocation_amount" string="   z toho přesun podle pořadí nároků"/>
+                        <div colspan="2"/>
+                        <field name="tax_effect_amount" string="   z toho daňový efekt specifických položek"/>
+                        <div colspan="2"/>
+                        <field name="other_amount" string="   z toho ostatní specifické"/>
+                        <div colspan="2"/>
+                        <separator string="4. Konečný stav" colspan="4"/>
                         <field name="capital" string="= FK"/>
                         <field name="units" string="Kusy"/>
                         <field name="price" string="Kurz"/>
+                        <div colspan="2"/>
                         <field name="price_change_pct" decoration-success="price_change_pct &gt; 0" decoration-danger="price_change_pct &lt; 0"/>
+                        <div colspan="2"/>
                     </group>
-                    <group string="V měně třídy" col="4" invisible="not foreign_currency">
+                    <group col="4" string="V měně třídy" invisible="not foreign_currency">
                         <field name="currency_name"/>
+                        <div colspan="2"/>
                         <field name="fx_rate"/>
+                        <div colspan="2"/>
                         <field name="opening_capital_class"/>
-                        <field name="capital_class"/>
+                        <div colspan="2"/>
                         <field name="subscription_amount_class"/>
+                        <div colspan="2"/>
                         <field name="redemption_amount_class"/>
+                        <div colspan="2"/>
+                        <field name="capital_class"/>
                     </group>
                     <field name="foreign_currency" invisible="1"/>
                 </sheet>

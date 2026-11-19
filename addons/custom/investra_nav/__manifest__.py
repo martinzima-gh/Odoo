@@ -12,6 +12,7 @@
             "investra_nav/static/src/valuation_summary/valuation_summary.js",
             "investra_nav/static/src/valuation_summary/valuation_summary.xml",
             "investra_nav/static/src/valuation_summary/valuation_summary.scss",
+            "investra_nav/static/src/valuation_class/bridge.scss",
         ],
     },
     "installable": True,
