@@ -465,21 +465,6 @@ class InvestraFund(models.Model):
             ],
         }
 
-    @api.model
-    def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
-        """Přehled fondů řadí karty podle naléhavosti (Vyžaduje zásah, Upozornění, V pořádku, Bez ocenění), pak názvu.
-
-        Stav je počítaný a neukládá se, proto se řadí v Pythonu; fondů je řádově desítky.
-        """
-        if not self.env.context.get("investra_dashboard_order"):
-            return super().web_search_read(domain, specification, offset=offset, limit=limit, order=order,
-                                           count_limit=count_limit)
-        funds = self.search(domain)
-        rank = {"danger": 0, "warning": 1, "ok": 2, "none": 3}
-        funds = funds.sorted(lambda f: (rank.get(f.dashboard_status, 4), (f.name or "").lower()))
-        page = funds[offset:offset + limit] if limit else funds[offset:]
-        return {"length": len(funds), "records": page.web_read(specification)}
-
     def action_open_todo(self, key):
         """Otevře seznam položky Ke zpracování (doménu počítá model, karta ji jen předá)."""
         self.ensure_one()

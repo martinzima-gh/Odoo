@@ -262,3 +262,75 @@ class TestFeeSchemeUi(NavCase):
         second.with_user(self.preparer).action_copy_from_version()
         second.invalidate_recordset(["can_copy_from_version"])
         self.assertFalse(second.can_copy_from_version)
+
+    # --- rozhodnutí 2026-11-19: jeden řádek na pravidlo, upozornění na základ třídy ---------------------------------
+
+    def test_fee_tab_shows_one_row_per_rule(self):
+        fund = self.fund()
+        rule = self.periodic(fund)
+        valuation = self.january(fund)
+        line = valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule)
+        computed = line.amount
+        self.dialog(line, amount=-100, note="Faktura").save()
+        self.dialog(line, amount=-1, note="Zaokrouhlení").save()
+        valuation.action_compute()
+        valuation.invalidate_recordset()
+        shown = valuation.fee_rule_line_ids
+        self.assertFalse(shown.filtered("is_correction"))
+        self.assertEqual(len(valuation.fee_line_ids) - len(shown), 2)
+        row = shown.filtered(lambda l: l.rule_id == rule)
+        self.assertAlmostEqual(row.fix_computed, computed, places=2)
+        self.assertAlmostEqual(row.fix_correction, -101, places=2)
+        self.assertAlmostEqual(row.fix_amount, computed - 101, places=2)
+        self.assertEqual(row.fix_note, "Faktura; Zaokrouhlení")
+        self.assertEqual(row.fix_user_id, self.preparer)
+        # Součet sloupce Částka = součet celého rozpisu (pravidla + opravy).
+        self.assertAlmostEqual(sum(shown.mapped("fix_amount")), sum(valuation.fee_line_ids.mapped("amount")), places=2)
+
+    def test_keep_buttons_on_rule_row(self):
+        fund = self.fund()
+        rule = self.periodic(fund)
+        valuation = self.january(fund)
+        line = valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule)
+        self.dialog(line, amount=-100, note="Faktura").save()
+        valuation.action_compute()
+        self.common_result(fund, "v1", "2027-01-20", 1000000)
+        valuation.action_compute()
+        valuation.invalidate_recordset()
+        row = valuation.fee_rule_line_ids.filtered(lambda l: l.rule_id == rule)
+        self.assertTrue(row.correction_changed)
+        row.with_user(self.preparer).action_keep_result()
+        valuation.invalidate_recordset()
+        row = valuation.fee_rule_line_ids.filtered(lambda l: l.rule_id == rule)
+        self.assertFalse(row.correction_changed)
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "correction_changed").status, "ok")
+
+    def test_class_base_without_classes_warns(self):
+        fund = self.fund()
+        rule = self.periodic(fund)
+        rule.base_source = "class_fk"
+        self.assertIn("pole Třídy je prázdné", rule.class_base_warning)
+        rule.class_ids = fund.class_ids[:1]
+        self.assertFalse(rule.class_base_warning)
+
+    def test_tax_has_no_classes_or_recipients(self):
+        from odoo.exceptions import ValidationError
+        fund = self.fund()
+        tax = self.tax(fund)
+        with self.assertRaisesRegex(ValidationError, "daň je náklad celého fondu"):
+            tax.class_ids = fund.class_ids[:1]
+        with self.assertRaisesRegex(ValidationError, "daň je náklad celého fondu"):
+            tax.recipient_share = 0.5
+
+    def test_setup_warnings_for_unused_fields(self):
+        fund = self.make_fund(classes=[{"code": "A"}, {"code": "B"}])
+        rule = self.periodic(fund, source="average_fk")
+        self.assertFalse(rule.class_base_warning)
+        rule.class_ids = self.cls(fund, "A")
+        self.assertIn("vyplněné Platí třídy se nepoužijí", rule.class_base_warning)
+        rule.class_ids = False
+        rule.recipient_share = 0.5
+        self.assertIn("nejsou zvolené přijímající třídy", rule.class_base_warning)
+        rule.write({"recipient_share": 0, "recipient_class_ids": [(6, 0, self.cls(fund, "B").ids)]})
+        self.assertIn("podíl příjemcům je 0", rule.class_base_warning)
+

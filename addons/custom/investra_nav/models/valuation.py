@@ -905,9 +905,14 @@ class InvestraValuation(models.Model):
         return {c: max(d(values[c]), Decimal(0)) for c in classes}
 
     def _transfer_lines(self, payer, parts):
-        """Přesun hodnoty mezi třídami: účet vnitřního zúčtování má v součtu nulu, FK se nemění."""
+        """Přesun hodnoty mezi třídami: účet vnitřního zúčtování má v součtu nulu, FK se nemění.
+
+        Plátce prázdný = celý fond (úplata fondu s příjemci, rozhodnutí 2026-11-19): řádek bez třídy nesou třídy poměrem,
+        stejně jako v dopočtu (`engine.fee_effects`, plátce None).
+        """
         total = sum(parts.values())
-        lines = [{"role": "internal_clearing", "amount": -total, "class_id": payer.id, "movement_type": "class_transfer"}]
+        lines = [{"role": "internal_clearing", "amount": -total, "class_id": payer.id if payer else False,
+                  "movement_type": "class_transfer"}]
         for fund_class, amount in parts.items():
             lines.append({"role": "internal_clearing", "amount": amount, "class_id": fund_class.id, "movement_type": "class_transfer"})
         return lines
@@ -1392,8 +1397,10 @@ class InvestraValuation(models.Model):
         items = []
         for rule in rules.filtered(lambda r: r.kind == "periodic"):
             if rule.base_source == "average_fk":
+                # Rozhodnutí 2026-11-19: příjemci i u průměrného FK, aby dopočet počítal stejně jako doklad (`_book_fee`).
                 items.append({"key": ("fee", rule.id, None), "stage": engine.STAGE_FEE, "payer": None,
-                              "kind": "periodic", "rule": rule, "fund_class": None, **self._average_item(rule)})
+                              "kind": "periodic", "rule": rule, "fund_class": None,
+                              **self._recipients(rule, values), **self._average_item(rule)})
                 continue
             for fund_class in rule.class_ids or [None]:
                 class_id = fund_class.id if fund_class else None
@@ -2756,7 +2763,8 @@ class InvestraValuationExternal(models.Model):
         """Ponechat rozdíl (ZJ-12 B.8): oprava zůstává, snímek se přepíše nynější vypočtenou částkou; přepočet."""
         self.ensure_one()
         self.write({"computed_at_entry": self.computed_now, "computed_captured": True})
-        self.valuation_id.action_compute()
+        if not self.env.context.get("investra_skip_compute"):
+            self.valuation_id.action_compute()
 
     def action_keep_result(self):
         """Ponechat výsledek (ZJ-12 B.8): výsledek při zadání (snímek + oprava) zůstává, oprava se dopočte k nynější
@@ -2767,7 +2775,8 @@ class InvestraValuationExternal(models.Model):
             raise UserError(self.env._(
                 "Výsledek se rovná nynější vypočtené částce, oprava by byla nulová. Řádek opravy smažte."))
         self.write({"amount": amount, "computed_at_entry": self.computed_now, "computed_captured": True})
-        self.valuation_id.action_compute()
+        if not self.env.context.get("investra_skip_compute"):
+            self.valuation_id.action_compute()
 
     @api.model_create_multi
     def create(self, vals_list):

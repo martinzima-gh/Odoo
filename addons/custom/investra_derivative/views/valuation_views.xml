@@ -6,7 +6,7 @@
         <field name="model">investra.valuation</field>
         <field name="inherit_id" ref="investra_nav.view_valuation_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//page[field[@name='fee_line_ids']]" position="before">
+            <xpath expr="//page[@name='fees']" position="before">
                 <page string="FX deriváty" name="derivatives" invisible="not derivative_line_ids">
                     <field name="derivative_line_ids">
                         <list>

@@ -18,6 +18,11 @@ class InvestraValuationCorrectionsUi(models.Model):
         help="Opravy dřívějších ocenění „do konce období“, které tohle ocenění převzalo do výpočtu. Jen pro čtení; "
              "převzetí skončí tlačítkem Ukončit opravu.")
     has_corrections = fields.Boolean(compute="_compute_has_corrections", string="Má opravy")
+    # Rozhodnutí 2026-11-19: záložka Úplaty ukazuje jeden řádek na pravidlo (vypočteno, oprava, výsledek); řádky oprav
+    # jsou jen na záložce Ruční úplaty, kde jdou smazat nebo ukončit. Rozpis `fee_line_ids` (účtování, XLS) se nemění.
+    fee_rule_line_ids = fields.One2many(
+        "investra.valuation.fee", "valuation_id", domain=[("is_correction", "=", False)], readonly=True,
+        string="Úplaty (bez řádků oprav)")
     can_copy_from_version = fields.Boolean(compute="_compute_can_copy_from_version", string="Lze převzít z verze")
 
     @api.depends("fee_line_ids.detail", "external_fee_ids")
@@ -54,43 +59,69 @@ class InvestraValuationFeeCorrectionsUi(models.Model):
     fix_computed = fields.Float(digits=(20, 2), compute="_compute_fix", string="Vypočteno")
     fix_correction = fields.Float(digits=(20, 2), compute="_compute_fix", string="Oprava částky")
     fix_result = fields.Float(digits=(20, 2), compute="_compute_fix", string="Výsledek")
-    fix_note = fields.Text(related="external_id.note", string="Zdůvodnění")
+    fix_amount = fields.Float(
+        digits=(20, 2), compute="_compute_fix", string="Částka",
+        help="Částka po opravách: u pravidla s opravou výsledek (vypočteno + oprava), jinak částka řádku.")
+    fix_note = fields.Text(compute="_compute_fix", string="Zdůvodnění")
     fix_user_id = fields.Many2one("res.users", compute="_compute_fix", string="Zadal")
     fix_date = fields.Datetime(compute="_compute_fix", string="Kdy")
     correction_changed = fields.Boolean(compute="_compute_fix", string="Vypočtená částka se změnila")
 
+    @staticmethod
+    def _entry_changed(entry, valuation):
+        return bool(
+            entry.corrects_rule_id and entry.correction_target == "amount" and entry.computed_captured
+            and entry.ended_id.id is False
+            and round(entry.computed_now, 2) != round(entry.computed_at_entry, 2)
+            and valuation.state in ("draft", "computed"))
+
+    def _rule_fixes(self):
+        """Řádky oprav částky téhož pravidla a třídy v ocenění (k řádku pravidla)."""
+        self.ensure_one()
+        return self.valuation_id.fee_line_ids.filtered(
+            lambda l: l.external_id.corrects_rule_id == self.rule_id and l.class_id == self.class_id
+            and l.external_id.correction_target == "amount")
+
     @api.depends("amount", "rule_id", "class_id", "external_id.amount", "external_id.computed_at_entry",
                  "external_id.computed_now", "external_id.corrects_rule_id", "external_id.correction_target",
-                 "valuation_id.fee_line_ids.amount", "valuation_id.state")
+                 "external_id.note", "valuation_id.fee_line_ids.amount", "valuation_id.state")
     def _compute_fix(self):
         for line in self:
             line.fix_kind, line.fix_computed, line.fix_correction, line.fix_result = "none", 0.0, 0.0, 0.0
+            line.fix_amount, line.fix_note = line.amount, line.external_id.note or False
             line.fix_user_id, line.fix_date, line.correction_changed = False, False, False
             entry = line.external_id
             if entry.corrects_rule_id:
                 line.fix_kind, line.fix_correction = "correction", line.amount
                 line.fix_user_id, line.fix_date = entry.create_uid, entry.create_date
-                line.correction_changed = bool(
-                    entry.corrects_rule_id and entry.correction_target == "amount" and entry.computed_captured
-                    and entry.ended_id.id is False
-                    and round(entry.computed_now, 2) != round(entry.computed_at_entry, 2)
-                    and line.valuation_id.state in ("draft", "computed"))
+                line.correction_changed = self._entry_changed(entry, line.valuation_id)
             elif line.rule_id:
-                fixes = line.valuation_id.fee_line_ids.filtered(
-                    lambda l: l.external_id.corrects_rule_id == line.rule_id and l.class_id == line.class_id
-                    and l.external_id.correction_target == "amount")
+                fixes = line._rule_fixes()
                 if fixes:
+                    entries = fixes.external_id.sorted("create_date")
                     line.fix_kind, line.fix_computed = "rule", line.amount
                     line.fix_correction = sum(fixes.mapped("amount"))
-                    line.fix_result = line.amount + line.fix_correction
+                    line.fix_result = line.fix_amount = line.amount + line.fix_correction
+                    line.fix_note = "; ".join(filter(None, entries.mapped("note"))) or False
+                    line.fix_user_id, line.fix_date = entries[-1:].create_uid, entries[-1:].create_date
+                    line.correction_changed = any(self._entry_changed(e, line.valuation_id) for e in entries)
+
+    def _changed_entries(self):
+        """Opravy, kterých se týká tlačítko: řádek opravy = jeho oprava, řádek pravidla = jeho změněné opravy."""
+        self.ensure_one()
+        if self.external_id:
+            return self.external_id
+        return self._rule_fixes().external_id.filtered(lambda e: self._entry_changed(e, self.valuation_id))
 
     def action_keep_difference(self):
-        self.ensure_one()
-        return self.external_id.action_keep_difference()
+        entries = self._changed_entries()
+        entries.with_context(investra_skip_compute=True).mapped(lambda e: e.action_keep_difference())
+        self.valuation_id.action_compute()
 
     def action_keep_result(self):
-        self.ensure_one()
-        return self.external_id.action_keep_result()
+        entries = self._changed_entries()
+        entries.with_context(investra_skip_compute=True).mapped(lambda e: e.action_keep_result())
+        self.valuation_id.action_compute()
 
 
 class InvestraValuationExternalCorrectionsUi(models.Model):

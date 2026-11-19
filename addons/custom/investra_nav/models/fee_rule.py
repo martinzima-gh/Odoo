@@ -159,6 +159,7 @@ class InvestraFeeRule(models.Model):
     )
     version_ids = fields.One2many("investra.fee.version", "rule_id", string="Verze")
     overlap_warning = fields.Text(compute="_compute_overlap_warning", string="Upozornění na souběh")
+    class_base_warning = fields.Text(compute="_compute_class_base_warning", string="Upozornění na nastavení")
 
     @api.model
     def _base_steps(self, kind, base_source):
@@ -282,6 +283,24 @@ class InvestraFeeRule(models.Model):
                     "archivujte potom. Omylem založené pravidlo bez částky archivovat jde.",
                     rule=rule.name, valuation=last.display_name, what=what, amount=f"{amount:.2f}"))
 
+    @api.depends("kind", "base_source", "class_ids", "recipient_share", "recipient_class_ids")
+    def _compute_class_base_warning(self):
+        """Upozornění na pole, která výpočet v dané kombinaci nepoužije (rozhodnutí 2026-11-19); uložení nezastaví."""
+        _ = self.env._
+        for rule in self:
+            messages = []
+            if rule.kind == "periodic" and rule.base_source == "class_fk" and not rule.class_ids:
+                messages.append(_("Základ je Kapitál třídy, ale pole Třídy je prázdné: úplata se počítá z FK celého fondu. "
+                                  "Vyplňte třídy, nebo zvolte základ FK."))
+            if rule.kind == "periodic" and rule.base_source == "average_fk" and rule.class_ids:
+                messages.append(_("Průměrný FK je úplata celého fondu: vyplněné Platí třídy se nepoužijí "
+                                  "(průměr po třídách zatím program neumí)."))
+            if rule.kind != "tax" and rule.recipient_share and not rule.recipient_class_ids:
+                messages.append(_("Podíl příjemcům je vyplněný, ale nejsou zvolené přijímající třídy: celá úplata je náklad fondu."))
+            if rule.kind != "tax" and rule.recipient_class_ids and not rule.recipient_share:
+                messages.append(_("Přijímající třídy jsou zvolené, ale podíl příjemcům je 0: nic se jim nepřesune."))
+            rule.class_base_warning = "\n".join(messages) or False
+
     @api.depends("fund_id", "class_ids", "expense_role", "kind", "active")
     def _compute_overlap_warning(self):
         for rule in self:
@@ -338,6 +357,14 @@ class InvestraFeeRule(models.Model):
             if rule.cover_class_id.fund_id != rule.fund_id:
                 rule.cover_class_id = False
 
+    @api.onchange("kind")
+    def _onchange_kind_tax(self):
+        """Daň třídy ani příjemce nemá (rozhodnutí 2026-11-19): při změně druhu na daň se pole vyprázdní."""
+        for rule in self:
+            if rule.kind == "tax":
+                rule.class_ids = rule.recipient_class_ids = False
+                rule.recipient_share = 0
+
     @api.onchange("fund_id", "kind")
     def _onchange_single_class(self):
         """Výkonnostní odměna fondu s jedinou třídou: třída se předvyplní (rozhodnutí 2026-11-17)."""
@@ -345,7 +372,7 @@ class InvestraFeeRule(models.Model):
             if rule.kind == "performance" and not rule.class_ids and len(rule.fund_id.class_ids) == 1:
                 rule.class_ids = rule.fund_id.class_ids
 
-    @api.constrains("fund_id", "kind", "class_ids", "recipient_class_ids", "cover_class_id")
+    @api.constrains("fund_id", "kind", "class_ids", "recipient_class_ids", "cover_class_id", "recipient_share")
     def _check_classes(self):
         """Třídy musí být z fondu pravidla; třída nesmí být platící i přijímající a třída krytí nesmí být platící.
 
@@ -356,6 +383,10 @@ class InvestraFeeRule(models.Model):
             if rule.kind == "performance" and not rule.class_ids:
                 raise ValidationError(self.env._(
                     "Výkonnostní odměna %s musí mít aspoň jednu třídu v poli Platí třídy.", rule.name))
+            # Rozhodnutí 2026-11-19: daň výpočet počítá za celý fond a mezi třídy dělí sám (poměr + daňový efekt).
+            if rule.kind == "tax" and (rule.class_ids or rule.recipient_class_ids or rule.recipient_share):
+                raise ValidationError(self.env._(
+                    "%s: daň je náklad celého fondu; třídy ani příjemce nemá.", rule.name))
             classes = rule.class_ids | rule.recipient_class_ids | rule.cover_class_id
             foreign = classes.filtered(lambda c: c.fund_id != rule.fund_id)
             if foreign:

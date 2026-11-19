@@ -254,13 +254,14 @@
                         </list></field></page>
                         <page string="Úplaty" name="fees">
                             <field name="has_corrections" invisible="1"/>
-                            <field name="fee_line_ids"><list>
-                            <field name="name"/><field name="class_id"/><field name="amount"/>
+                            <!-- Rozhodnutí 2026-11-19: jeden řádek na pravidlo; řádky oprav jen na záložce Ruční úplaty. -->
+                            <field name="fee_rule_line_ids"><list>
+                            <field name="name"/><field name="class_id"/>
                             <!-- ZJ-12 C.3: sloupce oprav se ukážou jen v ocenění, které opravu má. -->
                             <field name="fix_kind" column_invisible="1"/>
                             <field name="fix_computed" column_invisible="not parent.has_corrections" invisible="fix_kind != 'rule'"/>
-                            <field name="fix_correction" column_invisible="not parent.has_corrections" invisible="fix_kind == 'none'"/>
-                            <field name="fix_result" column_invisible="not parent.has_corrections" invisible="fix_kind != 'rule'"/>
+                            <field name="fix_correction" column_invisible="not parent.has_corrections" invisible="fix_kind != 'rule'"/>
+                            <field name="fix_amount" sum="Celkem"/>
                             <field name="fix_note" column_invisible="not parent.has_corrections"/>
                             <field name="fix_user_id" column_invisible="not parent.has_corrections"/>
                             <field name="fix_date" column_invisible="not parent.has_corrections"/>
@@ -555,6 +556,9 @@
         <field name="arch" type="xml">
             <form><sheet>
                 <!-- ZJ-03: souběh téže nákladové role na fondu a na třídách jen upozorní; uložení ani výpočet nezastaví. -->
+                <div class="alert alert-warning" role="alert" invisible="not class_base_warning">
+                    <field name="class_base_warning" nolabel="1"/>
+                </div>
                 <div class="alert alert-warning" role="alert" invisible="not overlap_warning">
                     <field name="overlap_warning" nolabel="1"/>
                 </div>
@@ -570,11 +574,12 @@
                         <field name="base_step_fee" invisible="kind != 'periodic' or base_source in ('assets', 'none')"/>
                         <field name="base_step_performance" invisible="kind != 'performance'"/>
                         <field name="base_step_tax" invisible="kind != 'tax'"/>
-                        <field name="expense_role"/>
+                        <!-- Rozhodnutí 2026-11-19: daň se účtuje vždy na roli Daň, třídy ani příjemce nemá. -->
+                        <field name="expense_role" invisible="kind == 'tax'"/>
                         <field name="crystallisation" invisible="kind != 'performance'"/>
                     </group>
                 </group>
-                <group>
+                <group invisible="kind == 'tax'">
                     <field name="class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
                     <field name="recipient_share"/>
                     <field name="recipient_class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>

@@ -352,17 +352,19 @@ class TestDashboard(NavCase):
         # Běžná práce kartu nezvedá na Upozornění, jen čeká v bloku Ke zpracování.
         self.assertEqual(self.fund.dashboard_status, "none")
 
-    def test_cards_sorted_by_urgency(self):
+    def test_cards_sorted_by_name(self):
+        # Rozhodnutí 2026-11-19: Přehled řadí podle názvu fondu; fond s termínem po lhůtě se nepředřadí.
         quiet = self.make_fund(classes=[{"code": "A"}])
         # make_fund přepne povolené knihy na novou; pro srovnání obou fondů povolit obě.
         self.env = self.env(context=dict(self.env.context, allowed_company_ids=(self.fund | quiet).company_id.ids))
+        self.fund.name, quiet.name = "Zeta fond", "Alfa fond"
         self.env["investra.regulatory.deadline"].create({
             "fund_id": self.fund.id, "report": "TEST", "period_end": self.today, "due_date": self.today - timedelta(days=1),
         })
-        Fund = self.env["investra.fund"].with_context(investra_dashboard_order=1)
+        action = self.env.ref("investra_dashboard.action_fund_dashboard")
+        Fund = self.env["investra.fund"].with_context(**dict(eval(action.context or "{}")))
         result = Fund.web_search_read([("id", "in", (self.fund | quiet).ids)], {"name": {}})
-        self.assertEqual([r["id"] for r in result["records"]], [self.fund.id, quiet.id])
-        self.assertEqual(result["length"], 2)
+        self.assertEqual([r["id"] for r in result["records"]], [quiet.id, self.fund.id])
         self.assertEqual(self.env["investra.fund"].search([("dashboard_status", "=", "danger"), ("id", "in", (self.fund | quiet).ids)]), self.fund)
 
     def test_approver_cannot_change_deadline(self):

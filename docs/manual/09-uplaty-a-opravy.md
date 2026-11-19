@@ -31,6 +31,11 @@ do historie pravidla jednou, jako změna pole „Základ: po kroku“.
 **Vzájemný dopočet.** Když jsou pravidla navzájem základem (například úplata z výsledného FK a daň po úplatách), ocenění je spočítá společně
 („společný dopočet“) a výsledek se ustálí. Není to chyba. Kontrola ocenění „Společný dopočet úplat je konzistentní“ hlídá, že se výpočet ustálil.
 
+**Pole bez účinku.** U druhu **Daň** formulář pole Platí třídy, Podíl příjemcům, Přijímají třídy a Nákladová role nemá: daň je náklad celého fondu,
+účtuje se na roli Daň a mezi třídy ji rozdělí výpočet (poměr a přesun daňového efektu). Formulář pravidla upozorní, když vyplněné pole výpočet
+nepoužije: Kapitál třídy bez tříd (počítá se z FK celého fondu), průměrný FK se třídami (průměr po třídách zatím není), podíl příjemcům bez
+přijímajících tříd nebo přijímající třídy s podílem 0.
+
 ## 2. Schéma výpočtu na fondu
 
 `Investra › Nastavení › Fondy › Fondy › [fond]`, záložka **Schéma výpočtu**:
@@ -64,8 +69,9 @@ nákladovou roli pravidla, s podílem příjemcům z tříd jako pravidlo.
 | **Poznámka** | povinná, důvod opravy (faktura, dohoda s depozitářem) |
 | **Soubor s výpočtem** | nepovinná příloha |
 
-Po uložení stiskněte **Spočítat**. Záložka Úplaty pak ukáže sloupce **Vypočteno**, **Oprava částky**, **Výsledek**, **Zdůvodnění**, **Zadal** a **Kdy**;
-v ocenění bez opravy jsou skryté. Na řádku pravidla je vypočteno, součet oprav a výsledek, na řádku opravy její částka, poznámka, autor a čas.
+Po uložení stiskněte **Spočítat**. Záložka Úplaty má **jeden řádek na pravidlo** se sloupci **Vypočteno**, **Oprava částky** (součet oprav),
+**Částka** (výsledek po opravách; pod sloupcem součet), **Zdůvodnění** (poznámky všech oprav), **Zadal** a **Kdy** (poslední oprava); v ocenění bez opravy
+jsou sloupce oprav skryté. Samostatné řádky oprav jsou jen na záložce **Ručně doložené úplaty**, kde jde opravu smazat nebo upravit.
 
 **Platnost podle druhu:**
 
@@ -91,7 +97,7 @@ opravu o opačnou částku s odkazem „Ukončuje opravu“; další ocenění j
 - **Ponechat rozdíl:** zadaný rozdíl zůstane, výsledek se posune s vypočtenou částkou;
 - **Ponechat výsledek:** výsledek zůstane, rozdíl se upraví.
 
-Obě tlačítka uloží nový snímek vypočtené částky a ocenění přepočtou. Kontrola platí jen pro opravy zadané v tomto ocenění, ne pro převzaté.
+Tlačítka jsou na řádku pravidla a platí pro všechny jeho změněné opravy; uloží nový snímek vypočtené částky a ocenění jednou přepočtou. Kontrola platí jen pro opravy zadané v tomto ocenění, ne pro převzaté.
 
 **Další verze ocenění.** Po vrácení vznikne nová verze bez ručních úplat a oprav předchozí verze. Kontrola „Předchozí verze měla ruční úpravy (n),
 které v této verzi nejsou“ (upozornění) je vypíše; tlačítko **Převzít z předchozí verze** v hlavičce je zkopíruje (s odkazem „Převzato z“).

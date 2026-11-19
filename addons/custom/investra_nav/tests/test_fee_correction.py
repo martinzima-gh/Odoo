@@ -166,6 +166,44 @@ class TestFeeCorrection(NavCase):
         with self.assertRaisesRegex(UserError, "Pravidlo Dělená: žádná přijímající třída nemá kladnou hodnotu"):
             valuation.action_compute()
 
+    def test_average_fk_recipients_in_solver_like_posting(self):
+        # Rozhodnutí 2026-11-19: průměrný FK s příjemci – dopočet zná příjemce, náklad = částka − podíl jako na dokladu.
+        fund = self.make_fund(classes=[{"code": c} for c in ("A", "B")])
+        for code in ("A", "B"):
+            self.subscribe(self.cls(fund, code), "2027-01-01", 1000, 1000)
+        rule = self.rule(fund, rate=0.12, name="Průměr", base_source="average_fk", recipient_share=0.5,
+                         recipient_class_ids=[(6, 0, self.cls(fund, "B").ids)], expense_role="expense_other")
+        valuation = self.valuation(fund, YEAR_END)
+        valuation.action_compute()
+        line = valuation.fee_line_ids.filtered("rule_id")
+        to_b = round(line.amount * 0.5, 2)
+        self.assertTrue(to_b)
+        self.assertEqual(self.transfers(valuation, rule).get("B"), to_b)
+        detail = json.loads(line.detail)
+        self.assertAlmostEqual(float(detail["expense"]), line.amount - to_b, places=2)
+        # B nese polovinu úplaty (poměr) a dostane podíl stejné výše: nesená částka 0 se do detailu neukládá.
+        self.assertAlmostEqual(float(detail["borne"].get(str(self.cls(fund, "B").id), 0)), line.amount / 2 - to_b, delta=0.01)
+        self.assertAlmostEqual(float(detail["borne"][str(self.cls(fund, "A").id)]), line.amount / 2, delta=0.01)
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "fee_consistency").status, "ok")
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "classes_sum").status, "ok")
+
+    def test_fund_fee_with_recipients_posts(self):
+        # Úplata celého fondu (bez Platí třídy) s příjemcem B: dřív pád při zaúčtování (plátce None).
+        fund = self.make_fund(classes=[{"code": c} for c in ("A", "B")])
+        for code in ("A", "B"):
+            self.subscribe(self.cls(fund, code), "2027-01-01", 1000, 1000)
+        rule = self.rule(fund, rate=0.12, name="Fondová", recipient_share=0.5,
+                         recipient_class_ids=[(6, 0, self.cls(fund, "B").ids)], expense_role="expense_other")
+        valuation = self.valuation(fund, YEAR_END)
+        valuation.action_compute()
+        line = valuation.fee_line_ids.filtered("rule_id")
+        to_b = round(line.amount * 0.5, 2)
+        self.assertEqual(self.transfers(valuation, rule), {"": -to_b, "B": to_b})
+        # A nese polovinu úplaty, B polovinu a dostane podíl: A = 1000 − amount/2, B = 1000 − amount/2 + podíl.
+        self.assertAlmostEqual(self.result(valuation, "A").capital, 1000 - line.amount / 2, delta=0.01)
+        self.assertAlmostEqual(self.result(valuation, "B").capital, 1000 - line.amount / 2 + to_b, delta=0.01)
+        self.assertEqual(valuation.check_ids.filtered(lambda c: c.code == "clearing_zero").status, "ok")
+
     def test_effect_detail_splits_recipients_like_posting(self):
         # Nález 1: úplata 0,01, celý podíl třem příjemcům se stejnou vahou → doklad 0,01 / 0 / 0, rozpad stejně.
         from decimal import Decimal
