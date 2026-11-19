@@ -91,6 +91,10 @@ Manuál kap. 9 část 3 (oprava úplaty) a 4 (zrušení úplaty), commit 4f7dddd
 Pracovní `investra` povýšená na 20.0.0.37.0 (ZJ-11 i ZJ-12), stav v ZJ-12 „Povýšení pracovní databáze a zkouška rozhraní“. Úkol ZJ-11 je tím hotový; sloučení
 do `main` spolu se ZJ-12 na Martinův pokyn.
 
+**Doplněno 2026-11-19 (ZJ-12 krok 6c, schválil Martin):** opravy odměny jsou v přemostění třídy ve sloupci Výkonnostní odměna (ne Úplaty třídy); záporný výsledek
+opravy je upozornění `correction_negative`; `investra` povýšená na 20.0.0.38.0. Úkol je uzavřený, revize spolu se ZJ-12 (`CP-2026-11-19-ZJ12-revize.md`).
+
 ## Převzetí
 
-Kroky 1–3 udělal Claude přímo ve větvi `ukol/ZJ-zjednoduseni`; práce jiného agenta k převzetí není. Ověření: `investra_nav` 494/494 (2026-11-18), povýšení `investra` s kontrolou ocenění 35 a 39 beze změny.
+Kroky 1–3 udělal Claude přímo ve větvi `ukol/ZJ-zjednoduseni`; práce jiného agenta k převzetí není. Ověření: `investra_nav` 494/494 (2026-11-18), povýšení `investra` s kontrolou ocenění 35 a 39 beze změny;
+2026-11-19 po ZJ-12 6c `investra_nav` 498/498, `investra_nav+` 572/572, `all` 1001/1001 (16 vlastních modulů, 302 s), `investra` 20.0.0.38.0. Sloučení do `main` se ZJ-12 po revizi Copilota na Martinův pokyn.

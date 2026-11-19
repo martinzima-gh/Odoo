@@ -9,7 +9,7 @@
 | Zadal, dne | Martin, 18. 11. 2026 (návrh Claude, rozhodnutí v deníku z 18. 11. 2026) |
 | Řešitel | Claude (kroky 1–4, červená); kroky 5–6 může po plánu převzít Antigravity nebo Copilot |
 | Navazuje na | ZJ-06 bod 7, ZJ-10, ZJ-11; mění ZJ-11 (upřesnění a, bod 3, bod 6) a ZJ-07 (bod 2) |
-| Stav | kroky 1–5 a 6a, 6b hotové (2026-11-18), `investra` povýšená na 20.0.0.37.0; **6c (přemostění třídy) čeká na schválení plánu**; do `main` nic |
+| Stav | **hotové (2026-11-19)** – kroky 1–6 včetně 6c; `investra` povýšená na 20.0.0.38.0; testy `all` 1001/1001 (16 vlastních modulů, 302 s); čeká revize Copilota (`docs/ukoly/CP-2026-11-19-ZJ12-revize.md`) a Martinova kontrola vzhledu; do `main` nic |
 
 **Cíl:** základ každé úplaty, výkonnostní odměny a daně se nastaví jednou srozumitelnou volbou „Základ: po kroku 1–4“. Všechny smysluplné kombinace se spočítají
 jedním společným dopočtem, každá vypočtená hodnota jde ručně opravit jedním mechanismem a nic se nezmění zpětně u zaúčtovaných ocenění.
@@ -505,8 +505,23 @@ odměna − přesun podle pořadí`). Návrh:
   vypočteno 0, oprava −500) a `test_positive_correction_result_is_ok`. Stávající očekávané hodnoty beze změny.
   `investra_nav` 498/498, `investra_nav+` 572/572.
 
+### Povýšení `investra` na 20.0.0.38.0 (2026-11-19, Martin schválil)
+
+- Záloha `zalohy/investra-2026-11-19-pred-ZJ12-6c.dump` (pg_restore -l čitelné, 10 502 položek). `-u investra_nav` 20.0.0.37.0 → 20.0.0.38.0 bez ERROR
+  (log `.test-logs/upgrade-investra-ZJ12-6c.log`), restart `investra-web` s kódem 2899d1f, HTTP 200. Změnil se pohled a přibylo pole, proto povýšení, ne jen restart.
+- SQL snímek (ocenění: stav, FK, NFK, otisk, `write_date`; třídy: kapitál, kusy, kurz, specifická změna, sloupce přemostění, FK v měně třídy, naběhlá odměna;
+  úplaty: počet a součet; doklady podle stavu: počet, součet MD, `write_date`) před povýšením = po povýšení. Po přepočtu ocenění 35 a 39 (`action_compute`
+  jako admin, který je připravuje) se změnilo jen `write_date` obou ocenění a 10 znovu založených nezaúčtovaných návrhů dokladů (počet i součet stejné).
+  Zaúčtované doklady beze změny. Daňový efekt 0 (ocenění nemají přesun daně), nová kontrola „Výsledek oprav úplat není záporný“ OK, upozornění
+  ocenění stejného druhu jako dřív.
+
+### Testy před sloučením
+
+- `tools/run_tests.sh all` 2026-11-19: 1001/1001 (16 vlastních modulů, 302 s).
+
 ## Převzetí
 
-Všechny kroky dělá Claude přímo ve větvi `ukol/ZJ-zjednoduseni` (žádná práce Antigravity ani Copilota k převzetí). Stav 2026-11-18: commity 31fa5d9, fc4802a,
-7962434, 1d465e6, ddcb48d, 4f7dddd a dokumentace pushnuté do `origin/ukol/ZJ-zjednoduseni`; `investra_nav` 494/494, `investra_nav+` viz předávka
-2026-11-18-zj12-krok6. Pracovní `investra` povýšená na 20.0.0.37.0. Zbývá 6c po schválení plánu, pak sloučení do `main` na Martinův pokyn.
+Všechny kroky udělal Claude přímo ve větvi `ukol/ZJ-zjednoduseni`; práce Antigravity ani Copilota k převzetí není. Commity od 1c08179 (krok 1) po 2899d1f (6c)
+a uzavírací dokumentace jsou v `origin/ukol/ZJ-zjednoduseni`. Ověření: `investra_nav` 498/498, `investra_nav+` 572/572, `all` 1001/1001 (16 vlastních modulů, 302 s); povýšení `investra`
+na 20.0.0.38.0 s kontrolou ocenění 35 a 39 beze změny. **Zbývá:** nezávislá revize Copilota (`docs/ukoly/CP-2026-11-19-ZJ12-revize.md`, diff od 1c08179),
+převzetí jejích nálezů Claudem, Martinova kontrola vzhledu (Schéma výpočtu, sloupce oprav, nový sloupec přemostění) a sloučení do `main` na Martinův pokyn.
