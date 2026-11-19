@@ -158,4 +158,21 @@ Doplnil Antigravity (19. 11. 2026). Změny jsou v pracovní kopii větve `ukol/Z
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+Claude, 19. 11. 2026. Výsledek Antigravity (commit `9303c40` na `ag/AG-019-upisy-formular`) byl jen částečný, zbytek dokončil Claude přímo v `ukol/ZJ-13-14`.
+
+**Nálezy z revize a jejich vyřízení**
+
+| Nález | Vyřízení |
+|---|---|
+| Odkup podle částky (A3) chyběl, test jen simuloval | Doplněno: volba „Odkup podle“, „Požadovaná částka“ (nepersistentní pole), dopočet kusů, hrubé částky, poplatku a rozdílu; testy `test_redemption_by_amount_with_difference` (třída se 2 místy kusů) |
+| Chybějící A7 (povinný příjemce, upozornění), „zveřejněný kurz k …“, Zbytek s textem, skrytí kurzu u třídy v měně fondu, prázdný stav | Doplněno ve formuláři a v nápovědě akce; pomocná pole jen počítaná (neukládají se) |
+| Tlačítka Nový úpis / Nový odkup jako server actions v nabídce Akce | Nahrazeno tlačítky v záhlaví seznamu (`display="always"`), `create="false"` na seznamu; server actions zrušeny |
+| `except Exception` u kurzu, cena a poplatek přepsané v nesprávných případech | Kurz: zachycuje jen `UserError` (chybějící kurz formulář nezastaví); cena u třídy bez ocenění se nenuluje bez příčiny; poplatek u úpisu přepočítá kusy |
+| Test očekával kusy 955,004437 | Správně 955,004435 (odchylka 1), testy porovnávají s pevnými čísly |
+| Pozn.: `self.eur` v testech existuje (`NavCase`), původní podezření bylo mylné | – |
+
+**Odchylky od plánu** (deník rozhodnutí 2026-11-19 „odchylky provedení AG-019“): kusy 955,004435; rozdíl u odkupu podle částky = hrubá − požadovaná (**čeká na potvrzení Martina**); změna poplatku u úpisu přepočte kusy; chybějící kurz formulář nezastaví.
+
+**Ověřeno:** `tools/run_tests.sh investra_nav+` 606/606 OK (investra_nav, investra_dashboard, investra_derivative); `TestMovementOnchange` 12 testů včetně uložení pod rolí Příprava; `check_views.py` bez chyb. Stávající `test_movement.py` beze změny.
+**Povýšení:** `investra_nav` v pracovní `investra` (záloha `zalohy/investra-2026-11-19-pred-AG-019.dump`), bez ERROR, snímek ocenění 35 a 39 (`docs/sql/28-snimek-oceneni.sql`) před = po, `investra-web` restartován, HTTP 200.
+**Neověřeno:** vzhled a chování v prohlížeči (tlačítka v záhlaví seznamu, skrývání polí, přepínač Odkup podle); testy ověřují logiku formuláře, ne vykreslení.
