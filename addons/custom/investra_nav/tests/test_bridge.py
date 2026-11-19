@@ -125,12 +125,13 @@ class TestBridge(NavCase):
         return fund, perf
 
     def test_tax_effect_has_own_column(self):
-        # ZJ-12 krok 6c (schváleno 2026-11-19), čísla ze scénáře s4 (tax_transfers): přesun daňového efektu má vlastní
+        # ZJ-12 krok 6c (schváleno 2026-11-19), čísla ze scénáře s4 (tax_transfers, únor schválen 2026-11-19): přesun daňového efektu má vlastní
         # sloupec, Ostatní specifické zůstane 0. FK a kurzy tříd se nemění (kontroluje test_s4).
         fund, _perf = self.s4_fund()
         expected = {
             "2027-01-31": {"A": (-9643.29, 241.08, -9402.21), "B": (0, -241.08, -241.08)},
-            "2027-02-28": {"A": (7276.61, -182.72, 7093.89), "B": (0, 182.72, 182.72)},
+            # Únor: dorovnání mezi oceněními (2026-11-19) – money(241,08225 − 182,71553) − 241,08 = −182,71.
+            "2027-02-28": {"A": (7276.61, -182.71, 7093.90), "B": (0, 182.71, 182.71)},
         }
         for index, (day, classes) in enumerate(expected.items()):
             self.common_result(fund, f"common{index}", day, (100000, -70000)[index])
@@ -143,6 +144,41 @@ class TestBridge(NavCase):
                 self.assertAlmostEqual(line.fee_amount, 0, places=2, msg=f"{code} {day}")
                 self.assertAlmostEqual(line.delta, delta, places=2, msg=f"{code} {day}")
             self.assertBridgeChecksOk(valuation)
+
+    def test_tax_transfers_true_up_between_valuations(self):
+        # Rozhodnutí 2026-11-19: přesuny daňového efektu se dorovnávají i mezi oceněními proti přesnému součtu od 1. 1.
+        # Tři třídy s nesoudělnými poměry, šest ocenění se specifickými položkami: v každém ocenění součet přesunů 0,
+        # zaúčtované přesuny třídy od 1. 1. se od přesného součtu liší nejvýš o 0,01.
+        import json
+        from decimal import Decimal
+        fund = self.make_fund(classes=[{"code": c, "price_digits": 4} for c in ("A", "B", "C")])
+        for code, amount in (("A", 1000003), ("B", 700001), ("C", 299999)):
+            self.subscribe(self.cls(fund, code), "2027-01-01", amount, 1000)
+        self.env["investra.fee.rule"].create({"fund_id": fund.id, "name": "Daň", "kind": "tax",
+                                              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+        days = ["2027-01-31", "2027-02-28", "2027-03-31", "2027-04-30", "2027-05-31", "2027-06-30"]
+        specifics = [(333.33, -127.77, 51.13), (-41.07, 260.61, 13.19), (77.71, 9.43, -301.03),
+                     (-12.97, -88.89, 147.77), (205.01, 31.31, -7.07), (-99.99, 123.47, 66.61)]
+        booked = {}
+        moved = False
+        for index, (day, amounts) in enumerate(zip(days, specifics)):
+            self.common_result(fund, f"c{index}", day, 10007 + 13 * index)
+            for code, amount in zip(("A", "B", "C"), amounts):
+                self.specific(fund, self.cls(fund, code), f"s{index}{code}", day, amount)
+            valuation = self.run_to_posted(self.valuation(fund, day))
+            self.assertBridgeChecksOk(valuation)
+            detail = json.loads(valuation.fee_line_ids.filtered(lambda l: l.rule_id.kind == "tax").detail)
+            transfers = {int(k): Decimal(v) for k, v in detail["transfers"].items()}
+            moved = moved or bool(transfers)
+            self.assertEqual(sum(transfers.values(), Decimal(0)), 0, day)
+            for key, value in transfers.items():
+                booked[key] = booked.get(key, Decimal(0)) + value
+            for key, value in detail["transfers_exact"].items():
+                self.assertLessEqual(abs(booked.get(int(key), Decimal(0)) - Decimal(value)), Decimal("0.01"), f"{day} {key}")
+            # Sloupec přemostění = zaúčtovaný přesun ocenění.
+            for line in valuation.class_line_ids:
+                self.assertAlmostEqual(line.tax_effect_amount, float(transfers.get(line.class_id.id, 0)), places=2)
+        self.assertTrue(moved)
 
     def test_performance_correction_in_performance_column(self):
         # ZJ-12 krok 6c varianta (b): oprava odměny třídy A −1 000 patří do Výkonnostní odměny, ne do Úplat třídy.

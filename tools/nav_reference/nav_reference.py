@@ -54,6 +54,9 @@ def compute(scenario):
     # Daňový efekt minulého ocenění: {třída: e × spec_c} a e × Σ spec (přírůstkový přesun, ZJ-12 B.5).
     tax_effect_prev = {code: Decimal(0) for code in classes}
     tax_effect_total_prev = Decimal(0)
+    # Přesuny daňového efektu od 1. 1.: přesný součet a zaúčtované (dorovnání mezi oceněními, rozhodnutí 2026-11-19).
+    transfers_exact = {code: Decimal(0) for code in classes}
+    transfers_booked = {code: Decimal(0) for code in classes}
     # Daň, kterou třída nesla (podíl pohybu daně − přesun daňového efektu); odměna po kroku 2 ji přičte zpět (ZJ-12 B.3).
     # Model nekrystalizuje, přičítá se od začátku.
     tax_borne = {code: Decimal(0) for code in classes}
@@ -115,18 +118,21 @@ def compute(scenario):
             fk -= tax_move
             # Daňový efekt specifických položek (ZJ-12 B.5): e = (daň bez nich − daň s nimi) / Σ spec; přesun do třídy
             # c = Δ(e × spec_c) − ρ_c × Δ(e × Σ spec), Δ proti minulému ocenění, ρ dnešní (dřívější přesuny se nepřepočítávají);
-            # haléřový rozdíl nese největší přesun.
+            # dorovnání mezi oceněními (rozhodnutí 2026-11-19): zaúčtuje se money(přesný součet od 1. 1.) − už zaúčtované
+            # přesuny třídy; zbytek do nuly uvnitř ocenění nese největší přesun.
             total = sum(ytd_specific.values())
             effective = (rate * max(ytd_result + total, Decimal(0)) - exact) / total if total else Decimal(0)
             effect = {c: effective * ytd_specific[c] for c in classes}
             effect_total = effective * total
-            transfers = {c: money(effect[c] - tax_effect_prev[c] - apt[c] * (effect_total - tax_effect_total_prev))
-                         for c in classes}
+            for c in classes:
+                transfers_exact[c] += effect[c] - tax_effect_prev[c] - apt[c] * (effect_total - tax_effect_total_prev)
+            transfers = {c: money(transfers_exact[c]) - transfers_booked[c] for c in classes}
             tax_effect_prev, tax_effect_total_prev = effect, effect_total
             rounding = -sum(transfers.values())
             if rounding:
                 transfers[max(sorted(transfers), key=lambda c: abs(transfers[c]))] += rounding
             for c in classes:
+                transfers_booked[c] += transfers[c]
                 delta[c] += transfers[c]
                 tax_borne[c] += apt[c] * tax_move - transfers[c]
 

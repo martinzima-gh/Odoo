@@ -1147,10 +1147,28 @@ class InvestraValuation(models.Model):
                     specific[item["payer"]] -= item["expense"]
         previous, previous_total = self._previous_tax_effect(rule)
         booked = self._sum(("date", ">=", year_start), ("account_id", "=", tax_account.id))
+        transfers_booked, transfers_exact = self._tax_transfer_history(rule)
         return {"stage": engine.STAGE_TAX, "payer": None, "tax": {
             "rate": d(version.rate), "step": step, "result": result, "booked": booked, "specific": specific,
             "previous_effect": previous, "previous_effect_total": previous_total,
+            "transfers_booked": transfers_booked, "transfers_exact": transfers_exact,
         }}
+
+    def _tax_transfer_history(self, rule):
+        """Přesuny daňového efektu od 1. 1. (rozhodnutí 2026-11-19): zaúčtované po třídách a přesný součet.
+
+        Zaúčtované = součet `transfers` řádků daně dřívějších ocenění v roce. Přesný (nezaokrouhlený) součet je
+        `transfers_exact` posledního řádku, který ho má; starší řádky ho nemají, pak přesný součet = zaúčtované přesuny.
+        """
+        booked, exact = {}, None
+        for valuation in self._earlier_valuations(self._year_start()):
+            for line in valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule):
+                detail = json.loads(line.detail or "{}")
+                for key, value in (detail.get("transfers") or {}).items():
+                    booked[int(key)] = booked.get(int(key), Decimal(0)) + d(value)
+                if "transfers_exact" in detail:
+                    exact = {int(k): d(v) for k, v in detail["transfers_exact"].items()}
+        return booked, (dict(booked) if exact is None else exact)
 
     def _previous_tax_effect(self, rule):
         """Daňový efekt tříd posledního dřívějšího ocenění v roce ({třída: e × spec_c}, e × Σ spec), ZJ-12 B.5.
@@ -1542,7 +1560,8 @@ class InvestraValuation(models.Model):
     def _book_tax(self, item, tax, computed=None):
         """Daň jedním dokladem (ZJ-12 B.4): doplatek do požadované daně a přesun daňového efektu tříd (B.5).
 
-        Přesuny se zaokrouhlí na haléře; rozdíl, aby byl součet nulový, nese přesun s největší absolutní hodnotou.
+        Přesuny se dorovnávají proti přesnému součtu od 1. 1. (`transfers_exact`, rozhodnutí 2026-11-19); rozdíl, aby byl
+        součet v ocenění nulový, nese přesun s největší absolutní hodnotou.
         Doúčtování po výkonnostní odměně (`tax:<id>:perf`) zaniká, odměnu a daň počítá společný dopočet.
         Opravená daň (`computed` = průchod bez oprav, B.7): doplatek z vypočtené daně + převzaté opravy; nové opravy
         mají vlastní doklady. Přesuny daňového efektu jsou z konečného stavu (oprava daně do nich nevstupuje).
@@ -1551,7 +1570,13 @@ class InvestraValuation(models.Model):
         carried = item.get("carried", Decimal(0))
         required = engine.money((computed or tax)["required"])
         move = required - spec["booked"] + carried
-        transfers = {key: engine.money(value) for key, value in tax["transfers"].items()}
+        # Dorovnání mezi oceněními (rozhodnutí 2026-11-19): přesun = money(přesný součet od 1. 1.) − už zaúčtované přesuny
+        # třídy od 1. 1.; uvnitř ocenění zbytek do nuly nese přesun s největší absolutní hodnotou.
+        booked_transfers, previous_exact = spec.get("transfers_booked") or {}, spec.get("transfers_exact") or {}
+        exact = {key: previous_exact.get(key, Decimal(0)) + value for key, value in tax["transfers"].items()}
+        for key, value in previous_exact.items():
+            exact.setdefault(key, value)
+        transfers = {key: engine.money(value) - booked_transfers.get(key, Decimal(0)) for key, value in exact.items()}
         rounding = -sum(transfers.values(), Decimal(0))
         if rounding and transfers:
             transfers[max(sorted(transfers), key=lambda key: abs(transfers[key]))] += rounding
@@ -1560,6 +1585,7 @@ class InvestraValuation(models.Model):
             "base": tax["base"], "base_step": rule.base_step, "required": required, "booked": spec["booked"],
             "result": spec["result"], "specific": {str(k): str(engine.money(v)) for k, v in tax["specific"].items()},
             "effective_rate": tax["effective_rate"], "transfers": {str(k): str(v) for k, v in transfers.items()},
+            "transfers_exact": {str(k): str(v) for k, v in exact.items()},
             "effect": {str(k): str(v) for k, v in tax["effect"].items()}, "effect_total": str(tax["effect_total"]),
             **({"corrected": True} if computed else {}),
             **({"base_correction": item["base_correction"], "base_correction_ids": item["base_entries"].ids}

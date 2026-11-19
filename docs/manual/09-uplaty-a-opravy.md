@@ -109,7 +109,8 @@ Když je vynecháváte záměrně, upozornění nechte být.
 
 Daň fondu je společná. Daňový efekt položek výsledku, které nese jen jedna třída (výkonnostní odměna, úplaty a ruční úplaty třídy, opravy), se
 přesune té třídě přes vnitřní zúčtování; daň celého fondu se tím nemění. **Zjednodušení:** úspora z daňové ztráty minulých let se dělí mezi
-třídy poměrem; ztráta se po třídách nesleduje.
+třídy poměrem; ztráta se po třídách nesleduje. Přesuny se zaokrouhlují na haléře tak, aby zaúčtované přesuny třídy od 1. 1. odpovídaly přesnému
+součtu (rozdíl nejvýš 0,01): každé ocenění zaúčtuje zaokrouhlený přesný součet od 1. 1. minus to, co už bylo zaúčtováno.
 
 **Přemostění třídy** (formulář ocenění, řádek třídy, skupina Rozdělení výsledku; list Přemostění tříd v XLS) dělí specifickou změnu na **Úplaty třídy**,
 **Výkonnostní odměna** (včetně oprav odměny), **Přesun podle pořadí nároků**, **Daňový efekt specifických položek** (tento přesun; + zvyšuje kapitál

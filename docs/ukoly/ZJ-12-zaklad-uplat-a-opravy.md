@@ -515,6 +515,14 @@ odměna − přesun podle pořadí`). Návrh:
   Zaúčtované doklady beze změny. Daňový efekt 0 (ocenění nemají přesun daně), nová kontrola „Výsledek oprav úplat není záporný“ OK, upozornění
   ocenění stejného druhu jako dřív.
 
+### Dorovnání přesunů daňového efektu mezi oceněními (2026-11-19, schválil Martin)
+
+- `_tax_transfer_history` (zaúčtované přesuny od 1. 1. a přesný součet `transfers_exact` z detailu řádku daně; starší řádky: přesný = zaúčtované),
+  `_book_tax`: přesun_c = money(přesný součet od 1. 1.) − zaúčtované; zbytek do nuly uvnitř ocenění největšímu přesunu. Bez nového pole.
+- Referenční model `tools/nav_reference` stejně; s4 přegenerován (`--write`), změna jen 28. 2.: přesun A/B −182,71 / +182,71, FK tříd 1 008 993,40 /
+  1 010 936,28, kurz A 1 008,9934 (schváleno). Test `test_tax_transfers_true_up_between_valuations`. `investra_nav` 499/499, `investra_nav+` 573/573.
+- Pracovní `investra`: žádné uložené ocenění nemá přesun daňového efektu, `investra` se nepovyšuje (jen restart `investra-web`, až bude potřeba).
+
 ### Testy před sloučením
 
 - `tools/run_tests.sh all` 2026-11-19: 1001/1001 (16 vlastních modulů, 302 s).
