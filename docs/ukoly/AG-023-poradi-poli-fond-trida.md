@@ -57,4 +57,4 @@ dividendy zatím jen zapiš do soupisu, neupravuj.
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+Převzato 2026-11-20 (`14c751e`). Jen XML. Test `test_extraordinary_form_orders_kind_first…` upraven na nové pravidlo (fond před druhem splátky). Dividenda a ostatní bez pole fondu zůstávají (ZJ-22).

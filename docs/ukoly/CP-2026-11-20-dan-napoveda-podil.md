@@ -36,4 +36,4 @@ se povýší bez chyby.
 
 ## Převzetí
 
-Doplní Claude.
+Převzato 2026-11-20 (větev `ukol/ZJ-20-poznamky`, commit `14c751e`). Jen XML a manuál, žádný Python. Text pod tabulkou Výjimky zůstává.

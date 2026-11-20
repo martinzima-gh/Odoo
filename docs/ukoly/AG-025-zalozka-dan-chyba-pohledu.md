@@ -47,4 +47,4 @@ další hypotézy: pevné šířky sloupců (`width`) u polí Podíl, Neuznateln
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+Převzato 2026-11-20 (`14c751e`). Oprava je jen hypotéza (seznam mimo podmíněně skrytou skupinu); blikání nešlo reprodukovat, ověřit v prohlížeči po povýšení. Záložka přejmenována na „Daňová pravidla“.

@@ -57,4 +57,4 @@ první; test na hledání podle ISINu (nový test v `investra_instruments/tests/
 
 ## Převzetí
 
-Doplní Claude: datum, commit sloučení, výsledek testů Odoo, nálezy z revize.
+Převzato 2026-11-20 (`14c751e`). Python část doplnil Claude: `investra.instrument` má `_rec_names_search` (ISIN, název, kód, identifikátor) a `display_name` „ISIN název“; test `test_instrument_isin.py`. Opraveny dekorátory `_compute_book_warning`. Ověření výběru podle ISIN v prohlížeči čeká.
