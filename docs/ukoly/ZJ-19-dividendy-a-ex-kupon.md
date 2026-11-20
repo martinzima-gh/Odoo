@@ -24,11 +24,41 @@ odchylky od něj se zapisují do Výsledku.
 
 ## Výsledek
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
+Běh 3 dávky (Claude Sonnet 5.5, 20. 11. 2026), větev `ukol/ZJ-07-dane-a-tridy`. Plán: oddíl 7 zadání dávky.
+
+- **Změněné soubory:** nový `investra_nav/models/dividend.py` (model `investra.dividend`), `security/ir.access.csv`; `models/instrument_accrual.py`
+  (ex-kupón: `_accrued_coupon_unit`, `_accrued_value`, `_schedule`, `_held_positions`, `_ex_entitled_units`, `_validate`, `_expected`,
+  `_missing_scheduled`), `models/valuation.py` (uzavřená pozice s nevyplaceným kupónem, profil přecenění), `models/posting_preview.py`
+  (náhled bere analytický účet řádku); `investra_instruments/models/instrument.py` (`ex_coupon_days`, `cashflow.ex_date`, kontrola
+  znaménka naběhlého úroku); `investra_posting/models/event.py` (druhy události `dividend`, `dividend_payment`); `investra_chart_fund`
+  (účty 714100–714300, 667300/667400, 681100–682000, 347300, 348000, 341210, 341220; `EXTRA_ROLE_ACCOUNTS`; migrace 20.0.0.13.0);
+  `investra_nav/migrations/20.0.0.39.0` (účty pohledávek do profilů přecenění); testy `test_dividend.py` (15), `test_ex_coupon.py` (7),
+  upravený `test_fx_profile_valuation.py`.
+- **Ověřeno:** `investra_chart_fund,investra_fund,investra_posting+` (1037 testů, po úpravě testu profilu 0 selhání); snímek ocenění 35
+  shodný. Dividendy: česká 10 000 / 15 % (714100, 681100, pohledávka 8 500), zahraniční 7 000 EUR / 27,5 % / smluvní 10 % (681400 700,
+  pohledávka k vrácení 1 225 EUR, kurz 25 → 24 ztráta z kurzu), USD s kurzovým ziskem, přeplatek jako náklad, nárok k ex-datu − 1
+  (nákup v ex-datu bez nároku, prodej v ex-datu nárok neubere), portfolio třídy B, storno vyplacené dividendy, NAV s pohledávkou, náhled.
+  Ex-kupón: nákup v ex-lhůtě (záporný naběhlý úrok −27,78, ocenění 20. 6. a 30. 6. bez skoku, kupón nedostane), prodej v ex-lhůtě
+  (kupón 500 dostane prodávající, návrh splátky i pro prodanou pozici, pozice po výplatě 0), kontrola znaménka, lhůta 0 = dnešní chování.
+- **Neověřeno:** ex-kupón u nástroje v naběhlé hodnotě (kód `_accrued_value` je upravený, bez testu); dividenda v portfoliu s kategorií
+  FVOCI (běh 5); migrace na kopii ze zálohy (běh 7).
 - **Odchylky od plánu:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+  1. Druh dividendy: země emitenta z `issuer_id.country_id` (modul Instrument master, je-li nainstalován), jinak z prvních dvou znaků ISIN;
+     nástroj bez ISIN = česká. Sražená sazba výchozí 15 % u české, 0 u zahraniční (sazby jsou v procentech, ne zlomek).
+  2. Typ nástroje v nabídce: `type_id.kind` akcie, fond, účast (v kódu nejsou skupiny equity/fund).
+  3. Nezapočitatelný přeplatek zahraniční daně jako náklad jde na hlavní účet role `expense_other` (667000); **daňovou uznatelnost určí
+     metodik** (podle § 25/1/s ZDP je daň z příjmů neuznatelná – výjimka „Mimo základ“ na účtu, běh 4/5).
+  4. Pohledávky: 341210 „Pohledávky z dividend a kupónů“ a 341220 „Pohledávky – zahraniční daň k vrácení“ jsou pracovní čísla (další
+     účty role `receivable_other`), **k potvrzení Martinem**. Obě jsou v profilu přecenění fondu.
+  5. Storno dividendy bez schvalovací matice (nová činnost matice `dividend_reverse` by zasáhla `investra_fund`, ZJ-01/02): vyžaduje roli
+     přípravy a důvod. Návrh k rozhodnutí.
+  6. Řádky výnosu a daně nemají měnu (jen pohledávky a banka), stejně jako poplatek obchodu.
+  7. Prodaná pozice s nevyplaceným kupónem (jen nástroje s ex-kupónovou lhůtou) drží kupón na účtu nástroje a ocenění pro ni založí řádek
+     bez kusů (hodnota = nevyplacený kupón); bez ex-lhůty se chování nemění. Zbytek do 2 haléřů z zaokrouhlení naběhlých úroků obchodů.
+  8. Kontrola součtů dividendy (sražená ≤ hrubá, započitatelná ≤ sražená) je při zaúčtování, ne při uložení (přepočet polí by ji při
+     změně kusů zablokoval).
+  9. Předvyplnění splátky u kupujícího v ex-lhůtě beze změny (kupón mu návrhy podle kalendáře nezaloží); pevná kontrola „úrok ≤ nárok“ není.
+- **Otevřené otázky a návrhy mimo rozsah:** dividenda z dceřiné společnosti (osvobození § 19) – účty a daň ručně; výplata dividend investorům (IS).
 
 ## Převzetí
 

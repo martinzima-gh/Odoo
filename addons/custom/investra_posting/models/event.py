@@ -27,6 +27,8 @@ EVENT_TYPES = [
     ("trade_settlement", "Vypořádání obchodu"),
     ("class_movement", "Úpis/odkup"),
     ("repayment", "Splátka"),
+    ("dividend", "Dividenda"),
+    ("dividend_payment", "Výplata dividendy"),
     ("valuation", "Ocenění"),
     ("fx", "Konverze měn"),
     ("other", "Ostatní"),

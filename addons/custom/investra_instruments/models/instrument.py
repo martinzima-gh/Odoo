@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import format_date, formatLang
@@ -23,6 +25,7 @@ IDENTIFIER_KINDS = [
 # jen změny ovlivňující NAV a změny toků, ne např. přejmenování nebo list ČNB.
 NAV_INSTRUMENT_FIELDS = {
     "currency_id", "maturity_date", "coupon_rate", "day_count", "accrual_method", "price_excludes_accrued", "max_price_age",
+    "ex_coupon_days",  # ZJ-19
 }
 # Stav, události a důvody storna zapisuje jen zaúčtování a storno (rozhodnutí 2026-11-12 „Storno a oprava obchodu“).
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id", "reversal_reason", "settlement_reversal_reason"}
@@ -167,6 +170,11 @@ class InvestraInstrument(models.Model):
         compute="_compute_price_excludes_accrued", store=True, readonly=False, string="Cena bez naběhlého úroku",
         help="Zaškrtnuto (dluhopisy): reálná hodnota = kusy × cena + naběhlý úrok. Nezaškrtnuto (vklady, úvěry): úrok je "
              "v ceně; naběhlý úrok jen rozdělí výsledek ocenění na úrok a přecenění.",
+    )
+    ex_coupon_days = fields.Integer(
+        default=0, string="Ex-kupónová lhůta (dny)",
+        help="Kolik kalendářních dní před výplatou kupónu se obchoduje bez kupónu: kupón dostane ten, kdo drží k večeru dne "
+             "před ex-datem. 0 = bez lhůty.",
     )
     commitment_amount = fields.Float(digits=(20, 2), string="Upisovací závazek", help="Celková částka v měně nástroje, 0 = bez závazku.")
     holding_kind = fields.Selection([("securities", "Cenné papíry"), ("shares", "Podíly")], string="Typ investice", tracking=True)
@@ -349,6 +357,13 @@ class InvestraInstrument(models.Model):
         self.ensure_one()
         return fund.accrual_method if self.accrual_method == "fund" else self.accrual_method
 
+    def _ex_flow_window(self, day):
+        """Toky Úrok, jejichž ex-kupónová lhůta zahrnuje `day` (ex-datum ≤ den < datum výplaty); jinak prázdný záznam (ZJ-19 H2)."""
+        self.ensure_one()
+        if not day:
+            return self.env["investra.instrument.cashflow"]
+        return self.cashflow_ids.filtered(lambda f: f.flow_type == "interest" and f.ex_date and f.ex_date <= day < f.date)
+
 
 class InvestraInstrumentCashflow(models.Model):
     """Smluvní tok na jednotku nástroje, bez pořízení; to se bere z obchodu.
@@ -365,10 +380,22 @@ class InvestraInstrumentCashflow(models.Model):
     date = fields.Date(required=True, string="Datum")
     amount = fields.Float(required=True, digits=(20, 8), string="Částka na jednotku")
     flow_type = fields.Selection([("interest", "Úrok"), ("principal", "Jistina")], required=True, default="principal", string="Druh")
+    ex_date = fields.Date(
+        compute="_compute_ex_date", store=True, readonly=False, string="Ex-datum",
+        help="Jen u toku Úrok: od tohoto dne se obchoduje bez kupónu (datum − ex-kupónová lhůta nástroje). "
+             "U nepravidelných kupónů jde přepsat.",
+    )
+
+    @api.depends("date", "flow_type", "instrument_id.ex_coupon_days")
+    def _compute_ex_date(self):
+        for flow in self:
+            days = flow.instrument_id.ex_coupon_days
+            flow.ex_date = flow.date - timedelta(days=days) if flow.flow_type == "interest" and days > 0 and flow.date else False
 
     def _describe(self):
         kinds = dict(self._fields["flow_type"]._description_selection(self.env))
-        return f"{self.date} {kinds.get(self.flow_type, '')} {self.amount:g}"
+        text = f"{self.date} {kinds.get(self.flow_type, '')} {self.amount:g}"
+        return f"{text} (ex {self.ex_date})" if self.ex_date else text
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -901,11 +928,18 @@ class InvestraTrade(models.Model):
                 portfolio=self.portfolio_id.name, day=self.trade_date, held=held, name=self.instrument_id.name, qty=-self.quantity,
             ))
 
-    @api.constrains("accrued_interest", "instrument_id")
+    @api.constrains("accrued_interest", "instrument_id", "trade_date")
     def _check_accrued_interest(self):
         for trade in self:
-            if trade.accrued_interest < 0:
-                raise ValidationError(self.env._("Naběhlý úrok obchodu se zadává kladně, i u prodeje."))
+            # ZJ-19 H2: v ex-kupónové lhůtě (od ex-data do výplaty kupónu) je naběhlý úrok záporný: kupón dostane prodávající.
+            in_window = bool(trade.instrument_id._ex_flow_window(trade.trade_date))
+            if trade.accrued_interest < 0 and not in_window:
+                raise ValidationError(self.env._(
+                    "Naběhlý úrok obchodu se zadává kladně, i u prodeje; záporný je jen v ex-kupónové lhůtě dluhopisu."))
+            if trade.accrued_interest > 0 and in_window:
+                raise ValidationError(self.env._(
+                    "Obchod %s je v ex-kupónové lhůtě (od ex-data do výplaty kupónu): naběhlý úrok je záporný nebo 0, "
+                    "kupón dostane ten, kdo držel k večeru dne před ex-datem.", trade.instrument_id.name))
             if trade.accrued_interest and trade.instrument_id.type_id.kind != "bond":
                 raise ValidationError(self.env._("Naběhlý úrok se u obchodu zadává jen u dluhopisů: %s.", trade.instrument_id.name))
 

@@ -30,3 +30,5 @@ from . import test_allocation_examples
 from . import test_fiscal_year
 from . import test_trade_fee
 from . import test_derecognition
+from . import test_dividend
+from . import test_ex_coupon

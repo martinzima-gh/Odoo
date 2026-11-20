@@ -28,7 +28,10 @@ class TestFxProfileValuation(NavCase):
         company = self.fund.company_id
         self.assertEqual(len(self.profile), 1)
         self.assertEqual(self.profile.company_id, company)
-        expected = self.Role.accounts_for(company, "bank") | self.Role.accounts_for(company, "fee_payable")
+        # ZJ-19: i pohledávky z dividend (341210) a ze zahraniční daně k vrácení (341220).
+        receivables = self.Role.accounts_for(company, "receivable_other").filtered(lambda a: a.code in ("341210", "341220"))
+        self.assertEqual(len(receivables), 2)
+        expected = self.Role.accounts_for(company, "bank") | self.Role.accounts_for(company, "fee_payable") | receivables
         self.assertEqual(self.profile.account_ids, expected)
         self.assertEqual(self.profile.gain_account_id, self.Role.account_for(company, "gain_fx"))
         self.assertEqual(self.profile.loss_account_id, self.Role.account_for(company, "loss_fx"))

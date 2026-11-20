@@ -75,7 +75,10 @@ class InvestraPostingPreview(models.AbstractModel):
         Role = self.env["investra.account.role"]
         rows = []
         for line in self._preview_class_lines(lines):
-            account = Role.account_for(self.company_id, line["role"])
+            # Analytický účet řádku (extra.account_id: poplatek obchodu, dividendy, daně) má přednost před hlavním účtem role,
+            # stejně jako při vzniku dokladu.
+            account_id = (line.get("extra") or {}).get("account_id")
+            account = self.env["account.account"].browse(account_id) if account_id else Role.account_for(self.company_id, line["role"])
             amount = d(line["amount"])
             label = line.get("name") or ""
             rows.append((account.display_name + (f" ({label})" if label else ""),

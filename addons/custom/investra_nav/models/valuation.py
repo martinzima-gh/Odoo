@@ -12,6 +12,9 @@ from odoo.addons.investra_fund.models.approval_matrix import APPROVE, PERFORM, c
 
 from .. import engine
 
+# ZJ-19: analytické účty pohledávek z dividend (341210) a ze zahraniční daně k vrácení (341220) v profilu přecenění.
+DIVIDEND_RECEIVABLE_CODES = ("341210", "341220")
+
 BALANCE_SHEET = ("asset", "liability")
 PREPARER = "investra_entity.group_valuation_preparer"
 APPROVER = "investra_entity.group_valuation_approver"
@@ -97,6 +100,9 @@ class InvestraFund(models.Model):
             for code in ("bank", "fee_payable"):
                 if code in maps:
                     accounts |= maps[code].account_id | maps[code].extra_account_ids
+            # ZJ-19: pohledávky z dividend a ze zahraniční daně k vrácení jsou v měně dividendy, přeceňují se kurzem.
+            if "receivable_other" in maps:
+                accounts |= maps["receivable_other"].extra_account_ids.filtered(lambda a: a.code in DIVIDEND_RECEIVABLE_CODES)
             journal = self.env["account.journal"].sudo().search(
                 [("company_id", "=", company.id), ("type", "=", "general")], order="sequence, id", limit=1
             )
@@ -524,7 +530,10 @@ class InvestraValuation(models.Model):
                     interest_ccy = current[0] - (before[0] if before else 0)
                     accrued_ccy = current[1]
             if not quantity:
-                value_ccy, unit_price, price_source, price_values = Decimal(0), 0.0, self.env._("Splaceno"), {}
+                # ZJ-19 H2: pozice prodaná v ex-lhůtě drží nevyplacený kupón na účtu nástroje až do výplaty; bez ex-kupónové
+                # lhůty nástroje je naběhlý úrok uzavřené pozice 0 a chování je dosavadní.
+                value_ccy = accrued_ccy if instrument.ex_coupon_days and instrument.price_excludes_accrued else Decimal(0)
+                unit_price, price_source, price_values = 0.0, self.env._("Splaceno"), {}
             elif amortised:
                 value_ccy = instrument._accrued_value(self.fund_id, self.date, portfolio)
                 unit_price, price_source = float(value_ccy / d(quantity)), self.env._("Naběhlá hodnota")
@@ -604,7 +613,7 @@ class InvestraValuation(models.Model):
                     "role": "gain_fx" if part > 0 else "loss_fx",
                     "amount": -part, "movement_type": fx_movement, "extra": extra, **label,
                 })
-            if not quantity or (amortised and not value):
+            if (not quantity and not value_ccy) or (amortised and not value):
                 continue
             rows.append({
                 "valuation_id": self.id,

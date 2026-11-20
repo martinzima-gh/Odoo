@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
 from dateutil.relativedelta import relativedelta
@@ -141,7 +142,8 @@ class InvestraInstrument(models.Model):
 
         def position_flows(flows, after, quantity):
             totals = {}
-            for flow in flows.filtered(lambda f: f.date > after):
+            # ZJ-19 H2: kupón, jehož ex-datum nastalo ke dni obchodu nebo dřív, kupující nedostane.
+            for flow in flows.filtered(lambda f: f.date > after and not (f.flow_type == "interest" and f.ex_date and f.ex_date <= after)):
                 totals[flow.date] = totals.get(flow.date, engine.ZERO) + engine.dec(flow.amount) * quantity
             return sorted(totals.items())
 
@@ -251,7 +253,11 @@ class InvestraInstrument(models.Model):
         if not current:
             return engine.ZERO
         start = current[0][0]
-        return self._earned_coupon_unit(current, day) if start < day else engine.ZERO
+        if not start < day:
+            return engine.ZERO
+        earned = self._earned_coupon_unit(current, day)
+        # ZJ-19 H2: v ex-kupónové lhůtě je naběhlý úrok záporný (vydělaný − celý kupón): kupón dostane prodávající.
+        return earned - current[0][2] if self._ex_flow_window(day) else earned
 
     def _fair_value_interest(self, fund, portfolio, day):
         """Úrok pozice v RH k datu v měně nástroje: (vydělaný úrok od pořízení, naběhlý úrok v hodnotě pozice).
@@ -448,7 +454,29 @@ class InvestraInstrumentRepayment(models.Model):
         if not self.fund_id:
             return {}
         # Ve formuláři (onchange) jsou vazby nové záznamy; hledá se podle původních (_origin).
-        return self.env["investra.trade"].sudo()._holdings(self.fund_id._origin.sudo(), self.date or fields.Date.context_today(self))
+        fund = self.fund_id._origin.sudo()
+        day = self.date or fields.Date.context_today(self)
+        Trade = self.env["investra.trade"].sudo()
+        positions = dict(Trade._holdings(fund, day))
+        # ZJ-19 H2: kupón s ex-datem dostane i ten, kdo pozici po ex-datu prodal; nabízí se i pozice držené k ex-datu − 1.
+        for flow in self.env["investra.instrument.cashflow"].sudo().search([
+                ("flow_type", "=", "interest"), ("date", "=", day), ("ex_date", "!=", False)]):
+            if flow.ex_date < flow.date:
+                for key, quantity in Trade._holdings(fund, flow.ex_date - timedelta(days=1)).items():
+                    if key[0] == flow.instrument_id:
+                        positions.setdefault(key, quantity)
+        return positions
+
+    def _ex_entitled_units(self):
+        """Kusy s nárokem na kupón k večeru dne před ex-datem toku v den splátky (0, když tok nemá ex-datum)."""
+        self.ensure_one()
+        flows = self.instrument_id.cashflow_ids.filtered(
+            lambda f: f.flow_type == "interest" and f.date == self.date and f.ex_date and f.ex_date < f.date)
+        if not flows:
+            return 0.0
+        trades = self.env["investra.trade"].sudo()._recognised(
+            self.fund_id._origin.sudo(), flows[0].ex_date - timedelta(days=1), self.instrument_id._origin, self.portfolio_id._origin)
+        return sum(trades.mapped("quantity"))
 
     def _trades(self):
         self.ensure_one()
@@ -476,7 +504,10 @@ class InvestraInstrumentRepayment(models.Model):
         schedule = {}
         for trade in self._trades():
             quantity = engine.dec(trade.quantity)
-            for flow in self.instrument_id.cashflow_ids.filtered(lambda f: f.date > trade.trade_date):
+            # Kupón s ex-datem (ZJ-19 H2) patří držiteli k večeru dne před ex-datem: obchod v ex-lhůtě (nákup i prodej) kupón
+            # nemění. Bez ex-data je ex-datum den výplaty, tedy dosavadní pravidlo „obchod před dnem toku“.
+            for flow in self.instrument_id.cashflow_ids.filtered(
+                    lambda f: f.date > trade.trade_date and (f.flow_type != "interest" or trade.trade_date < (f.ex_date or f.date))):
                 principal, interest = schedule.get(flow.date, (engine.ZERO, engine.ZERO))
                 amount = engine.dec(flow.amount) * quantity
                 if flow.flow_type == "principal":
@@ -516,7 +547,15 @@ class InvestraInstrumentRepayment(models.Model):
         """
         states = ("posted",) if posted_only else ("draft", "posted")
         missing = []
-        for instrument, portfolio in self.env["investra.trade"].sudo()._holdings(fund, day):
+        Trade = self.env["investra.trade"].sudo()
+        positions = list(Trade._holdings(fund, day))
+        # ZJ-19 H2: prodávající v ex-lhůtě má na kupón nárok i bez kusů k datu výplaty.
+        for flow in self.env["investra.instrument.cashflow"].sudo().search([
+                ("flow_type", "=", "interest"), ("date", "<=", day), ("ex_date", "!=", False)]):
+            if flow.ex_date < flow.date:
+                positions += [key for key in Trade._holdings(fund, flow.ex_date - timedelta(days=1))
+                              if key[0] == flow.instrument_id and key not in positions]
+        for instrument, portfolio in positions:
             flow_days = sorted(set(instrument.cashflow_ids.filtered(lambda f: f.date <= day).mapped("date")))
             if not flow_days:
                 continue
@@ -653,6 +692,10 @@ class InvestraInstrumentRepayment(models.Model):
         s poměrným snížením toky sníží koeficient. Předčasné ukončení: celá zbývající jistina."""
         remaining = self._position_principal() - self._other_repaid()
         schedule = self._schedule()
+        if remaining <= 0 and self.date in schedule and self.kind != "extraordinary":
+            # ZJ-19 H2: prodávající v ex-lhůtě – bez kusů, kupón jen z nároku k ex-datu − 1.
+            factor = self._prorata_factor(self.fund_id._origin, self.instrument_id._origin, self.portfolio_id._origin, self.date)
+            return engine.ZERO, engine.money(schedule[self.date][1] * factor)
         if self.kind == "extraordinary" or not schedule:
             return max(remaining, engine.ZERO), engine.ZERO
         factor = self._prorata_factor(self.fund_id._origin, self.instrument_id._origin, self.portfolio_id._origin, self.date)
@@ -711,7 +754,10 @@ class InvestraInstrumentRepayment(models.Model):
         if self.state == "reversed":
             return
         remaining = self._position_principal() - self._other_repaid()
-        if remaining <= 0:
+        # ZJ-19 H2: kupón s ex-datem dostane i prodávající v ex-lhůtě: čistě úroková splátka jde i na pozici bez kusů,
+        # když fond držel nástroj k večeru dne před ex-datem.
+        coupon_only = remaining <= 0 and not principal and interest and self._ex_entitled_units() > 0
+        if remaining <= 0 and not coupon_only:
             raise ValidationError(self.env._(
                 "Fond k %(day)s nedrží nástroj %(name)s v modelu %(portfolio)s.",
                 day=self.date, name=self.instrument_id.name, portfolio=self.portfolio_id.name,
