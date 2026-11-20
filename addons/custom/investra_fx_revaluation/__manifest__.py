@@ -1,7 +1,7 @@
 {
     "name": "Investra FX Revaluation",
     "summary": "Přecenění cizích měn podle profilů účtů, výstup jako návrh dokladu",
-    "version": "20.0.0.3.3",
+    "version": "20.0.0.4.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",

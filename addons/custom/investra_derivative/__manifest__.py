@@ -1,7 +1,7 @@
 {
     "name": "Investra Derivative",
     "summary": "FX spot, forward a swap: smlouva, nohy, ruční hodnota (zjednodušené řešení, docs/navrh-fx-derivaty.md)",
-    "version": "20.0.0.3.0",
+    "version": "20.0.0.4.0",
     "category": "Accounting",
     "author": "Investra",
     "license": "LGPL-3",
