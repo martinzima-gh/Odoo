@@ -38,6 +38,10 @@ hned jako výnos nebo ztrátu z prodeje. Náhled zaúčtování prodeje ukazuje 
 **Kritéria přijetí:** náhled a doklad shodné; ocenění nepočítá výsledek dvakrát; číselný příklad (nákup 10 × 100, prodej 4 × 130) ve
 všech třech zařazeních; snímek 35/39 beze změny nebo s odůvodněným rozdílem v předávce.
 
+**Schválení:** plán schválil Martin zprávou „schvaluji“ dne 2026-11-20. Nerozhodnuté body se řeší takto, dokud Martin neřekne jinak:
+(a) stará data: nová logika platí od data nasazení, starší prodeje dál přes ocenění; (b) FVTPL: odúčtování v poslední zaúčtované
+hodnotě + přecenění do data prodeje v dokladu prodeje; příklad před kódem ukázat Martinovi a metodikovi.
+
 ## Výsledek
 
 Doplní Claude po schválení plánu.

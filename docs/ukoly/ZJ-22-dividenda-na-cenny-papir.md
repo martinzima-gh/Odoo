@@ -33,6 +33,9 @@ hrubá dividenda, srážka, čistá dividenda) a součty. Zaúčtování proběh
 **Otevřené otázky:** potvrdit, že jedna hlavička = jeden cenný papír a ex-datum (opravy dividendy dalším záznamem); kdo smí
 „Zaúčtovat vše“ (zpracovatel, nebo schvalovatel).
 
+**Schválení:** plán schválil Martin zprávou „schvaluji“ dne 2026-11-20. Výchozí rozhodnutí: jedna hlavička = jeden cenný papír a
+ex-datum (opravy dalším záznamem); „Zaúčtovat vše“ smí zpracovatel (role s činností, ne nutně schvalovatel).
+
 ## Výsledek
 
 Doplní Claude po schválení plánu.

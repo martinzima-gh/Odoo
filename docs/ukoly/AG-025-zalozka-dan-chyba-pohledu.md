@@ -14,8 +14,11 @@
 je-li příčina v pohledu.
 
 **Postup:**
-1. Odtud: reprodukce na instanci 8072 (kopie `investra`) – nezapisuj do pracovní databáze. Martin popíše přesně, co se děje (chybí
-   v zadání; zeptej se ho, než začneš hádat).
+1. Reprodukce na instanci 8072 (kopie `investra`) – nezapisuj do pracovní databáze. **Příznak (Martin, 2026-11-20):** po kliknutí na
+   řádek tabulky Výjimky na záložce Daň začne tabulka blikat, jako by se chtěla rozšiřovat (smyčka překreslování).
+   Hypotézy ke kontrole: editovatelný seznam (`<list editable="bottom">`) uvnitř `<group string="Výjimky" invisible="not tax_rule_id">`
+   (seznam v seskupení s podmíněnou viditelností) – zkus přesunout pole mimo `group` a podmínku dát na `invisible` samotného pole;
+   `domain` s `parent.company_id`; `movement_ytd` (počítané pole) přepočítávané při každé změně řádku; `context` s `id`.
 2. Zkontroluj pohled `view_fund_form_tax` v `addons/custom/investra_nav/views/nav_views.xml` (jen `<list editable="bottom">` v
    `tax_exception_ids`): `domain` s `parent.company_id`, `options`, pole `movement_ytd` jen pro čtení, `context="{'default_fund_id': id}"`,
    neplatné výrazy v `invisible`.

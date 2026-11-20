@@ -52,7 +52,10 @@ administrátor. Zjištěno z přístupových práv; v prohlížeči neověřeno.
 **Návrh:** přidat právo `d` (smazat) pro `investra.trade` skupině zpracovatele; model dál smaže jen návrh (zaúčtovaný nebo
 stornovaný obchod UI odmítne a odkáže na storno). Stejné ověřit u návrhu úpisu a odkupu, splátky, derivátu, dividendy.
 **Ověření:** test, že zpracovatel smaže návrh a nesmaže zaúčtovaný obchod; ověření v prohlížeči u fondu Alfa.
-**Zóna:** oranžová (`security/`); stačí potvrdit, že mazat smí zpracovatel, ne jen schvalovatel.
+**Rozhodnuto (Martin, 2026-11-20):** schvalovací matice (Nastavení › Schvalovací matice: Ne / čtyři oči / Kroky) existuje, ale mazání návrhu
+v ní není činností a návrh nemá účetní dopad. Návrh smí smazat **kdokoli, kdo smí obchod vytvářet** (role zpracovatele), bez
+schvalování. Mazání zaúčtovaného nebo stornovaného obchodu zůstává zakázané (storno a oprava dál podle matice `trade_reverse`).
+**Zóna:** oranžová (`security/`).
 
 ## B. Konec účetního období (poznámka 7)
 

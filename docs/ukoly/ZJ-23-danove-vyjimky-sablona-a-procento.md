@@ -35,6 +35,10 @@ běžných výjimek místo hodnot napevno v kódu a srozumitelná nápověda k p
 7. **Testy:** referenční příklad ZJ-07 beze změny (4 200,00 / 4 237,50 / 750,00 / Rakousko 350,00); nákladový účet s 25 % → 10 000;
    šablona → tlačítko; migrace; snímek 35/39.
 
+**Schválení:** plán schválil Martin zprávou „schvaluji“ dne 2026-11-20. Výchozí rozhodnutí: šablona se uplatní jen tlačítkem
+„Přidat běžné výjimky“ (žádné automatické předvyplnění u nového fondu); paušál 5 % u dividend zůstane v šabloně jako výchozí
+hodnota do vyjádření poradce.
+
 ## Výsledek
 
 Doplní Claude po schválení plánu.
