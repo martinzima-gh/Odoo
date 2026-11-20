@@ -818,7 +818,7 @@ class InvestraValuation(models.Model):
                 units, cost_ccy, cost = units + quantity, cost_ccy + amount, cost + amount * fx
             elif units > 0:
                 share_units = Decimal(1) if closes else min(-quantity / units, Decimal(1))
-                # ZJ-15 B3: prodej s ruční cenou vyskladnění odebere zadanou pořizovací cenu, ne průměrný podíl.
+                # ZJ-15 B3: prodej s ruční cenou odúčtování odebere zadanou pořizovací cenu, ne průměrný podíl.
                 share_cost = min(manual / cost_ccy, Decimal(1)) if manual is not None and cost_ccy else share_units
                 if since is None or day > since:
                     realised_fx += share_cost * (cost_ccy * fx - cost)
@@ -833,7 +833,7 @@ class InvestraValuation(models.Model):
         units = carrying = cost_ccy = Decimal(0)
         Trade = self.env["investra.trade"]
         if previous:
-            # ZJ-15 B3: pořizovací cena pozice k minulému ocenění (podíl ruční ceny vyskladnění se měří proti ní).
+            # ZJ-15 B3: pořizovací cena pozice k minulému ocenění (podíl ruční ceny odúčtování se měří proti ní).
             cost_ccy = Trade._average_cost(self.fund_id, instrument, portfolio, previous.date)[1]
             units = d(self.env["investra.trade"].sudo()._holdings(self.fund_id, previous.date).get((instrument, portfolio), 0))
             field = "amount_currency" if foreign_currency else "balance"

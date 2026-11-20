@@ -122,10 +122,10 @@ Ve formuláři obchodu je skupina **Poplatek**:
 Nákup FVTPL a každý prodej účtuje poplatek jako náklad. U nákupu v naběhlé hodnotě nebo FVOCI se poplatek stává součástí pořizovací
 ceny. Poplatek je vidět i ve volitelném sloupci seznamu obchodů.
 
-## Cena vyskladnění při prodeji
+## Cena odúčtování při prodeji
 
-U prodeje se zobrazí řádek **Vyskladnění: průměrná X, použitá Y**. Cena **Použitá** se předvyplní průměrnou pořizovací cenou nástroje
-v portfoliu k datu sjednání; lze ji upravit. Odchylka vyžaduje **Důvod úpravy ceny vyskladnění**. Úprava mění rozdělení mezi realizovaný
+U prodeje se zobrazí řádek **Odúčtování: průměrná X, použitá Y**. Cena **Použitá** se předvyplní průměrnou pořizovací cenou nástroje
+v portfoliu k datu sjednání; lze ji upravit. Odchylka vyžaduje **Důvod úpravy ceny odúčtování**. Úprava mění rozdělení mezi realizovaný
 výsledek a přecenění, nikoli celkový výsledek. Odoo nedovolí upravenou cenu při prodeji celé pozice.
 
 ## Dividendy

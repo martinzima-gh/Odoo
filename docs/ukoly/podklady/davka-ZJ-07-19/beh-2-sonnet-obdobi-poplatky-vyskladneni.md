@@ -1,4 +1,4 @@
-# Běh 2 – Sonnet 5.5 (úsilí high): účetní období, poplatek obchodu, cena vyskladnění (logika)
+# Běh 2 – Sonnet 5.5 (úsilí high): účetní období, poplatek obchodu, cena odúčtování (logika)
 
 ```
 Přečti CLAUDE.md, předávku běhu 1 a v docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md jen „Přednosti“ a oddíly 4, 5 a 6.

@@ -1,4 +1,4 @@
-# ZJ-15 Cena vyskladnění na prodeji
+# ZJ-15 Cena odúčtování na prodeji
 
 ## Zadání
 
@@ -11,7 +11,7 @@
 | Navazuje na | `docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md`; deník 2026-11-19 (dávka ZJ-07 až ZJ-19) |
 | Model | běh 2 (Sonnet 5.5), viz `docs/ukoly/podklady/davka-ZJ-07-19/00-prehled.md` |
 
-**Cíl:** Prodej ukazuje průměrnou pořizovací cenu k datu sjednání a nese cenu vyskladnění za kus (předvyplněná průměrem, přepsatelná s důvodem). Ocenění bere pořizovací cenu prodaných kusů z ní; součet realizace a přecenění za pozici se nemění.
+**Cíl:** Prodej ukazuje průměrnou pořizovací cenu k datu sjednání a nese cenu odúčtování za kus (předvyplněná průměrem, přepsatelná s důvodem). Ocenění bere pořizovací cenu prodaných kusů z ní; součet realizace a přecenění za pozici se nemění.
 
 **Rozsah souborů:** `investra_instruments` / `investra_nav` (pole prodeje, společná průměrka, `_cost_walk`, `_realised_ccy`, testy), formulář prodeje (běh 6), manuál.
 
@@ -38,7 +38,7 @@ Běh 2 dávky (Claude Sonnet 5.5, 20. 11. 2026), větev `ukol/ZJ-07-dane-a-tridy
 - **Odchylky od plánu:**
   1. `tracking=True` na polích ceny a důvodu vynecháno: obchod není `mail.thread` (nemá chatter) a po zaúčtování se nemění; cena
      i důvod zůstávají na záznamu. Zámek po zaúčtování řeší `write` v `trade_position.py`.
-  2. Cena vyskladnění 0 nebo prázdná = průměrná cena (import a API prodeje bez pole se chovají jako dosud); při zaúčtování se průměrná
+  2. Cena odúčtování 0 nebo prázdná = průměrná cena (import a API prodeje bez pole se chovají jako dosud); při zaúčtování se průměrná
      cena uloží do pole a příznak „ruční“ se přepočítá z aktuální průměrky (ne ze staré uložené hodnoty).
   3. Prodej celé pozice s upravenou cenou nejde (celá pořizovací cena odchází; zbytková cena bez kusů by zkreslila další nákup) –
      doplněná kontrola, v plánu nebyla.

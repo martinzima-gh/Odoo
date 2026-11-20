@@ -1,7 +1,7 @@
-"""Průměrná pořizovací cena pozice a cena vyskladnění na prodeji (ZJ-15, dávka ZJ-07 až ZJ-19, oddíl 6).
+"""Průměrná pořizovací cena pozice a cena odúčtování na prodeji (ZJ-15, dávka ZJ-07 až ZJ-19, oddíl 6).
 
 Společná průměrka: `_position_events` (dříve v ocenění) a `_average_cost` – ocenění, náhled obchodu i kontroly prodeje
-čtou tu samou funkci. Prodej nese cenu vyskladnění za kus (výchozí průměrná cena pozice nástroj + portfolio); ruční
+čtou tu samou funkci. Prodej nese cenu odúčtování za kus (výchozí průměrná cena pozice nástroj + portfolio); ruční
 změna mění jen rozdělení výsledku na realizovaný a přecenění, ne celkový výsledek (výpočet je v `valuation._cost_walk`
 a `_realised_ccy`).
 """
@@ -10,7 +10,7 @@ from decimal import Decimal
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-# Odchylka ceny vyskladnění od průměrné, která se ještě bere jako „beze změny“ (osm desetinných míst pole).
+# Odchylka ceny odúčtování od průměrné, která se ještě bere jako „beze změny“ (osm desetinných míst pole).
 DERECOGNITION_TOLERANCE = Decimal("0.00000001")
 
 
@@ -28,15 +28,15 @@ class InvestraTradePosition(models.Model):
     # Odchylka od plánu (ZJ-15 B2): `tracking=True` vynecháno – obchod nemá chatter (není mail.thread) a po zaúčtování se
     # nemění; cena i důvod zůstávají na záznamu a v dokladu ocenění.
     derecognition_price = fields.Float(
-        digits=(20, 8), string="Cena vyskladnění za kus",
+        digits=(20, 8), string="Cena odúčtování za kus",
         help="Pořizovací cena prodaných kusů za kus; výchozí je průměrná cena pozice (nástroj a portfolio). Mění jen "
              "rozdělení výsledku na realizovaný a přecenění, ne celkový výsledek. Prázdné nebo nula = průměrná cena.",
     )
     derecognition_manual = fields.Boolean(
         compute="_compute_derecognition_manual", store=True, string="Upraveno ručně",
-        help="Cena vyskladnění se liší od průměrné ceny. Uloženo, aby ocenění nepočítalo průměrku znovu při čtení.",
+        help="Cena odúčtování se liší od průměrné ceny. Uloženo, aby ocenění nepočítalo průměrku znovu při čtení.",
     )
-    derecognition_reason = fields.Text(string="Důvod úpravy ceny vyskladnění")
+    derecognition_reason = fields.Text(string="Důvod úpravy ceny odúčtování")
 
     # --- společná průměrka -----------------------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ class InvestraTradePosition(models.Model):
         kusů zadaná ručně v měně nástroje nebo None)].
 
         Přesun 1:1 z `valuation._position_events` (ZJ-15 B1); nový je 6. prvek `cost` u prodeje s ruční cenou
-        vyskladnění."""
+        odúčtování."""
         Trade = self.env["investra.trade"].sudo()
         trades = Trade._recognised(fund, end, instrument, portfolio)
         if start:
@@ -125,7 +125,7 @@ class InvestraTradePosition(models.Model):
 
     @api.onchange("side", "instrument_id", "portfolio_id", "trade_date")
     def _onchange_derecognition_price(self):
-        """Prodej v návrhu: cena vyskladnění se předvyplní průměrnou cenou (jen návrh, jde přepsat)."""
+        """Prodej v návrhu: cena odúčtování se předvyplní průměrnou cenou (jen návrh, jde přepsat)."""
         for trade in self:
             if trade.side == "sell" and not trade.event_id:
                 trade.derecognition_price = trade.average_cost_price
@@ -139,10 +139,10 @@ class InvestraTradePosition(models.Model):
     def _check_derecognition_fields(self):
         for trade in self:
             if trade.derecognition_price < 0:
-                raise ValidationError(self.env._("Cena vyskladnění nesmí být záporná."))
+                raise ValidationError(self.env._("Cena odúčtování nesmí být záporná."))
             if trade.derecognition_manual and not (trade.derecognition_reason or "").strip():
                 raise ValidationError(self.env._(
-                    "Cena vyskladnění %(price)s se liší od průměrné ceny %(average)s: doplňte důvod úpravy.",
+                    "Cena odúčtování %(price)s se liší od průměrné ceny %(average)s: doplňte důvod úpravy.",
                     price=trade.derecognition_price, average=round(trade.average_cost_price, 8)))
 
     def _prepare_derecognition(self):
@@ -156,17 +156,17 @@ class InvestraTradePosition(models.Model):
         if manual:
             if not (self.derecognition_reason or "").strip():
                 raise UserError(self.env._(
-                    "Cena vyskladnění %(price)s se liší od průměrné ceny %(average)s: doplňte důvod úpravy.",
+                    "Cena odúčtování %(price)s se liší od průměrné ceny %(average)s: doplňte důvod úpravy.",
                     price=price, average=round(average, 8)))
             sold_cost = -d(self.quantity) * d(price)
             if sold_cost > cost + Decimal("0.005"):
                 raise UserError(self.env._(
-                    "Cena vyskladnění %(price)s × %(units)s kusů = %(sold)s je víc než pořizovací cena celé pozice %(cost)s "
+                    "Cena odúčtování %(price)s × %(units)s kusů = %(sold)s je víc než pořizovací cena celé pozice %(cost)s "
                     "(%(name)s, %(portfolio)s).", price=price, units=-self.quantity, sold=round(sold_cost, 2),
                     cost=round(cost, 2), name=self.instrument_id.name, portfolio=self.portfolio_id.name))
             if -d(self.quantity) >= units - Decimal("0.000001"):
                 raise UserError(self.env._(
-                    "Prodej celé pozice (%s) nejde s upravenou cenou vyskladnění: celá pořizovací cena pozice odchází. "
+                    "Prodej celé pozice (%s) nejde s upravenou cenou odúčtování: celá pořizovací cena pozice odchází. "
                     "Použijte průměrnou cenu.", self.instrument_id.name))
         self.sudo().write({"derecognition_price": price, "derecognition_manual": manual})
 

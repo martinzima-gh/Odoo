@@ -15,7 +15,7 @@ Udělej:
 2. Třída fondu: přepínač „Podílí se na společných položkách“; pravidlo úplaty: žlutý pruh s upozorněním (pole z běhu 1, invisible když prázdné).
 3. Fond, záložka Obecné: „Konec účetního období“ (jen čtení). Všechny popisky „od 1. 1.“ v XML → „od začátku účetního období“.
 4. Obchod: skupina Poplatek (částka, měna, kurz – kurz jen u cizí měny poplatku), text „Účtování poplatku“; seznam obchodů volitelný
-   sloupec Poplatek. Prodej: řádek „Vyskladnění: průměrná X, použitá Y“, důvod jen při odchylce (invisible podle polí z běhu 2).
+   sloupec Poplatek. Prodej: řádek „Odúčtování: průměrná X, použitá Y“, důvod jen při odchylce (invisible podle polí z běhu 2).
 5. Dividendy: seznam, formulář (hlavička se stavy a tlačítky akcí z běhu 3, skupiny Nárok, Srážka a zápočet, Výplata, Zaúčtování),
    hledání, nabídka Portfolio › Dividendy, chytré tlačítko na nástroji. Nástroj: „Ex-kupónová lhůta (dny)“ u dluhopisů; tok: Ex-datum.
 6. List portfolio v ocenění: sloupec „Oceňovací rozdíl (OCI)“ (volitelný).
@@ -23,7 +23,7 @@ Udělej:
    fond záložka „Daň“ (výchozí pravidlo + aktuální sazba, Základ: po kroku, tabulka Výjimky: Účet, Daňové pravidlo, Podíl, Neuznatelné
    % z výnosu, Pohyb od začátku období, Poznámka; tlačítko Přidat běžné výjimky); oprava ocenění pole Daňové pravidlo; ocenění: rozpad
    daně (HTML pole z běhu 5) pod řádkem Daň; nosič v Pravidlech úplat jen pro čtení s textem „Daň se nastavuje ve fondu, záložka Daň“.
-8. Manuál: nová docs/manual/10-rozdeleni-mezi-tridy.md podle oddílu 10; doplň kapitoly 06 (portfolio třídy, poplatek, cena vyskladnění,
+8. Manuál: nová docs/manual/10-rozdeleni-mezi-tridy.md podle oddílu 10; doplň kapitoly 06 (portfolio třídy, poplatek, cena odúčtování,
    dividendy, ex-kupón, FVOCI a ruční ECL), 02 (účetní období), 09 nebo nová 11-dan.md (daň podle 9.1 F a oddílu 1 D6–D14).
    Česky, krátké věty, názvy polí přesně jako v UI. SQL: sloupce poplatku a dividend do příslušných ukázek docs/sql.
 Ověření: modul se musí povýšit bez chyby – spusť tools/run_tests.sh pro investra_instruments, investra_nav, investra_fund (jen kontrola,

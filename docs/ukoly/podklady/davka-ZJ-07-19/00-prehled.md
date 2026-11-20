@@ -18,7 +18,7 @@
 | Relace | Model | Prompt (vlož) | Obsah |
 |---|---|---|---|
 | 1 | **Opus 5.5, high** | „Přečti CLAUDE.md a proveď postupně docs/ukoly/podklady/davka-ZJ-07-19/beh-0-sonnet-slouceni-a-zadani.md a beh-1-opus-tridy.md (prompty v blocích ```), bez zastávky mezi nimi.“ | sloučení + REVOKE + zadání, třída portfolia, třída bez podílu |
-| 2 | Sonnet 5.5, high | „Přečti CLAUDE.md a proveď postupně beh-2…, beh-3…, beh-4… ze složky docs/ukoly/podklady/davka-ZJ-07-19/, bez zastávky mezi nimi.“ | účetní období, poplatky, cena vyskladnění, dividendy, ex-kupón, daňové modely a účty |
+| 2 | Sonnet 5.5, high | „Přečti CLAUDE.md a proveď postupně beh-2…, beh-3…, beh-4… ze složky docs/ukoly/podklady/davka-ZJ-07-19/, bez zastávky mezi nimi.“ | účetní období, poplatky, cena odúčtování, dividendy, ex-kupón, daňové modely a účty |
 | 3 | **Opus 5.5, high** | „Přečti CLAUDE.md a proveď docs/ukoly/podklady/davka-ZJ-07-19/beh-5-opus-fvoci-a-vypocet-dane.md.“ | FVOCI, výpočet daně, migrace |
 | 4 | Copilot (agent mode) | obsah bloku z `beh-6-copilot-formulare-a-manual.md` | formuláře, nabídky, manuál, SQL |
 | 5 | Sonnet 5.5, high | „Přečti CLAUDE.md a proveď docs/ukoly/podklady/davka-ZJ-07-19/beh-7-sonnet-prevzeti-a-zaver.md.“ | převzetí Copilota, XLS, testy all, nasazení, závěr |

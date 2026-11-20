@@ -10,7 +10,7 @@ from odoo.addons.investra_instruments.tests.common import with_ids
 
 @tagged("post_install", "-at_install")
 class TestDerecognition(NavCase):
-    """ZJ-15: cena vyskladnění na prodeji (docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md, oddíl 6).
+    """ZJ-15: cena odúčtování na prodeji (docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md, oddíl 6).
 
     Nákup 10 ks à 100 (2. 3.) a 10 ks à 120 (3. 3.) → průměrná cena 110; prodej 5 ks à 130 (10. 3.); cena 125 k 31. 3. 2031.
     Průměrně: realizace 650 − 550 = 100, přecenění 15 × 125 − 1 650 = 225. Ručně 100 za kus: odchází 500, realizace 150,

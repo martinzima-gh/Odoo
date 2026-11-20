@@ -72,16 +72,16 @@
             </xpath>
         </field>
     </record>
-    <!-- ZJ-15: cena vyskladnění prodeje; pole patří modulu investra_nav, proto je skupina tady. -->
+    <!-- ZJ-15: cena odúčtování prodeje; pole patří modulu investra_nav, proto je skupina tady. -->
     <record id="view_trade_form_derecognition" model="ir.ui.view">
         <field name="name">investra.trade.form.derecognition</field><field name="model">investra.trade</field>
         <field name="inherit_id" ref="investra_instruments.view_trade_form"/>
         <field name="arch" type="xml">
             <xpath expr="//group[@name='trade_classification']" position="before">
-                <group name="trade_derecognition" string="Vyskladnění" invisible="side != 'sell'">
+                <group name="trade_derecognition" string="Odúčtování" invisible="side != 'sell'">
                     <field name="derecognition_manual" invisible="1"/>
                     <div class="text-muted" colspan="2">
-                        Vyskladnění: průměrná <field name="average_cost_price" nolabel="1" readonly="1" class="oe_inline"/><span>, použitá </span><field name="derecognition_price" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" class="oe_inline"/>
+                        Odúčtování: průměrná <field name="average_cost_price" nolabel="1" readonly="1" class="oe_inline"/><span>, použitá </span><field name="derecognition_price" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" class="oe_inline"/>
                     </div>
                     <field name="derecognition_reason" invisible="not derecognition_manual" required="derecognition_manual"
                            readonly="event_id or state in ('settled', 'reversed')"/>

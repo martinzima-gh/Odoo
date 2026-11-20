@@ -1,4 +1,4 @@
-# ZADÁNÍ PRO AGENTA – dávka ZJ-07 až ZJ-19 (třídy, poplatky, účetní období, cena vyskladnění, dividendy, FVOCI, daně)
+# ZADÁNÍ PRO AGENTA – dávka ZJ-07 až ZJ-19 (třídy, poplatky, účetní období, cena odúčtování, dividendy, FVOCI, daně)
 
 Verze 19. 11. 2026 (jediný soubor; nahrazuje prompt v3/v4, technický plán, postup, doplněk v4, podklad manuálu a zadání daní v2/v3).
 Připravil Claude (Opus) čtením `ukol/ZJ-13-14` @ `e1a23bc`; návrhy kódu NEBYLY spuštěny. Schválil Martin 19. 11. 2026.
@@ -36,7 +36,7 @@ ZÁVĚR: run_tests.sh all, migrace zkouškou na kopii, povýšení investra se z
 podfond SICAV, uznatelnost ECL; metodik: daň z realizace akcií FVOCI ve výsledku vs. kapitálu, řádky ČNB pro OCI a odloženou daň;
 dceřiný podíl C0.8), předávka do docs/predavky/. Push. Na konci mi napiš krátce: co šlo ven, odchylky od zadání, referenční příklady
 daní (každé číslo proti oddílu 9), výsledky testů a seznam ke kontrole v prohlížeči (portfolio třídy, třída bez podílu na společných
-položkách a upozornění na úplatu, konec účetního období na fondu, poplatek obchodu v cizí měně, prodej s cenou vyskladnění, dividenda
+položkách a upozornění na úplatu, konec účetního období na fondu, poplatek obchodu v cizí měně, prodej s cenou odúčtování, dividenda
 česká i zahraniční se zápočtem, dluhopis v ex-kupónové lhůtě, pozice FVOCI a sloupec OCI, záložka Daň fondu, Daňová pravidla,
 odložená daň z OCI, rozpad daně v ocenění, XLS list Daň).
 ```
@@ -441,7 +441,7 @@ Přidej parametr `with_fee=True` a v kroku „settle“ při trade-date účtov�
 účtování (jediný krok „settle“) poplatek v něm.
 Peníze (banka/nevypořádané) zůstávají sdílené; náklad poplatku dostane třídu pravidlem (2) z A2 → portfolio třídy B nese i poplatek.
 
-E4. Průměrka a cena vyskladnění: `_position_events` (po B1 na `investra.trade`) – u nákupu s `capitalise` přičíst poplatek v měně
+E4. Průměrka a cena odúčtování: `_position_events` (po B1 na `investra.trade`) – u nákupu s `capitalise` přičíst poplatek v měně
 nástroje (`amount / fx` jako výše) k částce; u `expense` ne. Náhled obchodu (kontext `investra_trade_preview`) stejně.
 OVĚŘ `instrument._accrued_value` (naběhlá hodnota): musí vycházet z pořizovací ceny včetně poplatku (efektivní úroková míra z
 nákladů), jinak další ocenění poplatek odepíše do úroků. Když vychází jen z ceny obchodu, uprav ji tak, aby brala pořizovací cenu
@@ -455,7 +455,7 @@ odložené vypořádání (poplatek v kroku sjednání proti nevypořádaným, v
 obchod bez poplatku – otisk dokladu beze změny (existující doklady).
 
 
-# 6. ZJ-15 – cena vyskladnění na prodeji (část B)
+# 6. ZJ-15 – cena odúčtování na prodeji (část B)
 
 ## 6.1 Plán
 Dnes: realizovaný výsledek počítá ocenění (`_realised_ccy`) jako výnos prodeje − poměrná účetní hodnota průměrem; pořizovací cena
@@ -464,18 +464,18 @@ zbývajících kusů průměrem v `_cost_walk`. Prodej sám pořizovací cenu ne
 B1. Prodej (`investra.trade`, side = sell) dostane pole jen pro prodej:
     - **Průměrná cena k datu sjednání** (počítané, jen pro čtení): pořizovací cena za kus průměrem po dvojici nástroj + portfolio
       (stejná funkce jako `_cost_walk`, vytáhnout do sdílené metody), v měně nástroje;
-    - **Cena vyskladnění za kus** (uložené, předvyplněné průměrnou; uživatel smí přepsat);
-    - **Důvod úpravy ceny vyskladnění** (povinný, jen když se cena liší od průměrné o víc než zaokrouhlení);
-    - kontrola: cena vyskladnění × kusy ≤ pořizovací cena celé pozice k datu (nelze vyskladnit víc, než pozice má); záporná nejde.
+    - **Cena odúčtování za kus** (uložené, předvyplněné průměrnou; uživatel smí přepsat);
+    - **Důvod úpravy ceny odúčtování** (povinný, jen když se cena liší od průměrné o víc než zaokrouhlení);
+    - kontrola: cena odúčtování × kusy ≤ pořizovací cena celé pozice k datu (nelze odúčtovat víc, než pozice má); záporná nejde.
     Změna se zapíše do chatteru (tracking). Zámek jako ostatní pole obchodu po zaúčtování.
 B2. Ocenění: u prodeje s ručně upravenou cenou se pořizovací cena prodaných kusů bere z ní (ve `_cost_walk` místo průměrného podílu),
     zbytek pozice nese zbytek pořizovací ceny. Realizovaný výsledek proti účetní hodnotě (`_realised_ccy`) se mění stejně: poměrná část
     přecenění se rozpouští podle podílu pořizovací ceny (OVĚŘ a zvol nejjednodušší konzistentní variantu; součet realizace + přecenění
-    za pozici se nesmí změnit – u reálné hodnoty do výsledku cena vyskladnění mění jen rozdělení, ne celkový výsledek ani daň).
+    za pozici se nesmí změnit – u reálné hodnoty do výsledku cena odúčtování mění jen rozdělení, ne celkový výsledek ani daň).
 B3. Bez ruční úpravy (cena = průměrná) musí být výsledky ocenění 35 a 39 beze změny.
 B4. Testy: prodej s výchozí cenou = dnešní výsledek; ruční cena → jiná realizace i přecenění, stejný součet; cena nad pozici → chyba;
     důvod povinný; storno prodeje; prodej v portfoliu třídy (realizace nese třídu).
-B5. Formulář prodeje (AG-021): pod Kusy a Cenou řádek „Vyskladnění: průměrná X, použitá Y“ a důvod jen při odchylce. Manuál: kapitola obchodů.
+B5. Formulář prodeje (AG-021): pod Kusy a Cenou řádek „Odúčtování: průměrná X, použitá Y“ a důvod jen při odchylce. Manuál: kapitola obchodů.
 
 ## 6.2 Postup a kód
 ### B1. Společná průměrka
@@ -499,11 +499,11 @@ def _average_cost(self, fund, instrument, portfolio, day, exclude=None):
 ### B2. Pole na prodeji (investra_nav, `_inherit = "investra.trade"`)
 ```python
 average_cost_price = fields.Float(digits=(20, 8), compute="_compute_average_cost", string="Průměrná cena k datu sjednání")
-derecognition_price = fields.Float(digits=(20, 8), tracking=True, string="Cena vyskladnění za kus",
+derecognition_price = fields.Float(digits=(20, 8), tracking=True, string="Cena odúčtování za kus",
     help="Pořizovací cena prodaných kusů za kus; výchozí průměrná cena pozice (nástroj a portfolio). Mění jen rozdělení "
          "výsledku na realizovaný a přecenění, ne celkový výsledek.")
 derecognition_manual = fields.Boolean(compute="_compute_derecognition_manual", store=True, string="Upraveno ručně")
-derecognition_reason = fields.Text(tracking=True, string="Důvod úpravy ceny vyskladnění")
+derecognition_reason = fields.Text(tracking=True, string="Důvod úpravy ceny odúčtování")
 ```
 - onchange (side, instrument, portfolio, trade_date) → `derecognition_price = average_cost_price` (jen prodej, jen návrh);
 - `derecognition_manual = abs(price − average) > 10^-8` (uloženo, aby ocenění nepočítalo průměrku znovu při čtení);
@@ -1278,7 +1278,7 @@ opravy s tax_rule_id (převzetí do konce roku), stop při chybějícím účtu,
 
 # 10. Manuál – podklad kapitoly 10 Rozdělení výsledku mezi třídy
 
-Kapitoly k doplnění: obchody (poplatek, cena vyskladnění), fond (účetní období), portfolio (třída portfolia, FVOCI: rezerva, ruční ECL), dividendy a ex-kupón, daň (pravidla, výjimky, odložená z OCI, realizace akcií FVOCI, ECL jako Mimo základ).
+Kapitoly k doplnění: obchody (poplatek, cena odúčtování), fond (účetní období), portfolio (třída portfolia, FVOCI: rezerva, ruční ECL), dividendy a ex-kupón, daň (pravidla, výjimky, odložená z OCI, realizace akcií FVOCI, ECL jako Mimo základ).
 
 Připravil Claude 19. 11. 2026. Názvy polí podle `e1a23bc` + nové z ZJ-08 (Podílí se na společných položkách) a ZJ-09 (Třída portfolia).
 Agent: ověř popisky a cesty v menu podle skutečného UI, čísla přepočítej testem (kde se liší, oprav text, ne test).
@@ -1420,7 +1420,7 @@ Na pravidle výkonnostní odměny se vyplní Třída krytí. Když třída nedos
   investra_cnb+; 9 po částech (účty a migrace chart_fund; pravidla, fond, nosič, migrace nav; výpočet a třídy; zobrazení a XLS; manuál)
   → investra_nav+, investra_cnb+.
 - Vždy: referenční scénáře a snímek ocenění 35 a 39 beze změny; fond bez nového nastavení (bez třídy portfolia, bez třídy bez podílu,
-  kalendářní rok, bez poplatků, bez ruční ceny vyskladnění, bez dividend, bez FVOCI, bez výjimek daně) = dnešní výsledky.
+  kalendářní rok, bez poplatků, bez ruční ceny odúčtování, bez dividend, bez FVOCI, bez výjimek daně) = dnešní výsledky.
 - Na konci `tools/run_tests.sh all`, migrace zkouškou na kopii, povýšení `investra` se zálohou, snímek 35 a 39 před a po.
   Verze modulů zvednout podle dotčených (entity, fund, allocation, chart_fund, instruments, nav, derivative, fx_revaluation, cnb).
 
