@@ -52,7 +52,7 @@ class TestDerivativePosting(DerivativeCase):
         self.assertAlmostEqual(leg.b0, -100_000.0, places=2)
         self.assertEqual((leg.buy_rate0, leg.sell_rate0), (1.0, 25.0))
         # Náhled je ze stejné funkce jako doklad.
-        self.assertEqual(sorted((dr, cr) for _acc, dr, cr, _ccy in preview[0][2]),
+        self.assertEqual(sorted((dr, cr) for _acc, dr, cr, _ccy, *_ in preview[0][2]),
                          sorted((Decimal(str(l.debit)), Decimal(str(l.credit))) for l in move.line_ids))
         self.assertTrue(self.env["investra.portfolio.classification"]._valid(
             forward.portfolio_id, forward.instrument_id, forward.trade_date))
@@ -101,7 +101,7 @@ class TestDerivativePosting(DerivativeCase):
             ("953100", 0.0, 24_900_000.0), ("954100", 25_000_000.0, 0.0), ("992000", 0.0, 100_000.0)])
         eur = move.line_ids.filtered(lambda l: l.account_id.code == "131100" and l.currency_id == self.eur)
         self.assertEqual(eur.amount_currency, -1_000_000.0)
-        self.assertEqual(sorted((dr, cr) for _acc, dr, cr, _ccy in preview[0][2]),
+        self.assertEqual(sorted((dr, cr) for _acc, dr, cr, _ccy, *_ in preview[0][2]),
                          sorted((Decimal(str(l.debit)), Decimal(str(l.credit))) for l in move.line_ids))
         self.assertEqual(len(preview), 2)
         self.assertEqual((forward.state, leg.state), ("settled", "settled"))

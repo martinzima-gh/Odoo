@@ -24,6 +24,14 @@ def _months_between(start, end):
     return (end.year - start.year) * 12 + end.month - start.month
 
 
+def _months_touched(start, end):
+    """Kalendářní měsíce, kterých se období (start, end] dotýká (každý započatý měsíc); prázdné období 0."""
+    if end <= start:
+        return 0
+    first = start + timedelta(days=1)
+    return (end.year - first.year) * 12 + end.month - first.month + 1
+
+
 def _days_30_360(start, end, basis):
     """Dny v konvenci 30/360: evropská 30E/360, nebo americká 30/360 (bond basis)."""
     d1, d2 = start.day, end.day
@@ -112,11 +120,13 @@ def _step_amount(version, base):
     return steps * dec(version.get("step_amount"))
 
 
-def _segment_amount(version, seg_start, seg_end, base, basis, classes_count):
+def _segment_amount(version, seg_start, seg_end, base, basis, classes_count, first_segment=True):
     fraction = year_fraction(seg_start, seg_end, basis)
     variable = _variable_rate_amount(version, base) * fraction
-    # Pevné částky jsou měsíční; „každý započatý měsíc“ počítá kalendářní měsíce období.
-    months = Decimal(_months_between(seg_start, seg_end))
+    # Pevné částky jsou měsíční; „každý započatý měsíc“ počítá kalendářní měsíce období. První úsek období počítá i měsíc,
+    # ve kterém období začíná (úplata třídy začíná dnem po prvním úpisu, 17. bod ZJ-20); další úseky po změně verze sazby
+    # uprostřed měsíce jen měsíce, které v nich začínají, aby se měsíc nepočítal dvakrát.
+    months = Decimal(_months_touched(seg_start, seg_end) if first_segment else _months_between(seg_start, seg_end))
     if version.get("fixed_mode", "pro_rata") == "pro_rata":
         months = year_fraction(seg_start, seg_end, basis) * 12
     fixed = dec(version.get("fixed_monthly")) + _step_amount(version, base)
@@ -148,7 +158,8 @@ def periodic_fee(rule, start, end, base, classes_count=1, max_steps=100):
     segments = split_by_versions(start, end, rule["versions"])
 
     def compute(current_base):
-        rows = [_segment_amount(v, s, e, current_base, basis, classes_count) for s, e, v in segments]
+        rows = [_segment_amount(v, s, e, current_base, basis, classes_count, first_segment=(index == 0))
+                for index, (s, e, v) in enumerate(segments)]
         return sum((r[0] for r in rows), ZERO), [r[1] for r in rows]
 
     amount, rows = compute(base)
@@ -305,46 +316,108 @@ def _included(item, other, step):
     return not (other is item and item["stage"] >= STAGE_PERFORMANCE)
 
 
-def _tax(spec, items, amounts, ratios):
-    """Očekávaná daň (doplatek) a přesun daňového efektu specifických položek tříd (ZJ-12 B.4 a B.5).
+def _tax_rule_amount(rule, base):
+    """Daň pravidla ze základu (ZJ-07): splatná max(0, sazba × max(b, 0) − zápočet); odložená sazba × b (záporná jen s pohledávkou)."""
+    rate = dec(rule["rate"])
+    if rule.get("method") == "deferred":
+        value = rate * base
+        return value if rule.get("recognise_asset") else max(value, ZERO)
+    return max(rate * max(base, ZERO) - dec(rule.get("credit")), ZERO)
 
-    spec: rate, step (1–3: které náklady snižují základ), result (výsledek od 1. 1. po kroku 1 už se zpět přičtenými
-    náklady dřívějších ocenění, které podle kroku základ nesnižují), booked (zaúčtovaná daň od 1. 1.), specific
-    ({třída: specifické náklady od 1. 1. před tímto oceněním, které základ snižují}), previous_effect ({třída: e × spec_c
-    minulého ocenění v roce}), previous_effect_total (e × Σ spec minulého ocenění).
-    Daňový efekt od 1. 1.: E_c = e × spec_c, e = efektivní sazba specifických položek. Přesun je přírůstkový:
-    přesun_c = ΔE_c − ρ_c × ΔΣE, Δ proti minulému ocenění, ρ dnešní. Dřívější přesuny se dnešním poměrem nepřepočítávají
-    (stejně jako se dnes nepřepočítává daň rozdělená v minulých oceněních); součet přesunů je nula.
+
+def _tax_rules(spec):
+    """Pravidla daně; plochý spec (před ZJ-07, náhled schématu, referenční model) = jedno výchozí splatné pravidlo."""
+    if "rules" in spec:
+        return spec["rules"]
+    return [{"key": "default", "default": True, "method": "current", "rate": spec["rate"], "result": spec["result"],
+             "booked": spec.get("booked"), "specific": spec.get("specific") or {},
+             "base_correction": spec.get("base_correction")}]
+
+
+def _tax(spec, items, amounts, ratios):
+    """Očekávaná daň po daňových pravidlech (ZJ-07) a přesun daňového efektu specifických položek tříd (ZJ-12 B.4 a B.5).
+
+    spec: step (1–3: které náklady snižují základ výchozího pravidla), rules [{key, default, method (current/deferred), rate,
+    result (splatná: výsledek účtů pravidla od začátku účetního období, u výchozího pravidla už se zpět přičtenými náklady
+    dřívějších ocenění, které podle kroku základ nesnižují; odložená: zůstatek účtů k datu), booked (zaúčtovaná daň pravidla),
+    credit (zápočet zahraniční daně), recognise_asset, specific ({třída: specifické položky od začátku období, náklad +}),
+    base_correction}], split ({účet: [(klíč pravidla, podíl), …]} – úplaty tohoto ocenění na účtech s výjimkou; klíč mimo
+    rules = Mimo základ daně), previous_effect, previous_effect_total. Plochý spec (rate, result, booked, specific) = jedno
+    výchozí pravidlo, výsledky jako před ZJ-07.
+    Úplata na účtu bez výjimky jde do výchozího pravidla podle kroku (jako dosud), na účtu s výjimkou podíl do pravidla výjimky
+    a zbytek do výchozího vždy (výjimka má přednost před krokem, D2).
+    Daňový efekt od začátku účetního období: E_c = Σ_r e_r × spec_{r,c}, e_r = efektivní sazba specifických položek pravidla
+    (odložená daň se po třídách nedělí, C0.4). Přesun je přírůstkový: přesun_c = ΔE_c − ρ_c × ΔΣE, Δ proti minulému ocenění,
+    ρ dnešní. Dřívější přesuny se dnešním poměrem nepřepočítávají; součet přesunů je nula.
     """
-    rate, step = dec(spec["rate"]), int(spec["step"])
-    deductible = ZERO
-    specific = {code: dec((spec.get("specific") or {}).get(code)) for code in ratios}
+    step = int(spec["step"])
+    rules = _tax_rules(spec)
+    keys = {rule["key"] for rule in rules}
+    default = next(rule["key"] for rule in rules if rule.get("default"))
+    split = spec.get("split") or {}
+    # ZJ-23: procento neuznatelnosti nákladového účtu s výjimkou = část úplaty, která výchozí pravidlo základ nesnižuje.
+    nondeductible = spec.get("nondeductible_pct") or {}
+    deductible = {key: ZERO for key in keys}
+    specific = {rule["key"]: {code: dec((rule.get("specific") or {}).get(code)) for code in ratios} for rule in rules}
     for item in items:
-        if item["stage"] == STAGE_TAX or item["stage"] > step:
+        if item["stage"] == STAGE_TAX:
             continue
+        parts = split.get(item.get("tax_account"))
+        if parts is None:
+            if item["stage"] > step:
+                continue
+            parts = [(default, Decimal(1))]
+        else:
+            parts = list(parts) + [(default, 1 - sum((dec(share) for _key, share in parts), ZERO))]
         expense = fee_expense(item, amounts[item["key"]])
-        deductible += expense
-        if item.get("payer") is not None:
-            specific[item["payer"]] += expense
-    # Oprava základu daně (ZJ-12 B.7, ZJ-07 bod 2): kladná = připočitatelná, záporná = odčitatelná položka.
-    base = dec(spec["result"]) - deductible + dec(spec.get("base_correction"))
-    required = rate * max(base, ZERO)
-    total_specific = sum(specific.values(), ZERO)
-    effective = ZERO
-    if total_specific:
-        effective = (rate * max(base + total_specific, ZERO) - required) / total_specific
+        for key, share in parts:
+            share = dec(share)
+            if key not in keys or not share:
+                continue
+            part = expense if share == 1 else expense * share
+            deductible[key] += part
+            if item.get("payer") is not None:
+                specific[key][item["payer"]] += part
+        pct = dec(nondeductible.get(item.get("tax_account")))
+        if pct and parts is not None:
+            back = expense * pct / 100
+            deductible[default] -= back
+            if item.get("payer") is not None:
+                specific[default][item["payer"]] -= back
+    detail, effect = {}, {code: ZERO for code in ratios}
+    effect_total = required_total = booked_total = ZERO
+    for rule in rules:
+        key = rule["key"]
+        # Oprava základu daně (ZJ-12 B.7, ZJ-07 bod 2): kladná = připočitatelná, záporná = odčitatelná položka.
+        base = dec(rule["result"]) - deductible[key] + dec(rule.get("base_correction"))
+        required = _tax_rule_amount(rule, base)
+        total_specific = sum(specific[key].values(), ZERO)
+        effective = ZERO
+        if total_specific and rule.get("method") != "deferred":
+            effective = (_tax_rule_amount(rule, base + total_specific) - required) / total_specific
+        for code in ratios:
+            effect[code] += effective * specific[key][code]
+        effect_total += effective * total_specific
+        credit = dec(rule.get("credit"))
+        gross = dec(rule["rate"]) * max(base, ZERO)
+        detail[key] = {"base": base, "required": required, "booked": dec(rule.get("booked")), "specific": specific[key],
+                       "effective_rate": effective, "credit": credit,
+                       "credit_used": min(credit, gross) if rule.get("method") != "deferred" else ZERO}
+        required_total += required
+        booked_total += dec(rule.get("booked"))
     previous = spec.get("previous_effect") or {}
-    effect = {code: effective * specific[code] for code in ratios}
-    effect_total = effective * total_specific
     change_total = effect_total - dec(spec.get("previous_effect_total"))
     transfers = {
         code: effect[code] - dec(previous.get(code)) - ratios[code] * change_total
         for code in ratios
     }
+    main = detail[default]
     return {
-        "amount": required - dec(spec.get("booked")),
-        "base": base, "required": required, "specific": specific, "effective_rate": effective,
-        "effect": effect, "effect_total": effect_total, "transfers": transfers,
+        "amount": required_total - booked_total,
+        "base": main["base"], "required": required_total,
+        "specific": {code: sum((specific[key][code] for key in specific), ZERO) for code in ratios},
+        "effective_rate": main["effective_rate"], "effect": effect, "effect_total": effect_total, "transfers": transfers,
+        "rules": detail,
     }
 
 
@@ -360,8 +433,9 @@ def solve_fees(classes, items, pinned=None, max_steps=500, rel_tol=Decimal("1e-1
       base       None = základ nezávislý na dopočtu (aktiva, bez základu, pevná částka),
                  {"scope": "fund", "step": s} = FK po kroku s, {"scope": "class", "class": c, "step": s} = hodnota třídy,
       amount     funkce základ → přesná částka (bez zaokrouhlení); u pevné částky konstanta,
-      tax        jen pravidlo daně (nejvýš jedno): popis podle _tax (místo base a amount); oprava daně je pevná
-                 položka kroku 4 bez `tax` (plátce fond, do základu daně nevstupuje).
+      tax        jen pravidlo daně (nejvýš jedno, nosič): popis podle _tax (místo base a amount), uvnitř po daňových pravidlech
+                 (ZJ-07); oprava daně je pevná položka kroku 4 bez `tax` (plátce fond, do základu daně nevstupuje),
+      tax_account  účet nákladu úplaty (ZJ-07: výjimka daně na účtu úplaty má přednost před krokem, `_tax`).
     Stav po kroku s obsahuje položky se stage ≤ s; „po kroku 2“ zahrnuje i úplatu samotnou, odměna a daň nikdy samy sebe.
     pinned: {klíč: pevná částka} (opravy, B.7). Tolerance relativní: rel_tol × max(1, největší částka).
     Vrací částky, základy, výsledek daně, počet kroků a zbytek konzistence (B.8); neustálí-li se, ValueError.

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ZJ-23: výchozí šablona běžných daňových výjimek (dříve napevno v kódu, D11). Po instalaci ji lze upravit v Nastavení › Daně. -->
+<odoo noupdate="1">
+    <record id="tax_tpl_714100" model="investra.tax.exception.template">
+        <field name="sequence">10</field>
+        <field name="account_code">714100</field>
+        <field name="tax_rule_id" ref="tax_rule_exempt"/>
+        <field name="nondeductible_pct">5</field>
+        <field name="note">Dividendy české – paušál 5 % neuznatelných nákladů (k ověření poradcem, ZJ-23 bod 6)</field>
+    </record>
+    <record id="tax_tpl_714200" model="investra.tax.exception.template">
+        <field name="sequence">20</field>
+        <field name="account_code">714200</field>
+        <field name="tax_rule_id" ref="tax_rule_separate_15"/>
+        <field name="nondeductible_pct">5</field>
+        <field name="note">Dividendy zahraniční – samostatný základ 15 %, paušál 5 % (k ověření poradcem)</field>
+    </record>
+    <record id="tax_tpl_714300" model="investra.tax.exception.template">
+        <field name="sequence">30</field>
+        <field name="account_code">714300</field>
+        <field name="tax_rule_id" ref="tax_rule_exempt"/>
+        <field name="note">Dividendy z dceřiných společností</field>
+    </record>
+    <record id="tax_tpl_667300" model="investra.tax.exception.template">
+        <field name="sequence">40</field>
+        <field name="account_code">667300</field>
+        <field name="tax_rule_id" ref="tax_rule_exempt"/>
+        <field name="note">Penále</field>
+    </record>
+    <record id="tax_tpl_667400" model="investra.tax.exception.template">
+        <field name="sequence">50</field>
+        <field name="account_code">667400</field>
+        <field name="tax_rule_id" ref="tax_rule_exempt"/>
+        <field name="note">Reprezentace</field>
+    </record>
+    <record id="tax_tpl_564300" model="investra.tax.exception.template">
+        <field name="sequence">60</field>
+        <field name="account_code">564300</field>
+        <field name="rule_source">deferred_fvoci</field>
+        <field name="fvoci_only" eval="True"/>
+        <field name="note">Oceňovací rozdíly FVOCI – odložená daň (D9)</field>
+    </record>
+    <record id="tax_tpl_571100" model="investra.tax.exception.template">
+        <field name="sequence">70</field>
+        <field name="account_code">571100</field>
+        <field name="rule_source">default</field>
+        <field name="fvoci_only" eval="True"/>
+        <field name="note">Realizované přecenění FVOCI – splatná daň výchozího pravidla (D10)</field>
+    </record>
+</odoo>

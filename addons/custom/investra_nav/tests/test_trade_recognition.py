@@ -203,13 +203,16 @@ class TestTradeRecognition(NavCase):
         check = valuation.check_ids.filtered(lambda c: c.code == "trades_settled")
         self.assertEqual(check.status, "warning")
 
-    def test_fvoci_before_settlement_stops(self):
+    def test_fvoci_before_settlement_goes_to_oci(self):
+        """ZJ-18 G2 (dříve stop): změna RH nevypořádaného obchodu FVOCI jde do oceňovacích rozdílů, ne do výsledku."""
         self.settlement_mode()
         instrument = self.instrument(model="hold_collect_sell")
         self.trade(instrument)._book()
         self.price(instrument, date(2031, 3, 31), 110)
-        with self.assertRaises(UserError):
-            self.valuation(self.fund, date(2031, 3, 31)).with_user(self.preparer).action_compute()
+        self.post(date(2031, 3, 31))
+        self.assertEqual(self.balance("unsettled_fair_value"), 100)
+        self.assertEqual(self.balance("revaluation_reserve"), -100)
+        self.assertEqual(self.balance("gain_fair_value"), 0)
 
     def test_setting_locked_after_first_trade(self):
         self.trade(self.instrument())

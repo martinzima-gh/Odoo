@@ -53,3 +53,19 @@ class InvestraAllocationLine(models.Model):
         for line in self:
             if line.class_id.fund_id != line.scheme_id.fund_id:
                 raise ValidationError(self.env._("Třída musí patřit do fondu schématu."))
+            if not line.class_id.shares_common:
+                # ZJ-08 D1: třída bez podílu na společných položkách se na rozdělení výsledku nepodílí.
+                raise ValidationError(self.env._(
+                    "Třída %s se nepodílí na společných položkách, nemůže být v alokačním schématu.", line.class_id.display_name))
+
+
+class InvestraFundClass(models.Model):
+    _inherit = "investra.fund.class"
+
+    @api.constrains("shares_common")
+    def _check_shares_common_scheme(self):
+        """ZJ-08 D1: třída na řádku alokačního schématu se musí podílet na společných položkách."""
+        lines = self.env["investra.allocation.line"].sudo().search([("class_id", "in", self.filtered(lambda c: not c.shares_common).ids)], limit=1)
+        if lines:
+            raise ValidationError(self.env._(
+                "Třída %s je v alokačním schématu; nejdřív ji ze schématu odeberte.", lines.class_id.display_name))

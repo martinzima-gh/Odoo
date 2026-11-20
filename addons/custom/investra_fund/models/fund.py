@@ -117,7 +117,68 @@ class InvestraFund(models.Model):
     )
     accrual_note = fields.Char(string="Zdůvodnění lineárního úročení", tracking=True)
 
+    # ZJ-20 B: konec účetního období fondu = `res.company.fiscalyear_last_day/month` knihy fondu (Odoo 20 Community nemá
+    # v nastavení účetnictví viditelnou položku, jen úvodní průvodce). Mění se tady, dokud fond nemá zaúčtované ocenění.
+    # Zápis do knihy i zpráva do chatteru jsou ve `write` (běžný uživatel nemá právo měnit společnost).
+    fiscal_year_last_day = fields.Integer(
+        related="company_id.fiscalyear_last_day", readonly=False, string="Konec účetního období – den",
+        help="Poslední den účetního období: den v měsíci. Mění se do prvního zaúčtovaného ocenění fondu, potom jen pro čtení.",
+    )
+    fiscal_year_last_month = fields.Selection(
+        related="company_id.fiscalyear_last_month", readonly=False, string="Konec účetního období – měsíc",
+        help="Poslední den účetního období: měsíc. Mění se do prvního zaúčtovaného ocenění fondu, potom jen pro čtení.",
+    )
+    fiscal_year_locked = fields.Boolean(
+        compute="_compute_fiscal_year_locked", string="Konec účetního období uzamčen",
+        help="Fond už má zaúčtované ocenění; konec účetního období jen pro čtení.",
+    )
+
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
+
+    def _compute_fiscal_year_locked(self):
+        # Zámek podle zaúčtovaného ocenění doplňuje investra_nav (ocenění tady není).
+        for fund in self:
+            fund.fiscal_year_locked = False
+
+    def write(self, vals):
+        if "fiscal_year_last_day" in vals or "fiscal_year_last_month" in vals:
+            vals = self._write_fiscal_year_end(vals)
+        return super().write(vals) if vals else True
+
+    def _write_fiscal_year_end(self, vals):
+        """Změna konce účetního období: zámek po zaúčtovaném ocenění, zápis do knihy fondu a zpráva do chatteru.
+        Vrací zbylé hodnoty ke zvyklému zápisu."""
+        vals = dict(vals)
+        new_day, new_month = vals.pop("fiscal_year_last_day", None), vals.pop("fiscal_year_last_month", None)
+        for fund in self:
+            company = fund.company_id.sudo()
+            day = int(new_day if new_day is not None else company.fiscalyear_last_day)
+            month = str(int(new_month if new_month is not None else company.fiscalyear_last_month))
+            if (day, month) == (company.fiscalyear_last_day, str(int(company.fiscalyear_last_month))):
+                continue
+            if fund.fiscal_year_locked:
+                raise UserError(self.env._(
+                    "Fond %s už má zaúčtované ocenění; konec účetního období nejde změnit, protože by zpětně změnil "
+                    "období zaúčtovaných ocenění a daně.", fund.display_name))
+            before = f"{company.fiscalyear_last_day}. {int(company.fiscalyear_last_month)}."
+            company.write({"fiscalyear_last_day": day, "fiscalyear_last_month": month})
+            fund.message_post(body=self.env._(
+                "Konec účetního období: %(before)s → %(after)s", before=before, after=f"{day}. {int(month)}."))
+        return vals
+
+    def _fiscal_year_dates(self, day):
+        """Účetní období fondu (hospodářský rok podle knihy), do kterého patří `day`: (první den, poslední den).
+
+        ZJ-17: zdrojem je standardní nastavení knihy (`res.company.fiscalyear_last_day/month`, Odoo 20 Community
+        nemá záznamy `account.fiscal.year`). Zdaňovací období = účetní období.
+        """
+        self.ensure_one()
+        dates = self.company_id.compute_fiscalyear_dates(fields.Date.to_date(day))
+        return dates["date_from"], dates["date_to"]
+
+    def _fiscal_year_start(self, day):
+        """První den účetního období, do kterého patří `day` (podle knihy fondu)."""
+        return self._fiscal_year_dates(day)[0]
 
     @api.constrains("accrual_method", "accrual_note")
     def _check_accrual_note(self):
@@ -165,6 +226,13 @@ class InvestraFundClass(models.Model):
     # Poplatky jen na třídě (ZJ-03); změny sazby, příjemce, článku statutu a poznámky zapíše write() do historie
     # třídy ve strukturované podobě, bez verzí. Pole poplatků nemají tracking=True, aby se zprávy nezdvojovaly
     # s vestavěným sledováním Odoo 20 (které funguje i bez modulu mail_tracking).
+    # ZJ-08 bod 1 (rozhodnutí 2026-11-17, D13): třída bez podílu na sdíleném výsledku (typicky manažerská). Zámek po
+    # prvním zaúčtovaném ocenění je v investra_nav, kontrola alokačního schématu v investra_allocation.
+    shares_common = fields.Boolean(
+        default=True, required=True, tracking=True, string="Podílí se na společných položkách",
+        help="Vypnuto: třída nemá podíl na sdíleném výsledku (portfolio, společné náklady, daň). Její kapitál = předchozí kapitál + "
+             "pohyby třídy (úpisy, odkupy) + položky jen této třídy (např. přijatá výkonnostní odměna). Typicky manažerská třída. "
+             "Po prvním zaúčtovaném ocenění fondu nejde změnit.")
     entry_fee_rate = fields.Float(digits=(7, 4), required=True, default=0.0, string="Vstupní poplatek (%)",
                                   help="Sazba z hrubé platby úpisu.")
     entry_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager",
@@ -237,6 +305,14 @@ class InvestraFundClass(models.Model):
     def _compute_display_name(self):
         for record in self:
             record.display_name = f"{record.fund_id.name} / {record.code}"
+
+    @api.constrains("shares_common", "fund_id", "active")
+    def _check_shares_common(self):
+        for fund in self.fund_id:
+            classes = fund.class_ids
+            if classes and not classes.filtered("shares_common"):
+                raise ValidationError(self.env._(
+                    "Fond %s musí mít aspoň jednu aktivní třídu, která se podílí na společných položkách.", fund.display_name))
 
     @api.constrains("isin")
     def _check_isin(self):

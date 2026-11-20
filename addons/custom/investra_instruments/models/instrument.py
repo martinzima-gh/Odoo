@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import format_date, formatLang
@@ -23,12 +25,19 @@ IDENTIFIER_KINDS = [
 # jen změny ovlivňující NAV a změny toků, ne např. přejmenování nebo list ČNB.
 NAV_INSTRUMENT_FIELDS = {
     "currency_id", "maturity_date", "coupon_rate", "day_count", "accrual_method", "price_excludes_accrued", "max_price_age",
+    "ex_coupon_days",  # ZJ-19
 }
 # Stav, události a důvody storna zapisuje jen zaúčtování a storno (rozhodnutí 2026-11-12 „Storno a oprava obchodu“).
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id", "reversal_reason", "settlement_reversal_reason"}
 # Odchylka kurzu vypořádání od kurzu obchodu, od které formulář upozorní (rozhodnutí 2026-11-12).
 SETTLEMENT_FX_WARNING = 0.10
-BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest"}
+BOOKED_TRADE_FIELDS = {
+    "fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest",
+    "fee_amount", "fee_currency_id", "fee_fx_rate",  # ZJ-16
+}
+# ZJ-16: analytický účet nákladů na poplatky obchodů (další účet role expense_bank_fee, osnova 615 „Náklady na operace
+# s cennými papíry“; ČNB VYFO20_11 ř. 23 sčítá hlavní i další účty role).
+FEE_ACCOUNT_CODE = "615200"
 
 
 def book_problem(env, books, record_label, in_form=False):
@@ -125,6 +134,8 @@ class InvestraInstrument(models.Model):
     _inherit = ["investra.record.guard", "mail.thread"]
     _description = "Nástroj"
     _order = "name"
+    # AG-024: klíčem nástroje je ISIN; výběr a hledání v polích Nástroj najde nástroj podle ISIN, názvu, kódu i identifikátoru.
+    _rec_names_search = ["isin", "name", "code", "identifier"]
     _book_fields = ("fund_id", "company_id")
     _system_fields = frozenset({"code", "company_id"})
 
@@ -162,10 +173,15 @@ class InvestraInstrument(models.Model):
         help="Zaškrtnuto (dluhopisy): reálná hodnota = kusy × cena + naběhlý úrok. Nezaškrtnuto (vklady, úvěry): úrok je "
              "v ceně; naběhlý úrok jen rozdělí výsledek ocenění na úrok a přecenění.",
     )
+    ex_coupon_days = fields.Integer(
+        default=0, string="Ex-kupónová lhůta (dny)",
+        help="Kolik kalendářních dní před výplatou kupónu se obchoduje bez kupónu: kupón dostane ten, kdo drží k večeru dne "
+             "před ex-datem. 0 = bez lhůty.",
+    )
     commitment_amount = fields.Float(digits=(20, 2), string="Upisovací závazek", help="Celková částka v měně nástroje, 0 = bez závazku.")
     holding_kind = fields.Selection([("securities", "Cenné papíry"), ("shares", "Podíly")], string="Typ investice", tracking=True)
     fund_id = fields.Many2one("investra.fund", ondelete="restrict", string="Fond", help="Vyplněno: nástroj patří jen tomuto fondu.")
-    class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída", domain="[('fund_id', '=', fund_id)]")
+    # ZJ-09 A5: pole Třída na nástroji zrušeno (nic ho nepoužívalo); třída je na portfoliu (investra.fund.portfolio.class_id).
     order_ref = fields.Char(string="Zakázka")
     accrual_method = fields.Selection(
         [("fund", "Podle fondu"), ("eir", "Efektivní úroková míra"), ("linear", "Lineárně")],
@@ -215,6 +231,12 @@ class InvestraInstrument(models.Model):
             "Nástroj s ISIN je sdílený a vede ho kniha investiční společnosti, která zatím není založená (nebo jich je víc). "
             "Nástroj bez ISIN založte jako nástroj fondu."
         ))
+
+    @api.depends("isin", "name")
+    def _compute_display_name(self):
+        # AG-024: „ISIN název“; nástroj bez ISIN jen název.
+        for instrument in self:
+            instrument.display_name = f"{instrument.isin} {instrument.name}" if instrument.isin else (instrument.name or "")
 
     @api.depends("fund_id", "company_id")
     @api.depends_context("uid", "allowed_company_ids")
@@ -283,13 +305,11 @@ class InvestraInstrument(models.Model):
             kind = instrument.type_id
             instrument.deviates_from_type = bool(kind) and (instrument.cnb_sheet or False) != (kind.cnb_sheet or False)
 
-    @api.constrains("type_id", "fund_id", "class_id", "holding_kind", "commitment_amount")
+    @api.constrains("type_id", "fund_id", "holding_kind", "commitment_amount")
     def _check_other_holding(self):
         for instrument in self:
             if instrument.commitment_amount < 0:
                 raise ValidationError(self.env._("Upisovací závazek nemůže být záporný: %s.", instrument.name))
-            if instrument.class_id and instrument.class_id.fund_id != instrument.fund_id:
-                raise ValidationError(self.env._("Třída nepatří do fondu nástroje: %s.", instrument.name))
             if instrument.type_group == "other_holding" and not (instrument.fund_id and instrument.holding_kind):
                 raise ValidationError(self.env._("Ostatní podíl musí mít fond a typ investice: %s.", instrument.name))
 
@@ -345,6 +365,13 @@ class InvestraInstrument(models.Model):
         self.ensure_one()
         return fund.accrual_method if self.accrual_method == "fund" else self.accrual_method
 
+    def _ex_flow_window(self, day):
+        """Toky Úrok, jejichž ex-kupónová lhůta zahrnuje `day` (ex-datum ≤ den < datum výplaty); jinak prázdný záznam (ZJ-19 H2)."""
+        self.ensure_one()
+        if not day:
+            return self.env["investra.instrument.cashflow"]
+        return self.cashflow_ids.filtered(lambda f: f.flow_type == "interest" and f.ex_date and f.ex_date <= day < f.date)
+
 
 class InvestraInstrumentCashflow(models.Model):
     """Smluvní tok na jednotku nástroje, bez pořízení; to se bere z obchodu.
@@ -361,10 +388,22 @@ class InvestraInstrumentCashflow(models.Model):
     date = fields.Date(required=True, string="Datum")
     amount = fields.Float(required=True, digits=(20, 8), string="Částka na jednotku")
     flow_type = fields.Selection([("interest", "Úrok"), ("principal", "Jistina")], required=True, default="principal", string="Druh")
+    ex_date = fields.Date(
+        compute="_compute_ex_date", store=True, readonly=False, string="Ex-datum",
+        help="Jen u toku Úrok: od tohoto dne se obchoduje bez kupónu (datum − ex-kupónová lhůta nástroje). "
+             "U nepravidelných kupónů jde přepsat.",
+    )
+
+    @api.depends("date", "flow_type", "instrument_id.ex_coupon_days")
+    def _compute_ex_date(self):
+        for flow in self:
+            days = flow.instrument_id.ex_coupon_days
+            flow.ex_date = flow.date - timedelta(days=days) if flow.flow_type == "interest" and days > 0 and flow.date else False
 
     def _describe(self):
         kinds = dict(self._fields["flow_type"]._description_selection(self.env))
-        return f"{self.date} {kinds.get(self.flow_type, '')} {self.amount:g}"
+        text = f"{self.date} {kinds.get(self.flow_type, '')} {self.amount:g}"
+        return f"{text} (ex {self.ex_date})" if self.ex_date else text
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -638,6 +677,8 @@ class InvestraTrade(models.Model):
         domain="[('fund_id', '=', fund_id)]", help="Portfolio fondu s obchodním modelem; určuje klasifikaci IFRS 9 obchodu.",
     )
     portfolio_choice = fields.Boolean(compute="_compute_portfolio_choice", string="Výběr portfolia")
+    # ZJ-09: obchod třídu nevybírá, nese ji portfolio (prázdné = sdílené portfolio); jen k zobrazení ve formuláři.
+    portfolio_class_id = fields.Many2one(related="portfolio_id.class_id", string="Třída portfolia")
     classification_id = fields.Many2one(
         "investra.portfolio.classification", compute="_compute_classification_id", string="Zařazení",
     )
@@ -663,6 +704,19 @@ class InvestraTrade(models.Model):
     )
     fx_rate = fields.Float(default=1, digits=(16, 6), required=True, help="Funkční měna za jednotku měny nástroje.", string="Kurz")
     settlement_fx_rate = fields.Float(digits=(16, 6), help="Kurz platby; bez zadání platí kurz obchodu.", string="Kurz vypořádání")
+    # ZJ-16: poplatek obchodníka nebo burzy. Nákup FVTPL a každý prodej = náklad; nákup v naběhlé hodnotě a FVOCI = součást
+    # pořizovací ceny (IFRS 9 5.1.1, B5.4.8; IFRS 13.25).
+    fee_amount = fields.Float(digits=(20, 2), default=0, string="Poplatek", help="Poplatek obchodníka nebo burzy, kladně.")
+    fee_currency_id = fields.Many2one("res.currency", string="Měna poplatku", help="Prázdné = měna nástroje.")
+    company_currency_id = fields.Many2one(related="fund_id.company_id.currency_id", string="Funkční měna")  # jen pro pohled poplatku
+    fee_fx_rate = fields.Float(
+        digits=(16, 6), string="Kurz poplatku",
+        help="Funkční měna za jednotku měny poplatku. Měna nástroje: bez zadání kurz obchodu; funkční měna: 1; jiná měna: povinný.",
+    )
+    fee_treatment = fields.Selection(
+        [("expense", "Náklad"), ("capitalise", "Součást pořizovací ceny")], compute="_compute_fee_treatment",
+        string="Účtování poplatku",
+    )
     state = fields.Selection(
         [("draft", "Návrh"), ("unsettled", "Sjednáno, nevypořádáno"), ("settled", "Vypořádáno"), ("reversed", "Stornováno")],
         required=True, default="draft", readonly=True, index=True, string="Stav",
@@ -883,11 +937,18 @@ class InvestraTrade(models.Model):
                 portfolio=self.portfolio_id.name, day=self.trade_date, held=held, name=self.instrument_id.name, qty=-self.quantity,
             ))
 
-    @api.constrains("accrued_interest", "instrument_id")
+    @api.constrains("accrued_interest", "instrument_id", "trade_date")
     def _check_accrued_interest(self):
         for trade in self:
-            if trade.accrued_interest < 0:
-                raise ValidationError(self.env._("Naběhlý úrok obchodu se zadává kladně, i u prodeje."))
+            # ZJ-19 H2: v ex-kupónové lhůtě (od ex-data do výplaty kupónu) je naběhlý úrok záporný: kupón dostane prodávající.
+            in_window = bool(trade.instrument_id._ex_flow_window(trade.trade_date))
+            if trade.accrued_interest < 0 and not in_window:
+                raise ValidationError(self.env._(
+                    "Naběhlý úrok obchodu se zadává kladně, i u prodeje; záporný je jen v ex-kupónové lhůtě dluhopisu."))
+            if trade.accrued_interest > 0 and in_window:
+                raise ValidationError(self.env._(
+                    "Obchod %s je v ex-kupónové lhůtě (od ex-data do výplaty kupónu): naběhlý úrok je záporný nebo 0, "
+                    "kupón dostane ten, kdo držel k večeru dne před ex-datem.", trade.instrument_id.name))
             if trade.accrued_interest and trade.instrument_id.type_id.kind != "bond":
                 raise ValidationError(self.env._("Naběhlý úrok se u obchodu zadává jen u dluhopisů: %s.", trade.instrument_id.name))
 
@@ -895,6 +956,91 @@ class InvestraTrade(models.Model):
         """Naběhlý úrok se znaménkem obchodu: nákup kladně, prodej záporně (v měně nástroje)."""
         self.ensure_one()
         return self.accrued_interest if self.quantity >= 0 else -self.accrued_interest
+
+    @api.depends("side", "quantity", "ifrs9_category")
+    def _compute_fee_treatment(self):
+        for trade in self:
+            buy = trade.side == "buy" or (not trade.side and trade.quantity > 0)
+            trade.fee_treatment = "capitalise" if buy and trade.ifrs9_category in ("amortised", "fvoci") else "expense"
+
+    @api.constrains("fee_amount", "fee_currency_id", "fee_fx_rate", "instrument_id", "fund_id")
+    def _check_fee(self):
+        for trade in self:
+            if trade.fee_amount < 0:
+                raise ValidationError(self.env._("Poplatek se zadává kladně."))
+            if trade.fee_fx_rate < 0:
+                raise ValidationError(self.env._("Kurz poplatku nesmí být záporný."))
+            currency = trade.fee_currency_id
+            if (trade.fee_amount and currency and trade.company_id and currency != trade.company_id.currency_id
+                    and currency != trade.instrument_id.currency_id and not trade.fee_fx_rate):
+                raise ValidationError(self.env._(
+                    "Poplatek v měně %s (jiné než měna nástroje a funkční měna) vyžaduje kurz poplatku.", currency.name))
+
+    def _fee_currency(self):
+        self.ensure_one()
+        return self.fee_currency_id or self.instrument_id.currency_id
+
+    def _fee_amounts(self, fx):
+        """Poplatek: (částka ve funkční měně, částka v měně poplatku, měna poplatku, částka v měně nástroje).
+
+        Kurz poplatku: funkční měna 1; jinak zadaný; měna nástroje bez zadání kurz obchodu `fx`. Částka v měně nástroje
+        (pro kapitalizaci) je zadaný poplatek, je-li v měně nástroje, jinak funkční částka / kurz obchodu."""
+        self.ensure_one()
+        company_currency = self.company_id.currency_id
+        currency = self._fee_currency()
+        if currency == company_currency:
+            rate = 1.0
+        else:
+            rate = self.fee_fx_rate or (fx if currency == self.instrument_id.currency_id else 0.0)
+            if not rate:
+                raise UserError(self.env._("Poplatek v měně %s vyžaduje kurz poplatku.", currency.name))
+        amount = company_currency.round(self.fee_amount * rate)
+        if self.instrument_id.currency_id == company_currency:
+            in_instrument = amount
+        elif currency == self.instrument_id.currency_id:
+            in_instrument = self.fee_amount
+        else:
+            in_instrument = amount / fx
+        return amount, self.fee_amount, currency, in_instrument
+
+    def _capitalised_fee_ccy(self):
+        """Poplatek, který je součástí pořizovací ceny, v měně nástroje (0, když se účtuje jako náklad); ZJ-16 E4.
+        Pořizovací cena zbývajících kusů (průměrka) a naběhlá hodnota z něj vycházejí."""
+        self.ensure_one()
+        if not self.fee_amount or self.fee_treatment != "capitalise":
+            return 0.0
+        return self._fee_amounts(self._booked_fx() or 1.0)[3]
+
+    def _fee_account(self):
+        """Analytický účet nákladů na poplatky obchodů v knize fondu; chybějící účet je chyba s návodem."""
+        self.ensure_one()
+        account = self.env["investra.account.role"].sudo().accounts_for(self.company_id, "expense_bank_fee").filtered(
+            lambda a: a.code == FEE_ACCOUNT_CODE)[:1]
+        if not account:
+            raise UserError(self.env._(
+                "Kniha %(book)s nemá účet %(code)s Poplatky za obchody s investičními nástroji. Přidejte ho k roli Bankovní poplatky "
+                "(Účty rolí) nebo povyšte modul Investra Chart Fund.", book=self.company_id.name, code=FEE_ACCOUNT_CODE))
+        return account
+
+    def _fee_lines(self, role, fx):
+        """Řádky poplatku: (řádky k připojení před protiúčet, platby [(funkční částka, měna, částka v měně)])."""
+        self.ensure_one()
+        if not self.fee_amount:
+            return [], []
+        amount, fee_ccy, currency, in_instrument = self._fee_amounts(fx)
+        if not amount and not fee_ccy:
+            return [], []
+        extra = {"investra_instrument_id": self.instrument_id.id, "investra_classification_id": self._classification().id}
+        label = self.env._("Poplatek %s", self.instrument_id.name)
+        if self.fee_treatment == "capitalise":
+            instrument_currency = self.instrument_id.currency_id
+            foreign = instrument_currency != self.company_id.currency_id
+            line = {"role": role, "amount": amount, "movement_type": "transaction", "extra": extra, "name": label,
+                    **({"currency_id": instrument_currency.id, "amount_currency": in_instrument} if foreign else {})}
+        else:
+            line = {"role": "expense_bank_fee", "amount": amount, "movement_type": "fee",
+                    "extra": {**extra, "account_id": self._fee_account().id}, "name": label}
+        return [line], [(amount, currency, fee_ccy)]
 
     @api.constrains("trade_date", "settlement_date")
     def _check_settlement_date(self):
@@ -976,10 +1122,12 @@ class InvestraTrade(models.Model):
             return self.settlement_fx_rate or self.fx_rate
         return self.fx_rate
 
-    def _event_lines(self, role, counter_role, fx):
+    def _event_lines(self, role, counter_role, fx, with_fee=True):
         """Řádky obchodu: role proti protiúčtu, v měně nástroje a ve funkční měně.
 
         Naběhlý úrok dluhopisu je samostatný řádek role (stejný účet, popis „Naběhlý úrok“); protiúčet nese celou platbu.
+        Poplatek (ZJ-16): náklad, nebo řádek role (součást pořizovací ceny) a vlastní protiúčet v měně poplatku; patří jen
+        do kroku sjednání (`with_fee=False` ve vypořádání nevypořádaného obchodu, viz `_fee_settlement_lines`).
         """
         round_ = self.company_id.currency_id.round
         foreign = self.quantity * self.price
@@ -999,6 +1147,30 @@ class InvestraTrade(models.Model):
                           "name": self.env._("Naběhlý úrok %s", self.instrument_id.name), **currency(interest_foreign)})
         lines.append({"role": counter_role, "amount": -(amount + interest), "movement_type": "transaction",
                       **currency(-(foreign + interest_foreign))})
+        if with_fee:
+            fee_lines, fee_pay = self._fee_lines(role, fx)
+            lines += fee_lines
+            company_currency = self.company_id.currency_id
+            for amount_fee, fee_currency, amount_fee_ccy in fee_pay:
+                lines.append({"role": counter_role, "amount": -amount_fee, "movement_type": "transaction",
+                              **({"currency_id": fee_currency.id, "amount_currency": -amount_fee_ccy}
+                                 if fee_currency != company_currency else {})})
+        return lines
+
+    def _fee_settlement_lines(self, unsettled_role, fx):
+        """Vypořádání poplatku sjednaného obchodu: nevypořádané ↔ banka v měně poplatku (ZJ-16 E3)."""
+        self.ensure_one()
+        if not self.fee_amount:
+            return []
+        _lines, fee_pay = self._fee_lines(self._classification().role_id.code, fx)
+        company_currency = self.company_id.currency_id
+        lines = []
+        for amount_fee, fee_currency, amount_fee_ccy in fee_pay:
+            foreign = fee_currency != company_currency
+            lines.append({"role": unsettled_role, "amount": amount_fee, "movement_type": "transaction",
+                          **({"currency_id": fee_currency.id, "amount_currency": amount_fee_ccy} if foreign else {})})
+            lines.append({"role": "bank", "amount": -amount_fee, "movement_type": "transaction",
+                          **({"currency_id": fee_currency.id, "amount_currency": -amount_fee_ccy} if foreign else {})})
         return lines
 
     def _post_trade_event(self, key, name, day, lines, event_type="trade"):
@@ -1031,8 +1203,10 @@ class InvestraTrade(models.Model):
         return [
             ("book", f"trade:{self.id}", f"Obchod {name}", self.trade_date,
              self._event_lines(role, unsettled, self.fx_rate), "trade"),
+            # Poplatek je ve sjednání proti nevypořádaným; vypořádání ho přesune do banky (ZJ-16 E3).
             ("settle", f"trade-settle:{self.id}", f"Vypořádání {name}", self.settlement_date,
-             self._event_lines(unsettled, "bank", settlement_fx), "trade_settlement"),
+             self._event_lines(unsettled, "bank", settlement_fx, with_fee=False)
+             + self._fee_settlement_lines(unsettled, self.fx_rate), "trade_settlement"),
         ]
 
     def _planned_step(self, step):
@@ -1040,7 +1214,7 @@ class InvestraTrade(models.Model):
         return next((plan for plan in self._planned_postings() if plan[0] == step), None)
 
     def _book(self):
-        """Zaúčtuje obchod podle nastavení fondu; v prototypu bez poplatků."""
+        """Zaúčtuje obchod podle nastavení fondu (poplatek obchodu ZJ-16)."""
         for trade in self.filtered(lambda t: t.state == "draft"):
             instrument = trade.instrument_id
             if instrument.type_group == "other_holding":

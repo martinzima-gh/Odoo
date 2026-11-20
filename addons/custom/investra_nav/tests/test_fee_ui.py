@@ -34,8 +34,7 @@ class TestFeeSchemeUi(NavCase):
             "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "initial_reference": 0})]})
 
     def tax(self, fund, step="3"):
-        return self.Rule.create({"fund_id": fund.id, "name": "Daň", "kind": "tax", "base_step": step,
-                                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+        return self.fund_tax(fund, 0.05, step)
 
     # --- pole Základ podle druhu -----------------------------------------------------------------------------------
 

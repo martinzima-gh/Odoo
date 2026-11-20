@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 from odoo import api, fields, models
@@ -93,9 +94,9 @@ class InvestraFeeRule(models.Model):
         required=True,
         default="fk",
         tracking=True, string="Základ",
-        help="Z čeho se úplata počítá: fondový kapitál, jeho průměr od začátku roku, kapitál třídy, aktiva, nebo bez základu "
+        help="Z čeho se úplata počítá: fondový kapitál, jeho průměr od začátku účetního období, kapitál třídy, aktiva, nebo bez základu "
              "(jen pevná částka). Průměrný FK bez tříd je úplata celého fondu z průměru FK; s vyplněnými Platí třídy se počítá "
-             "za každou třídu z průměru jejího kapitálu od 1. 1., od prvního úpisu třídy nebo od zařazení do pravidla "
+             "za každou třídu z průměru jejího kapitálu od začátku účetního období, od prvního úpisu třídy nebo od zařazení do pravidla "
              "(pevné částky, minimum a maximum za každou třídu). U očekávané daně se nepoužívá.",
     )
     # ZJ-12 (rozhodnutí 2026-11-18 „Základ úplat, odměny a daně“): jedna volba „Základ: po kroku 1–4“ nahrazuje
@@ -163,6 +164,9 @@ class InvestraFeeRule(models.Model):
     version_ids = fields.One2many("investra.fee.version", "rule_id", string="Verze")
     overlap_warning = fields.Text(compute="_compute_overlap_warning", string="Upozornění na souběh")
     class_base_warning = fields.Text(compute="_compute_class_base_warning", string="Upozornění na nastavení")
+    no_common_class_warning = fields.Text(
+        compute="_compute_no_common_class_warning", string="Upozornění na třídu bez podílu",
+        help="ZJ-08 D6: úplata z třídy, která se nepodílí na společných položkách, je obvykle omyl (ruční úplata ne).")
 
     @api.model
     def _base_steps(self, kind, base_source):
@@ -256,15 +260,31 @@ class InvestraFeeRule(models.Model):
                         fund=rule.fund_id.name, others=", ".join(others.mapped("name")),
                     ))
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        self._check_tax_carrier_vals(vals_list)
+        return super().create(vals_list)
+
     def write(self, vals):
         if "active" in vals and not vals["active"]:
             self._check_archive()
+        if vals.get("kind") == "tax" or (self.filtered(lambda r: r.kind == "tax") and "kind" in vals):
+            self._check_tax_carrier_vals([vals])
         return super().write(vals)
+
+    def _check_tax_carrier_vals(self, vals_list):
+        """ZJ-07 B: pravidlo druhu Očekávaná daň je jen technický nosič, zakládá ho fond (záložka Daňová pravidla). Ručně ho zvolit ani
+        změnit na jiný druh nejde; fond ho zakládá v kontextu `investra_tax_carrier` (také migrace)."""
+        if self.env.context.get("investra_tax_carrier") or self.env.context.get("install_mode"):
+            return
+        if any(vals.get("kind") == "tax" for vals in vals_list) or (
+                any("kind" in vals for vals in vals_list) and self.filtered(lambda r: r.kind == "tax")):
+            raise UserError(self.env._("Daň se nastavuje ve fondu, záložka Daňová pravidla (výchozí daňové pravidlo a výjimky)."))
 
     def _check_archive(self):
         """Pojistka archivace (ZJ-12 krok 4, rozhodnutí 2026-11-18): archivované pravidlo se v dalším ocenění nepočítá,
         naběhlou odměnu ani zaúčtovanou daň by proto už nerozpustilo. Archivace se zastaví, má-li pravidlo odměny nebo daně
-        z posledního zaúčtovaného ocenění nenulovou naběhlou odměnu (třídy pravidla) nebo daň zaúčtovanou od 1. 1."""
+        z posledního zaúčtovaného ocenění nenulovou naběhlou odměnu (třídy pravidla) nebo daň zaúčtovanou od začátku účetního období"""
         Valuation = self.env["investra.valuation"].sudo()
         for rule in self.filtered(lambda r: r.active and r.kind in ("performance", "tax")):
             last = Valuation.search([
@@ -276,15 +296,36 @@ class InvestraFeeRule(models.Model):
                 lines = last.class_line_ids.filtered(lambda line: line.class_id in rule.class_ids)
                 amount, what = sum(lines.mapped("perf_accrued")), self.env._("naběhlou odměnu")
             else:
-                account = self.env["investra.account.role"].sudo().account_for(rule.company_id, "expense_tax")
-                amount = float(last._sum(("date", ">=", date(last.date.year, 1, 1)), ("account_id", "=", account.id)))
-                what = self.env._("zaúčtovanou daň od 1. 1.")
+                amount = float(rule._booked_tax(last))
+                what = self.env._("zaúčtovanou daň od začátku účetního období")
             if round(amount, 2):
                 raise UserError(self.env._(
                     "Pravidlo %(rule)s má z posledního ocenění %(valuation)s %(what)s %(amount)s. Archivované pravidlo by ji "
                     "už nerozpustilo. Nejdřív nastavte verzi sazby 0 %% od data dalšího ocenění, ocenění zaúčtujte a pravidlo "
                     "archivujte potom. Omylem založené pravidlo bez částky archivovat jde.",
                     rule=rule.name, valuation=last.display_name, what=what, amount=f"{amount:.2f}"))
+
+    def _booked_tax(self, valuation):
+        """Zaúčtovaná daň nosiče k poslednímu ocenění (pojistka archivace, ZJ-07): součet přes účty všech daňových pravidel, která
+        fond používá nebo která ocenění v rozpadu daně uvádí – splatná pohyb účtu daně od začátku účetního období, odložená
+        zůstatek rozvahového účtu. Ocenění bez rozpadu (před ZJ-07): hlavní účet role Daň z příjmů."""
+        self.ensure_one()
+        start = valuation.fund_id._fiscal_year_start(valuation.date)
+        line = valuation.fee_line_ids.filtered(lambda l: l.rule_id == self)[:1]
+        ids = [row.get("tax_rule") for row in json.loads(line.detail or "{}").get("rules") or []]
+        rules = (self.env["investra.tax.rule"].sudo().browse([i for i in ids if i]).exists()
+                 | self.fund_id._tax_rules_used())
+        if not rules:
+            account = self.env["investra.account.role"].sudo().account_for(self.company_id, "expense_tax")
+            return valuation._sum(("date", ">=", start), ("account_id", "=", account.id))
+        total = 0
+        for tax_rule in rules:
+            accounts = tax_rule._book_accounts(self.company_id)
+            if tax_rule.method == "deferred":
+                total += abs(valuation._sum(("account_id", "=", accounts["balance"].id)))
+            else:
+                total += abs(valuation._sum(("date", ">=", start), ("account_id", "=", accounts["tax"].id)))
+        return total
 
     @api.depends("kind", "base_source", "class_ids", "recipient_share", "recipient_class_ids")
     def _compute_class_base_warning(self):
@@ -300,6 +341,22 @@ class InvestraFeeRule(models.Model):
             if rule.kind != "tax" and rule.recipient_class_ids and not rule.recipient_share:
                 messages.append(_("Přijímající třídy jsou zvolené, ale podíl příjemcům je 0: nic se jim nepřesune."))
             rule.class_base_warning = "\n".join(messages) or False
+
+    def _no_common_classes(self):
+        """Třídy bez podílu na společných položkách, ze kterých by pravidlo platilo (ZJ-08 D6); daň třídy nemá."""
+        self.ensure_one()
+        if self.kind == "tax":
+            return self.env["investra.fund.class"]
+        payers = self.class_ids or self.fund_id.class_ids
+        return payers.filtered(lambda c: not c.shares_common)
+
+    @api.depends("kind", "fund_id", "class_ids", "class_ids.shares_common", "fund_id.class_ids.shares_common")
+    def _compute_no_common_class_warning(self):
+        for rule in self:
+            classes = rule._no_common_classes()
+            rule.no_common_class_warning = "\n".join(
+                self.env._("Třída %s se nepodílí na společných položkách; úplata z ní je obvykle omyl.", c.code)
+                for c in classes) or False
 
     @api.depends("fund_id", "class_ids", "expense_role", "kind", "active")
     def _compute_overlap_warning(self):

@@ -297,3 +297,93 @@ class ClassSplit(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TaxRules(unittest.TestCase):
+    """ZJ-07 referenční příklad (zadání dávky 9.1 a plán C5, čísla ručně). Jedna třída, výchozí Daň ZIF 5 %, krok 3; výsledek od
+    začátku období 100 000, v něm penále 2 000 (Mimo základ), české dividendy 10 000 (Mimo základ), zahraniční 5 000 (Samostatný
+    základ 15 %), dceřiné 3 000 (Mimo základ). Spec sestavuje ocenění (`_tax_item`); tady se zadává přímo."""
+
+    ONE = {"A": D(1)}
+
+    def rule(self, key, result, rate="0.05", default=False, **kw):
+        return {"key": key, "default": default, "method": kw.pop("method", "current"), "rate": D(rate), "result": D(result),
+                "booked": D(kw.pop("booked", 0)), **kw}
+
+    def tax(self, rules, items=(), ratios=None, step=3, split=None, **kw):
+        spec = {"step": step, "rules": rules, "split": split or {}, **kw}
+        items = list(items)
+        return e._tax(spec, items, {i["key"]: D(i["amount"]) for i in items}, ratios or self.ONE)
+
+    def reference(self, zif="84000", separate="5000", credit=0):
+        # ZIF: 100 000 + 2 000 (penále mimo) − 10 000 − 5 000 − 3 000 = 84 000
+        return [self.rule("zif", zif, default=True), self.rule("sep", separate, rate="0.15", credit=D(credit))]
+
+    def test_flat_spec_equals_single_default_rule(self):
+        # Plochý spec (před ZJ-07): 5 % × (1 000 − 0) = 50, zaúčtováno 10 → doplatek 40; specifické A −100 → e = 0,05.
+        flat = {"rate": "0.05", "step": 3, "result": "1000", "booked": "10", "specific": {"A": "-100", "B": "0"}}
+        ratios = {"A": D("0.5"), "B": D("0.5")}
+        old = e._tax(flat, [], {}, ratios)
+        new = self.tax([self.rule("d", "1000", default=True, booked=10, specific={"A": D(-100), "B": D(0)})], ratios=ratios)
+        self.assertEqual((old["amount"], old["base"], old["required"]), (D(40), D(1000), D(50)))
+        for key in ("amount", "base", "required", "effective_rate", "effect", "effect_total", "transfers", "specific"):
+            self.assertEqual(old[key], new[key], key)
+
+    def test_zif_and_nondeductible(self):
+        result = self.tax(self.reference())
+        self.assertEqual(e.money(result["rules"]["zif"]["required"]), D("4200.00"))  # 5 % × 84 000
+        # Neuznatelné 5 % z výnosu českých a zahraničních dividend: + 5 % × 15 000 = 750 → 84 750 → 4 237,50
+        result = self.tax(self.reference(zif="84750"))
+        self.assertEqual(e.money(result["rules"]["zif"]["required"]), D("4237.50"))
+        self.assertEqual(e.money(result["rules"]["sep"]["required"]), D("750.00"))  # 15 % × 5 000
+        self.assertEqual(e.money(result["required"]), D("4987.50"))
+
+    def test_foreign_tax_credit(self):
+        # Zápočet 750 → 750 − 750 = 0; zápočet 900 → 0, použito 750, propadá 150
+        for credit, used in ((750, 750), (900, 750)):
+            sep = self.tax(self.reference(credit=credit))["rules"]["sep"]
+            self.assertEqual((e.money(sep["required"]), sep["credit_used"], sep["credit"] - sep["credit_used"]),
+                             (D("0.00"), D(used), D(credit - used)))
+
+    def test_loss(self):
+        # Výsledek −20 000: ZIF −20 000 + 2 000 − 18 000 = −36 000 (s 5 % neuznatelných −35 250) → 0; samostatný 750
+        for zif in ("-36000", "-35250"):
+            result = self.tax(self.reference(zif=zif))
+            self.assertEqual((result["rules"]["zif"]["required"], e.money(result["rules"]["sep"]["required"])),
+                             (D(0), D("750.00")))
+
+    def test_austrian_dividend(self):
+        # Hrubá 7 000, smluvní 10 % → zápočet 700; samostatný 15 % × 7 000 = 1 050 − 700 = 350
+        sep = self.tax([self.rule("zif", "0", default=True), self.rule("sep", "7000", rate="0.15", credit=D(700))])["rules"]["sep"]
+        self.assertEqual(e.money(sep["required"]), D("350.00"))
+
+    def test_deferred(self):
+        # Odložená 5 %: zůstatek 40 000 → 2 000; −10 000 bez pohledávky → 0, s pohledávkou −500
+        def deferred(base, asset=False):
+            rules = [self.rule("zif", "0", default=True),
+                     self.rule("def", base, method="deferred", recognise_asset=asset, specific={})]
+            return self.tax(rules)["rules"]["def"]["required"]
+        self.assertEqual(deferred("40000"), D("2000.00"))
+        self.assertEqual(deferred("-10000"), D(0))
+        self.assertEqual(deferred("-10000", True), D("-500.00"))
+
+    def test_classes_effect_per_rule(self):
+        # Třídy 50/50. Penále 2 000 jen A je Mimo základ → v žádném pravidle → efekt 0.
+        ratios = {"A": D("0.5"), "B": D("0.5")}
+        result = self.tax([self.rule("zif", "84000", default=True), self.rule("sep", "5000", rate="0.15")], ratios=ratios)
+        self.assertEqual(result["transfers"], {"A": D(0), "B": D(0)})
+        # Zahraniční dividenda 5 000 jen A (výnos = specifická −5 000): e = (T(0) − T(5 000)) / −5 000 = 0,15, E_A = −750;
+        # přesun A = −750 − 0,5 × (−750) = −375, B = +375 → A nese celou samostatnou daň 750 (375 poměrem + 375 přesunem).
+        result = self.tax([self.rule("zif", "84000", default=True),
+                           self.rule("sep", "5000", rate="0.15", specific={"A": D(-5000), "B": D(0)})], ratios=ratios)
+        self.assertEqual(result["transfers"], {"A": D("-375"), "B": D("375")})
+
+    def test_fee_exception_share_beats_step(self):
+        # Úplata za obhospodařování 40 000 (krok 2), daň po kroku 1 → bez výjimky základ nesnižuje: 5 % × 100 000 = 5 000.
+        fee = {"key": "fee", "stage": e.STAGE_FEE, "payer": None, "amount": 40000, "tax_account": 99}
+        rules = [self.rule("zif", "100000", default=True)]
+        self.assertEqual(self.tax(rules, [fee], step=1)["required"], D("5000.00"))
+        # Výjimka Mimo základ, podíl 25 %: 10 000 mimo, 30 000 snižuje základ i po kroku 1 → 70 000 → 3 500; podíl 10 % → 64 000 → 3 200
+        for share, expected in (("0.25", "3500.00"), ("0.10", "3200.00")):
+            result = self.tax(rules, [fee], step=1, split={99: [("exempt", D(share))]})
+            self.assertEqual(result["required"], D(expected))

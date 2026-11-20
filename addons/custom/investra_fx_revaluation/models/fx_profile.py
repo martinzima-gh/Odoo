@@ -46,28 +46,32 @@ class InvestraFxProfile(models.Model):
                 raise ValidationError(self.env._("Zdroj kurzu se řídí měnou účetnictví: %s.", profile.company_id.currency_id.name))
 
     @api.model
-    def _foreign_balances(self, company, accounts, date, domain=None, by_partner=None):
-        """Zůstatky přeceňovaných účtů v cizí měně k datu: (účet, měna, partner, částka v měně, účetní zůstatek).
+    def _foreign_balances(self, company, accounts, date, domain=None, by_partner=None, extra_groupby=()):
+        """Zůstatky přeceňovaných účtů v cizí měně k datu: (účet, měna, partner, částka v měně, účetní zůstatek, *klíče).
 
         Společný výběr pro běh přecenění a pro ocenění fondu (rozhodnutí 2026-11-13, varianta A). Výchozí doména bere
         zaúčtované řádky; ocenění předá vlastní (i své nezaúčtované doklady). by_partner(účet) = False sloučí partnery
-        účtu do jednoho řádku (partner None); bez funkce se dělí vždy podle partnera.
+        účtu do jednoho řádku (partner None); bez funkce se dělí vždy podle partnera. `extra_groupby` = další pole
+        řádku, podle kterých se zůstatky dělí a vrací na konci n-tice (ZJ-09 A3: ocenění fondu dělí podle třídy;
+        modul třídy nezná, proto obecný parametr). Bez něj je výsledek stejný jako dřív.
         """
         base = company.currency_id
         if domain is None:
             domain = [("company_id", "=", company.id), ("parent_state", "=", "posted"), ("date", "<=", date)]
         groups = self.env["account.move.line"]._read_group(
             [*domain, ("account_id", "in", accounts.ids), ("currency_id", "!=", base.id)],
-            groupby=["account_id", "currency_id", "partner_id"],
+            groupby=["account_id", "currency_id", "partner_id", *extra_groupby],
             aggregates=["amount_currency:sum", "balance:sum"],
         )
         merged = {}
-        for account, currency, partner, amount, balance in groups:
-            key = (account, currency, partner if by_partner is None or by_partner(account) else None)
+        for account, currency, partner, *rest in groups:
+            *keys, amount, balance = rest
+            key = (account, currency, partner if by_partner is None or by_partner(account) else None, *keys)
             total = merged.setdefault(key, [0.0, 0.0])
             total[0] += amount
             total[1] += balance
-        return [(account, currency, partner or None, amount, balance) for (account, currency, partner), (amount, balance) in merged.items()]
+        return [(account, currency, partner or None, amount, balance, *keys)
+                for (account, currency, partner, *keys), (amount, balance) in merged.items()]
 
     def _check_ready(self):
         self.ensure_one()

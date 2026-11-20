@@ -60,17 +60,30 @@ class InvestraPostingPreview(models.AbstractModel):
 
     # --- společné ---------------------------------------------------------------------------------------
 
+    def _preview_class_lines(self, lines):
+        """ZJ-09 A4: řádky tak, jak je doplní `_create_event` (třída portfolia a vnitřní zúčtování), aby náhled = doklad."""
+        return self.env["investra.accounting.event"]._portfolio_class_lines(self.company_id, lines, self)
+
+    def _class_code(self, class_id):
+        return self.env["investra.fund.class"].sudo().browse(class_id).code if class_id else ""
+
     def _preview_rows(self, lines):
-        """Řádky pro náhled z řádků pro `_create_event`; účet podle role stejně jako při vzniku dokladu."""
+        """Řádky pro náhled z řádků pro `_create_event`; účet podle role stejně jako při vzniku dokladu.
+
+        Řádek: (účet, MD, D, částka v měně, kód třídy); třída je prázdná u sdílených řádků (ZJ-09 A4).
+        """
         Role = self.env["investra.account.role"]
         rows = []
-        for line in lines:
-            account = Role.account_for(self.company_id, line["role"])
+        for line in self._preview_class_lines(lines):
+            # Analytický účet řádku (extra.account_id: poplatek obchodu, dividendy, daně) má přednost před hlavním účtem role,
+            # stejně jako při vzniku dokladu.
+            account_id = (line.get("extra") or {}).get("account_id")
+            account = self.env["account.account"].browse(account_id) if account_id else Role.account_for(self.company_id, line["role"])
             amount = d(line["amount"])
             label = line.get("name") or ""
             rows.append((account.display_name + (f" ({label})" if label else ""),
                          amount if amount > 0 else Decimal(0), -amount if amount < 0 else Decimal(0),
-                         line.get("amount_currency")))
+                         line.get("amount_currency"), self._class_code(line.get("class_id"))))
         return rows
 
     def _booked_documents(self):
@@ -91,7 +104,8 @@ class InvestraPostingPreview(models.AbstractModel):
             # má v Odoo amount_currency = zůstatek v CZK a sloupec „V měně EUR“ by ho ukázal jako eura.
             rows = [(line.account_id.display_name + (f" ({line.name})" if line.name and line.name != event.name else ""),
                      d(line.debit), d(line.credit),
-                     line.amount_currency if line.currency_id != line.company_currency_id else None)
+                     line.amount_currency if line.currency_id != line.company_currency_id else None,
+                     line.investra_class_id.code or "")
                     for line in move.line_ids]
             label = f"{caption} {move.name}"
             if event.state == "reversed":
@@ -105,15 +119,20 @@ class InvestraPostingPreview(models.AbstractModel):
             self.env._("Účet"), self.env._("MD"), self.env._("D"))
         if foreign:
             head += Markup("<th class='text-end'>%s</th>") % self.env._("V měně %s", foreign.name)
+        show_class = any(row[4] for _caption, _day, rows in documents for row in rows if len(row) > 4)  # ZJ-09 A4
+        if show_class:
+            head += Markup("<th>%s</th>") % self.env._("Třída")
         parts = []
         for caption, day, rows in documents:
             parts.append(Markup("<h5>%s – %s</h5>") % (caption, format_date(self.env, day) if day else "?"))
             body = Markup()
-            for account, debit, credit, amount_currency in rows:
+            for account, debit, credit, amount_currency, *class_code in rows:
                 cells = Markup("<td>%s</td><td class='text-end'>%s</td><td class='text-end'>%s</td>") % (
                     account, money(debit), money(credit))
                 if foreign:
                     cells += Markup("<td class='text-end'>%s</td>") % money(d(amount_currency))
+                if show_class:
+                    cells += Markup("<td>%s</td>") % (class_code[0] if class_code else "")
                 body += Markup("<tr>%s</tr>") % cells
             parts.append(Markup('<table class="table table-sm o_investra_preview"><thead><tr>%s</tr></thead>'
                                 '<tbody>%s</tbody></table>') % (head, body))

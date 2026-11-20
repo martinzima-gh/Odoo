@@ -131,7 +131,7 @@ class TestTradePreview(NavCase):
         return Decimal(str(round(sum(self.env["account.move.line"].sudo().search(domain).mapped("balance")), 2)))
 
     def preview_rows(self, trade):
-        return [(caption, day, sorted((acc, float(dr), float(cr)) for acc, dr, cr, _ccy in rows))
+        return [(caption, day, sorted((acc, float(dr), float(cr)) for acc, dr, cr, _ccy, *_ in rows))
                 for caption, day, rows in trade._preview_documents()]
 
     @staticmethod
@@ -179,7 +179,7 @@ class TestTradePreview(NavCase):
         self.assertIn(trade.event_id.move_id.name, html)
         self.assertIn(trade.settlement_event_id.move_id.name, html)
         self.assertNotIn("Náhled", html)
-        booked = [sorted((acc, float(dr), float(cr)) for acc, dr, cr, _c in rows) for _cap, _day, rows in trade._booked_documents()]
+        booked = [sorted((acc, float(dr), float(cr)) for acc, dr, cr, _c, *_ in rows) for _cap, _day, rows in trade._booked_documents()]
         self.assertEqual(booked, [self.move_rows(trade.event_id.move_id), self.move_rows(trade.settlement_event_id.move_id)])
 
     def test_preview_settlement_date_recognition_has_one_document(self):

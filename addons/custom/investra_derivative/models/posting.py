@@ -63,7 +63,15 @@ class InvestraDerivative(models.Model):
 
     def _line_extra(self):
         self.ensure_one()
-        return {"investra_instrument_id": self.instrument_id.id}
+        extra = {"investra_instrument_id": self.instrument_id.id}
+        if self.portfolio_id.class_id:
+            # ZJ-09 A2(b): zařazení jen u portfolia třídy (třídu doplní _portfolio_class_lines); sdílené portfolio beze
+            # změny, aby se otisk dřívějších dokladů nezměnil.
+            classification = self.env["investra.portfolio.classification"]._valid(
+                self.portfolio_id, self.instrument_id, self.trade_date)
+            if classification:
+                extra["investra_classification_id"] = classification.id
+        return extra
 
     def _ledger(self, role, day, currency=None, valuation=None):
         """Zůstatek role na řádcích této smlouvy k datu; s oceněním včetně jeho návrhů dokladů."""
@@ -346,13 +354,13 @@ class InvestraDerivative(models.Model):
     def _preview_rows(self, lines):
         """Jako společný náhled, jen bankovní řádek ukáže zvolený účet (řádek ho nese v `extra`)."""
         Role, Account, rows = self.env["investra.account.role"], self.env["account.account"].sudo(), []
-        for line in lines:
+        for line in self._preview_class_lines(lines):
             account_id = line.get("extra", {}).get("account_id")
             account = Account.browse(account_id) if account_id else Role.account_for(self.company_id, line["role"])
             amount, label = d(line["amount"]), line.get("name") or ""
             rows.append((account.display_name + (f" ({label})" if label else ""),
                          amount if amount > 0 else Decimal(0), -amount if amount < 0 else Decimal(0),
-                         line.get("amount_currency")))
+                         line.get("amount_currency"), self._class_code(line.get("class_id"))))
         return rows
 
     def _preview_documents(self):

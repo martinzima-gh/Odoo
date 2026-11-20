@@ -32,6 +32,35 @@ podíl na zisku i ztrátě portfolia. Pořadí nároků (`engine.waterfall`) to 
 
 **Mimo rozsah:** statut a zdanění výnosu manažera (ověří Martin u právníka a daňového poradce); třída portfolia (ZJ-09).
 
+## Technický plán
+
+Schváleno Martinem 19. 11. 2026: `docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md`, oddíl 3 (D1–D6), s „Přednostmi“ a oddílem 1 (D13). Obsah se sem nekopíruje.
+
+- Teď (běh 1, Opus 5.5): body 1–3 – pole „Podílí se na společných položkách“ na třídě, výpočet (poměr 0, kapitál = předchozí
+  + pohyby + specifické položky), kontrola na alokačním schématu, upozornění na úplatu z třídy bez podílu (D6, logika).
+- Později: **bod 4 ruční krystalizace** (zůstává v tomto zadání, neprogramuje se).
+- Běh 6 (Copilot): přepínač ve formuláři třídy, zobrazení upozornění D6 ve formuláři pravidla, manuál.
+- Odchylky od plánu se zapisují do Výsledku.
+
 ## Výsledek
+
+Běh 1 dávky (Claude Opus 5.5, 20. 11. 2026), body 1–3 a D6; bod 4 (ruční krystalizace) později. Plán: oddíl 3 zadání dávky.
+
+- **Změněné soubory:** `investra_fund/models/fund.py` (pole „Podílí se na společných položkách“, kontrola aspoň jedné třídy s podílem),
+  `investra_nav/models/fund_class.py` (zámek), `investra_allocation/models/allocation.py` (třída bez podílu nesmí být ve schématu, obě strany),
+  `investra_nav/models/valuation.py` (`_class_context`, `_shared_neutral`, `_class_value`, `_apply_scheme`, `_finish`, přemostění, kontrola
+  `fee_no_common_class`), `investra_nav/models/fee_rule.py` (`no_common_class_warning`); testy `test_class_no_common.py`, `test_allocation_examples.py`.
+- **Ověřeno:** D5 (zisk a ztráta nemění M, přijatá odměna jen M, daň 21 % nesou A a B, pravidlo s příjemcem M, symbolický úpis, odkup a ruční
+  úplata M, pořadí nároků jen mezi A a B, nulový kapitál tříd s podílem zastaví, zámek, upozornění D6); příklady oddílu 10 „Alokační schéma“
+  a „Třída bez podílu“ vyšly všechny podle textu (text se neměnil). Snímek 35 a 39 shodný (fond bez třídy bez podílu = dnešní výsledky).
+- **Odchylky od plánu:**
+  1. `neutral_capital` (NFK) se ukládá jako sdílená část bez kapitálu tříd bez podílu; u fondů bez takové třídy beze změny.
+  2. Haléřové zaokrouhlení součtu tříd nese jen třída s podílem na společných položkách.
+  3. Kontrola ocenění `fee_no_common_class` vzniká jen u fondu s třídou bez podílu (kontroly ostatních ocenění beze změny); upozorní i na
+     úplatu celého fondu (pravidlo bez tříd), jak žádá D6; daň se nehlásí (třídy nemá).
+  4. Zámek: změna jen do prvního ocenění fondu ve stavu Zaúčtováno, U depozitáře, Potvrzeno, Zveřejněno nebo Stornováno.
+  5. D4 (zobrazení): data přemostění u třídy bez podílu mají Změnu společnou a zaokrouhlení 0; formulář, nápověda a XLS jsou běh 6.
+- **Neověřeno:** přepínač ve formuláři třídy a zobrazení upozornění D6 (běh 6); ruční zkouška v UI.
+- **Otevřené otázky a návrhy mimo rozsah:** bod 4 ruční krystalizace.
 
 ## Převzetí

@@ -95,8 +95,7 @@ class TestFeeSolverValuation(NavCase):
                                  "expense_role": "expense_performance", "version_ids": [(0, 0, version)]})
 
     def tax(self, fund, step="3", rate=0.05):
-        return self.Rule.create({"fund_id": fund.id, "name": "Daň", "kind": "tax", "base_step": step,
-                                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": rate})]})
+        return self.fund_tax(fund, rate, step)
 
     def amount(self, valuation, rule):
         return sum(valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule).mapped("amount"))

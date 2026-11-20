@@ -34,8 +34,14 @@ investra_val_approval_rule,investra.valuation.approval company,investra.valuatio
 access_val_step_read,investra.valuation.step read,investra.valuation.step,account.group_account_readonly,r,
 investra_val_step_rule,investra.valuation.step company,investra.valuation.step,,crud,"[('company_id', 'in', company_ids)]"
 access_repayment_read,investra.instrument.repayment read,investra.instrument.repayment,account.group_account_readonly,r,
-access_repayment_preparer,investra.instrument.repayment preparer,investra.instrument.repayment,investra_entity.group_valuation_preparer,cru,
+access_repayment_preparer,investra.instrument.repayment preparer,investra.instrument.repayment,investra_entity.group_valuation_preparer,crud,
 investra_repayment_rule,Splátky podle společnosti,investra.instrument.repayment,,crud,"[('company_id', 'in', company_ids)]"
+access_dividend_read,investra.dividend read,investra.dividend,account.group_account_readonly,r,
+access_dividend_preparer,investra.dividend preparer,investra.dividend,investra_entity.group_valuation_preparer,crud,
+access_dividend_event_read,investra.dividend.event read,investra.dividend.event,account.group_account_readonly,r,
+access_dividend_event_preparer,investra.dividend.event preparer,investra.dividend.event,investra_entity.group_valuation_preparer,crud,
+investra_dividend_event_rule,Dividenda cenného papíru podle společnosti,investra.dividend.event,,crud,"['|', ('line_ids', '=', False), ('line_ids.company_id', 'in', company_ids)]"
+investra_dividend_rule,Dividendy podle společnosti,investra.dividend,,crud,"[('company_id', 'in', company_ids)]"
 access_val_return_wizard,investra.valuation.return.wizard approver,investra.valuation.return.wizard,investra_entity.group_valuation_approver,crud,
 access_lock_exception_request_read,investra.lock.exception.request read,investra.lock.exception.request,account.group_account_readonly,r,
 access_lock_exception_request_appr,investra.lock.exception.request appr,investra.lock.exception.request,investra_entity.group_valuation_approver,cru,
@@ -53,3 +59,12 @@ investra_rate_period_company_rule,Období sazeb podle knihy nástroje,investra.i
 investra_rate_period_read_rule,Období sazeb sdílených nástrojů a vlastní knihy,investra.instrument.rate.period,,r,"['|', ('instrument_id.fund_id', '=', False), ('company_id', 'in', company_ids)]"
 access_rate_wizard,investra.instrument.rate.wizard prep,investra.instrument.rate.wizard,investra_entity.group_valuation_preparer,crud,
 access_val_end_wizard,investra.valuation.end.wizard preparer,investra.valuation.end.wizard,investra_entity.group_valuation_preparer,crud,
+access_tax_rule_read,investra.tax.rule read,investra.tax.rule,account.group_account_readonly,r,
+access_tax_rule_mgr,investra.tax.rule mgr,investra.tax.rule,account.group_account_manager,crud,
+access_tax_rule_version_read,investra.tax.rule.version read,investra.tax.rule.version,account.group_account_readonly,r,
+access_tax_rule_version_mgr,investra.tax.rule.version mgr,investra.tax.rule.version,account.group_account_manager,crud,
+access_fund_tax_exception_read,investra.fund.tax.exception read,investra.fund.tax.exception,account.group_account_readonly,r,
+access_fund_tax_exception_mgr,investra.fund.tax.exception mgr,investra.fund.tax.exception,account.group_account_manager,crud,
+investra_fund_tax_exception_rule,investra.fund.tax.exception company,investra.fund.tax.exception,,crud,"[('company_id', 'in', company_ids)]"
+access_tax_exception_template_read,investra.tax.exception.template read,investra.tax.exception.template,account.group_account_readonly,r,
+access_tax_exception_template_mgr,investra.tax.exception.template mgr,investra.tax.exception.template,account.group_account_manager,crud,

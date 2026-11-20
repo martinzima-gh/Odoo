@@ -5,7 +5,7 @@
         <field name="arch" type="xml">
             <list default_order="code asc">
                 <field name="id" optional="hide"/>
-                <field name="code"/><field name="name"/><field name="isin"/><field name="identifier" optional="hide"/><field name="type_id"/><field name="currency_id"/><field name="fund_id" optional="show"/>
+                <field name="isin"/><field name="name"/><field name="code"/><field name="identifier" optional="hide"/><field name="type_id"/><field name="currency_id"/><field name="fund_id" optional="show"/>
                 <field name="cnb_sheet"/><field name="deviates_from_type"/>
             </list>
         </field>
@@ -15,9 +15,9 @@
         <field name="model">investra.instrument</field>
         <field name="arch" type="xml">
             <search>
+                <field name="isin"/>
                 <field name="name"/>
                 <field name="code"/>
-                <field name="isin"/>
                 <field name="identifier"/>
                 <field name="type_id"/>
                 <field name="currency_id"/>
@@ -26,6 +26,7 @@
                     <filter name="group_by_type" string="Typ" context="{'group_by': 'type_id'}"/>
                     <filter name="group_by_currency" string="Měna" context="{'group_by': 'currency_id'}"/>
                     <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_by_isin" string="ISIN" context="{'group_by': 'isin'}"/>
                 </group>
             </search>
         </field>
@@ -84,7 +85,6 @@
                         List ČNB se liší od návrhu typu nástroje.
                     </div>
                     <group string="Ostatní podíl" invisible="type_group != 'other_holding'">
-                        <field name="class_id"/>
                         <field name="holding_kind" required="type_group == 'other_holding'"/>
                         <field name="commitment_amount"/><field name="order_ref"/>
                     </group>
@@ -142,7 +142,8 @@
                 <field name="trade_date"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'unsettled'" decoration-success="state == 'settled'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id"/><field name="instrument_id"/><field name="side"/><field name="units"/>
-                <field name="price"/><field name="instrument_currency_id" string="Měna"/><field name="settlement_date"/>
+                <field name="price"/><field name="instrument_currency_id" string="Měna"/><field name="fee_amount" optional="show"/>
+                <field name="settlement_date"/>
                 <field name="portfolio_id" optional="hide"/><field name="ifrs9_category" optional="hide"/>
                 <field name="fx_rate" optional="hide"/><field name="accrued_interest" optional="hide"/>
             </list>
@@ -195,6 +196,24 @@
                     <div class="oe_title">
                         <div class="o_investra_metadata">
                             <div class="o_investra_metadata_item">
+                                <label for="fund_id"/>
+                                <field name="fund_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
+                            </div>
+                            <div class="o_investra_metadata_item" invisible="not portfolio_class_id">
+                                Třída: <field name="portfolio_class_id" nolabel="1" readonly="1" class="oe_inline"/>
+                            </div>
+                            <div class="o_investra_metadata_item" invisible="not portfolio_choice">
+                                <label for="portfolio_id"/>
+                                <field name="portfolio_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" options="{'no_create': True}"/>
+                            </div>
+                            <div class="o_investra_metadata_item" invisible="not portfolio_id or portfolio_class_id">
+                                Sdílené portfolio
+                            </div>
+                        </div>
+                        <h1><field name="instrument_id" readonly="event_id or state in ('settled', 'reversed')"
+                                   domain="side == 'sell' and [('id', 'in', held_instrument_ids), ('type_id.kind', '!=', 'other_holding')] or [('type_id.kind', '!=', 'other_holding')]"/></h1>
+                        <div class="o_investra_metadata">
+                            <div class="o_investra_metadata_item">
                                 <label for="side" string="Nákup / Prodej"/>
                                 <field name="side" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
                             </div>
@@ -202,18 +221,6 @@
                                 <label for="trade_date"/>
                                 <field name="trade_date" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
                             </div>
-                        </div>
-                        <h1><field name="instrument_id" readonly="event_id or state in ('settled', 'reversed')"
-                                   domain="side == 'sell' and [('id', 'in', held_instrument_ids), ('type_id.kind', '!=', 'other_holding')] or [('type_id.kind', '!=', 'other_holding')]"/></h1>
-                    </div>
-                    <div class="o_investra_metadata">
-                        <div class="o_investra_metadata_item">
-                            <label for="fund_id"/>
-                            <field name="fund_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
-                        </div>
-                        <div class="o_investra_metadata_item" invisible="not portfolio_choice">
-                            <label for="portfolio_id"/>
-                            <field name="portfolio_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" options="{'no_create': True}"/>
                         </div>
                     </div>
                     <div class="o_investra_metric_strip">
@@ -243,6 +250,16 @@
                             <field name="settlement_date" readonly="state in ('settled', 'reversed')"/>
                             <field name="fx_rate" invisible="not foreign_currency" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="settlement_fx_rate" invisible="not foreign_currency" readonly="state in ('settled', 'reversed')"/>
+                        </group>
+                        <group name="trade_fee" string="Poplatek">
+                            <field name="fee_amount" readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="fee_currency_id" readonly="event_id or state in ('settled', 'reversed')"
+                                   options="{'no_create': True}"/>
+                            <field name="company_currency_id" invisible="1"/>
+                            <field name="fee_fx_rate"
+                                   invisible="fee_currency_id == company_currency_id or (not fee_currency_id and not foreign_currency)"
+                                   readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="fee_treatment" string="Účtování poplatku" readonly="1"/>
                         </group>
                     </group>
                     <group name="trade_classification" string="Zařazení">
@@ -315,10 +332,10 @@
                 <header>
                     <button name="action_approve_drafts" type="object" string="Schválit"/>
                 </header>
-                <field name="date" string="Datum"/>
-                <field name="instrument_code"/>
                 <field name="instrument_isin" optional="show"/>
                 <field name="instrument_id" string="Název"/>
+                <field name="date" string="Datum"/>
+                <field name="instrument_code" optional="hide"/>
                 <field name="scope" optional="hide"/>
                 <field name="fund_id" string="Fond"/>
                 <field name="price" string="Cena"/>
@@ -345,9 +362,9 @@
                         <field name="book_warning" readonly="1"/>
                     </div>
                     <group col="1">
-                        <field name="instrument_id" string="Nástroj" readonly="state == 'approved'"/>
                         <field name="fund_id" string="Fond" readonly="state == 'approved' or id"
                                placeholder="Prázdné = sdílená tržní cena pro všechny fondy"/>
+                        <field name="instrument_id" string="Nástroj" readonly="state == 'approved'"/>
                         <field name="scope" invisible="1"/>
                         <field name="date" string="Datum" readonly="state == 'approved'"/>
                         <field name="price" string="Cena"/>
@@ -368,6 +385,7 @@
         <field name="model">investra.instrument.price</field>
         <field name="arch" type="xml">
             <search>
+                <field name="instrument_isin"/>
                 <field name="instrument_id"/>
                 <field name="fund_id"/>
                 <field name="date"/>
@@ -552,6 +570,7 @@
                 <group>
                     <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
                     <filter name="group_by_portfolio" string="Portfolio" context="{'group_by': 'portfolio_id'}"/>
+                    <filter name="group_by_instrument" string="Nástroj" context="{'group_by': 'instrument_id'}"/>
                     <filter name="group_by_category" string="Kategorie IFRS 9" context="{'group_by': 'ifrs9_category'}"/>
                 </group>
             </search>
@@ -562,7 +581,8 @@
         <field name="arch" type="xml">
             <list default_order="sequence asc">
                 <field name="id" optional="hide"/>
-                <field name="sequence" widget="handle"/><field name="fund_id"/><field name="name"/><field name="business_model"/>
+                <field name="sequence" widget="handle"/><field name="fund_id"/><field name="class_id" optional="show"/>
+                <field name="name"/><field name="business_model"/>
             </list>
         </field>
     </record>
@@ -572,7 +592,10 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="fund_id" options="{'no_create': True}"/><field name="name"/><field name="business_model"/>
+                        <field name="fund_id" options="{'no_create': True}"/>
+                        <field name="class_id" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"
+                               help="Prázdné = sdílené všemi třídami."/>
+                        <field name="name"/><field name="business_model"/>
                         <field name="assessment"/><field name="active" invisible="1"/>
                     </group>
                     <field name="classification_ids" context="{'default_portfolio_id': id}">

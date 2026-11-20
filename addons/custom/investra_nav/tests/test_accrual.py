@@ -400,7 +400,8 @@ class TestAccrual(NavCase):
         form.kind = "extraordinary"
         self.assertTrue(form.closes_position)
         arch = self.env.ref("investra_nav.view_repayment_form").arch
-        self.assertLess(arch.index('name="kind"'), arch.index('name="fund_id"'))
+        # AG-023: fond je ve formuláři první, potom druh splátky.
+        self.assertLess(arch.index('name="fund_id"'), arch.index('name="kind"'))
         self.assertIn('invisible="kind != \'extraordinary\'"', arch)
 
     def test_date_change_keeps_manual_amounts_instrument_change_prefills(self):
@@ -604,6 +605,8 @@ class TestAccrual(NavCase):
         bond = self.env["investra.instrument"].create(with_ids(self.env, {
             "name": f"Přepsaný {self.fund.id}", "currency_id": self.czk.id, "type_id": self.env.ref("investra_instruments.type_bond").id,
         }))
+        # ZJ-18: dluh FVOCI potřebuje kalendář toků (naběhlá hodnota je základ oceňovacího rozdílu).
+        bond.cashflow_ids = [(0, 0, {"date": "2031-01-01", "amount": 500, "flow_type": "principal"})]
         self.classify(self.fund, bond, category_override="fvoci", override_note="Test přepsání")
         self.env["investra.trade"].create({
             "fund_id": self.fund.id, "portfolio_id": self.portfolio(self.fund).id, "instrument_id": bond.id,

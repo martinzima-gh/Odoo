@@ -39,10 +39,7 @@ class TestScenarios(NavCase):
                                         "initial_reference": float(fee["hwm"])})],
             })
         if first.get("tax"):
-            Rule.create({
-                "fund_id": fund.id, "name": "Daň", "kind": "tax",
-                "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": float(first["tax"]["rate"])})],
-            })
+            self.fund_tax(fund, float(first["tax"]["rate"]))
         for index, (val, expected) in enumerate(zip(data["valuations"], data["expected"])):
             day = val["date"]
             for currency, value in val.get("fx", {}).items():
