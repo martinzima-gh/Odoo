@@ -28,7 +28,13 @@ NAV_INSTRUMENT_FIELDS = {
 SYSTEM_TRADE_FIELDS = {"state", "event_id", "settlement_event_id", "reversal_reason", "settlement_reversal_reason"}
 # Odchylka kurzu vypořádání od kurzu obchodu, od které formulář upozorní (rozhodnutí 2026-11-12).
 SETTLEMENT_FX_WARNING = 0.10
-BOOKED_TRADE_FIELDS = {"fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest"}
+BOOKED_TRADE_FIELDS = {
+    "fund_id", "portfolio_id", "instrument_id", "trade_date", "quantity", "side", "price", "fx_rate", "accrued_interest",
+    "fee_amount", "fee_currency_id", "fee_fx_rate",  # ZJ-16
+}
+# ZJ-16: analytický účet nákladů na poplatky obchodů (další účet role expense_bank_fee, osnova 615 „Náklady na operace
+# s cennými papíry“; ČNB VYFO20_11 ř. 23 sčítá hlavní i další účty role).
+FEE_ACCOUNT_CODE = "615200"
 
 
 def book_problem(env, books, record_label, in_form=False):
@@ -663,6 +669,18 @@ class InvestraTrade(models.Model):
     )
     fx_rate = fields.Float(default=1, digits=(16, 6), required=True, help="Funkční měna za jednotku měny nástroje.", string="Kurz")
     settlement_fx_rate = fields.Float(digits=(16, 6), help="Kurz platby; bez zadání platí kurz obchodu.", string="Kurz vypořádání")
+    # ZJ-16: poplatek obchodníka nebo burzy. Nákup FVTPL a každý prodej = náklad; nákup v naběhlé hodnotě a FVOCI = součást
+    # pořizovací ceny (IFRS 9 5.1.1, B5.4.8; IFRS 13.25).
+    fee_amount = fields.Float(digits=(20, 2), default=0, string="Poplatek", help="Poplatek obchodníka nebo burzy, kladně.")
+    fee_currency_id = fields.Many2one("res.currency", string="Měna poplatku", help="Prázdné = měna nástroje.")
+    fee_fx_rate = fields.Float(
+        digits=(16, 6), string="Kurz poplatku",
+        help="Funkční měna za jednotku měny poplatku. Měna nástroje: bez zadání kurz obchodu; funkční měna: 1; jiná měna: povinný.",
+    )
+    fee_treatment = fields.Selection(
+        [("expense", "Náklad"), ("capitalise", "Součást pořizovací ceny")], compute="_compute_fee_treatment",
+        string="Účtování poplatku",
+    )
     state = fields.Selection(
         [("draft", "Návrh"), ("unsettled", "Sjednáno, nevypořádáno"), ("settled", "Vypořádáno"), ("reversed", "Stornováno")],
         required=True, default="draft", readonly=True, index=True, string="Stav",
@@ -896,6 +914,91 @@ class InvestraTrade(models.Model):
         self.ensure_one()
         return self.accrued_interest if self.quantity >= 0 else -self.accrued_interest
 
+    @api.depends("side", "quantity", "ifrs9_category")
+    def _compute_fee_treatment(self):
+        for trade in self:
+            buy = trade.side == "buy" or (not trade.side and trade.quantity > 0)
+            trade.fee_treatment = "capitalise" if buy and trade.ifrs9_category in ("amortised", "fvoci") else "expense"
+
+    @api.constrains("fee_amount", "fee_currency_id", "fee_fx_rate", "instrument_id", "fund_id")
+    def _check_fee(self):
+        for trade in self:
+            if trade.fee_amount < 0:
+                raise ValidationError(self.env._("Poplatek se zadává kladně."))
+            if trade.fee_fx_rate < 0:
+                raise ValidationError(self.env._("Kurz poplatku nesmí být záporný."))
+            currency = trade.fee_currency_id
+            if (trade.fee_amount and currency and trade.company_id and currency != trade.company_id.currency_id
+                    and currency != trade.instrument_id.currency_id and not trade.fee_fx_rate):
+                raise ValidationError(self.env._(
+                    "Poplatek v měně %s (jiné než měna nástroje a funkční měna) vyžaduje kurz poplatku.", currency.name))
+
+    def _fee_currency(self):
+        self.ensure_one()
+        return self.fee_currency_id or self.instrument_id.currency_id
+
+    def _fee_amounts(self, fx):
+        """Poplatek: (částka ve funkční měně, částka v měně poplatku, měna poplatku, částka v měně nástroje).
+
+        Kurz poplatku: funkční měna 1; jinak zadaný; měna nástroje bez zadání kurz obchodu `fx`. Částka v měně nástroje
+        (pro kapitalizaci) je zadaný poplatek, je-li v měně nástroje, jinak funkční částka / kurz obchodu."""
+        self.ensure_one()
+        company_currency = self.company_id.currency_id
+        currency = self._fee_currency()
+        if currency == company_currency:
+            rate = 1.0
+        else:
+            rate = self.fee_fx_rate or (fx if currency == self.instrument_id.currency_id else 0.0)
+            if not rate:
+                raise UserError(self.env._("Poplatek v měně %s vyžaduje kurz poplatku.", currency.name))
+        amount = company_currency.round(self.fee_amount * rate)
+        if self.instrument_id.currency_id == company_currency:
+            in_instrument = amount
+        elif currency == self.instrument_id.currency_id:
+            in_instrument = self.fee_amount
+        else:
+            in_instrument = amount / fx
+        return amount, self.fee_amount, currency, in_instrument
+
+    def _capitalised_fee_ccy(self):
+        """Poplatek, který je součástí pořizovací ceny, v měně nástroje (0, když se účtuje jako náklad); ZJ-16 E4.
+        Pořizovací cena zbývajících kusů (průměrka) a naběhlá hodnota z něj vycházejí."""
+        self.ensure_one()
+        if not self.fee_amount or self.fee_treatment != "capitalise":
+            return 0.0
+        return self._fee_amounts(self._booked_fx() or 1.0)[3]
+
+    def _fee_account(self):
+        """Analytický účet nákladů na poplatky obchodů v knize fondu; chybějící účet je chyba s návodem."""
+        self.ensure_one()
+        account = self.env["investra.account.role"].sudo().accounts_for(self.company_id, "expense_bank_fee").filtered(
+            lambda a: a.code == FEE_ACCOUNT_CODE)[:1]
+        if not account:
+            raise UserError(self.env._(
+                "Kniha %(book)s nemá účet %(code)s Poplatky za obchody s investičními nástroji. Přidejte ho k roli Bankovní poplatky "
+                "(Účty rolí) nebo povyšte modul Investra Chart Fund.", book=self.company_id.name, code=FEE_ACCOUNT_CODE))
+        return account
+
+    def _fee_lines(self, role, fx):
+        """Řádky poplatku: (řádky k připojení před protiúčet, platby [(funkční částka, měna, částka v měně)])."""
+        self.ensure_one()
+        if not self.fee_amount:
+            return [], []
+        amount, fee_ccy, currency, in_instrument = self._fee_amounts(fx)
+        if not amount and not fee_ccy:
+            return [], []
+        extra = {"investra_instrument_id": self.instrument_id.id, "investra_classification_id": self._classification().id}
+        label = self.env._("Poplatek %s", self.instrument_id.name)
+        if self.fee_treatment == "capitalise":
+            instrument_currency = self.instrument_id.currency_id
+            foreign = instrument_currency != self.company_id.currency_id
+            line = {"role": role, "amount": amount, "movement_type": "transaction", "extra": extra, "name": label,
+                    **({"currency_id": instrument_currency.id, "amount_currency": in_instrument} if foreign else {})}
+        else:
+            line = {"role": "expense_bank_fee", "amount": amount, "movement_type": "fee",
+                    "extra": {**extra, "account_id": self._fee_account().id}, "name": label}
+        return [line], [(amount, currency, fee_ccy)]
+
     @api.constrains("trade_date", "settlement_date")
     def _check_settlement_date(self):
         for trade in self:
@@ -976,10 +1079,12 @@ class InvestraTrade(models.Model):
             return self.settlement_fx_rate or self.fx_rate
         return self.fx_rate
 
-    def _event_lines(self, role, counter_role, fx):
+    def _event_lines(self, role, counter_role, fx, with_fee=True):
         """Řádky obchodu: role proti protiúčtu, v měně nástroje a ve funkční měně.
 
         Naběhlý úrok dluhopisu je samostatný řádek role (stejný účet, popis „Naběhlý úrok“); protiúčet nese celou platbu.
+        Poplatek (ZJ-16): náklad, nebo řádek role (součást pořizovací ceny) a vlastní protiúčet v měně poplatku; patří jen
+        do kroku sjednání (`with_fee=False` ve vypořádání nevypořádaného obchodu, viz `_fee_settlement_lines`).
         """
         round_ = self.company_id.currency_id.round
         foreign = self.quantity * self.price
@@ -999,6 +1104,30 @@ class InvestraTrade(models.Model):
                           "name": self.env._("Naběhlý úrok %s", self.instrument_id.name), **currency(interest_foreign)})
         lines.append({"role": counter_role, "amount": -(amount + interest), "movement_type": "transaction",
                       **currency(-(foreign + interest_foreign))})
+        if with_fee:
+            fee_lines, fee_pay = self._fee_lines(role, fx)
+            lines += fee_lines
+            company_currency = self.company_id.currency_id
+            for amount_fee, fee_currency, amount_fee_ccy in fee_pay:
+                lines.append({"role": counter_role, "amount": -amount_fee, "movement_type": "transaction",
+                              **({"currency_id": fee_currency.id, "amount_currency": -amount_fee_ccy}
+                                 if fee_currency != company_currency else {})})
+        return lines
+
+    def _fee_settlement_lines(self, unsettled_role, fx):
+        """Vypořádání poplatku sjednaného obchodu: nevypořádané ↔ banka v měně poplatku (ZJ-16 E3)."""
+        self.ensure_one()
+        if not self.fee_amount:
+            return []
+        _lines, fee_pay = self._fee_lines(self._classification().role_id.code, fx)
+        company_currency = self.company_id.currency_id
+        lines = []
+        for amount_fee, fee_currency, amount_fee_ccy in fee_pay:
+            foreign = fee_currency != company_currency
+            lines.append({"role": unsettled_role, "amount": amount_fee, "movement_type": "transaction",
+                          **({"currency_id": fee_currency.id, "amount_currency": amount_fee_ccy} if foreign else {})})
+            lines.append({"role": "bank", "amount": -amount_fee, "movement_type": "transaction",
+                          **({"currency_id": fee_currency.id, "amount_currency": -amount_fee_ccy} if foreign else {})})
         return lines
 
     def _post_trade_event(self, key, name, day, lines, event_type="trade"):
@@ -1031,8 +1160,10 @@ class InvestraTrade(models.Model):
         return [
             ("book", f"trade:{self.id}", f"Obchod {name}", self.trade_date,
              self._event_lines(role, unsettled, self.fx_rate), "trade"),
+            # Poplatek je ve sjednání proti nevypořádaným; vypořádání ho přesune do banky (ZJ-16 E3).
             ("settle", f"trade-settle:{self.id}", f"Vypořádání {name}", self.settlement_date,
-             self._event_lines(unsettled, "bank", settlement_fx), "trade_settlement"),
+             self._event_lines(unsettled, "bank", settlement_fx, with_fee=False)
+             + self._fee_settlement_lines(unsettled, self.fx_rate), "trade_settlement"),
         ]
 
     def _planned_step(self, step):
@@ -1040,7 +1171,7 @@ class InvestraTrade(models.Model):
         return next((plan for plan in self._planned_postings() if plan[0] == step), None)
 
     def _book(self):
-        """Zaúčtuje obchod podle nastavení fondu; v prototypu bez poplatků."""
+        """Zaúčtuje obchod podle nastavení fondu (poplatek obchodu ZJ-16)."""
         for trade in self.filtered(lambda t: t.state == "draft"):
             instrument = trade.instrument_id
             if instrument.type_group == "other_holding":

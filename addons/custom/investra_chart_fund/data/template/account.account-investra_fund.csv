@@ -47,6 +47,7 @@
 "ifa_761902","Skonto – výnos","767902","income_other","False"
 "ifa_511000","Ztráta z přecenění na reálnou hodnotu","615000","expense","False"
 "ifa_511100","Realizovaná ztráta z nástrojů","615100","expense","False"
+"ifa_615200","Poplatky za obchody s investičními nástroji","615200","expense","False"
 "ifa_563000","Kurzové ztráty","616000","expense","False"
 "ifa_518100","Úplata za obhospodařování","636100","expense","False"
 "ifa_518200","Úplata za administraci","636200","expense","False"

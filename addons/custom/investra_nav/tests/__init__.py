@@ -28,3 +28,5 @@ from . import test_portfolio_class
 from . import test_class_no_common
 from . import test_allocation_examples
 from . import test_fiscal_year
+from . import test_trade_fee
+from . import test_derecognition

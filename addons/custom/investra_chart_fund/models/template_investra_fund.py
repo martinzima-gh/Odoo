@@ -93,7 +93,9 @@ OUTSTANDING_ACCOUNTS = {
 }
 # Další účty rolí: role → účty šablony, které se k ní přidají jako další účty (hlavní účet je v ROLE_ACCOUNTS).
 # Inkasa na cestě (119100) mají od 2026-11-12 vlastní roli cash_in_transit_receipt (hlavní účet).
-EXTRA_ROLE_ACCOUNTS = {"cash_in_transit": ("ifa_119200",)}
+# Poplatky obchodů s nástroji (ZJ-16) mají vlastní analytický účet 615200 pod rolí Bankovní poplatky: ČNB VYFO20_11 ř. 23
+# sčítá hlavní i další účty role, ostatní poplatky (612000) zůstávají odděleně.
+EXTRA_ROLE_ACCOUNTS = {"cash_in_transit": ("ifa_119200",), "expense_bank_fee": ("ifa_615200",)}
 
 
 class AccountChartTemplate(models.AbstractModel):

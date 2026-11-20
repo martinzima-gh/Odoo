@@ -207,6 +207,7 @@ Názvy účtů se nemění, sloupec Název je pracovní popis.
 | ifa_431000 | (nerozdělený výsledek Odoo) | 590000 | 590000 | Výsledek běžného období | beze změny |
 | ifa_511000 | loss_fair_value | 613000 | 615000 | Ztráta z přecenění na reálnou hodnotu | 615 Náklady na operace s CP (613 je leasing) |
 | ifa_511100 (nový 2026-11-12) | loss_realised (nová) | – | **615100** | Realizovaná ztráta z nástrojů | 615; prodej a splacení v RH (rozhodnutí „Úrok v RH a realizovaný výsledek“); ČNB VYFO20_11 ř. 30 |
+| ifa_615200 (nový 2026-11-20, ZJ-16) | další účet role expense_bank_fee | – | **615200** | Poplatky za obchody s investičními nástroji | 615 Náklady na operace s CP; poplatek obchodu v nákladech (nákup FVTPL, každý prodej); ČNB VYFO20_11 ř. 23 (role sčítá hlavní i další účty) |
 | ifa_563000 | loss_fx | 614000 | 616000 | Kurzové ztráty | 616 Náklady na devizové operace |
 | ifa_518100 | expense_management | 631100 | 636100 | Úplata za obhospodařování | 636 Nakupované výkony – z pohledu fondu služby (**R**); 631 jsou náklady na zaměstnance |
 | ifa_518300 | expense_depositary | 631300 | 636300 | Úplata depozitáři | 636 (**R**) |

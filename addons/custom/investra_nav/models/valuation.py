@@ -634,34 +634,6 @@ class InvestraValuation(models.Model):
 
     # --- realizovaný výsledek a průměrná pořizovací cena (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“) --
 
-    def _position_events(self, instrument, portfolio, start, end):
-        """Obchody a zaúčtované splátky jistiny pozice v období (start, end] po datech:
-        [(datum, kusy se znaménkem, částka bez úroku v měně nástroje, kurz zaúčtování, uzavírá pozici)]."""
-        Trade = self.env["investra.trade"].sudo()
-        trades = Trade._recognised(self.fund_id, end, instrument, portfolio)
-        if start:
-            trades -= Trade._recognised(self.fund_id, start, instrument, portfolio)
-        # Náhled obchodu (rozhodnutí 2026-11-12 „Náhled zaúčtování obchodu“): uložená verze obchodu se nahradí
-        # hodnotami z formuláře, nebo se vynechá; běžné ocenění kontext nemá.
-        preview = self.env.context.get("investra_trade_preview")
-        if preview:
-            trades = trades.filtered(lambda t: t.id != preview["exclude_id"])
-        events = [(t._recognition_date(), d(t.quantity), d(t.quantity) * d(t.price), d(t._booked_fx()), False) for t in trades]
-        added = preview and preview.get("trade")
-        if added and (not start or added._recognition_date() > start) and added._recognition_date() <= end:
-            events.append((added._recognition_date(), d(added.quantity), d(added.quantity) * d(added.price),
-                           d(added._booked_fx()), False))
-        domain = [("fund_id", "=", self.fund_id.id), ("instrument_id", "=", instrument.id), ("portfolio_id", "=", portfolio.id),
-                  ("state", "=", "posted"), ("date", "<=", end)]
-        if start:
-            domain.append(("date", ">", start))
-        ppu = d(instrument._principal_per_unit())
-        for repayment in self.env["investra.instrument.repayment"].sudo().search(domain):
-            principal = d(repayment.principal_amount)
-            events.append((repayment.date, -principal / ppu, -principal, d(repayment.fx_rate), repayment.closes_position))
-        # Nákupy téhož dne před prodeji a splátkami.
-        return sorted(events, key=lambda e: (e[0], e[1] < 0))
-
     def _cost_walk(self, instrument, portfolio, previous):
         """Pořizovací cena zbývajících kusů průměrem (pravidlo „Částečný prodej“), v měně nástroje a ve funkční měně,
         bez naběhlého úroku zaplaceného u nákupu; a realizovaný kurzový rozdíl prodejů a splátek jistiny od minulého
@@ -672,14 +644,17 @@ class InvestraValuation(models.Model):
         rozdíl“). Výsledek: (pořizovací cena v měně nástroje, ve funkční měně, realizovaný kurz nezaokrouhleně)."""
         since = previous.date if previous else None
         units = cost_ccy = cost = realised_fx = Decimal(0)
-        for day, quantity, amount, fx, closes in self._position_events(instrument, portfolio, None, self.date):
+        for day, quantity, amount, fx, closes, manual in self.env["investra.trade"]._position_events(
+                self.fund_id, instrument, portfolio, None, self.date):
             if quantity > 0:
                 units, cost_ccy, cost = units + quantity, cost_ccy + amount, cost + amount * fx
             elif units > 0:
-                share = Decimal(1) if closes else min(-quantity / units, Decimal(1))
+                share_units = Decimal(1) if closes else min(-quantity / units, Decimal(1))
+                # ZJ-15 B3: prodej s ruční cenou vyskladnění odebere zadanou pořizovací cenu, ne průměrný podíl.
+                share_cost = min(manual / cost_ccy, Decimal(1)) if manual is not None and cost_ccy else share_units
                 if since is None or day > since:
-                    realised_fx += share * (cost_ccy * fx - cost)
-                units, cost_ccy, cost = units * (1 - share), cost_ccy * (1 - share), cost * (1 - share)
+                    realised_fx += share_cost * (cost_ccy * fx - cost)
+                units, cost_ccy, cost = units * (1 - share_units), cost_ccy * (1 - share_cost), cost * (1 - share_cost)
         return engine.money(cost_ccy), engine.money(cost), realised_fx
 
     def _realised_ccy(self, instrument, portfolio, previous, account, foreign_currency):
@@ -687,8 +662,11 @@ class InvestraValuation(models.Model):
         (bez úroku) − jejich poměrná účetní hodnota průměrem. Účetní hodnota k minulému ocenění = zůstatek účtu nástroje
         bez naběhlého úroku; dříve zaúčtované přecenění zůstává (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“).
         Výsledek: (realizace v měně nástroje, realizace přepočtená kurzem zaúčtování prodeje či splátky)."""
-        units = carrying = Decimal(0)
+        units = carrying = cost_ccy = Decimal(0)
+        Trade = self.env["investra.trade"]
         if previous:
+            # ZJ-15 B3: pořizovací cena pozice k minulému ocenění (podíl ruční ceny vyskladnění se měří proti ní).
+            cost_ccy = Trade._average_cost(self.fund_id, instrument, portfolio, previous.date)[1]
             units = d(self.env["investra.trade"].sudo()._holdings(self.fund_id, previous.date).get((instrument, portfolio), 0))
             field = "amount_currency" if foreign_currency else "balance"
             total = self.env["account.move.line"].sudo()._read_group([
@@ -699,14 +677,16 @@ class InvestraValuation(models.Model):
             accrued = instrument._fair_value_interest(self.fund_id, portfolio, previous.date)
             carrying = d(total) - (accrued[1] if accrued else 0)
         realised = rated = Decimal(0)
-        for _day, quantity, amount, fx, closes in self._position_events(instrument, portfolio, previous.date if previous else None, self.date):
+        for _day, quantity, amount, fx, closes, manual in Trade._position_events(
+                self.fund_id, instrument, portfolio, previous.date if previous else None, self.date):
             if quantity > 0:
-                units, carrying = units + quantity, carrying + amount
+                units, carrying, cost_ccy = units + quantity, carrying + amount, cost_ccy + amount
             elif units > 0:
-                share = Decimal(1) if closes else min(-quantity / units, Decimal(1))
-                part = -amount - carrying * share
+                share_units = Decimal(1) if closes else min(-quantity / units, Decimal(1))
+                share_cost = min(manual / cost_ccy, Decimal(1)) if manual is not None and cost_ccy else share_units
+                part = -amount - carrying * share_cost
                 realised, rated = realised + part, rated + part * fx
-                units, carrying = units * (1 - share), carrying * (1 - share)
+                units, carrying, cost_ccy = units * (1 - share_units), carrying * (1 - share_cost), cost_ccy * (1 - share_cost)
         return realised, rated
 
     def _compute_bank_fx(self):

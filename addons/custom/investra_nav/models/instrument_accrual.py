@@ -152,7 +152,9 @@ class InvestraInstrument(models.Model):
             quantity = engine.dec(trade.quantity) * factor
             # Dluhopis koupený s naběhlým kupónem: zaplacený úrok je součástí pořizovací částky (rozhodnutí 2026-11-12
             # „Úrok v RH a realizovaný výsledek“).
-            cost = quantity * engine.dec(trade.price) + engine.dec(trade._signed_accrued_interest()) * factor
+            # ZJ-16 E4: poplatek nákupu je součástí pořizovací ceny, efektivní úroková míra vychází z nákladů včetně něj.
+            cost = (quantity * engine.dec(trade.price) + engine.dec(trade._signed_accrued_interest()) * factor
+                    + engine.dec(trade._capitalised_fee_ccy()) * factor)
             starts = [trade.trade_date, *[c for c in changes if trade.trade_date < c < day]]
             if len(starts) > 1:
                 segments = [(start, position_flows(self._flows_valid_on(all_flows, start), trade.trade_date, quantity))
