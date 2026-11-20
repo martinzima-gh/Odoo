@@ -28,6 +28,12 @@ Formulář pravidla ukazuje jen přípustné volby a popisky svého druhu (pole 
 odměny; rozdíl se doúčtuje v dalším ocenění.“ U úplaty ze stavu k datu (FK, kapitál třídy) se změna projeví jen v dalších oceněních. Změna se zapíše
 do historie pravidla jednou, jako změna pole „Základ: po kroku“.
 
+**Pevná částka měsíčně: Výpočet za období** (u verze sazby). **Poměrně** krátí pevnou částku podle počtu dní období, **Za každý započatý měsíc** ji
+platí celou za každý kalendářní měsíc, kterého se období dotýká, i započatý. Příklad při 10 000 měsíčně a konvenci Act/365 (ověřeno enginem):
+období 31. 10. – 30. 11. (30 dní) vyjde Poměrně 9 863,01 (10 000 × 12 × 30/365) a Za každý započatý měsíc 10 000 (jen listopad); období
+14. 10. – 13. 11. (také 30 dní) vyjde Poměrně opět 9 863,01, Za každý započatý měsíc 20 000 (říjen i listopad). Úplata třídy začíná dnem po
+prvním úpisu, a když první období leží v jednom měsíci, vyjde jeden celý měsíc. Pole se týká měsíčních částek (pevná částka, příplatek za pásmo a za třídu); sazba p. a. se vždy krátí podle dní.
+
 **Vzájemný dopočet.** Když jsou pravidla navzájem základem (například úplata z výsledného FK a daň po úplatách), ocenění je spočítá společně
 („společný dopočet“) a výsledek se ustálí. Není to chyba. Kontrola ocenění „Společný dopočet úplat je konzistentní“ hlídá, že se výpočet ustálil.
 

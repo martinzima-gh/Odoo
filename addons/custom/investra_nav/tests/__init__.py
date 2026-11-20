@@ -39,3 +39,4 @@ from . import test_tax_rules
 from . import test_fund_fiscal_year_end
 from . import test_draft_delete
 from . import test_fee_started_month
+from . import test_zj24_messages

@@ -131,6 +131,7 @@ class InvestraClassMovement(models.Model):
     )
     fee_rate_percent = fields.Float(compute="_compute_fee_rate_percent", digits=(16, 4), string="Sazba poplatku třídy (%)")
     fee_warning = fields.Char(compute="_compute_fee_warning", string="Upozornění k poplatku")
+    launch_warning = fields.Char(compute="_compute_launch_warning", string="Upozornění k datu")
     units_hint = fields.Char(compute="_compute_units_hint", string="Zaokrouhlení kusů")
 
     # D. Storno a oprava
@@ -370,6 +371,17 @@ class InvestraClassMovement(models.Model):
                         rate=movement.fee_rate_percent, expected=movement.fee_expected_class,
                     )
             movement.fee_warning = warning
+
+    @api.depends("class_id", "date", "state")
+    def _compute_launch_warning(self):
+        # ZJ-24 bod 13: ocenění bere pohyby až po datu vzniku fondu (první období začíná jeho datem), dřívější úpis by v něm chyběl.
+        for movement in self:
+            launch = movement.fund_id.launch_date
+            movement.launch_warning = self.env._(
+                "Datum pohybu (%(date)s) není po datu vzniku fondu (%(launch)s). Do prvního ocenění se nezapočte, "
+                "kapitál fondu pak vyjde nulový. Opravte datum pohybu, nebo datum vzniku fondu.",
+                date=movement.date, launch=launch,
+            ) if movement.state == "draft" and launch and movement.date and movement.date <= launch else False
 
     @api.depends("class_id")
     def _compute_units_hint(self):

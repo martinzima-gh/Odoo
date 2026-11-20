@@ -863,6 +863,9 @@
                             </div>
                         </div>
                     </div>
+                    <div class="alert alert-warning" role="alert" invisible="not launch_warning">
+                        <field name="launch_warning" nolabel="1"/>
+                    </div>
                     <!-- Zdroj -->
                     <group>
                         <field name="source" readonly="state != 'draft'"/>

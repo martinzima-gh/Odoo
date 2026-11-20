@@ -396,6 +396,21 @@ class InvestraValuation(models.Model):
         self.portfolio_line_ids.unlink()
         self.check_ids.unlink()
 
+    def _zero_capital_error(self, start, whole_fund):
+        """Hláška k nulovému kapitálu. Když fond má nestornované pohyby k datu `start` nebo dřív (typicky úpis před vznikem
+        fondu), řekne to výslovně (ZJ-24 bod 13); ocenění bere jen pohyby po začátku období, dřívější nezapočítá."""
+        early = self.env["investra.class.movement"].sudo().search([
+            ("fund_id", "=", self.fund_id.id), ("date", "<=", start), ("state", "!=", "reversed"),
+        ], order="date, id")
+        if early and not self.previous_id:
+            return UserError(self.env._(
+                "Fond nemá v období po %(start)s žádný kapitál. Úpis nebo odkup s datem %(dates)s je před datem vzniku fondu "
+                "(%(start)s) nebo na něm, do prvního ocenění se proto nezapočte. Opravte datum pohybu, nebo datum vzniku fondu.",
+                start=start, dates=", ".join(sorted({fields.Date.to_string(m.date) for m in early}))))
+        if whole_fund:
+            return UserError(self.env._("Předběžný kapitál fondu je nulový."))
+        return UserError(self.env._("Předběžný kapitál tříd, které se podílejí na společných položkách, je nulový."))
+
     def _class_context(self):
         """Předběžný kapitál, kusy a poměr tříd."""
         start = self._period_start()
@@ -431,9 +446,7 @@ class InvestraValuation(models.Model):
         common = {c: row for c, row in result.items() if c.shares_common}
         total = sum(row["pre_capital"] for row in common.values())
         if not total:
-            if len(common) == len(result):
-                raise UserError(self.env._("Předběžný kapitál fondu je nulový."))
-            raise UserError(self.env._("Předběžný kapitál tříd, které se podílejí na společných položkách, je nulový."))
+            raise self._zero_capital_error(start, len(common) == len(result))
         for fund_class, row in result.items():
             row["ratio"] = row["pre_capital"] / total if fund_class in common else Decimal(0)
             row["fixed"] = Decimal(0) if fund_class in common else row["pre_capital"]

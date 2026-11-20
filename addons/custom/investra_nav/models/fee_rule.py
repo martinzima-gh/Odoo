@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -474,14 +474,27 @@ class InvestraFeeRule(models.Model):
         versions = [v._engine_values() for v in self.version_ids]
         if not versions:
             raise UserError(self.env._("Pravidlo %s nemá žádnou sazbu.", self.name))
+        # ZJ-24 bod 14: engine by na mezeru před první verzí odpověděl jen „Pro den … není platná sazba“; tady řekneme čeho se týká.
+        # Podmínka kopíruje engine (první den období = den po začátku).
+        if min(self.version_ids.mapped("valid_from")) > start + timedelta(days=1):
+            raise self._no_rate_error(start + timedelta(days=1))
         # ZJ-12 krok 2: engine počítá vždy ze základu, který mu předá ocenění; volbu kroku řeší ocenění.
         return {"basis": self.basis, "versions": versions}
+
+    def _no_rate_error(self, day):
+        """Hláška o dni bez sazby: pravidlo, fond a první platná verze, aby bylo jasné, kterou verzi doplnit nebo posunout (ZJ-24 bod 14)."""
+        self.ensure_one()
+        first = min(self.version_ids.mapped("valid_from"), default=None)
+        return UserError(self.env._(
+            "Pravidlo úplaty %(rule)s (fond %(fund)s) nemá sazbu ke dni %(day)s. První verze sazby platí od %(first)s. "
+            "Posuňte u první verze Platí od na %(day)s nebo dřívější datum.",
+            rule=self.name, fund=self.fund_id.display_name, day=day, first=first or self.env._("(žádná verze)")))
 
     def _version_at(self, day):
         self.ensure_one()
         valid = self.version_ids.filtered(lambda v: v.valid_from <= day).sorted("valid_from")
         if not valid:
-            raise UserError(self.env._("Pravidlo %(rule)s nemá sazbu k %(day)s.", rule=self.name, day=day))
+            raise self._no_rate_error(day)
         return valid[-1]
 
 
@@ -503,7 +516,7 @@ class InvestraFeeVersion(models.Model):
     rate = fields.Float(digits=(10, 8), tracking=True, string="Sazba p. a.", help="Roční sazba (0,01 = 1 %). U výkonnostní odměny podíl z přebytku nad překážkou, u očekávané daně sazba daně.")
     threshold = fields.Float(digits=(20, 2), tracking=True, string="Práh základu", help="Sazba se použije jen na část základu nad prahem.")
     fixed_monthly = fields.Float(digits=(20, 2), tracking=True, string="Pevná částka měsíčně", help="Pevná částka za měsíc, přičítá se k částce ze sazby.")
-    fixed_mode = fields.Selection([("pro_rata", "Poměrně"), ("started_month", "Za každý započatý měsíc")], default="pro_rata", required=True, tracking=True, string="Výpočet za období", help="Poměrně: pevná částka se krátí podle délky období. Za každý započatý měsíc: platí celá za každý kalendářní měsíc období.")
+    fixed_mode = fields.Selection([("pro_rata", "Poměrně"), ("started_month", "Za každý započatý měsíc")], default="pro_rata", required=True, tracking=True, string="Výpočet za období", help="Týká se měsíčních částek (pevná částka, příplatek za pásmo a za třídu). Poměrně: částka se krátí podle počtu dní (podle konvence dnů pravidla). Za každý započatý měsíc: platí celá za každý kalendářní měsíc, kterého se období dotýká, i započatý. Příklad při 10 000 měsíčně a 30 dnech: Poměrně 9 863,01 (30/365 z 12 × 10 000); Za každý započatý měsíc 10 000, když 30 dní leží v jednom měsíci (31. 10. – 30. 11.), a 20 000, když zasahují do dvou (14. 10. – 13. 11.).")
     step_size = fields.Float(digits=(20, 2), tracking=True, string="Velikost pásma", help="Velikost pásma základu. Příplatek za pásmo se přičítá za každé další započaté pásmo nad prvním.")
     step_amount = fields.Float(digits=(20, 2), tracking=True, string="Příplatek za pásmo", help="Měsíční příplatek za každé další započaté pásmo základu nad prvním.")
     included_classes = fields.Integer(tracking=True, string="Tříd v ceně", help="Počet tříd zahrnutých v ceně; za každou další se přičítá příplatek za třídu. Prázdné: všechny třídy jsou v ceně.")

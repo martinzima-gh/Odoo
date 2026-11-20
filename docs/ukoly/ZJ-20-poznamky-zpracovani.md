@@ -47,10 +47,10 @@ Platí pro jednotlivé úkoly CP, ne trvale pro `CLAUDE.md`.
 
 | # | Poznámka | Stav |
 |---|---|---|
-| 13 | Úpis před datem vzniku fondu: varování při zadání a srozumitelná hláška při ocenění (dnes „kapitál fondu je nulový“) | otevřené |
-| 14 | Hláška o chybějící sazbě pravidla úplaty má říct název pravidla, fond a první platnou verzi | otevřené |
-| 15 | Pravidlo úplaty před svou první verzí sazby se neúčtuje (nula) a ocenění ukáže informativní kontrolu místo chyby; chyba zůstane pro skutečnou mezeru | schváleno Martinem, neprovedeno (`engine.split_by_versions`) |
-| 16 | Nápověda u pole Výpočet za období: příklad Poměrně vs. Za každý započatý měsíc (10 000 měsíčně = 9 863,01 za 30 dní) | otevřené |
+| 13 | Úpis před datem vzniku fondu: varování při zadání a srozumitelná hláška při ocenění (dnes „kapitál fondu je nulový“) | **provedeno** (ZJ-24, `launch_warning`, `valuation._zero_capital_error`) |
+| 14 | Hláška o chybějící sazbě pravidla úplaty má říct název pravidla, fond a první platnou verzi | **provedeno** (ZJ-24, `fee_rule._no_rate_error`; po bodu 15 zůstane u výkonnostní odměny a daně) |
+| 15 | Pravidlo úplaty před svou první verzí sazby se neúčtuje (nula) a ocenění ukáže informativní kontrolu místo chyby; chyba zůstane pro skutečnou mezeru | schváleno Martinem; **plán k potvrzení v `docs/ukoly/ZJ-24-hlasky-a-sazby.md`**, neprovedeno (`engine.split_by_versions`) |
+| 16 | Nápověda u pole Výpočet za období: příklad Poměrně vs. Za každý započatý měsíc (10 000 měsíčně = 9 863,01 za 30 dní) | **provedeno** (ZJ-24, `help` pole a manuál kap. 9) |
 | 17 | Režim „Za každý započatý měsíc“ vracel 0 pro období uvnitř jednoho měsíce (úplata třídy od 1. 10.) | **provedeno** (`engine._months_touched`, první úsek období; test `test_fee_started_month.py`) |
 | 18 | Kapitál nové třídy vstupuje do úplaty až od dne po úpisu (30 místo 31 dní) | **záměr (Martin)**, beze změny |
 | 19 | Tabulka Výjimky na záložce Daňová pravidla: po kliknutí se rozšiřuje donekonečna (v prohlížeči) | ověřit po povýšení; případně pevné šířky sloupců |
