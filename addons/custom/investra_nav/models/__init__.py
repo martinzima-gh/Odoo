@@ -1,2 +1,2 @@
-from . import posting_preview, fee_rule, fund_class, movement, valuation, valuation_lock, lock_exception, package, instrument_accrual, instrument_rate, trade_preview, trade_position, dividend, tax_rule, fund_tax, trade_reverse, return_wizard, attachment, price_usage, valuation_price_history, fee_scheme, valuation_corrections_ui
+from . import posting_preview, fee_rule, fund_class, movement, valuation, valuation_lock, lock_exception, package, instrument_accrual, instrument_rate, trade_preview, trade_position, dividend, dividend_event, tax_rule, fund_tax, trade_reverse, return_wizard, attachment, price_usage, valuation_price_history, fee_scheme, valuation_corrections_ui
 from . import tax_breakdown

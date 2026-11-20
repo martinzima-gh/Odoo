@@ -33,6 +33,9 @@ class InvestraDividend(models.Model):
     _book_fields = ("fund_id",)
     _system_fields = frozenset({"event_id", "pay_event_id", "state", "reversal_reason"})
 
+    dividend_event_id = fields.Many2one(
+        "investra.dividend.event", ondelete="restrict", index=True, copy=False, string="Dividenda cenného papíru",
+        help="ZJ-22: událost cenného papíru (ISIN, ex-datum), pod kterou řádek patří; bez ní se při založení vytvoří nebo najde.")
     fund_id = fields.Many2one("investra.fund", required=True, ondelete="restrict", index=True, string="Fond", tracking=True)
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     instrument_id = fields.Many2one(
@@ -257,6 +260,17 @@ class InvestraDividend(models.Model):
     def create(self, vals_list):
         if not self.env.su and any(set(vals) & self._system_fields for vals in vals_list):
             raise UserError(self.env._("Stav, účetní události a důvod storna nastavuje jen zaúčtování a storno."))
+        Event = self.env["investra.dividend.event"].sudo()
+        for vals in vals_list:
+            if vals.get("dividend_event_id") or not (vals.get("instrument_id") and vals.get("ex_date")):
+                continue
+            # ZJ-22: řádek vždy patří pod událost cenného papíru a ex-data; chybějící se založí z hodnot řádku.
+            event = Event.search([("instrument_id", "=", vals["instrument_id"]), ("ex_date", "=", vals["ex_date"]),
+                                  ("state", "!=", "reversed")], limit=1)
+            if not event:
+                event = Event.create({key: vals[key] for key in ("instrument_id", "ex_date", "pay_date", "per_share", "kind",
+                                                                 "withholding_rate", "treaty_rate") if key in vals})
+            vals["dividend_event_id"] = event.id
         return super().create(vals_list)
 
     def write(self, vals):
@@ -286,7 +300,8 @@ class InvestraDividend(models.Model):
     def _account(self, code, role):
         """Analytický účet role v knize fondu podle kódu; chybějící účet je chyba s návodem."""
         self.ensure_one()
-        account = self.env["investra.account.role"].sudo().accounts_for(self.company_id, role).filtered(lambda a: a.code == code)[:1]
+        account = self.env["investra.account.role"].sudo().accounts_for(self.company_id, role).with_company(
+            self.company_id).filtered(lambda a: a.code == code)[:1]  # ZJ-22: kód účtu je závislý na společnosti, ve víc knihách najednou
         if not account:
             raise UserError(self.env._(
                 "Kniha %(book)s nemá účet %(code)s. Přidejte ho k roli (Účty rolí) nebo povyšte modul Investra Chart Fund.",

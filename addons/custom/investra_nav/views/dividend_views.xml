@@ -1,5 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_dividend_event_list" model="ir.ui.view">
+        <field name="name">investra.dividend.event.list</field>
+        <field name="model">investra.dividend.event</field>
+        <field name="arch" type="xml">
+            <list default_order="ex_date desc, id desc">
+                <field name="ex_date"/>
+                <field name="instrument_id"/>
+                <field name="isin" optional="show"/>
+                <field name="pay_date" optional="show"/>
+                <field name="currency_id" optional="show"/>
+                <field name="per_share"/>
+                <field name="gross_total" sum="Celkem"/>
+                <field name="net_total" optional="show" sum="Celkem"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state in ('booked', 'paid')"
+                       decoration-muted="state == 'reversed'"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dividend_event_search" model="ir.ui.view">
+        <field name="name">investra.dividend.event.search</field>
+        <field name="model">investra.dividend.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="instrument_id" string="Cenný papír / ISIN" filter_domain="['|', ('instrument_id', 'ilike', self), ('isin', 'ilike', self)]"/>
+                <field name="ex_date"/>
+                <filter name="filter_draft" string="Návrh" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_booked" string="Zaúčtováno k ex-datu" domain="[('state', '=', 'booked')]"/>
+                <filter name="filter_paid" string="Vyplaceno" domain="[('state', '=', 'paid')]"/>
+                <filter name="filter_reversed" string="Stornováno" domain="[('state', '=', 'reversed')]"/>
+                <group>
+                    <filter name="group_by_instrument" string="Cenný papír" context="{'group_by': 'instrument_id'}"/>
+                    <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_dividend_event_form" model="ir.ui.view">
+        <field name="name">investra.dividend.event.form</field>
+        <field name="model">investra.dividend.event</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_load_holders" type="object" string="Načíst držitele" class="btn-secondary"
+                            invisible="state != 'draft'" groups="investra_entity.group_valuation_preparer"/>
+                    <button name="action_book_all" type="object" string="Zaúčtovat vše" class="btn-primary"
+                            invisible="state != 'draft' or not line_ids" groups="investra_entity.group_valuation_preparer"/>
+                    <button name="action_pay_all" type="object" string="Zaplaceno" class="btn-primary"
+                            invisible="state != 'booked'" groups="investra_entity.group_valuation_preparer"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,booked,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="instrument_id" options="{'no_create': True}" placeholder="Cenný papír (název nebo ISIN)"/></h1>
+                    </div>
+                    <group>
+                        <group string="Nárok">
+                            <field name="isin"/>
+                            <field name="ex_date"/>
+                            <field name="pay_date"/>
+                            <field name="currency_id"/>
+                            <field name="per_share"/>
+                        </group>
+                        <group string="Srážka (výchozí pro držitele)">
+                            <field name="kind"/>
+                            <field name="withholding_rate"/>
+                            <field name="treaty_rate" invisible="kind != 'foreign'"/>
+                        </group>
+                    </group>
+                    <separator string="Držitelé k večeru dne před ex-datem"/>
+                    <field name="line_ids" nolabel="1" context="{'default_dividend_event_id': id}">
+                        <list create="0" editable="bottom" decoration-muted="state == 'reversed'">
+                            <field name="fund_id" readonly="1"/>
+                            <field name="portfolio_id" readonly="1"/>
+                            <field name="portfolio_class_id" readonly="1"/>
+                            <field name="units" readonly="state != 'draft'" sum="Kusy"/>
+                            <field name="gross_amount" sum="Hrubá"/>
+                            <field name="withholding_rate" readonly="state != 'draft'" optional="show"/>
+                            <field name="withheld_amount" readonly="state != 'draft'" sum="Srážka"/>
+                            <field name="creditable_amount" readonly="state != 'draft'" optional="hide"/>
+                            <field name="net_amount" sum="Čistá"/>
+                            <field name="state" widget="badge" readonly="1"
+                                   decoration-info="state == 'draft'"
+                                   decoration-success="state in ('booked', 'paid')"
+                                   decoration-muted="state == 'reversed'"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="gross_total"/>
+                        <field name="withheld_total"/>
+                        <field name="net_total"/>
+                    </group>
+                    <p class="text-muted">
+                        Fond se nevybírá: tlačítko Načíst držitele vloží každý fond a portfolio, které držely cenný papír k večeru dne
+                        před ex-datem. Zaúčtování probíhá pro každý fond zvlášť v jeho knize (náhled a doklady jsou na řádku dividendy,
+                        Portfolio › Řádky dividend). Zaúčtovat vše zpracuje jen řádky, ke kterým máte přístup.
+                    </p>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_dividend_event" model="ir.actions.act_window">
+        <field name="name">Dividendy</field>
+        <field name="res_model">investra.dividend.event</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dividend_event_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádná dividenda</p>
+            <p>Zadejte cenný papír, ex-datum a dividendu na kus; držitele (fondy a portfolia) načtete tlačítkem.</p>
+        </field>
+    </record>
     <record id="view_dividend_list" model="ir.ui.view">
         <field name="name">investra.dividend.list</field>
         <field name="model">investra.dividend</field>
@@ -7,6 +120,7 @@
             <list default_order="ex_date desc, id desc">
                 <field name="ex_date"/>
                 <field name="pay_date" optional="show"/>
+                <field name="dividend_event_id" optional="hide"/>
                 <field name="fund_id"/>
                 <field name="instrument_id"/>
                 <field name="portfolio_id" optional="show"/>
@@ -140,5 +254,7 @@
         </field>
     </record>
     <menuitem id="menu_dividend" name="Dividendy" parent="investra_instruments.menu_instruments"
-              action="action_dividend" sequence="30"/>
+              action="action_dividend_event" sequence="30"/>
+    <menuitem id="menu_dividend_line" name="Řádky dividend" parent="investra_instruments.menu_instruments"
+              action="action_dividend" sequence="31"/>
 </odoo>

@@ -31,6 +31,7 @@ from . import test_fiscal_year
 from . import test_trade_fee
 from . import test_derecognition
 from . import test_dividend
+from . import test_dividend_event
 from . import test_ex_coupon
 from . import test_tax_rules_models
 from . import test_fvoci
