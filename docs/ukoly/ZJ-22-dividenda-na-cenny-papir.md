@@ -48,7 +48,27 @@ ex-datum (opravy dalším záznamem); „Zaúčtovat vše“ smí zpracovatel (r
 
 ## Výsledek
 
-Doplní Claude po schválení plánu.
+Hotovo 2026-11-20 (Sonnet 5.5), commit „ZJ-22“ na větvi `ukol/ZJ-20-poznamky`.
+
+- **Model** `investra.dividend.event` (`models/dividend_event.py`; cenný papír, ISIN, ex-datum, výplata, dividenda na kus, druh, výchozí
+  sazby, stav z řádků, součty, chatter). Řádky = dosavadní `investra.dividend` s novým polem `dividend_event_id`; účtování, výplata, storno,
+  náhled a doklady zůstaly po řádcích v knize fondu.
+- **Akce:** Načíst držitele (z `Trade._holdings` k ex-datu − 1 přes všechny fondy viditelné uživateli, existující řádky nepřepíše),
+  Zaúčtovat vše, Zaplaceno (po řádcích, každý v savepointu; chybný řádek nezastaví ostatní, vypíše se). Smí zpracovatel (role přípravy).
+- **Jedna událost = cenný papír + ex-datum**, kontrola proti duplicitě platí jen vůči nestornovaným událostem; po stornu všech řádků
+  jde zadat opravu novou událostí. Změna ex-data a nástroje po zaúčtování řádku je zakázaná; datum výplaty se přenáší i do zaúčtovaných.
+- **Oprávnění:** `ir.access.csv` (čtení účetní, zápis zpracovatel) a pravidlo události podle společnosti řádků; řádky dál podle společnosti.
+- **Odchylky od plánu:** (1) Řádek dividendy založený mimo událost (testy, import) si událost při založení najde nebo vytvoří – pole
+  zůstává nepovinné, aby se nerozbily stávající cesty. (2) Opravena latentní chyba `_account` v řádku dividendy: kód účtu je závislý na
+  společnosti, při práci ve více knihách najednou se hledal ve špatné; teď `with_company`. (3) Menu: Portfolio › Dividendy otevírá
+  události, původní seznam řádků je v nabídce Řádky dividend (chytré tlačítko na nástroji beze změny, ukazuje řádky).
+- **Migrace** 20.0.0.41.0 (`migrations/20.0.0.41.0/post-migration.py`): řádky bez události se seskupí podle nástroje a ex-data, stornované
+  mají vlastní událost. Zkoušena testem na vytvořených řádcích a na kopii pracovní databáze (tam žádné dividendy nejsou).
+- **Testy:** `TestDividendEvent` (8) a `TestDividend` bez chyby (dva fondy drží, třetí ne; zaúčtování po fondech; částečné při omezených
+  právech; storno jednoho řádku a oprava; zahraniční se zápočtem; propagace a zámek hlavičky; migrace). Snímek 35/39 shodný.
+- **Pro Copilota (pohledy):** formulář a seznam události (`dividend_views.xml`: `view_dividend_event_*`), vložená tabulka držitelů
+  (fond, portfolio, třída, kusy, hrubá, srážka, čistá, stav), tlačítka Načíst držitele / Zaúčtovat vše / Zaplaceno, nabídky Dividendy a
+  Řádky dividend, text pod tabulkou.
 
 ## Převzetí
 
