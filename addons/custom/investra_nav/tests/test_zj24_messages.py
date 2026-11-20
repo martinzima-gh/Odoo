@@ -49,3 +49,19 @@ class TestZj24Messages(NavCase):
         self.assertIn("2027-01-10", message)
         self.assertIn("2027-01-01", message)  # den, ke kterému sazba chybí (první den období po datu vzniku)
         self.assertEqual(rule.version_ids.valid_from, date(2027, 1, 10))
+
+    def test_used_rule_cannot_be_deleted_and_message_says_archive(self):
+        fund = self.make_fund(launch="2026-12-31", classes=[{"code": "A"}])
+        self.subscribe(self.cls(fund, "A"), "2027-01-05", 36500, 100)
+        rule = self.env["investra.fee.rule"].create({
+            "fund_id": fund.id, "name": "Fixní poplatek", "kind": "periodic",
+            "version_ids": [(0, 0, {"valid_from": "2020-01-01", "fixed_monthly": 100})],
+        })
+        unused = self.env["investra.fee.rule"].create({
+            "fund_id": fund.id, "name": "Nepoužité", "kind": "periodic",
+            "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.01})],
+        })
+        unused.unlink()  # nepoužité jde smazat
+        self.valuation(fund, date(2027, 1, 31)).action_compute()
+        with self.assertRaisesRegex(UserError, "Archivujte ho"):
+            rule.unlink()

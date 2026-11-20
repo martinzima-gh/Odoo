@@ -70,6 +70,7 @@ mění z chyby na nulu. Chybou zůstane pravidlo **bez jakékoli verze** (to pla
 | # | Otázka | Doporučení |
 |---|---|---|
 | a | „Skutečná mezera“ = pravidlo bez jakékoli verze (jiná mezera neexistuje, viz Zjištění). Souhlasí? | ano |
+| | **Martin 2026-11-20: a = ano, b = varianta A (`warning`), c = ne (odměna a daň zůstanou s chybou a hláškou z bodu 14).** | |
 | b | Úroveň informativní kontroly: **A** stávající stav `warning` (Upozornění; nemění schéma, objeví se v přehledu kontrol na kartě), **B** nový stav `info` (Informace) – změna výběru `status`, kontroly na kartě a dashboardu | **A**; `info` jen na výslovné přání |
 | c | Rozšířit „před první verzí nula“ i na **výkonnostní odměnu** a **daň**? Mají vlastní logiku (naběhlá odměna, počáteční hodnota, daň za rok), nula bez chyby by mohla zakrýt zapomenutou verzi | ne, ponechat chybu s hláškou z bodu 14 |
 
@@ -84,4 +85,6 @@ mění z chyby na nulu. Chybou zůstane pravidlo **bez jakékoli verze** (to pla
   a snímek ocenění 35/39 (`tools/snimek_na_kopii.sh`) beze změny; potom `modul+` a `all`.
 - Migrace není potřeba (žádné pole ani sloupec se nemění).
 
-**Schválení:** čeká na Martina (otázky a až c).
+**Schválení:** plán schválil Martin 2026-11-20 (a ano, b A, c ne). Provedení odloženo na příště (Opus); body 13, 14, 16 a výnosový účet hotové.
+
+**Doplněno 2026-11-20 (Martin souhlasil):** smazání pravidla úplat použitého v oceněních odmítne srozumitelná hláška „Archivujte ho“ (`fee_rule.unlink`, test v `test_zj24_messages.py`).

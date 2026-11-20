@@ -272,6 +272,18 @@ class InvestraFeeRule(models.Model):
             self._check_tax_carrier_vals([vals])
         return super().write(vals)
 
+    def unlink(self):
+        # ZJ-24: pravidlo použité v oceněních (rozpis úplat, oprava úplaty) nejde smazat; srozumitelná hláška místo chyby databáze.
+        for rule in self:
+            used = (self.env["investra.valuation.fee"].sudo().search_count([("rule_id", "=", rule.id)])
+                    or self.env["investra.valuation.external"].sudo().search_count([("corrects_rule_id", "=", rule.id)]))
+            if used:
+                raise UserError(self.env._(
+                    "Pravidlo %s už je použité v oceněních, proto ho nejde smazat (zachovává se, z čeho se úplata počítala). "
+                    "Archivujte ho; archivované pravidlo se v dalším ocenění nepočítá. U výkonnostní odměny a daně s naběhlou "
+                    "nebo zaúčtovanou částkou nejdřív nastavte verzi sazby 0 %% od data dalšího ocenění.", rule.name))
+        return super().unlink()
+
     def _check_tax_carrier_vals(self, vals_list):
         """ZJ-07 B: pravidlo druhu Očekávaná daň je jen technický nosič, zakládá ho fond (záložka Daňová pravidla). Ručně ho zvolit ani
         změnit na jiný druh nejde; fond ho zakládá v kontextu `investra_tax_carrier` (také migrace)."""
