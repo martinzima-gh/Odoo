@@ -262,14 +262,6 @@
                             <field name="fee_treatment" string="Účtování poplatku" readonly="1"/>
                         </group>
                     </group>
-                    <group name="trade_derecognition" string="Vyskladnění" invisible="side != 'sell'">
-                        <field name="derecognition_manual" invisible="1"/>
-                        <div class="text-muted" colspan="2">
-                            Vyskladnění: průměrná <field name="average_cost_price" nolabel="1" readonly="1" class="oe_inline"/><span>, použitá </span><field name="derecognition_price" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" class="oe_inline"/>
-                        </div>
-                        <field name="derecognition_reason" invisible="not derecognition_manual" required="derecognition_manual"
-                               readonly="event_id or state in ('settled', 'reversed')"/>
-                    </group>
                     <group name="trade_classification" string="Zařazení">
                         <field name="classification_id" invisible="1"/>
                         <field name="ifrs9_category" readonly="1"/>
