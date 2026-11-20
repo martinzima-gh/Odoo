@@ -24,6 +24,14 @@ def _months_between(start, end):
     return (end.year - start.year) * 12 + end.month - start.month
 
 
+def _months_touched(start, end):
+    """Kalendářní měsíce, kterých se období (start, end] dotýká (každý započatý měsíc); prázdné období 0."""
+    if end <= start:
+        return 0
+    first = start + timedelta(days=1)
+    return (end.year - first.year) * 12 + end.month - first.month + 1
+
+
 def _days_30_360(start, end, basis):
     """Dny v konvenci 30/360: evropská 30E/360, nebo americká 30/360 (bond basis)."""
     d1, d2 = start.day, end.day
@@ -112,11 +120,13 @@ def _step_amount(version, base):
     return steps * dec(version.get("step_amount"))
 
 
-def _segment_amount(version, seg_start, seg_end, base, basis, classes_count):
+def _segment_amount(version, seg_start, seg_end, base, basis, classes_count, first_segment=True):
     fraction = year_fraction(seg_start, seg_end, basis)
     variable = _variable_rate_amount(version, base) * fraction
-    # Pevné částky jsou měsíční; „každý započatý měsíc“ počítá kalendářní měsíce období.
-    months = Decimal(_months_between(seg_start, seg_end))
+    # Pevné částky jsou měsíční; „každý započatý měsíc“ počítá kalendářní měsíce období. První úsek období počítá i měsíc,
+    # ve kterém období začíná (úplata třídy začíná dnem po prvním úpisu, 17. bod ZJ-20); další úseky po změně verze sazby
+    # uprostřed měsíce jen měsíce, které v nich začínají, aby se měsíc nepočítal dvakrát.
+    months = Decimal(_months_touched(seg_start, seg_end) if first_segment else _months_between(seg_start, seg_end))
     if version.get("fixed_mode", "pro_rata") == "pro_rata":
         months = year_fraction(seg_start, seg_end, basis) * 12
     fixed = dec(version.get("fixed_monthly")) + _step_amount(version, base)
@@ -148,7 +158,8 @@ def periodic_fee(rule, start, end, base, classes_count=1, max_steps=100):
     segments = split_by_versions(start, end, rule["versions"])
 
     def compute(current_base):
-        rows = [_segment_amount(v, s, e, current_base, basis, classes_count) for s, e, v in segments]
+        rows = [_segment_amount(v, s, e, current_base, basis, classes_count, first_segment=(index == 0))
+                for index, (s, e, v) in enumerate(segments)]
         return sum((r[0] for r in rows), ZERO), [r[1] for r in rows]
 
     amount, rows = compute(base)

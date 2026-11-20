@@ -43,6 +43,18 @@ ZJ-21 a ZJ-22 mění účtování a ocenění, proto až po stabilizaci formulá
 v zelené zóně, bez commitu a pushe, výsledek zapíše do `docs/ukoly/CP-*.md`; commit při převzetí dělá Claude.
 Platí pro jednotlivé úkoly CP, ne trvale pro `CLAUDE.md`.
 
+## Poznámky po kontrole v prohlížeči (2026-11-20, odpoledne)
+
+| # | Poznámka | Stav |
+|---|---|---|
+| 13 | Úpis před datem vzniku fondu: varování při zadání a srozumitelná hláška při ocenění (dnes „kapitál fondu je nulový“) | otevřené |
+| 14 | Hláška o chybějící sazbě pravidla úplaty má říct název pravidla, fond a první platnou verzi | otevřené |
+| 15 | Pravidlo úplaty před svou první verzí sazby se neúčtuje (nula) a ocenění ukáže informativní kontrolu místo chyby; chyba zůstane pro skutečnou mezeru | schváleno Martinem, neprovedeno (`engine.split_by_versions`) |
+| 16 | Nápověda u pole Výpočet za období: příklad Poměrně vs. Za každý započatý měsíc (10 000 měsíčně = 9 863,01 za 30 dní) | otevřené |
+| 17 | Režim „Za každý započatý měsíc“ vracel 0 pro období uvnitř jednoho měsíce (úplata třídy od 1. 10.) | **provedeno** (`engine._months_touched`, první úsek období; test `test_fee_started_month.py`) |
+| 18 | Kapitál nové třídy vstupuje do úplaty až od dne po úpisu (30 místo 31 dní) | **záměr (Martin)**, beze změny |
+| 19 | Tabulka Výjimky na záložce Daňová pravidla: po kliknutí se rozšiřuje donekonečna (v prohlížeči) | ověřit po povýšení; případně pevné šířky sloupců |
+
 ## A. Smazání návrhu obchodu (poznámka 1)
 
 **Zjištění:** model smazání povoluje (`investra.trade.unlink` jen ve stavu Návrh bez události, `instrument.py` ř. ~1070), ale
