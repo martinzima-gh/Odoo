@@ -341,3 +341,4 @@ Nové rozhodnutí přidat na konec a zároveň zapsat do Doc.
 | 2026-11-19 | Třída bez podílu – daň a úplaty | Třída bez podílu nenese daň ze sdílených položek; úplata z takové třídy vyvolá upozornění (D6) | Tamtéž, oddíl 12 a 3 (D6) | R |
 | 2026-11-19 | Dividendy a ex-kupón | Dividendy jako záznam s ex-datem, srážkou a zápočtem; výnos patří držiteli k ex-datu − 1 den; ex-kupónová lhůta dluhopisů | Tamtéž, oddíl 12 a 7; `docs/ukoly/ZJ-19-dividendy-a-ex-kupon.md` | R |
 | 2026-11-19 | Provedení dávky | Celá dávka jedním během agenta; provedení rozděleno do relací podle `docs/ukoly/podklady/davka-ZJ-07-19/00-prehled.md` (Opus jádro výpočtů, Sonnet a Copilot zbytek) | Tamtéž, oddíl 12 | R |
+| 2026-11-20 | Terminologie „odúčtování“ | Pro cenu, za kterou se prodané kusy odúčtují z pozice, platí „cena odúčtování“ (ne „vyskladnění“); pole `derecognition_*` | `docs/ukoly/ZJ-15-cena-vyskladneni.md` (název souboru zůstal) | R |

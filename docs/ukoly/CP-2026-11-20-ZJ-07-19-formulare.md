@@ -39,4 +39,14 @@
 
 ## Převzetí
 
-Doplní Claude: výsledek revize, doplnění mimo rozsah, testy Odoo a případné sloučení.
+Převzal Claude 2026-11-20 (větev `ukol/ZJ-07-dane-a-tridy`, commit `ead70f2`).
+
+- **Revize:** jen XML, manifest (`data`) a dokumentace; Python Copilot nezměnil. Pole v pohledech sedí na modely.
+- **Opraveno při převzetí:**
+  1. Skupina Odúčtování používala pole z `investra_nav` v pohledu `investra_instruments` (instalace padala) → přesunuto do dědění v `investra_nav/views/trade_views.xml`.
+  2. Podmínka kurzu poplatku `fund_id.currency_id` není ve výrazu pohledu povolená → nové související pole `company_currency_id` na obchodu.
+  3. Doplněno zobrazovací pole **Konec účetního období** (`investra.fund.fiscal_year_end`) a sloupec **Třída** v náhledu zaúčtování.
+  4. Terminologie „vyskladnění“ → „odúčtování“ (pokyn Martina).
+  5. `@class` v xpath dividend → `hasclass`.
+- **Otevřené body 1–4 z Copilota:** 1 a 2 vyřešeny výše; storno dividendy (průvodce) a doména pravidla u opravy → `docs/otevrene-body.md`.
+- **Testy:** `tools/run_tests.sh all` 1187 testů, 0 selhání.
