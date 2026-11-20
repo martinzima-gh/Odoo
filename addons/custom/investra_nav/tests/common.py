@@ -140,6 +140,25 @@ class NavCase(TransactionCase):
         valuation.with_user(self.preparer).write({"external_fee_ids": [(0, 0, values)]})
         return valuation.external_fee_ids[-1]
 
+    def shared_tax_rule(self, rate=0.05, valid_from="2000-01-01", name=None, **vals):
+        """Sdílené daňové pravidlo (ZJ-07) se sazbou od data; stejné pravidlo se v testu použije znovu."""
+        name = name or f"Test daň {rate}"
+        Rule = self.env["investra.tax.rule"]
+        found = Rule.search([("name", "=", name)], limit=1)
+        if found:
+            return found
+        return Rule.create({
+            "name": name, "kind": "general", "method": "current", "tax_account_code": "681000", "balance_account_code": "347000",
+            "version_ids": [(0, 0, {"valid_from": valid_from, "rate": rate})], **vals,
+        })
+
+    def fund_tax(self, fund, rate=0.05, step="3", rule=None):
+        """Daň fondu (ZJ-07): výchozí daňové pravidlo a „Základ: po kroku“; vrací nosič (pravidlo úplaty druhu Očekávaná daň)."""
+        fund.tax_rule_id = rule or self.shared_tax_rule(rate)
+        carrier = fund.tax_fee_rule_id
+        carrier.base_step = step
+        return carrier
+
     def rate(self, day, value, currency="EUR"):
         self.env["investra.rate"]._store("cnb", date.fromisoformat(day), {currency: (Decimal(1), Decimal(str(value)))}, f"{day}{value}")
 

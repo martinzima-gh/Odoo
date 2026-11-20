@@ -142,8 +142,7 @@ class TestFees(NavCase):
                           "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit",
                                                   "initial_reference": 100})]})
         if tax:
-            self.Rule.create({"fund_id": fund.id, "name": "Daň", "kind": "tax",
-                              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+            self.fund_tax(fund, 0.05)
         valuation = self.valuation(fund, date(2027, 1, 31))
         valuation.action_compute()
         fees = valuation.fee_line_ids

@@ -120,8 +120,7 @@ class TestBridge(NavCase):
             "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit",
                                     "initial_reference": 1000})],
         })
-        Rule.create({"fund_id": fund.id, "name": "Daň", "kind": "tax",
-                     "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+        self.fund_tax(fund, 0.05)
         return fund, perf
 
     def test_tax_effect_has_own_column(self):
@@ -154,8 +153,7 @@ class TestBridge(NavCase):
         fund = self.make_fund(classes=[{"code": c, "price_digits": 4} for c in ("A", "B", "C")])
         for code, amount in (("A", 1000003), ("B", 700001), ("C", 299999)):
             self.subscribe(self.cls(fund, code), "2027-01-01", amount, 1000)
-        self.env["investra.fee.rule"].create({"fund_id": fund.id, "name": "Daň", "kind": "tax",
-                                              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+        self.fund_tax(fund, 0.05)
         days = ["2027-01-31", "2027-02-28", "2027-03-31", "2027-04-30", "2027-05-31", "2027-06-30"]
         specifics = [(333.33, -127.77, 51.13), (-41.07, 260.61, 13.19), (77.71, 9.43, -301.03),
                      (-12.97, -88.89, 147.77), (205.01, 31.31, -7.07), (-99.99, 123.47, 66.61)]

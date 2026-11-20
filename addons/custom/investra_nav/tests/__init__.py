@@ -33,3 +33,5 @@ from . import test_derecognition
 from . import test_dividend
 from . import test_ex_coupon
 from . import test_tax_rules_models
+from . import test_fvoci
+from . import test_tax_rules

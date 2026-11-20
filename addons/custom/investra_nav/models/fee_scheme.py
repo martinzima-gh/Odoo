@@ -206,14 +206,31 @@ class InvestraFundFeeScheme(models.Model):
                               "base": {"scope": "class", "class": fund_class.id, "step": int(rule.base_step)},
                               "amount": amount, **recipients(rule)})
         for rule in rules.filtered(lambda r: r.kind == "tax"):
-            try:
-                _spec, version = spec_for(rule)
-            except Exception:
-                notes.append(self.env._("%s: pravidlo nemá sazbu, v náhledu chybí.", rule.name))
+            # ZJ-07: sazba výchozího daňového pravidla fondu (verze nosiče se nečtou); náhled bez výjimek.
+            if not self.tax_rule_id:
+                notes.append(self.env._("Fond nemá výchozí daňové pravidlo, daň v náhledu chybí."))
                 continue
+            try:
+                version = self.tax_rule_id._version_at(today)
+            except Exception:
+                notes.append(self.env._("%s: pravidlo nemá sazbu, v náhledu chybí.", self.tax_rule_id.name))
+                continue
+            if self.tax_exception_ids:
+                notes.append(self.env._("Daň: náhled bez výjimek."))
             items.append({"key": ("tax", rule.id), "stage": engine.STAGE_TAX, "payer": None, "kind": "tax", "rule": rule,
                           "class": None, "tax": {"rate": version.rate, "step": int(rule.base_step),
                                                  "result": PREVIEW_FK * PREVIEW_YIELD, "booked": Decimal(0)}})
+        # D2: výjimka daně na účtu úplaty má přednost před krokem.
+        exceptions = {e.account_id: e for e in self.tax_exception_ids}
+        Role = self.env["investra.account.role"].sudo()
+        for rule in rules.filtered(lambda r: r.kind != "tax"):
+            try:
+                account = Role.account_for(self.company_id, rule.expense_role)
+            except Exception:  # kniha bez role: informace se neukáže
+                continue
+            if account in exceptions:
+                notes.append(self.env._("Úplata %(rule)s má daňovou výjimku na účtu %(account)s (%(tax)s).", rule=rule.name,
+                                        account=account.code, tax=exceptions[account].tax_rule_id.name))
         return classes, items, notes
 
     def _fee_scheme_preview(self, rules):

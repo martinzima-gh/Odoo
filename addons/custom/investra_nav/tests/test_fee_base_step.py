@@ -25,7 +25,8 @@ def _migration():
 class TestFeeBaseStep(NavCase):
     def setUp(self):
         super().setUp()
-        self.Rule = self.env["investra.fee.rule"]
+        # Pravidla daně tu testují model nosiče (ZJ-07: druh Očekávaná daň zakládá jen fond, kontext investra_tax_carrier).
+        self.Rule = self.env["investra.fee.rule"].with_context(investra_tax_carrier=True)
         self.fund = self.make_fund(classes=[{"code": "A"}, {"code": "B"}])
         self.a, self.b = self.cls(self.fund, "A"), self.cls(self.fund, "B")
 
@@ -111,7 +112,7 @@ class TestFeeBaseStep(NavCase):
         # Pravidla bez tříd (úplaty celého fondu, daň) kontrolu odměn na třídu nespouštějí a smějí být vedle odměny.
         whole = self.rule("periodic", name="Obhospodařování")
         self.rule("periodic", name="Administrace")
-        tax = self.rule("tax", name="Daň")
+        tax = self.fund_tax(self.fund)
         self.rule("performance", name="Odměna A")
         self.assertFalse(whole.class_ids | tax.class_ids)
         # Oprava pravidla bez tříd (daň) nesmí mít třídu; oprava odměny musí mít třídu, která odměnu platí.

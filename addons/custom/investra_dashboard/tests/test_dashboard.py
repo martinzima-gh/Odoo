@@ -21,6 +21,8 @@ class TestDashboard(NavCase):
         })
 
     def posted(self):
+        # ZJ-07: fond bez výchozího daňového pravidla má v ocenění upozornění; běžný fond pravidlo má.
+        self.fund_tax(self.fund)
         self.subscribe(self.cls(self.fund, "A"), "2032-01-01", 1000, 10)
         valuation = self.valuation(self.fund, "2032-01-31")
         self.run_to_posted(valuation)

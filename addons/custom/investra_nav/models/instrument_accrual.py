@@ -119,18 +119,22 @@ class InvestraInstrument(models.Model):
         flows = self.cashflow_ids.filtered(lambda f: f.flow_type == "principal")
         return sum(flows.mapped("amount")) or self.principal or 1.0
 
-    def _accrued_value(self, fund, day, portfolio=None):
+    def _accrued_value(self, fund, day, portfolio=None, weights=None):
         """Naběhlá hodnota pozice v měně nástroje; každý nákup má vlastní efektivní úrokovou míru.
 
         Jen výpočet: nic se neúčtuje. Prodej a lineární úročení s více toky zatím nejsou podporované.
         Pozice je v jednom obchodním modelu fondu; bez něj se sečtou všechny modely.
+        `weights` ({id nákupu: zbývající podíl}, ZJ-18 G2): naběhlá hodnota zbývajících kusů po prodejích – počítají se jen
+        nákupy z `weights`, každý svým podílem (prodej průměrem snižuje všechny nákupy stejným podílem, `valuation._fvoci_debt`).
         """
         self.ensure_one()
         domain = [("fund_id", "=", fund.id), ("instrument_id", "=", self.id), ("trade_date", "<=", day), ("state", "!=", "reversed")]
         if portfolio:
             domain.append(("portfolio_id", "=", portfolio.id))
         trades = self.env["investra.trade"].sudo().search(domain)
-        if any(trade.quantity < 0 for trade in trades):
+        if weights is not None:
+            trades = trades.filtered(lambda t: t.id in weights and weights[t.id])
+        elif any(trade.quantity < 0 for trade in trades):
             raise UserError(self.env._("Naběhlá hodnota po prodeji zatím není podporovaná: %s.", self.name))
         method = self._effective_accrual(fund)
         basis = self.day_count or "act365"
@@ -151,6 +155,8 @@ class InvestraInstrument(models.Model):
             if trade.portfolio_id not in factors:
                 factors[trade.portfolio_id] = Repayment._prorata_factor(fund, self, trade.portfolio_id, day)
             factor = factors[trade.portfolio_id]
+            if weights is not None:
+                factor = engine.dec(factor) * engine.dec(weights[trade.id])
             quantity = engine.dec(trade.quantity) * factor
             # Dluhopis koupený s naběhlým kupónem: zaplacený úrok je součástí pořizovací částky (rozhodnutí 2026-11-12
             # „Úrok v RH a realizovaný výsledek“).

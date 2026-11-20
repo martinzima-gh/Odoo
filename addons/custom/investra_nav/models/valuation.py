@@ -14,6 +14,8 @@ from .. import engine
 
 # ZJ-19: analytické účty pohledávek z dividend (341210) a ze zahraniční daně k vrácení (341220) v profilu přecenění.
 DIVIDEND_RECEIVABLE_CODES = ("341210", "341220")
+# ZJ-18 G1: „Realizované přecenění FVOCI“ – další účet role Výsledek minulých let (akcie FVOCI bez recyklace).
+FVOCI_REALISED_CODE = "571100"
 
 BALANCE_SHEET = ("asset", "liability")
 PREPARER = "investra_entity.group_valuation_preparer"
@@ -493,6 +495,9 @@ class InvestraValuation(models.Model):
                 continue
             if account == Role.account_for(self.company_id, classification.role_id.code):
                 closed.add(key)
+            elif classification.ifrs9_category == "fvoci" and account == Role.account_for(self.company_id, "revaluation_reserve"):
+                # ZJ-18 G2: prodaná pozice FVOCI se zbylou rezervou (prodej přesně za účetní hodnotu) rezervu rozpustí.
+                closed.add(key)
         return closed
 
     def _compute_portfolio(self):
@@ -517,13 +522,19 @@ class InvestraValuation(models.Model):
                     name=instrument.name, portfolio=portfolio.name, day=self.date,
                 ))
             amortised = classification.valuation_method == "amortised"
+            # ZJ-18 G2: FVOCI má vlastní rozdělení přecenění (cílová rezerva); úrok se z RH zvlášť nepočítá, jen naběhlý úrok
+            # dluhopisu s cenou bez úroku jde do hodnoty pozice.
+            fvoci = classification.ifrs9_category == "fvoci" and not amortised
             role = classification.role_id.code
             instrument_account = Role.account_for(self.company_id, role)
             fx = self._fx(instrument.currency_id)
             # Úrok v RH zvlášť (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“): vydělaný úrok od minulého
             # ocenění do úrokových výnosů, naběhlý úrok v hodnotě dluhopisu; přecenění až ze zbytku.
             interest_ccy, accrued_ccy = Decimal(0), Decimal(0)
-            if not amortised:
+            if fvoci:
+                current = instrument.price_excludes_accrued and instrument._fair_value_interest(self.fund_id, portfolio, self.date)
+                accrued_ccy = current[1] if current else Decimal(0)
+            elif not amortised:
                 current = instrument._fair_value_interest(self.fund_id, portfolio, self.date)
                 if current:
                     before = previous and instrument._fair_value_interest(self.fund_id, portfolio, previous.date)
@@ -560,6 +571,17 @@ class InvestraValuation(models.Model):
             interest = engine.money(interest_ccy * fx)
             cost_ccy, cost, realised_fx = self._cost_walk(instrument, portfolio, previous)
             realised_ccy = realised = Decimal(0)
+            if fvoci:
+                position_lines, oci, realised = self._fvoci_position(
+                    instrument, portfolio, classification, role, quantity, value_ccy, value, carrying, foreign, fx,
+                    foreign_currency, cost_ccy, cost, previous)
+                lines += position_lines
+                if not quantity and not value_ccy:
+                    continue
+                rows.append(self._portfolio_row(instrument, portfolio, classification, several, quantity, unit_price,
+                                                price_source, price_values, cost_ccy, cost, accrued_ccy, realised, value_ccy,
+                                                fx, value, foreign_currency, oci))
+                continue
             if not amortised:
                 realised_ccy, realised_rated = self._realised_ccy(
                     instrument, portfolio, previous, Role.account_for(self.company_id, role), foreign_currency,
@@ -615,31 +637,168 @@ class InvestraValuation(models.Model):
                 })
             if (not quantity and not value_ccy) or (amortised and not value):
                 continue
-            rows.append({
-                "valuation_id": self.id,
-                "kind": instrument.type_id.kind,
-                "instrument_id": instrument.id,
-                "portfolio_id": portfolio.id,
-                "classification_id": classification.id,
-                # Fond s více obchodními modely: tentýž nástroj může mít dva řádky, název je rozliší.
-                "name": f"{instrument.name} – {portfolio.name}" if several else instrument.name,
-                "isin": instrument.isin,
-                "currency_id": instrument.currency_id.id,
-                "quantity": quantity,
-                "price": unit_price,
-                "price_source": price_source,
-                **price_values,
-                "cost_currency": float(cost_ccy),
-                "cost": float(cost),
-                "accrued_interest_currency": float(accrued_ccy if not amortised else 0),
-                "realised": float(realised),
-                "fair_value_currency": float(value_ccy),
-                "fx_rate": float(fx),
-                "fx_source": self._rate_source() if foreign_currency else False,
-                "fair_value": float(value),
-            })
+            rows.append(self._portfolio_row(instrument, portfolio, classification, several, quantity, unit_price, price_source,
+                                            price_values, cost_ccy, cost, accrued_ccy if not amortised else 0, realised,
+                                            value_ccy, fx, value, foreign_currency))
         self._add_event("portfolio", "Přecenění portfolia", lines)
         self.env["investra.valuation.portfolio"].sudo().create(rows)
+
+    def _portfolio_row(self, instrument, portfolio, classification, several, quantity, unit_price, price_source, price_values,
+                       cost_ccy, cost, accrued_ccy, realised, value_ccy, fx, value, foreign_currency, oci=None):
+        """Řádek listu portfolio (beze změny proti dřívějšímu tvaru; `oci` jen u FVOCI, ZJ-18)."""
+        row = {
+            "valuation_id": self.id,
+            "kind": instrument.type_id.kind,
+            "instrument_id": instrument.id,
+            "portfolio_id": portfolio.id,
+            "classification_id": classification.id,
+            # Fond s více obchodními modely: tentýž nástroj může mít dva řádky, název je rozliší.
+            "name": f"{instrument.name} – {portfolio.name}" if several else instrument.name,
+            "isin": instrument.isin,
+            "currency_id": instrument.currency_id.id,
+            "quantity": quantity,
+            "price": unit_price,
+            "price_source": price_source,
+            **price_values,
+            "cost_currency": float(cost_ccy),
+            "cost": float(cost),
+            "accrued_interest_currency": float(accrued_ccy),
+            "realised": float(realised),
+            "fair_value_currency": float(value_ccy),
+            "fx_rate": float(fx),
+            "fx_source": self._rate_source() if foreign_currency else False,
+            "fair_value": float(value),
+        }
+        if oci is not None:
+            row["oci"] = float(oci)
+        return row
+
+    # --- FVOCI (ZJ-18 G2): úrok a ECL do výsledku, zbylé přecenění do OCI ----------------------------------------------
+
+    def _fvoci_accounts(self):
+        """Hlavní účet oceňovacích rozdílů (role `revaluation_reserve`) a účet „Realizované přecenění FVOCI“ (571100,
+        další účet role `retained_result`); chybějící účet je chyba s návodem."""
+        Role = self.env["investra.account.role"]
+        reserve = Role.account_for(self.company_id, "revaluation_reserve")
+        realised = Role.accounts_for(self.company_id, "retained_result").filtered(lambda a: a.code == FVOCI_REALISED_CODE)[:1]
+        if not realised:
+            raise UserError(self.env._(
+                "Kniha %(book)s nemá účet %(code)s Realizované přecenění FVOCI u role Výsledek minulých let (povyšte Investra "
+                "Chart Fund).", book=self.company_id.name, code=FVOCI_REALISED_CODE))
+        return reserve, realised
+
+    def _fvoci_reserve(self, instrument, portfolio, reserve):
+        """Zůstatek oceňovacích rozdílů pozice (kredit = +) ve funkční měně a v měně nástroje, bez podílu nevypořádaných
+        obchodů (ten drží `_compute_unsettled_fair_value` proti účtu změny RH nevypořádaných obchodů)."""
+        position = [("investra_instrument_id", "=", instrument.id), ("investra_classification_id.portfolio_id", "=", portfolio.id)]
+        Line = self.env["account.move.line"].sudo()
+        balance = Line._read_group(self._line_domain(("account_id", "=", reserve.id), *position), aggregates=["balance:sum"])[0][0]
+        Mapping = self.env["investra.role.account"].sudo()
+        unsettled = Mapping.search([("company_id", "=", self.company_id.id), ("role_id.code", "=", "unsettled_fair_value")]).account_id
+        pending = Decimal(0)
+        if unsettled:
+            pending = d(Line._read_group(self._line_domain(("account_id", "=", unsettled.id), *position),
+                                         aggregates=["balance:sum"])[0][0])
+        # Funkční měna: nevypořádaný podíl rezervy = zůstatek účtu změny RH nevypořádaných (MD 3xx / D rezerva).
+        reserve_value = -engine.money(d(balance)) - engine.money(pending)
+        if instrument.currency_id == self.fund_id.currency_id:
+            return reserve_value, reserve_value
+        # Měna nástroje: jen řádky rezervy v měně nástroje (nevypořádané obchody účtují rezervu ve funkční měně).
+        amount = Line._read_group(self._line_domain(("account_id", "=", reserve.id), ("currency_id", "=", instrument.currency_id.id),
+                                                    *position), aggregates=["amount_currency:sum"])[0][0]
+        return reserve_value, -d(amount)
+
+    def _fvoci_debt(self, instrument, portfolio, previous):
+        """Dluh FVOCI: (naběhlá hodnota zbývajících kusů k datu v měně nástroje, realizace prodejů od minulého ocenění v měně
+        nástroje, realizace přepočtená kurzem zaúčtování prodeje).
+
+        Realizace = výnos prodeje včetně naběhlého úroku − podíl naběhlé hodnoty prodaných kusů ke dni prodeje (G2); prodej
+        průměrem snižuje každý nákup stejným podílem (váhy `_accrued_value`)."""
+        Trade = self.env["investra.trade"].sudo()
+        trades = Trade._recognised(self.fund_id, self.date, instrument, portfolio).sorted(
+            lambda t: (t._recognition_date(), t.quantity < 0, t.id))
+        since = previous.date if previous else None
+        weights, units, realised, rated = {}, Decimal(0), Decimal(0), Decimal(0)
+        for trade in trades:
+            quantity = d(trade.quantity)
+            if quantity > 0:
+                weights[trade.id], units = Decimal(1), units + quantity
+                continue
+            if units <= 0:
+                continue
+            share = min(-quantity / units, Decimal(1))
+            if since is None or trade._recognition_date() > since:
+                before = d(instrument._accrued_value(self.fund_id, trade.trade_date, portfolio, weights=dict(weights)))
+                part = -quantity * d(trade.price) + d(trade.accrued_interest) - share * before
+                realised, rated = realised + part, rated + part * d(trade._booked_fx())
+            weights = {key: value * (1 - share) for key, value in weights.items()}
+            units *= 1 - share
+        amortised = Decimal(0)
+        if units > 0:
+            amortised = d(instrument._accrued_value(self.fund_id, self.date, portfolio, weights=weights))
+        return amortised, realised, rated
+
+    def _fvoci_position(self, instrument, portfolio, classification, role, quantity, value_ccy, value, carrying, foreign, fx,
+                        foreign_currency, cost_ccy, cost, previous):
+        """Řádky přecenění pozice FVOCI (ZJ-18 G2, D8) a cílová rezerva.
+
+        cíl rezervy = RH − základ (dluh: naběhlá hodnota k datu kurzem ocenění; akcie: pořizovací cena průměrem ve funkční měně,
+        tedy i kurz jde do OCI); pozice bez kusů → 0. Pohyb OCI = cíl − zůstatek rezervy pozice. Řádek nástroje = RH − účetní
+        hodnota; zbytek = řádek nástroje − pohyb OCI:
+          dluh – do výsledku: realizace prodejů, kurz z naběhlé hodnoty (peněžní položka), zbytek úrok efektivní mírou;
+          akcie – do „Realizované přecenění FVOCI“ (kapitál, bez recyklace), ve výsledku nic.
+        Rezerva nese měnu nástroje (amount_currency), aby se u dluhu oddělila změna v měně od kurzu.
+        Vrací (řádky, cíl rezervy, realizace ve funkční měně)."""
+        reserve_account, realised_account = self._fvoci_accounts()
+        reserve, reserve_ccy = self._fvoci_reserve(instrument, portfolio, reserve_account)
+        debt = classification.instrument_nature == "debt"
+        realised = Decimal(0)
+        if debt:
+            amortised_ccy, realised_ccy, realised_rated = self._fvoci_debt(instrument, portfolio, previous)
+            target_ccy = value_ccy - amortised_ccy if quantity else Decimal(0)
+            realised = engine.money(realised_rated if foreign_currency else realised_ccy)
+        else:
+            target_ccy = value_ccy - cost_ccy if quantity else Decimal(0)
+        target = engine.money(target_ccy * fx) if debt else ((value - cost) if quantity else Decimal(0))
+        oci = target - reserve
+        oci_ccy = target_ccy - reserve_ccy
+        remainder = value - carrying - oci
+        extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
+        currency = {"currency_id": instrument.currency_id.id} if foreign_currency else {}
+
+        def pair(amount, amount_ccy, counter, movement, counter_extra=None, counter_ccy=None, **label):
+            if not amount:
+                return []
+            line = {"role": role, "amount": amount, "movement_type": movement, "extra": extra, **label}
+            if foreign_currency:
+                line.update(currency, amount_currency=str(amount_ccy))
+            other = {"role": counter, "amount": -amount, "movement_type": movement, "extra": {**extra, **(counter_extra or {})},
+                     **label}
+            if foreign_currency and counter_ccy is not None:
+                other.update(currency, amount_currency=str(-counter_ccy))
+            return [line, other]
+
+        lines = pair(oci, oci_ccy, "revaluation_reserve", "price_revaluation", counter_ccy=oci_ccy,
+                     name=self.env._("Oceňovací rozdíl %s", instrument.name))
+        if not debt:
+            lines += pair(remainder, value_ccy - foreign - oci_ccy, "retained_result", "price_revaluation",
+                          counter_extra={"account_id": realised_account.id},
+                          name=self.env._("Realizované přecenění FVOCI %s", instrument.name))
+            return lines, target, Decimal(0)
+        pnl_ccy = value_ccy - foreign - oci_ccy
+        interest_ccy = pnl_ccy - realised_ccy
+        interest = engine.money(interest_ccy * fx)
+        fx_part = remainder - interest - realised if foreign_currency else Decimal(0)
+        if not foreign_currency:
+            interest = remainder - realised
+        lines += pair(interest, interest_ccy, "income_interest", "accrued_interest",
+                      name=self.env._("Úrok efektivní mírou %s", instrument.name))
+        if realised:
+            lines += pair(realised, realised_ccy, "gain_realised" if realised > 0 else "loss_realised", "price_revaluation",
+                          name=self.env._("Realizace %s", instrument.name))
+        if fx_part:
+            lines += pair(fx_part, Decimal(0), "gain_fx" if fx_part > 0 else "loss_fx", "fx_revaluation")
+        return lines, target, realised
 
     # --- realizovaný výsledek a průměrná pořizovací cena (rozhodnutí 2026-11-12 „Úrok v RH a realizovaný výsledek“) --
 
@@ -818,8 +977,6 @@ class InvestraValuation(models.Model):
         for trade in pending:
             instrument = trade.instrument_id
             classification = trade._classification()
-            if classification.ifrs9_category == "fvoci":
-                raise UserError(self.env._("Změna RH do OCI zatím není podporovaná: %s.", instrument.name))
             if classification.ifrs9_category == "amortised":
                 continue
             value = d(trade.quantity) * d(self._approved_price(instrument).price) * self._fx(instrument.currency_id)
@@ -838,8 +995,10 @@ class InvestraValuation(models.Model):
             if difference:
                 extra = {"investra_instrument_id": instrument.id, "investra_classification_id": classification.id}
                 lines.append({"role": "unsettled_fair_value", "amount": difference, "movement_type": "price_revaluation", "extra": extra})
-                lines.append({"role": "gain_fair_value" if difference > 0 else "loss_fair_value", "amount": -difference,
-                              "movement_type": "price_revaluation", "extra": extra})
+                # ZJ-18 G2: u FVOCI jde změna RH nevypořádaného obchodu do oceňovacích rozdílů (OCI), ne do výsledku.
+                counter = ("revaluation_reserve" if classification.ifrs9_category == "fvoci"
+                           else "gain_fair_value" if difference > 0 else "loss_fair_value")
+                lines.append({"role": counter, "amount": -difference, "movement_type": "price_revaluation", "extra": extra})
         self._add_event("unsettled_fv", "Změna RH nevypořádaných obchodů", lines)
 
     def _fee_record(self, rule, amount, fund_class=None, detail=None, manual=None):
@@ -1013,8 +1172,18 @@ class InvestraValuation(models.Model):
                 result.append({
                     "stage": engine.STAGE_PERFORMANCE if rule and rule.kind == "performance" else engine.STAGE_FEE,
                     "payer": line.class_id.id or None, "expense": expense, "borne": borne, "units": units,
+                    "account": self._fee_account_id(rule, line.external_id),
                 })
         return result
+
+    def _fee_account_id(self, rule, entry=None):
+        """Nákladový účet úplaty (ZJ-07: výjimka daně na účtu úplaty má přednost před krokem): pravidlo a oprava úplaty účtují
+        na nákladovou roli pravidla, ruční úplata na zvolený účet."""
+        if entry and not entry.corrects_rule_id:
+            return entry.account_id.id or None
+        if not rule:
+            return None
+        return self.env["investra.account.role"].account_for(self.company_id, rule.expense_role).id
 
     def _borne_since(self, fund_class, day, measure, units_now, stages):
         """Úplaty (krok 2) a daň (krok 4), které třída nesla v dřívějších oceněních po dni `day` („přičti od data D“,
@@ -1213,42 +1382,102 @@ class InvestraValuation(models.Model):
                 "amount": lambda value: full(value)["exact"] - accrued, "full": full, "state": state, "shift": shift}
 
     def _tax_item(self, rule):
-        """Očekávaná daň (ZJ-12 B.4, B.5): vstupy dopočtu z knihy po kroku 1 a z dřívějších ocenění od začátku účetního období
+        """Očekávaná daň po daňových pravidlech fondu (ZJ-07 C2, ZJ-12 B.4, B.5): vstupy dopočtu z knihy po kroku 1 a z dřívějších
+        ocenění od začátku účetního období. Fond bez výchozího daňového pravidla daň nepočítá (vrací None).
 
-        Výsledek od začátku účetního období bez účtu daně; náklady dřívějších ocenění, které podle volby základ nesnižují (krok 1:
-        úplaty a odměna, krok 2: odměna), se přičtou zpět. Specifické položky tříd = výsledkové řádky s třídou od začátku účetního období
-        (úplaty a odměna tříd, opravy, zajištění) bez nezapočitatelných. Daňový efekt minulého ocenění v roce (pro
-        přírůstkový přesun) je v detailu jeho řádku daně (`effect`, `effect_total`).
+        Účty: výsledkové účty bez výjimky patří výchozímu pravidlu; účet s výjimkou dává podíl pravidlu výjimky a zbytek výchozímu
+        (Mimo základ daně se nepočítá nikde); účty daně (role Daň z příjmů, hlavní i další) se nepočítají nikdy. Rozvahový účet
+        ve výjimce se splatným pravidlem přispívá pohybem od začátku období se znaménkem výnosu (D10), s odloženým pravidlem
+        zůstatkem k datu (D9). Neuznatelné náklady: + % z výnosu účtu výjimky do základu výchozího pravidla.
+        Splatná r: result = výsledek účtů pravidla od začátku období (výnos +), specific = položky s třídou (náklad +), booked =
+        pohyb účtu daně r od začátku období, credit = zůstatek účtu zápočtu od začátku období. Odložená r: result = zůstatek účtů
+        výjimek × podíl, booked = −zůstatek rozvahového účtu r. Výchozí pravidlo: náklady dřívějších ocenění, které podle kroku
+        základ nesnižují, se přičtou zpět (jen úplaty na účtech bez výjimky). Fond bez výjimek = výsledky před ZJ-07.
         """
-        version = rule._version_at(self.date)
+        fund, company = self.fund_id, self.company_id
+        default_rule = fund.tax_rule_id
+        if not default_rule:
+            return None
         step = int(rule.base_step)
-        year_start = self.fund_id._fiscal_year_start(self.date)
-        tax_account = self.env["investra.account.role"].account_for(self.company_id, "expense_tax")
-        pnl = [("date", ">=", year_start), ("account_id", "!=", tax_account.id),
+        year_start = fund._fiscal_year_start(self.date)
+        Role = self.env["investra.account.role"]
+        tax_accounts = Role.accounts_for(company, "expense_tax")
+        exceptions = {e.account_id: e for e in fund.tax_exception_ids}
+        used = fund._tax_rules_used()
+        accounts = {r: r._book_accounts(company) for r in used}
+        versions = {r: r._version_at(self.date) for r in used}
+        class_ids = fund.class_ids.ids
+        rows = {r: {"result": Decimal(0), "specific": {c: Decimal(0) for c in class_ids}, "nondeductible": Decimal(0),
+                    "exceptions": Decimal(0)} for r in used}
+
+        def add(tax_rule, balance, fund_class, share=Decimal(1)):
+            if tax_rule not in rows or tax_rule.method != "current":
+                return
+            part = balance if share == 1 else balance * share
+            rows[tax_rule]["result"] -= part
+            if fund_class and fund_class.id in rows[tax_rule]["specific"]:
+                rows[tax_rule]["specific"][fund_class.id] += part
+
+        Line = self.env["account.move.line"].sudo()
+        pnl = [("date", ">=", year_start), ("account_id", "not in", tax_accounts.ids),
                "|", ("account_id.account_type", "=like", "income%"), ("account_id.account_type", "=like", "expense%")]
-        result = -self._sum(*pnl)
-        specific = {c.id: Decimal(0) for c in self.fund_id.class_ids}
-        groups = self.env["account.move.line"].sudo()._read_group(
-            self._line_domain(*pnl, ("investra_class_id", "in", self.fund_id.class_ids.ids)),
-            groupby=["investra_class_id"], aggregates=["balance:sum"],
-        )
-        for fund_class, balance in groups:
-            specific[fund_class.id] = d(balance).quantize(engine.CENT, rounding=ROUND_HALF_UP)
-        for item in self._earlier_fee_items(self._year_start()):
-            if item["stage"] == engine.STAGE_TAX:
+        groups = Line._read_group(self._line_domain(*pnl), groupby=["account_id", "investra_class_id"], aggregates=["balance:sum"])
+        # D10: rozvahový účet ve výjimce se splatným pravidlem – pohyb od začátku období.
+        moving = [a.id for a, e in exceptions.items()
+                  if not a.account_type.startswith(("income", "expense")) and e.tax_rule_id.method == "current"]
+        if moving:
+            groups += Line._read_group(self._line_domain(("date", ">=", year_start), ("account_id", "in", moving)),
+                                       groupby=["account_id", "investra_class_id"], aggregates=["balance:sum"])
+        for account, fund_class, balance in groups:
+            balance = d(balance)
+            exception = exceptions.get(account)
+            if not exception:
+                add(default_rule, balance, fund_class)
                 continue
-            if item["stage"] > step:
-                result += item["expense"]
-                if item["payer"] in specific:
-                    specific[item["payer"]] -= item["expense"]
+            share = d(exception.share)
+            add(exception.tax_rule_id, balance, fund_class, share)
+            if share != 1:
+                add(default_rule, balance, fund_class, 1 - share)
+            if exception.tax_rule_id != default_rule:
+                rows[default_rule]["exceptions"] -= balance * share
+            if exception.nondeductible_pct:
+                pct = d(exception.nondeductible_pct) / 100
+                add(default_rule, balance * pct, fund_class)  # výnos (záporný zůstatek) → + pct × výnos k základu
+                rows[default_rule]["nondeductible"] -= balance * pct
+        exception_ids = {account.id for account in exceptions}
+        for item in self._earlier_fee_items(self._year_start()):
+            if item["stage"] == engine.STAGE_TAX or item["stage"] <= step or item.get("account") in exception_ids:
+                continue
+            rows[default_rule]["result"] += item["expense"]
+            if item["payer"] in rows[default_rule]["specific"]:
+                rows[default_rule]["specific"][item["payer"]] -= item["expense"]
+        specs = []
+        for r in used:
+            acc, version = accounts[r], versions[r]
+            spec = {"key": r.id, "default": r == default_rule, "method": r.method, "rate": d(version.rate),
+                    "recognise_asset": r.recognise_asset, "version": version.id}
+            if r.method == "current":
+                spec.update(
+                    result=rows[r]["result"].quantize(engine.CENT, rounding=ROUND_HALF_UP),
+                    specific={c: v.quantize(engine.CENT, rounding=ROUND_HALF_UP) for c, v in rows[r]["specific"].items()},
+                    booked=self._sum(("date", ">=", year_start), ("account_id", "=", acc["tax"].id)),
+                    credit=(self._sum(("date", ">=", year_start), ("account_id", "=", acc["credit"].id))
+                            if "credit" in acc else Decimal(0)),
+                    nondeductible=rows[r]["nondeductible"], exceptions=rows[r]["exceptions"])
+            else:
+                mine = [e for e in exceptions.values() if e.tax_rule_id == r]
+                spec.update(result=sum((-self._sum(("account_id", "=", e.account_id.id)) * d(e.share) for e in mine), Decimal(0)),
+                            booked=-self._sum(("account_id", "=", acc["balance"].id)), specific={})
+            specs.append(spec)
+        split = {e.account_id.id: [(e.tax_rule_id.id if e.tax_rule_id in rows else "exempt", d(e.share))]
+                 for e in exceptions.values() if e.account_id.account_type.startswith(("income", "expense"))}
         previous, previous_total = self._previous_tax_effect(rule)
-        booked = self._sum(("date", ">=", year_start), ("account_id", "=", tax_account.id))
         transfers_booked, transfers_exact = self._tax_transfer_history(rule)
-        return {"stage": engine.STAGE_TAX, "payer": None, "tax": {
-            "rate": d(version.rate), "step": step, "result": result, "booked": booked, "specific": specific,
-            "previous_effect": previous, "previous_effect_total": previous_total,
-            "transfers_booked": transfers_booked, "transfers_exact": transfers_exact,
-        }}
+        return {"stage": engine.STAGE_TAX, "payer": None, "tax_rules": {r.id: r for r in used},
+                "tax_accounts": {r.id: accounts[r] for r in used}, "tax": {
+                    "step": step, "rules": specs, "split": split, "previous_effect": previous,
+                    "previous_effect_total": previous_total, "transfers_booked": transfers_booked,
+                    "transfers_exact": transfers_exact}}
 
     def _tax_transfer_history(self, rule):
         """Přesuny daňového efektu od začátku účetního období (rozhodnutí 2026-11-19): zaúčtované po třídách a přesný součet.
@@ -1358,9 +1587,16 @@ class InvestraValuation(models.Model):
         total = sum((engine.money(d(e.amount)) for e in entries), Decimal(0))
         item.update(base_entries=entries, base_correction=total)
         if item["kind"] == "tax":
-            item["tax"]["base_correction"] = total
+            # ZJ-07: oprava základu se přičte k základu svého daňového pravidla (bez pravidla = výchozí pravidlo fondu).
+            for spec in item["tax"]["rules"]:
+                spec["base_correction"] = sum((engine.money(d(e.amount)) for e in entries
+                                               if self._correction_tax_rule(e).id == spec["key"]), Decimal(0))
         else:
             item["shift"]["base"] = total
+
+    def _correction_tax_rule(self, entry):
+        """Daňové pravidlo opravy daně (ZJ-07); oprava bez pravidla (před migrací) patří výchozímu pravidlu fondu."""
+        return entry.tax_rule_id or self.fund_id.tax_rule_id
 
     def _check_corrected_rules(self):
         """Stop (ZJ-12 B.8): oprava odkazuje na pravidlo, které mezitím změnilo druh nebo třídy nebo je archivované."""
@@ -1453,7 +1689,7 @@ class InvestraValuation(models.Model):
         self.write({"external_fee_ids": [(0, 0, {
             "corrects_rule_id": entry.corrects_rule_id.id, "class_id": entry.class_id.id,
             "correction_target": entry.correction_target, "validity": "period", "amount": -entry.amount,
-            "currency_id": entry.currency_id.id, "note": note, "ended_id": entry.id,
+            "currency_id": entry.currency_id.id, "note": note, "ended_id": entry.id, "tax_rule_id": entry.tax_rule_id.id,
         })]})
         return self.external_fee_ids.filtered(lambda row: row.ended_id == entry)
 
@@ -1507,7 +1743,20 @@ class InvestraValuation(models.Model):
                               "payer": fund_class.id, "kind": "performance", "rule": rule, "fund_class": fund_class,
                               **self._recipients(rule, values), **self._performance_item(rule, fund_class, context)})
         for rule in rules.filtered(lambda r: r.kind == "tax"):
-            items.append({"key": ("tax", rule.id), "kind": "tax", "rule": rule, **self._tax_item(rule)})
+            tax = self._tax_item(rule)
+            if tax is not None:
+                items.append({"key": ("tax", rule.id), "kind": "tax", "rule": rule, **tax})
+        if not self.fund_id.tax_rule_id:
+            # C0.6: fond bez výchozího daňového pravidla daň nepočítá; upozornění jen v tom případě (u fondu s pravidlem se
+            # kontroly nemění).
+            self._check("tax_no_rule", self.env._("Fond má výchozí daňové pravidlo"), False,
+                        self.env._("Fond nemá výchozí daňové pravidlo – daň se nepočítá (Fond › záložka Daň)."), severity="warning")
+        for item in items:
+            # ZJ-07 D2: účet nákladu úplaty, aby výjimka daně na účtu měla přednost před krokem.
+            if item["stage"] == engine.STAGE_TAX:
+                continue
+            entry = item.get("entry")
+            item["tax_account"] = self._fee_account_id(item.get("rule") or (entry.corrects_rule_id if entry else None), entry)
         for item in items:
             self._apply_base_correction(item, base_entries)
         for item in items:
@@ -1669,9 +1918,18 @@ class InvestraValuation(models.Model):
                     "performance": self.env._("Oprava odměny %s", rule.name)}.get(
                         rule.kind, self.env._("Oprava úplaty %s", rule.name))
             if rule.kind == "tax":
+                # ZJ-07: oprava částky daně je pevná částka svého daňového pravidla a účtuje na jeho účty.
+                tax_rule = self._correction_tax_rule(entry)
+                extra = {}
+                if tax_rule:
+                    accounts = tax_rule._book_accounts(self.company_id)
+                    Role = self.env["investra.account.role"]
+                    for key, role in (("tax", "expense_tax"), ("balance", "tax_payable")):
+                        if accounts[key] != Role.account_for(self.company_id, role):
+                            extra[key] = {"extra": {"account_id": accounts[key].id}}
                 self._add_event(f"tax:{rule.id}:manual:{entry.id}", name, [
-                    {"role": "expense_tax", "amount": amount, "movement_type": "fee"},
-                    {"role": "tax_payable", "amount": -amount, "movement_type": "fee"},
+                    {"role": "expense_tax", "amount": amount, "movement_type": "fee", **extra.get("tax", {})},
+                    {"role": "tax_payable", "amount": -amount, "movement_type": "fee", **extra.get("balance", {})},
                 ])
                 return
             payable = "performance_payable" if rule.kind == "performance" else "fee_payable"
@@ -1694,7 +1952,9 @@ class InvestraValuation(models.Model):
         self._add_event(f"fee:manual:{entry.id}", self.env._("Ručně doložená úplata"), lines)
 
     def _book_tax(self, item, tax, computed=None):
-        """Daň jedním dokladem (ZJ-12 B.4): doplatek do požadované daně a přesun daňového efektu tříd (B.5).
+        """Daň jedním dokladem (ZJ-12 B.4, ZJ-07): za každé daňové pravidlo doplatek do jeho požadované daně na jeho účty
+        (účet daně a rozvahový účet) a přesun daňového efektu tříd (B.5). Detail řádku: dosavadní klíče (base a result =
+        výchozí pravidlo, required a booked = součty) a rozpad `rules` (`"tax_rule": <id>` drží verzi sazby, `_check_unused`).
 
         Přesuny se dorovnávají proti přesnému součtu od začátku účetního období (`transfers_exact`, rozhodnutí 2026-11-19); rozdíl, aby byl
         součet v ocenění nulový, nese přesun s největší absolutní hodnotou.
@@ -1703,9 +1963,43 @@ class InvestraValuation(models.Model):
         mají vlastní doklady. Přesuny daňového efektu jsou z konečného stavu (oprava daně do nich nevstupuje).
         """
         rule, spec = item["rule"], item["tax"]
+        rules, accounts = item["tax_rules"], item["tax_accounts"]
+        specs = {row["key"]: row for row in spec["rules"]}
+        default_key = next(key for key, row in specs.items() if row["default"])
+        carried_entries = item.get("carried_entries") or self.env["investra.valuation.external"]
         carried = item.get("carried", Decimal(0))
-        required = engine.money((computed or tax)["required"])
-        move = required - spec["booked"] + carried
+        source = (computed or tax)["rules"]
+        lines, rows = [], []
+        move_total = required_total = booked_total = Decimal(0)
+        Role = self.env["investra.account.role"]
+        main = {"expense_tax": Role.account_for(self.company_id, "expense_tax"),
+                "tax_payable": Role.account_for(self.company_id, "tax_payable")}
+        for key, row in source.items():
+            tax_rule, row_spec = rules[key], specs[key]
+            mine = engine.money(sum((d(e.amount) for e in carried_entries if self._correction_tax_rule(e).id == key), Decimal(0)))
+            required = engine.money(row["required"])
+            booked = row_spec["booked"]
+            move = required - booked + mine
+            move_total += move
+            required_total += required
+            booked_total += booked
+            for role, account, amount in (("expense_tax", accounts[key]["tax"], move),
+                                          ("tax_payable", accounts[key]["balance"], -move)):
+                # Účet různý od hlavního účtu role jde přes extra (u hlavního účtu se řádek nemění proti stavu před ZJ-07).
+                extra = {} if account == main[role] else {"extra": {"account_id": account.id}}
+                lines.append({"role": role, "amount": amount, "movement_type": "fee", **extra})
+            rows.append({
+                "tax_rule": key, "name": tax_rule.name, "kind": tax_rule.kind, "method": tax_rule.method,
+                "default": key == default_key, "rate": str(row_spec["rate"]), "version": row_spec.get("version"),
+                "result": str(row_spec.get("result", Decimal(0))), "base": str(engine.money(row["base"])),
+                "required": str(required), "booked": str(booked), "move": str(move),
+                "credit": str(engine.money(row["credit"])), "credit_used": str(engine.money(row["credit_used"])),
+                "credit_lost": str(engine.money(row["credit"] - row["credit_used"])),
+                "base_correction": str(engine.money(d(row_spec.get("base_correction")))), "carried": str(mine),
+                "nondeductible": str(engine.money(d(row_spec.get("nondeductible")))),
+                "excluded": str(engine.money(d(row_spec.get("exceptions")))),
+            })
+        main_spec = specs[default_key]
         # Dorovnání mezi oceněními (rozhodnutí 2026-11-19): přesun = money(přesný součet od začátku účetního období) − už zaúčtované přesuny
         # třídy od začátku účetního období; uvnitř ocenění zbytek do nuly nese přesun s největší absolutní hodnotou.
         booked_transfers, previous_exact = spec.get("transfers_booked") or {}, spec.get("transfers_exact") or {}
@@ -1717,24 +2011,33 @@ class InvestraValuation(models.Model):
         if rounding and transfers:
             transfers[max(sorted(transfers), key=lambda key: abs(transfers[key]))] += rounding
         transfers = {key: value for key, value in transfers.items() if value}
-        self._fee_record(rule, move, None, {
-            "base": tax["base"], "base_step": rule.base_step, "required": required, "booked": spec["booked"],
-            "result": spec["result"], "specific": {str(k): str(engine.money(v)) for k, v in tax["specific"].items()},
+        exceptions = [{"account": e.account_id.code, "name": e.account_id.name, "rule_name": e.tax_rule_id.name,
+                       "share": str(e.share), "nondeductible_pct": str(e.nondeductible_pct)}
+                      for e in self.fund_id.tax_exception_ids]
+        self._fee_record(rule, move_total, None, {
+            "base": tax["base"], "base_step": rule.base_step, "required": required_total, "booked": booked_total,
+            "result": main_spec["result"],
+            "specific": {str(k): str(engine.money(v)) for k, v in tax["specific"].items()},
             "effective_rate": tax["effective_rate"], "transfers": {str(k): str(v) for k, v in transfers.items()},
             "transfers_exact": {str(k): str(v) for k, v in exact.items()},
             "effect": {str(k): str(v) for k, v in tax["effect"].items()}, "effect_total": str(tax["effect_total"]),
+            "rules": rows, "exceptions": exceptions,
             **({"corrected": True} if computed else {}),
             **({"base_correction": item["base_correction"], "base_correction_ids": item["base_entries"].ids}
                if item.get("base_entries") else {}),
-            **({"computed": required - spec["booked"], "carried": carried,
+            **({"computed": required_total - booked_total, "carried": carried,
                 "carried_ids": item["carried_entries"].ids} if item.get("carried_entries") else {}),
         })
-        lines = [
-            {"role": "expense_tax", "amount": move, "movement_type": "fee"},
-            {"role": "tax_payable", "amount": -move, "movement_type": "fee"},
-        ] + [{"role": "internal_clearing", "amount": value, "class_id": key, "movement_type": "class_transfer"}
-             for key, value in transfers.items()]
+        lines += [{"role": "internal_clearing", "amount": value, "class_id": key, "movement_type": "class_transfer"}
+                  for key, value in transfers.items()]
         self._add_event(f"tax:{rule.id}", rule.name, lines)
+        if any(tax_rule.credit_account_code for tax_rule in rules.values()):
+            # Kontrola jen u fondu s pravidlem se zápočtem, aby se kontroly ostatních ocenění nezměnily.
+            lost = [f"{row['name']}: {row['credit_lost']}" for row in rows if Decimal(row["credit_lost"])]
+            self._check("tax_credit_lost", self.env._("Zápočet zahraniční daně je celý využitý"), not lost,
+                        self.env._("Propadá zápočet (vyšší než daň pravidla): %s", "; ".join(lost)) if lost else "",
+                        severity="warning")
+        required = required_total
         # Požadovaná daň po opravách (pro upozornění na záporný výsledek opravy).
         return required + carried + item.get("new_corrections", Decimal(0))
 
@@ -2681,6 +2984,8 @@ class InvestraValuationFee(models.Model):
                 "default_currency_id": valuation.fund_id.currency_id.id,
                 # ZJ-12 A.3: snímek vypočtené částky při zadání; krok 4 ho porovná s novým výpočtem (kontrola B.8).
                 "default_computed_at_entry": self.amount,
+                # ZJ-07: oprava daně patří daňovému pravidlu, výchozí je výchozí pravidlo fondu.
+                **({"default_tax_rule_id": valuation.fund_id.tax_rule_id.id} if self.rule_id.kind == "tax" else {}),
             },
         }
 
@@ -2854,7 +3159,7 @@ class InvestraValuationExternal(models.Model):
             raise ValidationError(self.env._("Úplata %s je úplatou celého fondu; oprava nesmí mít třídu.", rule.name))
         if rule.kind == "tax":
             used = fund._tax_rules_used()
-            if used and not self.tax_rule_id:
+            if not self.tax_rule_id:
                 raise ValidationError(self.env._("Oprava daně musí mít daňové pravidlo (výchozí pravidlo fondu, nebo pravidlo z výjimky)."))
             if self.tax_rule_id and self.tax_rule_id not in used:
                 raise ValidationError(self.env._(
@@ -2909,6 +3214,7 @@ class InvestraValuationExternal(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            self._default_tax_rule(vals)
             if "computed_at_entry" in vals:
                 vals.setdefault("computed_captured", True)
             else:
@@ -2916,6 +3222,17 @@ class InvestraValuationExternal(models.Model):
         records = super().create(vals_list)
         records._check_open()
         return records
+
+    @api.model
+    def _default_tax_rule(self, vals):
+        """Oprava daně bez zadaného daňového pravidla dostane výchozí pravidlo fondu (ZJ-07 C2)."""
+        if vals.get("tax_rule_id") or not vals.get("corrects_rule_id") or not vals.get("valuation_id"):
+            return
+        rule = self.env["investra.fee.rule"].sudo().browse(vals["corrects_rule_id"])
+        if rule.kind == "tax":
+            default = self.env["investra.valuation"].sudo().browse(vals["valuation_id"]).fund_id.tax_rule_id
+            if default:
+                vals["tax_rule_id"] = default.id
 
     @api.model
     def _capture_from_existing_row(self, vals):
@@ -3004,6 +3321,9 @@ class InvestraValuationPortfolio(models.Model):
     fx_rate = fields.Float(digits=(16, 8), string="Kurz")
     fx_source = fields.Selection([("cnb", "ČNB"), ("ecb", "ECB")], string="Zdroj kurzu")
     fair_value = fields.Float(digits=(20, 2), string="Reálná hodnota v měně fondu")
+    oci = fields.Float(digits=(20, 2), string="Oceňovací rozdíl (OCI)",
+                       help="Jen FVOCI (ZJ-18): oceňovací rozdíl pozice ve vlastním kapitálu k datu ocenění (reálná hodnota − naběhlá "
+                            "hodnota u dluhu, − pořizovací cena u akcie).")
 
 
 class InvestraValuationCheck(models.Model):

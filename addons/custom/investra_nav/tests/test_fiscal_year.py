@@ -28,8 +28,7 @@ class TestFiscalYear(NavCase):
         return fund
 
     def tax_rule(self, fund, rate=0.05):
-        return self.Rule.create({"fund_id": fund.id, "name": "Daň", "kind": "tax",
-                                 "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": rate})]})
+        return self.fund_tax(fund, rate)
 
     def tax_amount(self, valuation):
         return round(sum(valuation.fee_line_ids.filtered(lambda f: f.rule_id.kind == "tax").mapped("amount")), 2)
@@ -82,6 +81,22 @@ class TestFiscalYear(NavCase):
         january.action_compute()
         # Základ od 1. 7. 2026 je 600 → daň 30 celkem, 50 už zaúčtováno → uvolnění −20 (kalendářně by základ od 1. 1. byl −400).
         self.assertAlmostEqual(self.tax_amount(january), -20, places=2)
+
+    def test_reference_fiscal_year_july(self):
+        """Referenční příklad dávky (9.1 doplnění): ZIF 5 %, období 1. 7.–30. 6. K 30. 6. 2027 výsledek období 120 000 → 6 000,00;
+        k 31. 7. 2027 výsledek 1.–31. 7. 2027 4 000 → 200,00 (ne 6 200: nové období začíná od nuly, zaúčtovaná = pohyb 681000
+        od 1. 7. 2027)."""
+        fund = self.july_fund()
+        self.tax_rule(fund)
+        self.common_result(fund, "v1", "2027-03-15", 120000)
+        june = self.run_to_posted(self.valuation(fund, date(2027, 6, 30)))
+        self.assertAlmostEqual(self.tax_amount(june), 6000, places=2)
+        self.common_result(fund, "v2", "2027-07-15", 4000)
+        july = self.valuation(fund, date(2027, 7, 31))
+        july.action_compute()
+        self.assertAlmostEqual(self.tax_amount(july), 200, places=2)
+        detail = json.loads(july.fee_line_ids.filtered(lambda f: f.rule_id.kind == "tax").detail)
+        self.assertEqual((detail["rules"][0]["base"], detail["rules"][0]["booked"]), ("4000.00", "0.00"))
 
     # --- odměna: krystalizace „ročně“ ------------------------------------------------------------------------------
 

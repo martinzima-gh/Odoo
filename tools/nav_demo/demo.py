@@ -63,7 +63,8 @@ Rule.create({"fund_id": fund.id, "name": "Úplata za administraci", "kind": "per
 Rule.create({"fund_id": fund.id, "name": "Výkonnostní odměna třídy CZK", "kind": "performance", "expense_role": "expense_performance",
              "class_ids": [(6, 0, A.ids)], "crystallisation": "year", "statute_ref": "čl. 7.3",
              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.2, "perf_measure": "unit", "initial_reference": 1})]})
-Rule.create({"fund_id": fund.id, "name": "Očekávaná daň", "kind": "tax", "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.05})]})
+# ZJ-07: daň se nastavuje ve fondu (výchozí daňové pravidlo); nosič úplaty založí fond sám.
+fund.tax_rule_id = E_.ref("investra_nav.tax_rule_zif_5")
 
 
 def price(instrument, day, value):

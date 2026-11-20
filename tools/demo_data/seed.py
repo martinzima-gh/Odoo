@@ -336,6 +336,11 @@ class Fund:
 
     def fees(self, rules):
         for vals in rules:
+            if vals.get("kind") == "tax":
+                # ZJ-07: daň se nastavuje ve fondu (výchozí daňové pravidlo podle sazby); nosič úplaty založí fond sám.
+                rate = vals["version_ids"][0][2]["rate"]
+                self.fund.tax_rule_id = self.env.ref("investra_nav.tax_rule_zif_5" if rate == 0.05 else "investra_nav.tax_rule_21")
+                continue
             self.env["investra.fee.rule"].create({"fund_id": self.fund.id, **vals})
 
     # --- pohyby investorů (data z IS zadaná ručně) ---------------------------------------------------------------

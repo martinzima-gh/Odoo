@@ -219,8 +219,8 @@ class TestTaxRulesModels(NavCase):
         self.fund.tax_rule_id = self.rule("tax_rule_21")
         self.exception("714200", "tax_rule_separate_15")
         valuation = self.valuation(self.fund, date(2027, 1, 31))
-        with self.assertRaises(ValidationError):  # povinné u fondu s daňovým pravidlem
-            self.correction(valuation)
+        # Běh 5: oprava bez pravidla dostane výchozí pravidlo fondu (C1); bez výchozího pravidla je pravidlo povinné.
+        self.assertEqual(self.correction(valuation).tax_rule_id, self.rule("tax_rule_21"))
         with self.assertRaises(ValidationError):  # Mimo základ ani nepoužité pravidlo se neopravuje
             self.correction(valuation, tax_rule_id=self.rule("tax_rule_zif_5").id)
         row = self.correction(valuation, tax_rule_id=self.rule("tax_rule_separate_15").id)

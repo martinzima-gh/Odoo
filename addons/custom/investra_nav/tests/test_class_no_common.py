@@ -51,8 +51,7 @@ class TestClassNoCommon(NavCase):
 
     def test_received_fee_only_in_m_and_tax_borne_by_others(self):
         """Odměna 2 mil. z A a B do M: M 4 mil.; daň 21 % ze sdíleného zisku nesou A a B (D13)."""
-        self.env["investra.fee.rule"].create({"fund_id": self.fund.id, "name": "Daň", "kind": "tax",
-                                              "version_ids": [(0, 0, {"valid_from": "2020-01-01", "rate": 0.21})]})
+        self.fund_tax(self.fund, 0.21)
         self.common_result(self.fund, "zisk", "2027-01-15", 10_000_000)
         self.transfer_to_m("odmena", "2027-01-20", 1_200_000, 800_000)
         january = self.post("2027-01-31")
