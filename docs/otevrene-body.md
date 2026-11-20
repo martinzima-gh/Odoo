@@ -50,6 +50,10 @@ Uzavřený bod přesunout do `docs/rozhodnuti.md`.
 | Storno dividendy ve formuláři | Model má `action_reverse(reason)`, ale chybí okno s důvodem (vzor storno splátky); tlačítko ve formuláři dividendy proto není (CP-2026-11-20) | Doplnit průvodce storna dividendy |
 | Doména Daňové pravidlo u opravy daně | Pohled vylučuje jen „Mimo základ daně“; přesnou doménu (pravidla použitá ve fondu) hlídá model při uložení | Doplnit pomocné pole s pravidly použitými ve fondu |
 | Fond „01 Zímův fond CZK“ – daňové pravidlo | Nosič daně nemá sazbu, migrace ho přeskočila; fond je po nasazení bez výchozího daňového pravidla | Martin vybere výchozí pravidlo na záložce Daň |
+| Ověření v prohlížeči po dávce ZJ-07 až ZJ-19 | Dluhopis v ex-kupónové lhůtě (záporný naběhlý úrok, kupón dostane prodávající, ocenění bez skoku); pozice FVOCI a sloupec OCI (v `investra` zatím žádné pozice FVOCI nejsou, nejdřív zadat testovací obchod) | Martin, bod 11 z `docs/ukoly/ZJ-20-poznamky-zpracovani.md` |
+| Balíček pro depozitáře (XLS) | List Daň je jen první verze (rozpad z ocenění, jen u fondu s výchozím pravidlem); celý balíček se pravděpodobně předělá | Plán později, bod 12 z ZJ-20 |
+| Doplnění názvu cenného papíru podle ISINu | Zdroj názvu není určený (číselník, externí zdroj, ruční); AG-024 řeší jen zobrazení a hledání | Rozhodnout Martin |
+| Paušál 5 % neuznatelných nákladů z dividend | Hodnota je z praxe, § 25/1/zk ZDP se týká podílu v dceřiné společnosti; potvrdit s poradcem a rozhodnout o místě nastavení (ZJ-23) | Poradce |
 | Oceňování derivátů | Návrh v `docs/navrh-oceneni-derivatu.md`; Přílohy 1 a 2 Pravidel oceňování vyžadují aktualizaci referenčních sazeb, chybí metodiky pro některé nástroje | Rozhodnout rozsah podle pozic prvního fondu; změnu předpisu navrhne oddělení oceňování |
 | Napojení na SDAT | Návrh v `docs/navrh-sdat.md`; termíny poskytuje `ctiVykazovaciPovinnost`. Otevřené: varianta podpisu, soulad pečeti s § 10 vyhlášky 267/2020 Sb., přístupy do testu | Začít variantou se souborem a čtením přes služby |
 | Evidence aktiv uvnitř SPV | Zda vést i aktiva dceřiných společností, nebo jen účast a úvěr | Upřesnit |
