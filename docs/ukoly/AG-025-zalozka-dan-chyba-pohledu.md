@@ -32,14 +32,18 @@ je-li příčina v pohledu.
 **Kritéria přijetí:** příčina popsaná ve Výsledku (s textem chyby); po opravě klik na řádek výjimky funguje bez chyby
 v konzoli; modul se povýší bez chyby.
 
+**Upřesnění příznaku (Martin, 2026-11-20):** po kliknutí na řádek se tabulka snaží donekonečna rozšiřovat, přidává sloupce, a stále to běží
+(nekonečné překreslování seznamu). Kontrola po povýšení: Copilot přesunul seznam mimo podmíněně skrytou skupinu; pokud blikání zůstane,
+další hypotézy: pevné šířky sloupců (`width`) u polí Podíl, Neuznatelné a Pohyb, Monetary pole `movement_ytd` bez sloupce měny (`currency_id`),
+`optional` sloupce; získat chybu z konzole prohlížeče.
+
 ## Výsledek
 
-Doplní Antigravity.
-
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_nav/views/nav_views.xml` – pole `tax_exception_ids` je mimo rodičovský `<group invisible=...>`; viditelnost se nyní řídí polem samotným. Podmínění zobrazení tabulky zůstalo zachováno.
+- **Příčina / důkazy:** předchozí pohled vkládal editovatelný one2many seznam do podmíněně skrytého skupinového kontejneru; to odpovídá ověřované hypotéze zadané v úkolu, ale není potvrzenou příčinou blikání. V modelu je `movement_ytd` počítané podle `fund_id` a `account_id`, ne přes onchange; nenalezl jsem důkaz, že by se spouštělo každým kliknutím. Doména s `parent.company_id` a kontext `default_fund_id` zůstaly beze změny.
+- **Ověřeno:** instance `http://127.0.0.1:8072` při otevření vrátila `ERR_CONNECTION_REFUSED`; na UI proto nebylo možné blikání zreprodukovat ani po úpravě ověřit. Text chyby z konzole stránky Odoo není k dispozici. Prohlédnut model výjimky a zdrojové XML.
+- **Neověřeno:** chování po kliknutí na řádek, chyba v konzoli prohlížeče, log Odoo a upgrade modulu.
+- **Otevřené otázky a návrhy mimo rozsah:** po spuštění instance 8072 ověřit, zda úprava odstranila blikání; pokud ne, získat skutečnou chybu z konzole a logu a předat příčinu Claudovi. Instanci jsem nespouštěl.
 
 ## Převzetí
 

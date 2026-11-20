@@ -1763,7 +1763,7 @@ class InvestraValuation(models.Model):
             # C0.6: fond bez výchozího daňového pravidla daň nepočítá; upozornění jen v tom případě (u fondu s pravidlem se
             # kontroly nemění).
             self._check("tax_no_rule", self.env._("Fond má výchozí daňové pravidlo"), False,
-                        self.env._("Fond nemá výchozí daňové pravidlo – daň se nepočítá (Fond › záložka Daň)."), severity="warning")
+                        self.env._("Fond nemá výchozí daňové pravidlo – daň se nepočítá (Fond › záložka Daňová pravidla)."), severity="warning")
         for item in items:
             # ZJ-07 D2: účet nákladu úplaty, aby výjimka daně na účtu měla přednost před krokem.
             if item["stage"] == engine.STAGE_TAX:

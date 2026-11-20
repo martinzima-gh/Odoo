@@ -134,6 +134,8 @@ class InvestraInstrument(models.Model):
     _inherit = ["investra.record.guard", "mail.thread"]
     _description = "Nástroj"
     _order = "name"
+    # AG-024: klíčem nástroje je ISIN; výběr a hledání v polích Nástroj najde nástroj podle ISIN, názvu, kódu i identifikátoru.
+    _rec_names_search = ["isin", "name", "code", "identifier"]
     _book_fields = ("fund_id", "company_id")
     _system_fields = frozenset({"code", "company_id"})
 
@@ -229,6 +231,12 @@ class InvestraInstrument(models.Model):
             "Nástroj s ISIN je sdílený a vede ho kniha investiční společnosti, která zatím není založená (nebo jich je víc). "
             "Nástroj bez ISIN založte jako nástroj fondu."
         ))
+
+    @api.depends("isin", "name")
+    def _compute_display_name(self):
+        # AG-024: „ISIN název“; nástroj bez ISIN jen název.
+        for instrument in self:
+            instrument.display_name = f"{instrument.isin} {instrument.name}" if instrument.isin else (instrument.name or "")
 
     @api.depends("fund_id", "company_id")
     @api.depends_context("uid", "allowed_company_ids")

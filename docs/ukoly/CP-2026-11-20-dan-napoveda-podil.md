@@ -29,10 +29,10 @@ se povýší bez chyby.
 
 ## Výsledek
 
-- **Změněné soubory:**
-- **Ověřeno (příkaz a výsledek):**
-- **Neověřeno:**
-- **Otevřené otázky a návrhy mimo rozsah:**
+- **Změněné soubory:** `addons/custom/investra_nav/views/nav_views.xml` – text pod tabulkou Výjimky a pole tabulky vytažené z podmíněně skrytého `<group>`; `docs/manual/11-dan.md` – vysvětlení Podílu a Neuznatelných nákladů se dvěma příklady.
+- **Ověřeno:** ruční přepočet příkladů: 5 000 × 60 % = 3 000 (zbytek 2 000); 40 000 × 25 % = 10 000 (zbytek 30 000). Zkontrolováno, že text rozlišuje Podíl od navýšení základu neuznatelnými náklady a uvádí přednost účetní výjimky před volbou Základ: po kroku.
+- **Neověřeno:** upgrade modulu a zobrazení textu na instanci Odoo.
+- **Otevřené otázky a návrhy mimo rozsah:** žádné.
 
 ## Převzetí
 

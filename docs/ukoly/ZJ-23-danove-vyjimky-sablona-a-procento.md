@@ -9,7 +9,7 @@
 | Větev úkolu | `ukol/ZJ-23-danove-vyjimky` |
 | Zadal, dne | Martin, 2026-11-20 (poznámky 4 a 6) |
 | Navazuje na | ZJ-07 (oddíl 9, D2, D10, D11), `docs/ukoly/ZJ-20-poznamky-zpracovani.md` |
-| Model | Opus 5.5 (výpočet a migrace); texty a manuál Copilot |
+| Model | Sonnet 5.5, úsilí high (plán je schválený a referenční čísla hlídají testy); texty a manuál Copilot |
 
 **Cíl:** Zjednodušit nastavení daňových výjimek: jedno univerzální procento neuznatelnosti pro výnos i náklad, nastavitelná šablona
 běžných výjimek místo hodnot napevno v kódu a srozumitelná nápověda k poli Podíl.
@@ -38,6 +38,16 @@ běžných výjimek místo hodnot napevno v kódu a srozumitelná nápověda k p
 **Schválení:** plán schválil Martin zprávou „schvaluji“ dne 2026-11-20. Výchozí rozhodnutí: šablona se uplatní jen tlačítkem
 „Přidat běžné výjimky“ (žádné automatické předvyplnění u nového fondu); paušál 5 % u dividend zůstane v šabloně jako výchozí
 hodnota do vyjádření poradce.
+
+## Pokyny pro Sonnet
+
+- Přečti CLAUDE.md, `docs/ukoly/ZJ-20-poznamky-zpracovani.md` (jen „Testy“ a „Pořadí práce“) a tento úkol. Plán je schválený, návrhy kódu nejsou spuštěné:
+  převezmi je, uprav podle skutečného kódu a odchylky zapiš do Výsledku.
+- Commit po bodech plánu. Cílený test změněné třídy po každém bodu a snímek ocenění 35/39 (`tools/snimek_na_kopii.sh`) po dokončení;
+  `tools/run_tests.sh all` jen na konci. Pracovní databázi `investra` nepovyšuj (povýšení dělá Claude po všech úkolech).
+- Zastav se a napiš JEN když: výsledek existujících ocenění (35, 39, referenční scénáře) se bez nového nastavení změní; něco ze
+  zadání v kódu nejde; stejný test dvakrát po opravě neprojde (commitni hotové a popiš).
+- Na konci napiš krátce: commity, odchylky, testy, snímek, seznam polí a akcí pro Copilota (pohledy), předávku ulož do `docs/predavky/`.
 
 ## Výsledek
 

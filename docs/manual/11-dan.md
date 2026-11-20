@@ -28,7 +28,7 @@ platnosti. Výběr sazby a účetního rámce musí odpovídat schválené daňo
 
 ## Daň fondu a výjimky
 
-Ve formuláři fondu otevřete záložku **Daň**:
+Ve formuláři fondu otevřete záložku **Daňová pravidla**:
 
 - **Výchozí daňové pravidlo** platí pro výsledkové účty bez výjimky.
 - **Aktuální sazba** se přebírá z právě platné verze pravidla.
@@ -38,6 +38,25 @@ Ve formuláři fondu otevřete záložku **Daň**:
 Pole tabulky jsou **Účet**, **Daňové pravidlo**, **Podíl**, **Neuznatelné náklady (% z výnosu)**, **Pohyb od začátku období**
 a **Poznámka**. Neuznatelné náklady lze zadat pouze u výnosového účtu. Pohyb je od začátku účetního období fondu a zobrazuje
 výnosy kladně (kredit = plus).
+
+### Podíl a neuznatelné náklady
+
+**Podíl** určuje, jaká část pohybu účtu se přiřadí pravidlu uvedenému ve výjimce. Zbytek pohybu zůstává ve výchozím daňovém pravidle.
+Obvykle se používá 100 %. Nižší podíl se hodí například při rozdělení jednoho účtu mezi dvě pravidla nebo při krácení nákladů
+přiřazených k osvobozeným výnosům.
+
+- Zahraniční dividenda 5 000 Kč, pravidlo **Samostatný základ** se sazbou 15 % a podíl 60 %: 3 000 Kč patří do samostatného
+  základu a zbývajících 2 000 Kč do obecného základu.
+- Úplata 40 000 Kč, pravidlo **Mimo základ daně** a podíl 25 %: 10 000 Kč je mimo základ a zbývajících 30 000 Kč se posoudí
+  podle výchozího pravidla fondu.
+
+**Neuznatelné náklady (% z výnosu)** pohyb účtu nerozdělují jako Podíl. U pravidla **Mimo základ daně** vede jejich použití ke
+stejnému výsledku jako odpovídající Podíl. U zdaňovaného pravidla se neuznatelná část přičte navíc k základu podle výchozího
+pravidla fondu. Použijte proto Podíl, když chcete pohyb rozdělit mezi pravidlo výjimky a výchozí pravidlo; neuznatelné náklady
+slouží k navýšení zdanitelného základu.
+
+Výjimka na účtu úplaty má přednost před volbou **Základ: po kroku**. Pokud tedy účet odpovídá výjimce, jeho pohyb se posoudí podle
+pravidla výjimky bez ohledu na to, zda volba základu zahrnuje úplaty.
 
 Tlačítko **Přidat běžné výjimky** doplní běžné výjimky pro dividendy, penále a reprezentaci; již nastavené výjimky nepřepíše.
 Pokud fond používá FVOCI, doplní také výjimku pro odloženou daň z OCI a pro realizované přecenění akcií FVOCI. Tlačítko nepřidává

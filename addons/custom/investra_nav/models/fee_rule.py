@@ -273,13 +273,13 @@ class InvestraFeeRule(models.Model):
         return super().write(vals)
 
     def _check_tax_carrier_vals(self, vals_list):
-        """ZJ-07 B: pravidlo druhu Očekávaná daň je jen technický nosič, zakládá ho fond (záložka Daň). Ručně ho zvolit ani
+        """ZJ-07 B: pravidlo druhu Očekávaná daň je jen technický nosič, zakládá ho fond (záložka Daňová pravidla). Ručně ho zvolit ani
         změnit na jiný druh nejde; fond ho zakládá v kontextu `investra_tax_carrier` (také migrace)."""
         if self.env.context.get("investra_tax_carrier") or self.env.context.get("install_mode"):
             return
         if any(vals.get("kind") == "tax" for vals in vals_list) or (
                 any("kind" in vals for vals in vals_list) and self.filtered(lambda r: r.kind == "tax")):
-            raise UserError(self.env._("Daň se nastavuje ve fondu, záložka Daň (výchozí daňové pravidlo a výjimky)."))
+            raise UserError(self.env._("Daň se nastavuje ve fondu, záložka Daňová pravidla (výchozí daňové pravidlo a výjimky)."))
 
     def _check_archive(self):
         """Pojistka archivace (ZJ-12 krok 4, rozhodnutí 2026-11-18): archivované pravidlo se v dalším ocenění nepočítá,

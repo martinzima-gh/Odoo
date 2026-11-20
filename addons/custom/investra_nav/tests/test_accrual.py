@@ -400,7 +400,8 @@ class TestAccrual(NavCase):
         form.kind = "extraordinary"
         self.assertTrue(form.closes_position)
         arch = self.env.ref("investra_nav.view_repayment_form").arch
-        self.assertLess(arch.index('name="kind"'), arch.index('name="fund_id"'))
+        # AG-023: fond je ve formuláři první, potom druh splátky.
+        self.assertLess(arch.index('name="fund_id"'), arch.index('name="kind"'))
         self.assertIn('invisible="kind != \'extraordinary\'"', arch)
 
     def test_date_change_keeps_manual_amounts_instrument_change_prefills(self):

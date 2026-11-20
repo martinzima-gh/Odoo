@@ -9,7 +9,7 @@
 | Větev úkolu | `ukol/ZJ-22-dividenda-na-cp` |
 | Zadal, dne | Martin, 2026-11-20 |
 | Navazuje na | ZJ-19 (dnešní `investra.dividend` na fond a portfolio), AG-024 (ISIN), `ZJ-20-poznamky-zpracovani.md` bod 10 |
-| Model | Opus 5.5 (model a účtování); Copilot nebo Antigravity pro pohledy |
+| Model | Sonnet 5.5, úsilí high (po schválení plánu dne 2026-11-20 nepotřebuje Opus; účtování dividend zůstává stávající) |
 
 **Cíl:** Dividenda je událost cenného papíru. Uživatel zadá **cenný papír (ISIN)**, ex-datum, datum výplaty, měnu a hrubou dividendu
 na kus. Fond se nevybírá. Dole se sama ukáže tabulka držitelů k večeru dne před ex-datem (fond, portfolio a třída, kusy s nárokem,
@@ -35,6 +35,16 @@ hrubá dividenda, srážka, čistá dividenda) a součty. Zaúčtování proběh
 
 **Schválení:** plán schválil Martin zprávou „schvaluji“ dne 2026-11-20. Výchozí rozhodnutí: jedna hlavička = jeden cenný papír a
 ex-datum (opravy dalším záznamem); „Zaúčtovat vše“ smí zpracovatel (role s činností, ne nutně schvalovatel).
+
+## Pokyny pro Sonnet
+
+- Přečti CLAUDE.md, `docs/ukoly/ZJ-20-poznamky-zpracovani.md` (jen „Testy“ a „Pořadí práce“) a tento úkol. Plán je schválený, návrhy kódu nejsou spuštěné:
+  převezmi je, uprav podle skutečného kódu a odchylky zapiš do Výsledku.
+- Commit po bodech plánu. Cílený test změněné třídy po každém bodu a snímek ocenění 35/39 (`tools/snimek_na_kopii.sh`) po dokončení;
+  `tools/run_tests.sh all` jen na konci. Pracovní databázi `investra` nepovyšuj (povýšení dělá Claude po všech úkolech).
+- Zastav se a napiš JEN když: výsledek existujících ocenění (35, 39, referenční scénáře) se bez nového nastavení změní; něco ze
+  zadání v kódu nejde; stejný test dvakrát po opravě neprojde (commitni hotové a popiš).
+- Na konci napiš krátce: commity, odchylky, testy, snímek, seznam polí a akcí pro Copilota (pohledy), předávku ulož do `docs/predavky/`.
 
 ## Výsledek
 

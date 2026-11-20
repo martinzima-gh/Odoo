@@ -39,7 +39,7 @@
         <field name="inherit_id" ref="investra_fund.view_fund_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Daň" name="tax">
+                <page string="Daňová pravidla" name="tax">
                     <group>
                         <group string="Výpočet daně">
                             <field name="tax_rule_id" options="{'no_create': True}"/>
@@ -52,20 +52,28 @@
                                     class="btn-secondary" invisible="not tax_rule_id"/>
                         </group>
                     </group>
-                    <group string="Výjimky" invisible="not tax_rule_id">
-                        <field name="tax_exception_ids" nolabel="1" context="{'default_fund_id': id}">
-                            <list editable="bottom">
-                                <field name="account_id" options="{'no_create': True}"
-                                       domain="[('company_ids', 'in', parent.company_id)]"/>
-                                <field name="tax_rule_id" options="{'no_create': True}"
-                                       domain="[('kind', '!=', 'exempt')]"/>
-                                <field name="share"/>
-                                <field name="nondeductible_pct"/>
-                                <field name="movement_ytd" readonly="1"/>
-                                <field name="note"/>
-                            </list>
-                        </field>
-                    </group>
+                    <separator string="Výjimky" invisible="not tax_rule_id"/>
+                    <field name="tax_exception_ids" nolabel="1" invisible="not tax_rule_id"
+                           context="{'default_fund_id': id}">
+                        <list editable="bottom">
+                            <field name="account_id" options="{'no_create': True}"
+                                   domain="[('company_ids', 'in', parent.company_id)]"/>
+                            <field name="tax_rule_id" options="{'no_create': True}"
+                                   domain="[('kind', '!=', 'exempt')]"/>
+                            <field name="share"/>
+                            <field name="nondeductible_pct"/>
+                            <field name="movement_ytd" readonly="1"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                    <p class="text-muted" invisible="not tax_rule_id">
+                        Podíl určuje, jaká část pohybu účtu se přiřadí pravidlu výjimky; zbytek zůstává ve výchozím pravidle.
+                        Obvykle se používá 100 %; nižší podíl rozdělí účet mezi pravidlo výjimky a výchozí pravidlo, například při
+                        krácení nákladů k osvobozeným výnosům.
+                        Neuznatelné náklady (%) pohyb nerozdělují: u pravidla Mimo základ je výsledek stejný, u zdaňovaného
+                        pravidla se neuznatelná část přičte k základu podle výchozího pravidla.
+                        Výjimka na účtu má přednost před volbou Základ: po kroku.
+                    </p>
                 </page>
             </xpath>
         </field>
@@ -287,11 +295,11 @@
                             <field width="[90,130]" name="fx_rate" optional="hide"/>
                         </list></field></page>
                         <page string="Portfolio"><field name="portfolio_line_ids"><list>
-                            <field name="kind"/>
+                            <field name="isin" optional="show"/>
                             <field name="name"/>
+                            <field name="kind"/>
                             <field name="portfolio_id" optional="hide"/>
                             <field name="ifrs9_category" optional="show"/>
-                            <field name="isin" optional="show"/>
                             <field name="currency_id" optional="show"/>
                             <field name="quantity"/>
                             <field name="price"/>
@@ -611,7 +619,7 @@
             <form><sheet>
                 <!-- ZJ-03: souběh téže nákladové role na fondu a na třídách jen upozorní; uložení ani výpočet nezastaví. -->
                 <div class="alert alert-info" role="alert" invisible="kind != 'tax'">
-                    Daň se nastavuje ve fondu, záložka Daň:
+                    Daň se nastavuje ve fondu, záložka Daňová pravidla:
                     <field name="fund_id" readonly="1" class="oe_inline"/>
                 </div>
                 <div class="alert alert-warning" role="alert" invisible="not class_base_warning">
@@ -624,7 +632,16 @@
                     <field name="no_common_class_warning" nolabel="1"/>
                 </div>
                 <group>
-                    <group><field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/><field name="name"/><field name="kind"/><field name="statute_ref"/></group>
+                    <field name="fund_id" readonly="context.get('investra_lock_fund')" force_save="1"/>
+                </group>
+                <group invisible="kind == 'tax'">
+                    <field name="class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
+                    <field name="recipient_share"/>
+                    <field name="recipient_class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
+                    <field name="cover_class_id" invisible="kind != 'performance'" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
+                </group>
+                <group>
+                    <group><field name="name"/><field name="kind"/><field name="statute_ref"/></group>
                     <!-- ZJ-06 bod 10: co k druhu úplaty nepatří, se neukazuje. Daň konvenci dnů a základ nepoužívá. -->
                     <group>
                         <field name="basis" invisible="kind == 'tax'"/>
@@ -639,12 +656,6 @@
                         <field name="expense_role" invisible="kind == 'tax'"/>
                         <field name="crystallisation" invisible="kind != 'performance'"/>
                     </group>
-                </group>
-                <group invisible="kind == 'tax'">
-                    <field name="class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
-                    <field name="recipient_share"/>
-                    <field name="recipient_class_ids" widget="many2many_tags" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
-                    <field name="cover_class_id" invisible="kind != 'performance'" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"/>
                 </group>
                 <!-- ZJ-06 bod 11: v tabulce jen hlavní sloupce podle druhu, ostatní ve formuláři verze. -->
                 <field name="version_ids">
@@ -832,10 +843,15 @@
                     <!-- Nadpis: Typ + Třída + Datum vpravo -->
                     <div class="oe_title">
                         <h1>
-                            <field name="movement_type" readonly="state != 'draft'" class="me-1"/>
+                            <field name="fund_id" readonly="1"/>
+                            <span> – </span>
                             <field name="class_id" readonly="state != 'draft'"/>
                         </h1>
                         <div class="o_investra_metadata">
+                            <div class="o_investra_metadata_item">
+                                <label for="movement_type"/>
+                                <field name="movement_type" nolabel="1" readonly="state != 'draft'"/>
+                            </div>
                             <div class="o_investra_metadata_item">
                                 <label for="currency_id"/>
                                 <field name="currency_id" nolabel="1"/>
@@ -1159,12 +1175,12 @@ if isinstance(result, dict):
                     </div>
                     <div class="o_investra_metadata">
                         <div class="o_investra_metadata_item">
-                            <label for="kind"/>
-                            <field name="kind" nolabel="1" readonly="state != 'draft'"/>
-                        </div>
-                        <div class="o_investra_metadata_item">
                             <label for="fund_id"/>
                             <field name="fund_id" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="kind"/>
+                            <field name="kind" nolabel="1" readonly="state != 'draft'"/>
                         </div>
                         <div class="o_investra_metadata_item">
                             <label for="instrument_id"/>
