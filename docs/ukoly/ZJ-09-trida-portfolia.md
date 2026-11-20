@@ -40,6 +40,16 @@ Portfolio i bankovní účet jsou **buď společné pro všechny třídy, nebo p
 8. Testy: zajištění třídy B forwardem (přecenění jen do ΔT třídy B), stejný nástroj ve společném portfoliu a v portfoliu třídy,
    storno obchodu v portfoliu třídy, úrok a splátka, kurzové přecenění, nákup do společného portfolia placený z banky třídy, úpis třídy na banku třídy, výběr účtu podle třídy a měny, dva účty fondu ve stejné měně (zůstatky po účtech odpovídají pohybům); referenční scénáře beze změny.
 
+## Technický plán
+
+Schváleno Martinem 19. 11. 2026: `docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md`, oddíl 2 (2.1 plán, 2.2 postup a kód, 2.3 doplnění deriváty, nevypořádané a kurzové
+přecenění), s „Přednostmi“ a oddílem 1. Obsah se sem nekopíruje.
+
+- Teď (dávka ZJ-07 až ZJ-19, běh 1, Opus 5.5): body 1, 2, 3, 5, 8 a logika bodu 4 (třída na řádcích náhledu); A6 přemostění.
+- Později: **2b** bankovní účet třídy, **2c** analytický účet za každý bankovní účet (zůstávají v tomto zadání, neprogramují se).
+- Běh 6 (Copilot): formulář portfolia (Třída), text třídy u obchodu, sloupec Třída v náhledu zaúčtování, manuál (bod 7).
+- Odchylky od plánu se zapisují do Výsledku.
+
 ## Výsledek
 
 ## Převzetí

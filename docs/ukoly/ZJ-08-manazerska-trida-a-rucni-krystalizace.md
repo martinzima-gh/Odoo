@@ -32,6 +32,16 @@ podíl na zisku i ztrátě portfolia. Pořadí nároků (`engine.waterfall`) to 
 
 **Mimo rozsah:** statut a zdanění výnosu manažera (ověří Martin u právníka a daňového poradce); třída portfolia (ZJ-09).
 
+## Technický plán
+
+Schváleno Martinem 19. 11. 2026: `docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md`, oddíl 3 (D1–D6), s „Přednostmi“ a oddílem 1 (D13). Obsah se sem nekopíruje.
+
+- Teď (běh 1, Opus 5.5): body 1–3 – pole „Podílí se na společných položkách“ na třídě, výpočet (poměr 0, kapitál = předchozí
+  + pohyby + specifické položky), kontrola na alokačním schématu, upozornění na úplatu z třídy bez podílu (D6, logika).
+- Později: **bod 4 ruční krystalizace** (zůstává v tomto zadání, neprogramuje se).
+- Běh 6 (Copilot): přepínač ve formuláři třídy, zobrazení upozornění D6 ve formuláři pravidla, manuál.
+- Odchylky od plánu se zapisují do Výsledku.
+
 ## Výsledek
 
 ## Převzetí

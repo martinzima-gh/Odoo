@@ -1,0 +1,105 @@
+ id | fund_id |    date    | version |  state   | fund_capital | neutral_capital |         write_date         
+----+---------+------------+---------+----------+--------------+-----------------+----------------------------
+ 35 |       2 | 2026-10-31 |       1 | computed | 161681301.84 |    161681301.84 | 2026-11-19 11:56:44.722021
+ 39 |       1 | 2026-10-31 |       3 | returned | 104174387.71 |    104174387.71 | 2026-11-19 09:05:06.614148
+(2 rows)
+
+ valuation_id | class_id |   capital    | capital_class |      units       |  price  | delta | fee_amount | performance_amount | allocation_amount | tax_effect_amount | other_amount | perf_accrued 
+--------------+----------+--------------+---------------+------------------+---------+-------+------------+--------------------+-------------------+-------------------+--------------+--------------
+           35 |        3 | 161681301.84 |  161681301.84 | 155917683.229197 | 1.0369  |  0.00 |       0.00 |               0.00 |              0.00 |              0.00 |         0.00 |         0.00
+           39 |        1 |  77284785.20 |   77284785.20 |  83202913.631633 | 0.9288  |  0.00 |       0.00 |               0.00 |              0.00 |              0.00 |         0.00 |         0.00
+           39 |        2 |  26889602.51 |    1090900.34 |     11890.321407 | 91.7469 |  0.00 |       0.00 |               0.00 |              0.00 |              0.00 |         0.00 |         0.00
+(3 rows)
+
+ valuation_id | radku |  soucet   
+--------------+-------+-----------
+           35 |     3 | 191823.66
+           39 |     6 | 177187.54
+(2 rows)
+
+ valuation_id |   state   | dokladu |    soucet     
+--------------+-----------+---------+---------------
+           35 | discarded |      16 |    3004610.40
+           35 | draft     |       4 |     751152.60
+           39 | discarded |      82 | 2503343489.46
+(3 rows)
+
+ valuation_id |             code             | status  
+--------------+------------------------------+---------
+           35 | accounts_role                | ok
+           35 | base_correction_ended        | ok
+           35 | bond_calendar                | ok
+           35 | bridge_movements             | ok
+           35 | bridge_opening               | ok
+           35 | bridge_result                | ok
+           35 | bridge_units                 | ok
+           35 | carried_corrections          | ok
+           35 | classes_sum                  | ok
+           35 | classification_override      | ok
+           35 | classification_proposal      | ok
+           35 | clearing_zero                | ok
+           35 | correction_changed           | ok
+           35 | correction_negative          | ok
+           35 | correction_once_ended        | ok
+           35 | fee_consistency              | ok
+           35 | fee_overlap                  | ok
+           35 | instrument_changes           | warning
+           35 | lock_exception               | ok
+           35 | manual_rate                  | ok
+           35 | matrix_change                | warning
+           35 | matrix_valuation             | warning
+           35 | movement_fee_rate            | ok
+           35 | movement_price               | ok
+           35 | movements_posted             | ok
+           35 | no_foreign_drafts            | ok
+           35 | positions_ledger             | ok
+           35 | price_age                    | ok
+           35 | price_fund_deviation         | ok
+           35 | scheduled_repayments         | ok
+           35 | second_person                | warning
+           35 | trades_booked                | ok
+           35 | trades_settled               | ok
+           35 | transit_zero                 | warning
+           35 | version_entries_missing      | ok
+           39 | accounts_role                | ok
+           39 | base_correction_ended        | ok
+           39 | bond_calendar                | ok
+           39 | bridge_movements             | ok
+           39 | bridge_opening               | ok
+           39 | bridge_result                | ok
+           39 | bridge_units                 | ok
+           39 | carried_corrections          | ok
+           39 | classes_sum                  | ok
+           39 | classification_override      | ok
+           39 | classification_proposal      | ok
+           39 | clearing_zero                | ok
+           39 | correction_changed           | ok
+           39 | correction_negative          | ok
+           39 | correction_once_ended        | ok
+           39 | derivative_draft             | ok
+           39 | derivative_manual_difference | ok
+           39 | derivative_manual_evidence   | ok
+           39 | derivative_rate              | ok
+           39 | derivative_settled           | ok
+           39 | fee_consistency              | ok
+           39 | fee_overlap                  | ok
+           39 | instrument_changes           | ok
+           39 | lock_exception               | ok
+           39 | manual_rate                  | ok
+           39 | matrix_change                | warning
+           39 | matrix_valuation             | warning
+           39 | movement_fee_rate            | ok
+           39 | movement_price               | ok
+           39 | movements_posted             | ok
+           39 | no_foreign_drafts            | ok
+           39 | positions_ledger             | ok
+           39 | price_age                    | ok
+           39 | price_fund_deviation         | ok
+           39 | scheduled_repayments         | ok
+           39 | second_person                | warning
+           39 | trades_booked                | ok
+           39 | trades_settled               | ok
+           39 | transit_zero                 | ok
+           39 | version_entries_missing      | warning
+(75 rows)
+

@@ -33,6 +33,16 @@ zadávají se jen výjimky (účet → režim: neuznatelný náklad, osvobozený
 - ~~Základ časově rozlišené úplaty „po dani“ a cyklus odměny po dani~~ – **vyřešeno rozhodnutími 2026-11-18** (ZJ-12): základ „po kroku 1–4“ a společný dopočet
   s kontrolou konzistence; kruh úplata–daň i odměna–daň se řeší ustálením, ne zvláštními doúčtováními.
 
+## Technický plán
+
+Schváleno Martinem 19. 11. 2026 včetně odchylek C0.1–C0.8: `docs/ukoly/podklady/zadani-davka-ZJ-07-az-19.md`, oddíl 9 (9.1 zadání a referenční příklady, 9.2 technický plán,
+9.3 postup a kód) a **Právní rámec** z oddílu 1 (D1–D14). Obsah se sem nekopíruje. DA-01 se do tohoto úkolu slučuje (D1).
+
+- Provedení: běh 4 (účty a daňové modely, Sonnet 5.5) a běh 5 (výpočet daně a migrace, Opus 5.5), viz
+  `docs/ukoly/podklady/davka-ZJ-07-19/00-prehled.md`; zobrazení a manuál běh 6 (Copilot).
+- Otázky pro daňového poradce a metodika jsou v `docs/otevrene-body.md` (dávka ZJ-07 až ZJ-19).
+- Odchylky od plánu se zapisují do Výsledku.
+
 ## Výsledek
 
 ## Převzetí
