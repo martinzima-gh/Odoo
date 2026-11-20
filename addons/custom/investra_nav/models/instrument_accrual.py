@@ -550,11 +550,15 @@ class InvestraInstrumentRepayment(models.Model):
         Trade = self.env["investra.trade"].sudo()
         positions = list(Trade._holdings(fund, day))
         # ZJ-19 H2: prodávající v ex-lhůtě má na kupón nárok i bez kusů k datu výplaty.
+        # Jen toky od vzniku fondu a pozice počítané jednou pro každé ex-datum (denní úloha běží přes všechny fondy).
+        holdings_at = {}
         for flow in self.env["investra.instrument.cashflow"].sudo().search([
-                ("flow_type", "=", "interest"), ("date", "<=", day), ("ex_date", "!=", False)]):
+                ("flow_type", "=", "interest"), ("date", "<=", day), ("ex_date", "!=", False),
+                ("date", ">=", fund.launch_date or day)]):
             if flow.ex_date < flow.date:
-                positions += [key for key in Trade._holdings(fund, flow.ex_date - timedelta(days=1))
-                              if key[0] == flow.instrument_id and key not in positions]
+                if flow.ex_date not in holdings_at:
+                    holdings_at[flow.ex_date] = list(Trade._holdings(fund, flow.ex_date - timedelta(days=1)))
+                positions += [key for key in holdings_at[flow.ex_date] if key[0] == flow.instrument_id and key not in positions]
         for instrument, portfolio in positions:
             flow_days = sorted(set(instrument.cashflow_ids.filtered(lambda f: f.date <= day).mapped("date")))
             if not flow_days:

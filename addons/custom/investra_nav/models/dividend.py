@@ -12,8 +12,6 @@ from decimal import ROUND_HALF_UP, Decimal
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from .. import engine
-
 KINDS = [("domestic", "Česká"), ("foreign", "Zahraniční"), ("subsidiary", "Z dceřiné společnosti")]
 # Účty výnosu podle druhu a účty daně a pohledávek (analytické účty šablony investra_chart_fund, další účty rolí).
 INCOME_ACCOUNT = {"domestic": "714100", "foreign": "714200", "subsidiary": "714300"}
