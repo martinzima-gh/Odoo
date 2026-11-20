@@ -44,6 +44,7 @@
                     <group string="Základní parametry">
                         <field name="valuation_frequency"/>
                         <field name="trade_recognition"/>
+                        <field name="fiscal_year_end"/>
                     </group>
                     <group string="Úročení nástrojů">
                         <field name="accrual_method"/>
@@ -91,7 +92,7 @@
                         <group string="Třída">
                             <field name="fund_id" readonly="id"/>
                             <field name="code"/><field name="name"/><field name="currency_id"/><field name="isin"/>
-                            <field name="distribution"/><field name="sequence"/>
+                            <field name="distribution"/><field name="sequence"/><field name="shares_common"/>
                         </group>
                         <group string="Kurz a kusy">
                             <field name="price_digits"/><field name="price_rounding"/>

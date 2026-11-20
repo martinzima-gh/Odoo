@@ -43,7 +43,7 @@ třídu zvlášť z průměru jejího kapitálu (v měně fondu):
 - body průměru jsou kapitály třídy ze zaúčtovaných ocenění v roce, kdy byla třída v pravidle, a dnešní hodnota třídy po zvoleném kroku; průměr prostý;
 - pevné částky, minimum, maximum a příplatky se uplatní za každou třídu zvlášť (jako u Kapitálu třídy);
 - ocenění zaúčtuje nárok minus to, co třída v roce z pravidla už nesla; ruční oprava částky platí trvale, oprava základu třídy do konce roku;
-- přepnout pravidlo mezi celým fondem a třídami jde jen od 1. 1. (nebo novým pravidlem), jinak se výpočet zastaví; třídu, která byla
+- přepnout pravidlo mezi celým fondem a třídami jde jen od začátku účetního období (nebo novým pravidlem), jinak se výpočet zastaví; třídu, která byla
   v roce z pravidla vyřazena a znovu zařazena, ocenění ukáže v kontrolách jako upozornění.
 
 ## 2. Schéma výpočtu na fondu
@@ -86,7 +86,7 @@ jsou sloupce oprav skryté. Samostatné řádky oprav jsou jen na záložce **Ru
 **Platnost podle druhu:**
 
 - **Časově rozlišená úplata:** oprava je zaúčtovaná trvale (další ocenění ji neopakuje ani nedorovná; u průměrného FK se rozdíl nevrací).
-- **Odměna a daň – Do konce období:** další ocenění v období (odměna od krystalizace, daň od 1. 1.) opravu **převezme** do výpočtu.
+- **Odměna a daň – Do konce období:** další ocenění v období (odměna od krystalizace, daň od začátku účetního období) opravu **převezme** do výpočtu.
   Krystalizace a konec roku převzetí ukončí.
 - **Odměna a daň – Jen toto ocenění:** další ocenění opravu nepřevezme a upozorní „Opravy „jen toto ocenění“ z minulého ocenění skončily“.
 - **Oprava základu** se přičte k základu pravidla. U daně je to ruční úprava základu (kladná = připočitatelná, záporná = odčitatelná), platí do konce roku.
@@ -125,8 +125,8 @@ Když je vynecháváte záměrně, upozornění nechte být.
 
 Daň fondu je společná. Daňový efekt položek výsledku, které nese jen jedna třída (výkonnostní odměna, úplaty a ruční úplaty třídy, opravy), se
 přesune té třídě přes vnitřní zúčtování; daň celého fondu se tím nemění. **Zjednodušení:** úspora z daňové ztráty minulých let se dělí mezi
-třídy poměrem; ztráta se po třídách nesleduje. Přesuny se zaokrouhlují na haléře tak, aby zaúčtované přesuny třídy od 1. 1. odpovídaly přesnému
-součtu (rozdíl nejvýš 0,01): každé ocenění zaúčtuje zaokrouhlený přesný součet od 1. 1. minus to, co už bylo zaúčtováno.
+třídy poměrem; ztráta se po třídách nesleduje. Přesuny se zaokrouhlují na haléře tak, aby zaúčtované přesuny třídy od začátku účetního období odpovídaly přesnému
+součtu (rozdíl nejvýš 0,01): každé ocenění zaúčtuje zaokrouhlený přesný součet od začátku účetního období minus to, co už bylo zaúčtováno.
 
 **Přemostění třídy** (formulář ocenění, řádek třídy, skupina Rozdělení výsledku; list Přemostění tříd v XLS) dělí specifickou změnu na **Úplaty třídy**,
 **Výkonnostní odměna** (včetně oprav odměny), **Přesun podle pořadí nároků**, **Daňový efekt specifických položek** (tento přesun; + zvyšuje kapitál
@@ -138,3 +138,8 @@ Tlačítko **Balíček pro depozitáře** (po zaúčtování) sestaví XLS. List
 **Částka** a **Článek statutu**; v ocenění s opravou navíc **Vypočteno**, **Oprava**, **Výsledek**, **Zdůvodnění** a **Převzato z / Ukončuje opravu**.
 Hodnoty jsou ze snímku uloženého při výpočtu, ne z dnešního nastavení pravidla. Ocenění spočtená před zavedením volby Základ mají sloupec Základ
 prázdný (u ocenění z doby voleb „před/po úplatách“ je převedený na krok). Už sestavené balíčky se nemění; nový sestaví nový soubor.
+
+## 7. Daňová pravidla
+
+Daňové pravidlo, výjimky fondu, rozpad daně a postup opravy jsou popsány v [kapitole 11 – Daň](11-dan.md). Daň se počítá od začátku
+účetního období fondu podle nastavení jeho účetní knihy, ne automaticky od 1. ledna.

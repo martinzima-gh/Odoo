@@ -1,10 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Nabídka Nastavení › Daně › Daňová pravidla s výchozími pohledy; vlastní formuláře doplní běh 6 dávky ZJ-07 až ZJ-19. -->
 <odoo>
+    <record id="view_tax_rule_list" model="ir.ui.view">
+        <field name="name">investra.tax.rule.list</field>
+        <field name="model">investra.tax.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="kind"/>
+                <field name="method"/>
+                <field name="rate_now" widget="percentage" optional="show"/>
+                <field name="tax_account_code" optional="hide"/>
+                <field name="balance_account_code" optional="hide"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tax_rule_form" model="ir.ui.view">
+        <field name="name">investra.tax.rule.form</field>
+        <field name="model">investra.tax.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active"/>
+                            <field name="kind"/>
+                            <field name="method" invisible="kind == 'exempt'"/>
+                            <field name="rate_now" widget="percentage" readonly="1" invisible="kind == 'exempt'"/>
+                        </group>
+                        <group string="Účty" invisible="kind == 'exempt'">
+                            <field name="tax_account_code"/>
+                            <field name="balance_account_code"/>
+                            <field name="credit_account_code" invisible="method != 'current'"/>
+                            <field name="recognise_asset" invisible="method != 'deferred'"/>
+                        </group>
+                    </group>
+                    <group string="Sazby" invisible="kind == 'exempt'">
+                        <field name="version_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="valid_from"/>
+                                <field name="rate" widget="percentage"/>
+                                <field name="decision_ref"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_tax_rule_search" model="ir.ui.view">
+        <field name="name">investra.tax.rule.search</field>
+        <field name="model">investra.tax.rule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="kind"/>
+                <filter name="filter_active" string="Aktivní" domain="[('active', '=', True)]"/>
+                <filter name="filter_archived" string="Archivováno" domain="[('active', '=', False)]"
+                        context="{'active_test': False}"/>
+                <group>
+                    <filter name="group_by_kind" string="Druh" context="{'group_by': 'kind'}"/>
+                    <filter name="group_by_method" string="Způsob" context="{'group_by': 'method'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="action_tax_rule" model="ir.actions.act_window">
         <field name="name">Daňová pravidla</field>
         <field name="res_model">investra.tax.rule</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_tax_rule_search"/>
     </record>
     <menuitem id="menu_setup_taxes" name="Daně" parent="investra_entity.menu_setup" sequence="37"/>
     <menuitem id="menu_tax_rule" name="Daňová pravidla" parent="menu_setup_taxes" action="action_tax_rule" sequence="10"/>

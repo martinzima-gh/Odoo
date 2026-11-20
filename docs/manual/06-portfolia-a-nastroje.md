@@ -11,6 +11,7 @@ Portfolio zde znamená obchodní model fondu podle IFRS 9. Určuje zařazení n�
 | Pole | Povinné / výchozí | Význam |
 |---|---|---|
 | **Fond** | ano | Fond, kterému portfolio náleží. |
+| **Třída** | ne | Prázdné = sdílené portfolio všech tříd. Vyplněné = portfolio jen pro tuto třídu. Obchod třídu samostatně nevybírá. |
 | **Název** | ano | Název portfolia; ve fondu musí být jedinečný. |
 | **Obchodní model** | ano / **Řízení na reálnou hodnotu** | Řízení na reálnou hodnotu, Držet pro inkaso, Držet pro inkaso i prodej nebo Obchodování. |
 | **Posouzení modelu** | ne | Záznam, kdo a proč obchodní model určil; vyplňte podle účetního posouzení. |
@@ -78,6 +79,7 @@ Modul kmenových dat doplňuje **Druh ČNB (BA0088)**, odvozenou **Rodinu**, **C
 Pole **Zdroj údajů** má výchozí **Ručně**; další volby jsou Import, LEI a SDAT. **Stav klasifikace** začíná **Ke kontrole**; **Potvrdil** a **Potvrzeno dne** jsou systémové údaje. Varování na formuláři upozorní na chybějící údaje nebo nesoulad ISIN/CFI.
 
 - **Zařazení ve fondech** je na nástroji pouze pro čtení. Záznam založte v **Investra › Portfolio › Zařazení nástrojů** nebo na portfoliu.
+- Tlačítko **Dividendy** na nástroji otevře seznam dividend pro tento nástroj.
 - **Smluvní peněžní toky** obsahují **Datum**, **Druh** (výchozí Jistina; volby Jistina/Úrok) a **Částku na jednotku**. Pro pravidelné kupóny lze použít **Vygenerovat kalendář**; nepravidelné toky zadejte ručně. To je kalendář peněžních toků nástroje, nikoli dřívější kalendář ocenění fondu.
 - U variabilní sazby se v řádcích toků ukazuje i příznak **Odhad**. Záložka **Nahrazené toky** uchovává datum, druh, částku na jednotku, odhad a data, od kdy tok platil a kdy byl nahrazen.
 
@@ -96,3 +98,62 @@ Portfolio určuje obchodní model, nástroj dává kmenové údaje a zařazení 
 - Číselníky a jejich změny spravuje skupina **Investra: správce číselníků**; potvrzení klasifikace nástroje provádí **Investra: schvalování ocenění**.
 
 Příklady v [ukázkových datech](../../tools/demo_data/seed.py) jsou smyšlené.
+
+## Portfolio třídy a obchody
+
+Pole **Třída** na portfoliu určuje, které třídě patří jeho specifický výsledek. Prázdná třída znamená sdílené portfolio: jeho výsledek
+se rozdělí mezi třídy s volbou **Podílí se na společných položkách**. Portfolio s vyplněnou třídou patří jen jí. Třídu portfolia
+po zaúčtování dokladů nelze změnit.
+
+Na obchodu se třída nevybírá. Pod polem **Portfolio** se zobrazí **Třída: [kód]** nebo **Sdílené portfolio**. Bankovní peníze zůstávají
+sdílené; účetní doklady dorovnají třídní část přes vnitřní zúčtování.
+
+## Poplatek obchodu
+
+Ve formuláři obchodu je skupina **Poplatek**:
+
+| Pole | Význam |
+|---|---|
+| **Poplatek** | Kladná částka poplatku obchodníka nebo burzy. |
+| **Měna poplatku** | Prázdné = měna nástroje. |
+| **Kurz poplatku** | Funkční měna za jednotku cizí měny poplatku. U stejné měny nástroje se použije kurz obchodu; u jiné cizí měny je kurz povinný. |
+| **Účtování poplatku** | Jen pro čtení: **Náklad** nebo **Součást pořizovací ceny**. |
+
+Nákup FVTPL a každý prodej účtuje poplatek jako náklad. U nákupu v naběhlé hodnotě nebo FVOCI se poplatek stává součástí pořizovací
+ceny. Poplatek je vidět i ve volitelném sloupci seznamu obchodů.
+
+## Cena vyskladnění při prodeji
+
+U prodeje se zobrazí řádek **Vyskladnění: průměrná X, použitá Y**. Cena **Použitá** se předvyplní průměrnou pořizovací cenou nástroje
+v portfoliu k datu sjednání; lze ji upravit. Odchylka vyžaduje **Důvod úpravy ceny vyskladnění**. Úprava mění rozdělení mezi realizovaný
+výsledek a přecenění, nikoli celkový výsledek. Odoo nedovolí upravenou cenu při prodeji celé pozice.
+
+## Dividendy
+
+V nabídce **Investra › Portfolio › Dividendy** založte dividendu pro fond, nástroj a portfolio. Portfolio se vybírá podle pozice
+k večeru dne před **Ex-datem**. Pole **Kusy s nárokem** se předvyplní z této pozice a lze ho snížit, ne zvýšit. Zadejte **Hrubou
+dividendu na kus**; **Hrubá dividenda** se spočítá.
+
+U české dividendy zadejte skutečnou **Sraženou sazbu %** a **Sraženou daň**. U zahraniční vyplňte **Smluvní sazbu %**; část srážky do
+smluvní sazby je **Započitatelná daň**. Přeplatek nad smluvní sazbu se vykáže jako **Pohledávka k vrácení** nebo **Náklad**.
+Tlačítko **Zaúčtovat** vytvoří doklad k ex-datu; finanční výnos a srážky se zaúčtují tehdy, ne až při výplatě. Po obdržení platby
+doplňte **Datum výplaty** a stiskněte **Zaplaceno**. U cizí měny zkontrolujte **Kurz k ex-datu** a případně **Kurz k výplatě**.
+Náhled dokladů je na záložce **Zaúčtování**. Oprava zaúčtované dividendy se provádí stornem s důvodem; tlačítko pro storno zatím
+ve formuláři chybí.
+
+## Ex-kupónová lhůta dluhopisů
+
+U dluhopisu nastavte **Ex-kupónovou lhůtu (dny)**. V toku typu **Úrok** se pole **Ex-datum** předvyplní jako datum toku minus tato
+lhůta; u nepravidelného kupónu ho lze upravit. Výnos z kupónu patří držiteli k večeru dne před ex-datem. V ex-kupónové lhůtě může
+být naběhlý úrok při obchodu záporný: kupující kupón nedostane, prodávající ano. Při nulové lhůtě se chování nemění.
+
+## FVOCI a opravné položky ECL
+
+U akcie FVOCI je cílová rezerva rozdíl reálné hodnoty a pořizovací ceny včetně kapitalizovaných poplatků. Změny se vykazují do
+vlastního kapitálu na účet role **Oceňovací rozdíly FVOCI**; při prodeji se převedou na **Realizované přecenění FVOCI** (účet
+**571100**), bez recyklace do výsledku. U dluhu FVOCI se cílová rezerva odvozuje od naběhlé hodnoty a při prodeji se přecenění
+recykluje. **Oceňovací rozdíl (OCI)** je volitelný sloupec portfolia v ocenění. Efektivní úrok z dluhu a dividendy patří do výsledku.
+
+Opravnou položku ECL u dluhu FVOCI zadejte ručním dokladem MD **667500** / D **564500**. Výpočet cílového OCI ji nezahrnuje. Do
+daňových výjimek lze podle schválené daňové metodiky přidat náklad **Opravné položky ECL** s pravidlem **Mimo základ daně**;
+tlačítko **Přidat běžné výjimky** tuto volbu nepřidává.

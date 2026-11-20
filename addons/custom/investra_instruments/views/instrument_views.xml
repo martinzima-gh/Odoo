@@ -141,7 +141,8 @@
                 <field name="trade_date"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'unsettled'" decoration-success="state == 'settled'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id"/><field name="instrument_id"/><field name="side"/><field name="units"/>
-                <field name="price"/><field name="instrument_currency_id" string="Měna"/><field name="settlement_date"/>
+                <field name="price"/><field name="instrument_currency_id" string="Měna"/><field name="fee_amount" optional="show"/>
+                <field name="settlement_date"/>
                 <field name="portfolio_id" optional="hide"/><field name="ifrs9_category" optional="hide"/>
                 <field name="fx_rate" optional="hide"/><field name="accrued_interest" optional="hide"/>
             </list>
@@ -214,6 +215,13 @@
                             <label for="portfolio_id"/>
                             <field name="portfolio_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" options="{'no_create': True}"/>
                         </div>
+                        <field name="portfolio_class_id" invisible="1"/>
+                        <div class="o_investra_metadata_item" invisible="not portfolio_class_id">
+                            Třída: <field name="portfolio_class_id" nolabel="1" readonly="1" class="oe_inline"/>
+                        </div>
+                        <div class="o_investra_metadata_item" invisible="not portfolio_id or portfolio_class_id">
+                            Sdílené portfolio
+                        </div>
                     </div>
                     <div class="o_investra_metric_strip">
                         <div class="o_investra_metric_item">
@@ -243,6 +251,24 @@
                             <field name="fx_rate" invisible="not foreign_currency" readonly="event_id or state in ('settled', 'reversed')"/>
                             <field name="settlement_fx_rate" invisible="not foreign_currency" readonly="state in ('settled', 'reversed')"/>
                         </group>
+                        <group name="trade_fee" string="Poplatek">
+                            <field name="fee_amount" readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="fee_currency_id" readonly="event_id or state in ('settled', 'reversed')"
+                                   options="{'no_create': True}"/>
+                            <field name="company_currency_id" invisible="1"/>
+                            <field name="fee_fx_rate"
+                                   invisible="fee_currency_id == company_currency_id or (not fee_currency_id and not foreign_currency)"
+                                   readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="fee_treatment" string="Účtování poplatku" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="trade_derecognition" string="Vyskladnění" invisible="side != 'sell'">
+                        <field name="derecognition_manual" invisible="1"/>
+                        <div class="text-muted" colspan="2">
+                            Vyskladnění: průměrná <field name="average_cost_price" nolabel="1" readonly="1" class="oe_inline"/><span>, použitá </span><field name="derecognition_price" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" class="oe_inline"/>
+                        </div>
+                        <field name="derecognition_reason" invisible="not derecognition_manual" required="derecognition_manual"
+                               readonly="event_id or state in ('settled', 'reversed')"/>
                     </group>
                     <group name="trade_classification" string="Zařazení">
                         <field name="classification_id" invisible="1"/>
@@ -561,7 +587,8 @@
         <field name="arch" type="xml">
             <list default_order="sequence asc">
                 <field name="id" optional="hide"/>
-                <field name="sequence" widget="handle"/><field name="fund_id"/><field name="name"/><field name="business_model"/>
+                <field name="sequence" widget="handle"/><field name="fund_id"/><field name="class_id" optional="show"/>
+                <field name="name"/><field name="business_model"/>
             </list>
         </field>
     </record>
@@ -571,7 +598,10 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="fund_id" options="{'no_create': True}"/><field name="name"/><field name="business_model"/>
+                        <field name="fund_id" options="{'no_create': True}"/>
+                        <field name="class_id" domain="[('fund_id', '=', fund_id)]" options="{'no_create': True}"
+                               help="Prázdné = sdílené všemi třídami."/>
+                        <field name="name"/><field name="business_model"/>
                         <field name="assessment"/><field name="active" invisible="1"/>
                     </group>
                     <field name="classification_ids" context="{'default_portfolio_id': id}">

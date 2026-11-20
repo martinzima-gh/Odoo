@@ -50,6 +50,14 @@ výchozí hodnoty ve fondu zrušilo ZJ-03 (rozhodnutí 2026-11-17 „Poplatky fo
 | **Zdůvodnění lineárního úročení** | při Lineárně | – | zobrazí se jen u Lineárně; bez něj „Lineární úročení fondu musí mít zdůvodnění.“ |
 | **Tolerance ruční hodnoty derivátu (% nominálu)** | ne | výchozí z modulu derivátů | ocenění upozorní, když se ruční hodnota FX derivátu liší od spočtené o víc než toto procento nominálu otevřených noh |
 
+## Účetní období
+
+Účetní období fondu se řídí nastavením jeho účetní knihy (koncem fiskálního roku ve společnosti Odoo). Může jít o kalendářní i
+hospodářský rok. Výpočty označené „od začátku účetního období“ začínají prvním dnem tohoto období, ne automaticky 1. ledna.
+Toto období používá také výpočet daně fondu.
+
+Ve formuláři fondu (záložka Obecné, skupina Základní parametry) je jen pro čtení pole **Konec účetního období**. Mění se v nastavení účetnictví knihy fondu, ne ve fondu.
+
 ## Záložky
 
 - **Třídy:** kap. 3.

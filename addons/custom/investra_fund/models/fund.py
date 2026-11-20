@@ -117,7 +117,19 @@ class InvestraFund(models.Model):
     )
     accrual_note = fields.Char(string="Zdůvodnění lineárního úročení", tracking=True)
 
+    fiscal_year_end = fields.Char(
+        compute="_compute_fiscal_year_end", string="Konec účetního období",
+        help="Poslední den účetního období podle nastavení účetnictví knihy (Odoo). Mění se v nastavení účetnictví, ne tady.",
+    )
+
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
+
+    @api.depends("company_id.fiscalyear_last_day", "company_id.fiscalyear_last_month")
+    def _compute_fiscal_year_end(self):
+        # ZJ-17 F4: jen zobrazení; zdrojem je kniha (res.company), stejně jako ve `_fiscal_year_dates`.
+        for fund in self:
+            company = fund.company_id
+            fund.fiscal_year_end = f"{company.fiscalyear_last_day}. {int(company.fiscalyear_last_month)}." if company else False
 
     def _fiscal_year_dates(self, day):
         """Účetní období fondu (hospodářský rok podle knihy), do kterého patří `day`: (první den, poslední den).

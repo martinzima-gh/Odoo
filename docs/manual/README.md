@@ -26,5 +26,7 @@
 | 7 | [07-kurzy.md](07-kurzy.md) | kurzy | koncept |
 | 8 | [08-prvni-upis-a-prevzeti-fondu.md](08-prvni-upis-a-prevzeti-fondu.md) | první úpis a odkup; převzetí fondu zatím jen plán | koncept |
 | 9 | [09-uplaty-a-opravy.md](09-uplaty-a-opravy.md) | úplaty, odměna a daň v ocenění: kroky a Základ, ruční opravy, zrušení úplaty, list Úplaty | koncept |
+| 10 | [10-rozdeleni-mezi-tridy.md](10-rozdeleni-mezi-tridy.md) | sdílené a specifické položky, podíl tříd, alokační schéma | koncept |
+| 11 | [11-dan.md](11-dan.md) | daňová pravidla, výjimky fondu, rozpad daně a FVOCI | koncept |
 
 Pořadí práce při založení od nuly: kap. 1 (společnost obhospodařovatele) → kap. 1 (kniha fondu) → kap. 2 (fond) → kap. 3 (třídy).

@@ -119,15 +119,20 @@ class InvestraPostingPreview(models.AbstractModel):
             self.env._("Účet"), self.env._("MD"), self.env._("D"))
         if foreign:
             head += Markup("<th class='text-end'>%s</th>") % self.env._("V měně %s", foreign.name)
+        show_class = any(row[4] for _caption, _day, rows in documents for row in rows if len(row) > 4)  # ZJ-09 A4
+        if show_class:
+            head += Markup("<th>%s</th>") % self.env._("Třída")
         parts = []
         for caption, day, rows in documents:
             parts.append(Markup("<h5>%s – %s</h5>") % (caption, format_date(self.env, day) if day else "?"))
             body = Markup()
-            for account, debit, credit, amount_currency, *_class in rows:  # třídu zobrazí sloupec Třída (běh 6)
+            for account, debit, credit, amount_currency, *class_code in rows:
                 cells = Markup("<td>%s</td><td class='text-end'>%s</td><td class='text-end'>%s</td>") % (
                     account, money(debit), money(credit))
                 if foreign:
                     cells += Markup("<td class='text-end'>%s</td>") % money(d(amount_currency))
+                if show_class:
+                    cells += Markup("<td>%s</td>") % (class_code[0] if class_code else "")
                 body += Markup("<tr>%s</tr>") % cells
             parts.append(Markup('<table class="table table-sm o_investra_preview"><thead><tr>%s</tr></thead>'
                                 '<tbody>%s</tbody></table>') % (head, body))

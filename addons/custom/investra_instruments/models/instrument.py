@@ -700,6 +700,7 @@ class InvestraTrade(models.Model):
     # pořizovací ceny (IFRS 9 5.1.1, B5.4.8; IFRS 13.25).
     fee_amount = fields.Float(digits=(20, 2), default=0, string="Poplatek", help="Poplatek obchodníka nebo burzy, kladně.")
     fee_currency_id = fields.Many2one("res.currency", string="Měna poplatku", help="Prázdné = měna nástroje.")
+    company_currency_id = fields.Many2one(related="fund_id.company_id.currency_id", string="Funkční měna")  # jen pro pohled poplatku
     fee_fx_rate = fields.Float(
         digits=(16, 6), string="Kurz poplatku",
         help="Funkční měna za jednotku měny poplatku. Měna nástroje: bez zadání kurz obchodu; funkční měna: 1; jiná měna: povinný.",
