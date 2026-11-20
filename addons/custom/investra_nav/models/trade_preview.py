@@ -52,6 +52,27 @@ class InvestraTradePreview(models.Model):
                 except UserError:
                     trade[field] = 0.0
 
+    @api.onchange("fee_currency_id", "instrument_id", "fund_id", "trade_date")
+    def _onchange_fee_fx_rate(self):
+        """Kurz poplatku z kurzového lístku (ZJ-20 C): měna poplatku jiná než měna nástroje a funkční měna dostane kurz
+        k datu sjednání ze zdroje kurzů knihy, stejně jako kurz obchodu; uživatel zadává jen částku a měnu poplatku.
+
+        Měna nástroje a funkční měna kurz nepředvyplňují (platí kurz obchodu, resp. 1), případný starý kurz se smaže,
+        aby po změně měny poplatku neplatil kurz původní měny. Chybějící kurz formulář nezastaví (pole zůstane
+        prázdné); uložení ho u třetí měny vyžaduje dál (`_check_fee`)."""
+        for trade in self:
+            currency = trade.fee_currency_id
+            if not (currency and trade.fund_id and trade.instrument_id):
+                trade.fee_fx_rate = 0.0
+                continue
+            if currency in (trade.fund_id.currency_id, trade.instrument_id.currency_id) or not trade.trade_date:
+                trade.fee_fx_rate = 0.0
+                continue
+            try:
+                trade.fee_fx_rate = float(trade.fund_id._fx_at(currency, trade.trade_date))
+            except UserError:
+                trade.fee_fx_rate = 0.0
+
     @api.depends("instrument_id", "fund_id", "trade_date")
     def _compute_price_hint(self):
         Price = self.env["investra.instrument.price"]

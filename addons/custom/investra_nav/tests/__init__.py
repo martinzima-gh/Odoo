@@ -35,3 +35,5 @@ from . import test_ex_coupon
 from . import test_tax_rules_models
 from . import test_fvoci
 from . import test_tax_rules
+from . import test_fund_fiscal_year_end
+from . import test_draft_delete

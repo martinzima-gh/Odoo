@@ -116,7 +116,7 @@ Ve formuláři obchodu je skupina **Poplatek**:
 |---|---|
 | **Poplatek** | Kladná částka poplatku obchodníka nebo burzy. |
 | **Měna poplatku** | Prázdné = měna nástroje. |
-| **Kurz poplatku** | Funkční měna za jednotku cizí měny poplatku. U stejné měny nástroje se použije kurz obchodu; u jiné cizí měny je kurz povinný. |
+| **Kurz poplatku** | Funkční měna za jednotku cizí měny poplatku. U stejné měny nástroje se použije kurz obchodu; u jiné cizí měny je kurz povinný. Kurz jiné cizí měny se předvyplní z kurzového lístku k datu sjednání (stejně jako kurz obchodu), zadáváte jen částku a měnu poplatku; předvyplněný kurz můžete přepsat. Chybí-li kurz k datu, pole zůstane prázdné a obchod bez něj nejde uložit. |
 | **Účtování poplatku** | Jen pro čtení: **Náklad** nebo **Součást pořizovací ceny**. |
 
 Nákup FVTPL a každý prodej účtuje poplatek jako náklad. U nákupu v naběhlé hodnotě nebo FVOCI se poplatek stává součástí pořizovací

@@ -78,6 +78,19 @@ class InvestraFund(models.Model):
         for fund in self:
             fund.launch_locked = fund.id in locked
 
+    def _compute_fiscal_year_locked(self):
+        # ZJ-20 B: konec účetního období jde měnit do prvního zaúčtovaného ocenění (i později stornovaného: bylo zaúčtováno,
+        # stejně jako zámek parametrů třídy). Návrh ocenění se po změně přepočítá znovu, proto ho zámek nedrží.
+        locked = {
+            group[0].id
+            for group in self.env["investra.valuation"].sudo()._read_group(
+                [("fund_id", "in", self.ids), ("state", "in", ("posted", "sent", "confirmed", "published", "reversed"))],
+                ["fund_id"], [],
+            )
+        } if self.ids else set()
+        for fund in self:
+            fund.fiscal_year_locked = fund.id in locked
+
     def write(self, vals):
         if "launch_date" in vals:
             for fund in self.filtered(lambda f: f.launch_locked and f.launch_date != fields.Date.to_date(vals["launch_date"])):

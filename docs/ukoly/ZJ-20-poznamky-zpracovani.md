@@ -74,4 +74,18 @@ Ověřit, v jakém případě systém kurz vyžadoval (Martin: u prodeje); dopln
 
 ## Převzetí
 
-Doplní Claude.
+Body A, B, C provedl Claude přímo ve větvi `ukol/ZJ-20-poznamky` (2026-11-20).
+
+- **A:** právo `d` pro zpracovatele na `investra.trade`, `investra.instrument.repayment`, `investra.dividend`, `investra.derivative`
+  (úpisy a odkupy ho měly). Model dál maže jen návrh. Test `investra_nav/tests/test_draft_delete.py`. Tlačítko Smazat v prohlížeči u fondu Alfa neověřeno.
+- **B:** pole `fiscal_year_last_day` a `fiscal_year_last_month` (related na knihu, zápis přes `write` fondu se sudo, zpráva do chatteru);
+  zámek `fiscal_year_locked` po prvním zaúčtovaném ocenění (stavy posted, sent, confirmed, published, reversed; návrh nezamyká) v `investra_nav/models/valuation.py`.
+  Dosavadní pole `fiscal_year_end` zrušeno. Manuál `02-fond.md` opraven. Test `test_fund_fiscal_year_end.py`.
+  Zjištění: účetní období bere výpočet z knihy při každém čtení, uložená ocenění se nepřepočítají (proto zámek).
+- **C:** `trade_preview.py` `_onchange_fee_fx_rate`; třetí měna dostane kurz k datu sjednání, měna nástroje a funkční měna kurz 0.
+  Ve kódu (`_check_fee`, `_fee_amounts`) žádný rozdíl mezi nákupem a prodejem není: kurz je povinný jen u měny jiné než nástroje a funkční.
+  Test v `test_trade_fee.py`; manuál `06-portfolia-a-nastroje.md`.
+- **Testy:** cílené (`TestTradeFee`, `TestFundFiscalYearEnd`, `TestDraftDelete`, `TestLaunchDate`) bez chyby; `all` po bodech A až C: 1197 testů, 0 selhání (2026-11-20; po dokončení dalších úkolů se `all` opakuje).
+  Snímek 35/39 se nedělal (neměnily se výpočty; po dokončení všech úkolů).
+- **Neověřeno v prohlížeči:** předvyplnění kurzu poplatku, úprava konce období a mazání návrhu. Pracovní `investra` zatím neupgradována
+  (změna přístupových práv a pohledů se projeví až po povýšení modulů).

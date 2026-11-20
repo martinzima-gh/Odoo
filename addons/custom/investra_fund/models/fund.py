@@ -117,19 +117,54 @@ class InvestraFund(models.Model):
     )
     accrual_note = fields.Char(string="Zdůvodnění lineárního úročení", tracking=True)
 
-    fiscal_year_end = fields.Char(
-        compute="_compute_fiscal_year_end", string="Konec účetního období",
-        help="Poslední den účetního období podle nastavení účetnictví knihy (Odoo). Mění se v nastavení účetnictví, ne tady.",
+    # ZJ-20 B: konec účetního období fondu = `res.company.fiscalyear_last_day/month` knihy fondu (Odoo 20 Community nemá
+    # v nastavení účetnictví viditelnou položku, jen úvodní průvodce). Mění se tady, dokud fond nemá zaúčtované ocenění.
+    # Zápis do knihy i zpráva do chatteru jsou ve `write` (běžný uživatel nemá právo měnit společnost).
+    fiscal_year_last_day = fields.Integer(
+        related="company_id.fiscalyear_last_day", readonly=False, string="Konec účetního období – den",
+        help="Poslední den účetního období: den v měsíci. Mění se do prvního zaúčtovaného ocenění fondu, potom jen pro čtení.",
+    )
+    fiscal_year_last_month = fields.Selection(
+        related="company_id.fiscalyear_last_month", readonly=False, string="Konec účetního období – měsíc",
+        help="Poslední den účetního období: měsíc. Mění se do prvního zaúčtovaného ocenění fondu, potom jen pro čtení.",
+    )
+    fiscal_year_locked = fields.Boolean(
+        compute="_compute_fiscal_year_locked", string="Konec účetního období uzamčen",
+        help="Fond už má zaúčtované ocenění; konec účetního období jen pro čtení.",
     )
 
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
 
-    @api.depends("company_id.fiscalyear_last_day", "company_id.fiscalyear_last_month")
-    def _compute_fiscal_year_end(self):
-        # ZJ-17 F4: jen zobrazení; zdrojem je kniha (res.company), stejně jako ve `_fiscal_year_dates`.
+    def _compute_fiscal_year_locked(self):
+        # Zámek podle zaúčtovaného ocenění doplňuje investra_nav (ocenění tady není).
         for fund in self:
-            company = fund.company_id
-            fund.fiscal_year_end = f"{company.fiscalyear_last_day}. {int(company.fiscalyear_last_month)}." if company else False
+            fund.fiscal_year_locked = False
+
+    def write(self, vals):
+        if "fiscal_year_last_day" in vals or "fiscal_year_last_month" in vals:
+            vals = self._write_fiscal_year_end(vals)
+        return super().write(vals) if vals else True
+
+    def _write_fiscal_year_end(self, vals):
+        """Změna konce účetního období: zámek po zaúčtovaném ocenění, zápis do knihy fondu a zpráva do chatteru.
+        Vrací zbylé hodnoty ke zvyklému zápisu."""
+        vals = dict(vals)
+        new_day, new_month = vals.pop("fiscal_year_last_day", None), vals.pop("fiscal_year_last_month", None)
+        for fund in self:
+            company = fund.company_id.sudo()
+            day = int(new_day if new_day is not None else company.fiscalyear_last_day)
+            month = str(int(new_month if new_month is not None else company.fiscalyear_last_month))
+            if (day, month) == (company.fiscalyear_last_day, str(int(company.fiscalyear_last_month))):
+                continue
+            if fund.fiscal_year_locked:
+                raise UserError(self.env._(
+                    "Fond %s už má zaúčtované ocenění; konec účetního období nejde změnit, protože by zpětně změnil "
+                    "období zaúčtovaných ocenění a daně.", fund.display_name))
+            before = f"{company.fiscalyear_last_day}. {int(company.fiscalyear_last_month)}."
+            company.write({"fiscalyear_last_day": day, "fiscalyear_last_month": month})
+            fund.message_post(body=self.env._(
+                "Konec účetního období: %(before)s → %(after)s", before=before, after=f"{day}. {int(month)}."))
+        return vals
 
     def _fiscal_year_dates(self, day):
         """Účetní období fondu (hospodářský rok podle knihy), do kterého patří `day`: (první den, poslední den).

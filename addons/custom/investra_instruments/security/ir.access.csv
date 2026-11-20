@@ -6,7 +6,7 @@ access_price_preparer,investra.instrument.price preparer,investra.instrument.pri
 investra_price_company_rule,Ceny podle společnosti,investra.instrument.price,,cud,"[('company_id', 'in', company_ids)]"
 investra_price_read_rule,Ceny podle společnosti a sdílené ceny,investra.instrument.price,,r,"['|', ('fund_id', '=', False), ('company_id', 'in', company_ids)]"
 access_trade_read,investra.trade read,investra.trade,account.group_account_readonly,r,
-access_trade_preparer,investra.trade preparer,investra.trade,investra_entity.group_valuation_preparer,cru,
+access_trade_preparer,investra.trade preparer,investra.trade,investra_entity.group_valuation_preparer,crud,
 investra_trade_company_rule,Obchody podle společnosti,investra.trade,,crud,"[('company_id', 'in', company_ids)]"
 access_type_read,investra.instrument.type read,investra.instrument.type,account.group_account_readonly,r,
 access_type_preparer,investra.instrument.type preparer,investra.instrument.type,investra_entity.group_valuation_preparer,r,

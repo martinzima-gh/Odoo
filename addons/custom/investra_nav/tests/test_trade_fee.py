@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from odoo.exceptions import UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from .common import NavCase
 from odoo.addons.investra_instruments.tests.common import with_ids
@@ -109,6 +109,50 @@ class TestTradeFee(NavCase):
         self.assertEqual(self.balance(self.fee_account()), 50)
         bank_eur = self.lines(trade).filtered(lambda l: l.currency_id == self.eur)
         self.assertEqual((bank_eur.balance, bank_eur.amount_currency), (-50, -2))
+
+    def test_form_prefills_fee_rate_for_third_currency(self):
+        # ZJ-20 C: kurz poplatku v třetí měně se předvyplní z kurzového lístku k datu sjednání jako kurz obchodu.
+        self.rate("2031-03-02", 25)
+        self.rate("2031-03-02", 22, currency="USD")
+        equity = self.instrument(currency=self.usd)
+        form = Form(self.env["investra.trade"].with_context(default_side="buy"))
+        form.fund_id = self.fund
+        form.instrument_id = equity
+        form.trade_date = date(2031, 3, 2)
+        form.units = 10
+        form.price = 100
+        form.fee_amount = 2
+        form.fee_currency_id = self.eur
+        self.assertEqual(form.fx_rate, 22)
+        self.assertEqual(form.fee_fx_rate, 25)
+        # Měna nástroje a funkční měna kurz nepředvyplňují a starý kurz se po změně měny nepřenáší.
+        form.fee_currency_id = self.usd
+        self.assertEqual(form.fee_fx_rate, 0)
+        form.fee_currency_id = self.eur
+        self.assertEqual(form.fee_fx_rate, 25)
+        form.fee_currency_id = self.czk
+        self.assertEqual(form.fee_fx_rate, 0)
+        form.fee_currency_id = self.eur
+        trade = form.save()
+        self.assertEqual(trade.fee_fx_rate, 25)
+        trade.with_user(self.preparer).action_book()
+        self.assertEqual(self.balance(self.fee_account()), 50)
+
+    def test_form_fee_rate_missing_rate_stays_empty(self):
+        # Bez kurzu k datu formulář nezastaví (pole zůstane prázdné), uložení třetí měny kurz vyžaduje.
+        self.rate("2031-03-02", 22, currency="USD")
+        equity = self.instrument(currency=self.usd)
+        form = Form(self.env["investra.trade"].with_context(default_side="buy"))
+        form.fund_id = self.fund
+        form.instrument_id = equity
+        form.trade_date = date(2031, 3, 2)
+        form.units = 10
+        form.price = 100
+        form.fee_amount = 2
+        form.fee_currency_id = self.eur
+        self.assertEqual(form.fee_fx_rate, 0)
+        with self.assertRaises(ValidationError):
+            form.save()
 
     def test_negative_fee_is_rejected(self):
         with self.assertRaises(ValidationError):
