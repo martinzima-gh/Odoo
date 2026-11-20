@@ -79,4 +79,46 @@ Běh 4 dávky (Claude Sonnet 5.5, 20. 11. 2026), větev `ukol/ZJ-07-dane-a-tridy
   7. `_check_unused` verze sazby hledá `"tax_rule": <id>` v detailu řádku daně v ocenění; tento klíč zapíše výpočet daně (běh 5).
 - **Otevřené otázky a návrhy mimo rozsah:** odpovědi daňového poradce (viz oddíl 1 zadání) – pravidla jdou nastavit bez změny kódu.
 
+### Běh 5 (Claude Opus 5.5, 20. 11. 2026): výpočet daně po pravidlech, migrace
+
+- **Změněné soubory:** `investra_nav/engine.py` (`_tax_rule_amount`, `_tax_rules`, `_tax` po pravidlech, plochý spec beze změny),
+  `models/valuation.py` (`_tax_item` po pravidlech vč. výjimek, podílu, neuznatelných, D10 a odložené daně; `_book_tax` po pravidlech,
+  `_apply_base_correction` po pravidlech, oprava daně na účty pravidla, `tax_account` u položek dopočtu, `_fee_account_id`, kontroly
+  `tax_no_rule` a `tax_credit_lost`, výchozí pravidlo opravy daně), `models/tax_breakdown.py` (nové pole `tax_breakdown_html`),
+  `models/fee_rule.py` (druh Očekávaná daň jen z fondu, pojistka archivace přes účty pravidel), `models/fee_scheme.py` (náhled ze sazby
+  výchozího pravidla, „náhled bez výjimek“, informace D2), `migrations/20.0.0.39.0/post-migration.py` (C5), testy
+  `test_tax_rules.py` (nový, 21), `test_fiscal_year.py` (příklad hospodářského roku), `common.py` (`fund_tax`, `shared_tax_rule`), přepis
+  testů zakládajících nosič přímo (`test_bridge`, `test_class_no_common`, `test_fee_*`, `test_fees`, `test_scenarios`,
+  `test_tax_rules_models`, `investra_dashboard/tests/test_dashboard.py`), `tools/nav_reference/test_engine.py` (třída `TaxRules`, 8), `tools/demo_data/seed.py`, `tools/nav_demo/demo.py`.
+- **Ověřeno:** viz předávka `docs/predavky/2026-11-20-davka-beh-5.md` (testy, snímek 35/39 shodný po migraci na kopii, referenční čísla).
+  Migrace na kopii `investra`: fondy A a B → „Daň ZIF 5 %“, nosič fondu „01 Zímův fond CZK“ nemá sazbu → přeskočen (varování v logu).
+- **Odchylky od plánu:**
+  1. Engine: efekt tříd se sčítá jako e_r × Σ spec_r po pravidlech (u jednoho pravidla stejné číslo jako dřív, i v posledním místě).
+  2. `_tax_item`: výsledek a specifické položky každého pravidla se zaokrouhlí na haléře jako dosud `_sum`; fond bez výjimek = dnešní čísla.
+  3. Doklad daně: `extra.account_id` jen u účtu, který není hlavním účtem role (u ZIF/21 % se řádky ani otisk proti dnešku nemění).
+     Odložená daň FVOCI se účtuje řádkem role `expense_tax` s účtem 564400 (kapitál) a `tax_payable` s účtem 348000.
+  4. Detail řádku daně: `rules` s klíčem `"tax_rule": <id>` (zámek verze sazby), `exceptions` (s `rule_name`), `nondeductible`, `excluded`.
+  5. Upozornění `tax_no_rule` je u každého fondu bez výchozího pravidla (C0.6; nosič bez pravidla se archivuje, proto podmínka „nosič bez
+     pravidla“ nenastane). Fondy bez daně (v `investra` C, D, E a „01 Zímův fond CZK“) tak mají v dalších oceněních nové upozornění.
+     `tax_credit_lost` jen u fondu s pravidlem se zápočtem, aby se kontroly ostatních ocenění nezměnily. Test dashboardu (stav „ok“)
+     proto nastavuje fondu výchozí pravidlo.
+  6. Oprava daně: pravidlo je povinné vždy; bez zadání dostane výchozí pravidlo fondu (create i tlačítko Opravit); ukončení převzaté opravy
+     přebírá pravidlo. Test `test_tax_rules_models` upraven (bez pravidla → výchozí, ne chyba).
+  7. Nosič: druh Očekávaná daň jde založit nebo nastavit jen v kontextu `investra_tax_carrier` (fond, migrace, `install_mode`);
+     `test_fee_base_step` testuje model nosiče s tímto kontextem, ostatní testy nastavují `fund.tax_rule_id`.
+  8. Pojistka archivace nosiče: součet |zaúčtované daně| přes pravidla z rozpadu posledního ocenění a pravidla fondu (splatná pohyb účtu
+     daně od začátku období, odložená zůstatek rozvahového účtu); ocenění bez rozpadu → hlavní účet role jako dřív.
+  9. Migrace: standardní pravidlo jen tehdy, když fond nemá řádek daně před platností standardu (1. 1. 2024), jinak „Daň <fond>“;
+     archivovaný nosič výchozí pravidlo nedostane; nosič bez sazby se přeskočí.
+  10. Rozpad daně je samostatný soubor `tax_breakdown.py` (pole na ocenění), zobrazení ve formuláři dodá Copilot (běh 6).
+  11. Náhled ve Schématu výpočtu bere sazbu z výchozího pravidla fondu; fond bez něj má poznámku „daň v náhledu chybí“.
+- **Zdroje výsledkových řádků s třídou (daň po třídách, 9.1 C):** výpočet čte výsledkové řádky s třídou z knihy (`_read_group` podle účtu
+  a třídy), takže efekt jde třídě řádku bez ohledu na zdroj. Zdroje a testy přesunu efektu:
+  úplaty a odměny tříd a jejich opravy – stávající testy ZJ-12 (`test_bridge`, `test_fee_solver`, `test_fee_carried`);
+  ruční úplata s třídou – `test_class_effect_manual_fee_of_class`; ruční doklad s třídou (penále Mimo základ, dividenda samostatný
+  základ) – `test_class_effect_exempt_penalty`, `test_class_effect_separate_rule`; portfolio třídy (obchody, realizace, ZJ-09 A) –
+  `test_class_effect_portfolio_of_class`; třída bez podílu – `test_class_no_common`. **Bez vlastního testu daně:** poplatky z úpisů
+  a odkupů ve prospěch třídy, kurzové rozdíly a zajištění třídy, deriváty třídy – jejich řádky s třídou testují vlastní moduly, daň je
+  bere stejnou cestou (návrh: doplnit při převzetí, běh 7).
+
 ## Převzetí
