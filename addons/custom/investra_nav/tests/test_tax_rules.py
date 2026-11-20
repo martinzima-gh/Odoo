@@ -216,6 +216,20 @@ class TestTaxRules(NavCase):
         valuation.action_compute()
         self.assertEqual(self.required(valuation, self.zif), Decimal("3500.00"))  # základ 70 000 × 5 %
 
+    def test_fee_exception_nondeductible_pct_on_income_account(self):
+        """ZJ-24: ruční úplata −10 000 (výnos) na výnosový účet s výjimkou Mimo základ a 5 %: výnos základ nezvýší, 5 % se přičte."""
+        self.carrier.base_step = "3"
+        self.post_to(None, 100000, "income_other")
+        income = self.expense_account(self.fund, "income_dividend")
+        valuation = self.valuation(self.fund, DAY)
+        self.manual_fee(valuation, -10000, account_id=income.id)
+        valuation.action_compute()
+        self.assertEqual(self.required(valuation, self.zif), Decimal("5500.00"))  # bez výjimky výnos základ zvýší
+        self.env["investra.fund.tax.exception"].create({
+            "fund_id": self.fund.id, "account_id": income.id, "tax_rule_id": self.exempt.id, "nondeductible_pct": 5})
+        valuation.action_compute()
+        self.assertEqual(self.required(valuation, self.zif), Decimal("5025.00"))  # (100 000 + 5 % × 10 000) × 5 %
+
     # --- třídy -----------------------------------------------------------------------------------------------------
 
     def two_class_fund(self):

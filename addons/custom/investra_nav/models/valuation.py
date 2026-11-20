@@ -1500,8 +1500,12 @@ class InvestraValuation(models.Model):
             specs.append(spec)
         split = {e.account_id.id: [(e.tax_rule_id.id if e.tax_rule_id in rows else "exempt", d(e.share))]
                  for e in exceptions.values() if e.account_id.account_type.startswith(("income", "expense"))}
-        nondeductible_pct = {e.account_id.id: e.nondeductible_pct for e in exceptions.values()
-                             if e.nondeductible_pct and e.account_id.account_type.startswith("expense")}
+        # ZJ-24: ruční úplata může jít i na výnosový účet (záporný náklad); procento má tam opačné znaménko, aby se k základu
+        # přičetlo pct × výnos jako u výnosu v hlavní knize (engine počítá pct × náklad a ten je u výnosu záporný).
+        nondeductible_pct = {e.account_id.id: (e.nondeductible_pct if e.account_id.account_type.startswith("expense")
+                                               else -e.nondeductible_pct)
+                             for e in exceptions.values()
+                             if e.nondeductible_pct and e.account_id.account_type.startswith(("expense", "income"))}
         previous, previous_total = self._previous_tax_effect(rule)
         transfers_booked, transfers_exact = self._tax_transfer_history(rule)
         return {"stage": engine.STAGE_TAX, "payer": None, "tax_rules": {r.id: r for r in used},
@@ -3037,7 +3041,8 @@ class InvestraValuationExternal(models.Model):
     """Ručně doložená úplata (ZJ-03, rozhodnutí 2026-11-17): bez pravidla, schvaluje se s oceněním.
 
     Třída prázdná = celý fond. Částka smí být záporná (oprava), ne nulová. Poznámka je povinná, příloha nepovinná.
-    Účtuje se k datu ocenění na zvolený nákladový účet, protiúčet je vždy závazek z úplat.
+    Účtuje se k datu ocenění na zvolený účet nákladu nebo výnosu, protiúčet je vždy závazek z úplat. Kladná částka = náklad
+    (vrub účtu), záporná = výnos (ve prospěch účtu; ZJ-24).
 
     Oprava úplaty (ZJ-11): s vyplněným „Opravuje úplatu“ se nákladový účet nezadává, účtuje se jako úplata pravidla.
     """
@@ -3052,12 +3057,16 @@ class InvestraValuationExternal(models.Model):
     class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída",
                                help="Prázdné = úplata celého fondu, dělí se mezi třídy poměrem.")
     amount = fields.Float(digits=(20, 2), required=True, string="Částka",
-                          help="Náklad fondu; záporná částka náklad snižuje (oprava). Nula není dovolená.")
+                          help="Kladná částka = náklad (vrub zvoleného účtu), záporná částka = výnos (ve prospěch zvoleného účtu). "
+                               "Záporná částka na nákladovém účtu náklad snižuje (oprava). Nula není dovolená.")
     currency_id = fields.Many2one("res.currency", default=lambda self: self._default_currency(), string="Měna",
                                   help="Cizí měna se přepočte kurzem k datu ocenění ze zdroje kurzů fondu.")
     # Povinnost účtu a poznámky hlídá kontrola v Pythonu a formulář (ne NOT NULL), aby migrace staré řádky stihla smazat.
-    account_id = fields.Many2one("account.account", ondelete="restrict", string="Nákladový účet",
-                                 domain="[('account_type', '=like', 'expense%')]")
+    # ZJ-24: účet nákladu nebo výnosu; znaménko částky určuje směr (kladná = vrub účtu, záporná = ve prospěch účtu).
+    account_id = fields.Many2one("account.account", ondelete="restrict", string="Účet (náklad nebo výnos)",
+                                 domain="['|', ('account_type', '=like', 'expense%'), ('account_type', '=like', 'income%')]",
+                                 help="Náklad: kladná částka. Výnos: záporná částka.")
+    sign_hint = fields.Char(compute="_compute_sign_hint", string="Upozornění ke znaménku")
     note = fields.Text(string="Poznámka")
     # ZJ-12 A.3, B.7: opravit jde pravidlo každého druhu, částku i základ (výpočet od kroku 4). Formuláře zatím nabízejí
     # jen časově rozlišenou úplatu (domény ve views); rozšíří je krok 5.
@@ -3135,6 +3144,19 @@ class InvestraValuationExternal(models.Model):
             })
             row.attachment_id = attachment
 
+    @api.depends("account_id", "amount", "corrects_rule_id")
+    def _compute_sign_hint(self):
+        # Jen upozornění: opačné znaménko je účetně možné (storno výnosu, oprava nákladu), ale bývá omyl.
+        for row in self:
+            kind = row.account_id.account_type or ""
+            hint = False
+            if not row.corrects_rule_id and row.amount:
+                if kind.startswith("income") and row.amount > 0:
+                    hint = self.env._("Kladná částka na výnosovém účtu výnos snižuje. Výnos zadejte zápornou částkou.")
+                elif kind.startswith("expense") and row.amount < 0:
+                    hint = self.env._("Záporná částka na nákladovém účtu náklad snižuje (oprava). Náklad zadejte kladnou částkou.")
+            row.sign_hint = hint
+
     def _check_open(self):
         if not self.env.su and self.valuation_id.filtered(lambda v: v.state not in ("draft", "computed")):
             raise UserError(self.env._("Ručně doložené úplaty po odeslání ke schválení nejde měnit."))
@@ -3162,10 +3184,10 @@ class InvestraValuationExternal(models.Model):
                     row._check_ending()
             elif row.correction_target != "amount" or row.validity != "period":
                 raise ValidationError(self.env._("Co opravuje a Platnost se vyplňují jen u opravy úplaty."))
-            elif not row.account_id or not row.account_id.account_type.startswith("expense"):
-                raise ValidationError(self.env._("Ručně doložená úplata potřebuje nákladový účet."))
+            elif not row.account_id or not row.account_id.account_type.startswith(("expense", "income")):
+                raise ValidationError(self.env._("Ručně doložená úplata potřebuje účet nákladu nebo výnosu."))
             if row.account_id.company_ids and row.valuation_id.company_id not in row.account_id.company_ids:
-                raise ValidationError(self.env._("Nákladový účet ručně doložené úplaty musí patřit knize fondu %s.", fund.display_name))
+                raise ValidationError(self.env._("Účet ručně doložené úplaty musí patřit knize fondu %s.", fund.display_name))
             if not (row.note or "").strip():
                 raise ValidationError(self.env._("Ručně doložená úplata musí mít poznámku."))
             if not round(row.amount, 2):

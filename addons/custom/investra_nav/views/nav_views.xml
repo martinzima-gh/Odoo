@@ -353,18 +353,24 @@
                             </group>
                         </page>
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
-                            <div class="alert alert-info" role="alert">Úplata spočtená mimo Odoo (ZJ-03). Zaúčtuje se k datu ocenění na zvolený nákladový účet proti závazku z úplat, v cizí měně kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Prázdná třída = celý fond. Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.</div>
+                            <div class="alert alert-info" role="alert">Úplata spočtená mimo Odoo (ZJ-03). Zaúčtuje se k datu ocenění na zvolený účet nákladu nebo výnosu proti závazku z úplat, v cizí měně kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Prázdná třída = celý fond. Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.</div>
+                            <div class="alert alert-warning" role="alert">
+                                <strong>Znaménko částky:</strong> <strong>+ náklad</strong> (vrub zvoleného nákladového účtu), <strong>− výnos</strong>
+                                (ve prospěch zvoleného výnosového účtu). Příklad: poplatek správci 5 000 → <code>5 000</code> na nákladový účet;
+                                vratka od správce 1 200 → <code>−1 200</code> na výnosový účet.
+                            </div>
                             <field name="external_fee_ids" context="{'default_valuation_id': id}"
                                    readonly="state not in ('draft', 'computed')"><list editable="bottom">
                             <field name="class_id" domain="[('fund_id', '=', parent.fund_id)]" options="{'no_create': True}"/>
                             <field name="amount"/>
+                            <field name="sign_hint" widget="text" optional="show" decoration-warning="1"/>
                             <field name="currency_id" options="{'no_create': True}" readonly="corrects_rule_id"/>
                             <field name="corrects_rule_id" optional="show" options="{'no_create': True}"
                                    domain="[('fund_id', '=', parent.fund_id)]"/>
                             <field name="correction_target" optional="hide" readonly="not corrects_rule_id"/>
                             <field name="validity" optional="hide" readonly="not corrects_rule_id"/>
                             <field name="account_id" required="not corrects_rule_id" readonly="corrects_rule_id" options="{'no_create': True}"
-                                   domain="[('account_type', '=like', 'expense%'), ('company_ids', 'in', parent.company_id)]"/>
+                                   domain="['|', ('account_type', '=like', 'expense%'), ('account_type', '=like', 'income%'), ('company_ids', 'in', parent.company_id)]"/>
                             <field name="note" required="1"/>
                             <field name="document_name" column_invisible="1"/>
                             <field name="document" filename="document_name"/>

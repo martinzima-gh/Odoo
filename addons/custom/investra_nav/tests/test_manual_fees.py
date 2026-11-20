@@ -67,6 +67,31 @@ class TestManualFees(NavCase):
         valuation.action_compute()
         self.assertAlmostEqual(valuation.fund_capital, 2040, places=2)
 
+    def test_negative_amount_on_income_account_books_income(self):
+        """ZJ-24: výnosový účet a záporná částka = výnos (kredit účtu, debet závazku z úplat), FK vzroste."""
+        fund = self.two_class_fund()
+        valuation = self.valuation(fund, DAY)
+        income = self.expense_account(fund, "income_other")
+        payable = self.expense_account(fund, "fee_payable")
+        self.manual_fee(valuation, -300, note="Vratka od správce", account_id=income.id)
+        valuation.action_compute()
+        self.assertAlmostEqual(valuation.fund_capital, 2300, places=2)
+        self.assertEqual(
+            self.move_lines(self.manual_event(valuation)),
+            sorted([(income.code, -300.0, "CZK", -300.0, ""), (payable.code, 300.0, "CZK", 300.0, "")]),
+        )
+
+    def test_sign_hint_warns_on_opposite_sign(self):
+        fund = self.two_class_fund()
+        valuation = self.valuation(fund, DAY)
+        income, expense = self.expense_account(fund, "income_other"), self.expense_account(fund)
+        wrong = self.manual_fee(valuation, 300, account_id=income.id)
+        self.assertIn("Výnos zadejte zápornou", wrong.valuation_id.external_fee_ids.sign_hint or "")
+        valuation.external_fee_ids.unlink()
+        self.manual_fee(valuation, -300, account_id=income.id)
+        self.manual_fee(valuation, 100, account_id=expense.id)
+        self.assertFalse(any(valuation.external_fee_ids.mapped("sign_hint")))
+
     def test_foreign_currency_at_valuation_rate_and_preview_equals_posted(self):
         # CZK fond, úplata 4 EUR, kurz ČNB k datu ocenění 25,000 → 100 CZK; závazek nese i 4 EUR pro FX přecenění.
         fund = self.two_class_fund()

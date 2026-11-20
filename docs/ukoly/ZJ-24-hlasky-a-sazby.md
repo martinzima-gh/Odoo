@@ -9,6 +9,7 @@
 | Větev úkolu | `ukol/ZJ-24-hlasky-a-sazby` |
 | Zadal, dne | Martin, 2026-11-20 (poznámky 13 až 16 z `docs/ukoly/ZJ-20-poznamky-zpracovani.md`) |
 | Vlastník | Claude |
+| Bod 15 | **odloženo na příště, provede Opus** podle plánu níže po schválení Martinem |
 
 ## Provedeno: body 13, 14, 16 (2026-11-20)
 
@@ -27,6 +28,16 @@
 - Verze `investra_nav` 20.0.0.43.0. Test `investra_nav/tests/test_zj24_messages.py` (varování ve formuláři, hláška ocenění, obecná hláška beze změny,
   hláška o sazbě). Cílené: `TestZj24Messages`, `TestFees`, `TestFeeStartedMonth` bez chyby (21 testů), dříve i `TestMovement`, `TestMovementOnchange`, `TestLaunchDate`.
 - **Neověřeno v prohlížeči:** pruh ve formuláři úpisu a texty hlášek. Pracovní `investra` neupgradována.
+
+## Doplněno: ručně doložené úplaty i na výnosový účet (Martin, 2026-11-20)
+
+Pole účtu nabízí a kontrola `_check_fund` povoluje účet nákladu i výnosu (`investra.valuation.external.account_id`, pohled ocenění). Znaménko částky:
+**+ náklad (vrub účtu), − výnos (ve prospěch účtu)**; pruh nad tabulkou na záložce Ručně doložené úplaty to popisuje s příkladem a řádek má
+upozornění `sign_hint` při opačném znaménku. Daň: slovník `nondeductible_pct` v `valuation._tax_item` bere i výnosové účty s opačným znaménkem
+(engine beze změny), takže výjimka s procentem na výnosovém účtu platí i pro ruční úplatu (test 5 025 = (100 000 + 5 % × 10 000) × 5 %).
+Pole přejmenováno na „Účet (náklad nebo výnos)“, manuál kap. 4 doplněn, verze `investra_nav` 20.0.0.44.0. Testy: `TestManualFees` (výnos, upozornění),
+`TestTaxRules` (procento na výnosovém účtu). **Neověřeno v prohlížeči.** Kód je v červené zóně (`models/`) a vznikl na výslovnou žádost Martina bez samostatného
+plánu; stojí za revizi.
 
 ## Plán bodu 15 (návrh ke schválení Martinem; kód zatím nepsán)
 

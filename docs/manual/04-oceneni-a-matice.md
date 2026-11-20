@@ -165,13 +165,18 @@ Opravu vypočtené úplaty, odměny nebo daně (tlačítko **Opravit** na zálo�
 | Pole | Povinné | Význam |
 |---|---|---|
 | **Třída** | ne | prázdná = společný náklad celého fondu (dělí se poměrem), jinak jen dané třídě |
-| **Částka** | ano | nenulová, i záporná (oprava) |
+| **Částka** | ano | nenulová; **+ náklad, − výnos** (viz níže) |
 | **Měna** | ne | výchozí funkční měna fondu; cizí měna se přepočte kurzem k datu ocenění ze zdroje kurzů fondu |
-| **Nákladový účet** | ano | účet knihy typu náklad |
+| **Účet (náklad nebo výnos)** | ano | účet knihy typu náklad nebo výnos |
 | **Poznámka** | ano | proč a od koho částka je |
 | **Soubor s výpočtem** | ne | příloha |
 
-**Zaúčtování:** k datu ocenění MD zvolený nákladový účet, D závazek z úplat (role účtu „fee_payable“). Řádky nesou původní měnu, takže závazek
+**Znaménko částky.** Kladná částka je **náklad** (MD zvoleného nákladového účtu), záporná je **výnos** (D zvoleného výnosového účtu). Příklad:
+poplatek správci 5 000 se zadá jako `5 000` na nákladový účet; vratka od správce 1 200 jako `−1 200` na výnosový účet, FK se zvýší o 1 200.
+Opačné znaménko (kladná na výnosovém účtu, záporná na nákladovém) je účetně možné jako snížení výnosu nebo opravu nákladu; řádek na to
+upozorní. Procento neuznatelnosti z výjimky daně na účtu platí i pro výnosový účet (přičte se k základu pravidla jako u výnosu v hlavní knize).
+
+**Zaúčtování:** k datu ocenění MD zvolený účet (náklad; u výnosu D), D závazek z úplat (role účtu „fee_payable“). Řádky nesou původní měnu, takže závazek
 přecení FX přecenění. Pořadí výpočtu: spolu s ostatními úplatami, **před** výkonnostní odměnou a daní; ruční úplata třídy proto snižuje základ odměny.
 Náhled zaúčtování v ocenění ukáže tytéž řádky jako doklad po zaúčtování.
 
