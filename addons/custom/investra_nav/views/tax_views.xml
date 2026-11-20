@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nabídka Nastavení › Daně › Daňová pravidla s výchozími pohledy; vlastní formuláře doplní běh 6 dávky ZJ-07 až ZJ-19. -->
+<odoo>
+    <record id="action_tax_rule" model="ir.actions.act_window">
+        <field name="name">Daňová pravidla</field>
+        <field name="res_model">investra.tax.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_setup_taxes" name="Daně" parent="investra_entity.menu_setup" sequence="37"/>
+    <menuitem id="menu_tax_rule" name="Daňová pravidla" parent="menu_setup_taxes" action="action_tax_rule" sequence="10"/>
+</odoo>

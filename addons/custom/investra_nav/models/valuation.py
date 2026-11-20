@@ -2765,6 +2765,11 @@ class InvestraValuationExternal(models.Model):
         help="Převzatá oprava dřívějšího ocenění, kterou tento řádek ukončuje (oprava o −její částku, ZJ-12 B.7). "
              "Liší se od „Převzato z“ (převzetí z verze ocenění).",
     )
+    tax_rule_id = fields.Many2one(
+        "investra.tax.rule", ondelete="restrict", string="Daňové pravidlo",
+        help="Jen oprava daně: pravidlo, jehož daň nebo základ se opravuje (výchozí pravidlo fondu nebo pravidlo z výjimky). "
+             "Povinné u fondu s daňovým pravidlem; bez něj se oprava týká dosavadního nosiče daně.",
+    )
     attachment_id = fields.Many2one("ir.attachment", string="Výpočet", ondelete="restrict")
     # Nahrání souboru přímo v řádku; ukládá se jako příloha ocenění do attachment_id.
     document = fields.Binary(string="Soubor s výpočtem", compute="_compute_document", inverse="_inverse_document")
@@ -2803,7 +2808,7 @@ class InvestraValuationExternal(models.Model):
         return valuation.fund_id.currency_id if valuation.exists() else False
 
     @api.constrains("valuation_id", "class_id", "amount", "account_id", "note", "corrects_rule_id", "currency_id",
-                    "correction_target", "validity", "ended_id")
+                    "correction_target", "validity", "ended_id", "tax_rule_id")
     def _check_fund(self):
         # Třída a účet musí patřit fondu ocenění; formulář je nabízí jen z něj, kontrola chrání i import a API.
         for row in self:
@@ -2812,6 +2817,8 @@ class InvestraValuationExternal(models.Model):
                 raise ValidationError(self.env._("Třída ručně doložené úplaty musí patřit fondu ocenění %s.", fund.display_name))
             if row.ended_id and not row.corrects_rule_id:
                 raise ValidationError(self.env._("Ukončit jde jen převzatou opravu úplaty."))
+            if row.tax_rule_id and not row.corrects_rule_id:
+                raise ValidationError(self.env._("Daňové pravidlo se vyplňuje jen u opravy daně."))
             if row.corrects_rule_id:
                 row._check_correction(fund)
                 if row.ended_id:
@@ -2845,6 +2852,16 @@ class InvestraValuationExternal(models.Model):
                                              rule=rule.name, classes=", ".join(rule.class_ids.mapped("code"))))
         if not rule.class_ids and self.class_id:
             raise ValidationError(self.env._("Úplata %s je úplatou celého fondu; oprava nesmí mít třídu.", rule.name))
+        if rule.kind == "tax":
+            used = fund._tax_rules_used()
+            if used and not self.tax_rule_id:
+                raise ValidationError(self.env._("Oprava daně musí mít daňové pravidlo (výchozí pravidlo fondu, nebo pravidlo z výjimky)."))
+            if self.tax_rule_id and self.tax_rule_id not in used:
+                raise ValidationError(self.env._(
+                    "Daňové pravidlo %(rule)s se ve fondu %(fund)s nepoužívá (výchozí pravidlo ani výjimka, Mimo základ daně se neopravuje).",
+                    rule=self.tax_rule_id.name, fund=fund.display_name))
+        elif self.tax_rule_id:
+            raise ValidationError(self.env._("Daňové pravidlo se vyplňuje jen u opravy daně."))
         if self.account_id:
             raise ValidationError(self.env._("Oprava úplaty se účtuje na nákladovou roli pravidla; nákladový účet nevyplňujte."))
         if self.currency_id and self.currency_id != fund.currency_id:

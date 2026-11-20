@@ -23,6 +23,8 @@
     <record id="role_accrual" model="investra.account.role"><field name="code">accrual</field><field name="name">Dohadné položky pasivní</field><field name="category">liability</field></record>
     <record id="role_tax_payable" model="investra.account.role"><field name="code">tax_payable</field><field name="name">Odložená a splatná daň</field><field name="category">liability</field></record>
     <record id="role_class_capital" model="investra.account.role"><field name="code">class_capital</field><field name="name">Kapitál třídy</field><field name="category">equity</field></record>
+    <record id="role_revaluation_reserve" model="investra.account.role"><field name="code">revaluation_reserve</field><field name="name">Oceňovací rozdíly FVOCI</field><field name="category">equity</field></record>
+    <record id="role_revaluation_reserve_tax" model="investra.account.role"><field name="code">revaluation_reserve_tax</field><field name="name">Odložená daň k oceňovacím rozdílům</field><field name="category">equity</field></record>
     <record id="role_retained_result" model="investra.account.role"><field name="code">retained_result</field><field name="name">Výsledek minulých let</field><field name="category">equity</field></record>
     <record id="role_gain_fair_value" model="investra.account.role"><field name="code">gain_fair_value</field><field name="name">Zisk z přecenění na RH</field><field name="category">income</field></record>
     <record id="role_gain_fx" model="investra.account.role"><field name="code">gain_fx</field><field name="name">Kurzový zisk</field><field name="category">income</field></record>

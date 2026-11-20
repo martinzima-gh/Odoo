@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sdílená daňová pravidla (ZJ-07, D4, D9): sazby od 1. 1. 2024; účty se v knize fondu hledají podle kódu. -->
+<odoo noupdate="1">
+    <record id="tax_rule_21" model="investra.tax.rule">
+        <field name="name">Daň 21 %</field>
+        <field name="kind">general</field>
+        <field name="method">current</field>
+        <field name="tax_account_code">681000</field>
+        <field name="balance_account_code">347000</field>
+        <field name="note">Základní sazba daně z příjmů právnických osob (§ 21/1 ZDP).</field>
+        <field name="version_ids" eval="[(0, 0, {'valid_from': '2024-01-01', 'rate': 0.21, 'decision_ref': '§ 21 odst. 1 ZDP'})]"/>
+    </record>
+    <record id="tax_rule_zif_5" model="investra.tax.rule">
+        <field name="name">Daň ZIF 5 %</field>
+        <field name="kind">general</field>
+        <field name="method">current</field>
+        <field name="tax_account_code">681000</field>
+        <field name="balance_account_code">347000</field>
+        <field name="note">Základní investiční fond (§ 21 odst. 2, § 17b ZDP). Splnění podmínek ZIF posuzuje poradce.</field>
+        <field name="version_ids" eval="[(0, 0, {'valid_from': '2024-01-01', 'rate': 0.05, 'decision_ref': '§ 21 odst. 2 ZDP'})]"/>
+    </record>
+    <record id="tax_rule_separate_15" model="investra.tax.rule">
+        <field name="name">Samostatný základ 15 %</field>
+        <field name="kind">separate</field>
+        <field name="method">current</field>
+        <field name="tax_account_code">681300</field>
+        <field name="balance_account_code">347300</field>
+        <field name="credit_account_code">681400</field>
+        <field name="note">Podíly na zisku ze zahraničí (§ 20b, § 21 odst. 4 ZDP) se zápočtem zahraniční daně.</field>
+        <field name="version_ids" eval="[(0, 0, {'valid_from': '2024-01-01', 'rate': 0.15, 'decision_ref': '§ 21 odst. 4 ZDP'})]"/>
+    </record>
+    <record id="tax_rule_exempt" model="investra.tax.rule">
+        <field name="name">Mimo základ daně</field>
+        <field name="kind">exempt</field>
+        <field name="note">Osvobozené příjmy, příjmy zdaněné srážkou a neuznatelné náklady: účet se do základu nepočítá.</field>
+    </record>
+    <record id="tax_rule_deferred_fvoci_21" model="investra.tax.rule">
+        <field name="name">Odložená FVOCI 21 %</field>
+        <field name="kind">general</field>
+        <field name="method">deferred</field>
+        <field name="tax_account_code">564400</field>
+        <field name="balance_account_code">348000</field>
+        <field name="recognise_asset" eval="False"/>
+        <field name="note">Odložená daň z přecenění do kapitálu (FVOCI): základ je zůstatek účtu oceňovacích rozdílů k datu, daň jde do vlastního kapitálu (D9).</field>
+        <field name="version_ids" eval="[(0, 0, {'valid_from': '2024-01-01', 'rate': 0.21, 'decision_ref': '§ 23 odst. 19 ZDP, vyhl. 501/2002 § 78'})]"/>
+    </record>
+    <record id="tax_rule_deferred_fvoci_5" model="investra.tax.rule">
+        <field name="name">Odložená FVOCI 5 %</field>
+        <field name="kind">general</field>
+        <field name="method">deferred</field>
+        <field name="tax_account_code">564400</field>
+        <field name="balance_account_code">348000</field>
+        <field name="recognise_asset" eval="False"/>
+        <field name="note">Totéž pro fond se sazbou ZIF 5 % (D9).</field>
+        <field name="version_ids" eval="[(0, 0, {'valid_from': '2024-01-01', 'rate': 0.05, 'decision_ref': '§ 21 odst. 2, § 23 odst. 19 ZDP'})]"/>
+    </record>
+</odoo>

@@ -91,3 +91,8 @@
 "ifa_348000","Odložená daň – závazek a pohledávka","348000","liability_current","False"
 "ifa_341210","Pohledávky z dividend a kupónů","341210","asset_current","False"
 "ifa_341220","Pohledávky – zahraniční daň k vrácení","341220","asset_current","False"
+"ifa_564300","Oceňovací rozdíly FVOCI","564300","equity","False"
+"ifa_564400","Odložená daň k oceňovacím rozdílům","564400","equity","False"
+"ifa_564500","Opravná položka ECL v OCI","564500","equity","False"
+"ifa_571100","Realizované přecenění FVOCI","571100","equity","False"
+"ifa_667500","Opravné položky ECL","667500","expense","False"

@@ -40,6 +40,10 @@ ROLE_ACCOUNTS = {
     "entry_fee_capital": "ifa_564100",
     "exit_fee_capital": "ifa_564200",
     "retained_result": "ifa_428000",
+    # FVOCI (ZJ-18, dávka ZJ-07 až ZJ-19, oddíl 8 G1): oceňovací rozdíly a odložená daň z nich v ostatních kapitálových fondech
+    # (564), číslo pracovní k potvrzení metodikem.
+    "revaluation_reserve": "ifa_564300",
+    "revaluation_reserve_tax": "ifa_564400",
     "gain_fair_value": "ifa_611000",
     "gain_fx": "ifa_663000",
     "income_interest": "ifa_662000",
@@ -101,7 +105,9 @@ EXTRA_ROLE_ACCOUNTS = {
     "cash_in_transit": ("ifa_119200",),
     "expense_bank_fee": ("ifa_615200",),
     "income_dividend": ("ifa_714100", "ifa_714200", "ifa_714300"),
-    "expense_other": ("ifa_667300", "ifa_667400"),
+    "expense_other": ("ifa_667300", "ifa_667400", "ifa_667500"),
+    "revaluation_reserve": ("ifa_564500",),
+    "retained_result": ("ifa_571100",),
     "expense_tax": ("ifa_681100", "ifa_681200", "ifa_681300", "ifa_681400", "ifa_682000"),
     "tax_payable": ("ifa_347300", "ifa_348000"),
     "receivable_other": ("ifa_341210", "ifa_341220"),

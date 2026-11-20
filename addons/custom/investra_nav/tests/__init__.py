@@ -32,3 +32,4 @@ from . import test_trade_fee
 from . import test_derecognition
 from . import test_dividend
 from . import test_ex_coupon
+from . import test_tax_rules_models
