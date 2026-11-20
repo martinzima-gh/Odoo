@@ -17,9 +17,12 @@ derivátů, portfolia a zařazení. Zaúčtování a kontroly se nemění (oran�
   onchange, vzdálená noha swapu přes onchange `leg_ids`.
 
 ## Zbývá
-1. Povýšení pracovní databáze `investra` (bez nových polí, jen pohledy) a ruční zkouška v UI na 8071: nabídka Portfolio,
-   nový nákup/prodej, cena, mimořádná splátka, swap. Začít: povýšení modulů `investra_instruments`, `investra_instrument_master`,
-   `investra_nav`, `investra_derivative` se zálohou (po souhlasu).
+1. Povýšení pracovní databáze `investra` je HOTOVÉ (2026-11-19, se zálohou `zalohy/investra-2026-11-19-pred-AG-020-022.dump`;
+   verze instruments 20.0.0.15.0, instrument_master 20.0.0.8.1, nav 20.0.0.38.0, derivative 20.0.0.3.0; bez chyb v logu, instance 8071 běží).
+   ZBÝVÁ ruční zkouška v UI na 8071 (Martin, příště; prohlížeč Claude neovládá): nabídka Portfolio (Obchody, Splátky nástrojů,
+   Deriváty, Ceny, Zařazení nástrojů; Portfolia v Nastavení › Fondy), nový nákup/prodej (předvyplnění kurzu cizí měny, datum
+   vypořádání, „Prodat vše“, náhled zaúčtování), cena, mimořádná splátka (náhled), swap (obě nohy, vzdálená noha). Nálezy zapsat
+   a opravit.
 2. Zapsat rozhodnutí 2026-11-19 do Claude Doc (tabulka Přijatá rozhodnutí) – čeká na souhlas.
 3. Do `main` jen na výzvu Martina (před tím `tools/run_tests.sh all`).
 
