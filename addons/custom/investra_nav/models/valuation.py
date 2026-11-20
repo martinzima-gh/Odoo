@@ -1,6 +1,6 @@
 import hashlib
 import json
-from datetime import date as date_type, timedelta
+from datetime import timedelta
 from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from odoo import api, fields, models
@@ -957,14 +957,15 @@ class InvestraValuation(models.Model):
         if rule.crystallisation == "quarter":
             return month_end and day.month in (3, 6, 9, 12)
         if rule.crystallisation == "year":
-            return month_end and day.month == 12
+            # ZJ-17: „ročně“ = poslední den účetního období fondu (ne vždy 31. 12.).
+            return day == self.fund_id._fiscal_year_dates(day)[1]
         return False
 
     # --- společný dopočet úplat, odměny a daně (ZJ-12 krok 3) ----------------------------------------------------
 
     def _year_start(self):
-        """Poslední den předchozího roku: ocenění „od 1. 1.“ mají datum po něm."""
-        return date_type(self.date.year - 1, 12, 31)
+        """Poslední den předchozího účetního období: ocenění „od začátku období“ mají datum po něm (ZJ-17)."""
+        return self.fund_id._fiscal_year_start(self.date) - timedelta(days=1)
 
     def _earlier_valuations(self, after_day):
         """Zaúčtovaná dřívější ocenění fondu po dni `after_day` a před tímto oceněním."""
@@ -1085,7 +1086,7 @@ class InvestraValuation(models.Model):
         if any(json.loads(line.detail or "{}").get("per_class")
                for line in earlier.fee_line_ids.filtered(lambda l: l.rule_id == rule)):
             raise UserError(self.env._(
-                "Pravidlo %s bylo letos počítáno po třídách; přepnout na celý fond jde od 1. 1. nebo novým pravidlem.",
+                "Pravidlo %s bylo letos počítáno po třídách; přepnout na celý fond jde od začátku účetního období nebo novým pravidlem.",
                 rule.name))
         capitals = [d(v.fund_capital) for v in earlier]
         booked = Decimal(0)
@@ -1136,7 +1137,7 @@ class InvestraValuation(models.Model):
             details = [json.loads(line.detail or "{}") for line in lines]
             if any(not detail.get("per_class") for detail in details):
                 raise UserError(self.env._(
-                    "Pravidlo %s bylo letos počítáno za celý fond; přepnout na třídy jde od 1. 1. nebo novým pravidlem.",
+                    "Pravidlo %s bylo letos počítáno za celý fond; přepnout na třídy jde od začátku účetního období nebo novým pravidlem.",
                     rule.name))
             own = lines.filtered(lambda l: l.class_id == fund_class)
             if own:
@@ -1223,16 +1224,16 @@ class InvestraValuation(models.Model):
                 "amount": lambda value: full(value)["exact"] - accrued, "full": full, "state": state, "shift": shift}
 
     def _tax_item(self, rule):
-        """Očekávaná daň (ZJ-12 B.4, B.5): vstupy dopočtu z knihy po kroku 1 a z dřívějších ocenění od 1. 1.
+        """Očekávaná daň (ZJ-12 B.4, B.5): vstupy dopočtu z knihy po kroku 1 a z dřívějších ocenění od začátku účetního období
 
-        Výsledek od 1. 1. bez účtu daně; náklady dřívějších ocenění, které podle volby základ nesnižují (krok 1:
-        úplaty a odměna, krok 2: odměna), se přičtou zpět. Specifické položky tříd = výsledkové řádky s třídou od 1. 1.
+        Výsledek od začátku účetního období bez účtu daně; náklady dřívějších ocenění, které podle volby základ nesnižují (krok 1:
+        úplaty a odměna, krok 2: odměna), se přičtou zpět. Specifické položky tříd = výsledkové řádky s třídou od začátku účetního období
         (úplaty a odměna tříd, opravy, zajištění) bez nezapočitatelných. Daňový efekt minulého ocenění v roce (pro
         přírůstkový přesun) je v detailu jeho řádku daně (`effect`, `effect_total`).
         """
         version = rule._version_at(self.date)
         step = int(rule.base_step)
-        year_start = date_type(self.date.year, 1, 1)
+        year_start = self.fund_id._fiscal_year_start(self.date)
         tax_account = self.env["investra.account.role"].account_for(self.company_id, "expense_tax")
         pnl = [("date", ">=", year_start), ("account_id", "!=", tax_account.id),
                "|", ("account_id.account_type", "=like", "income%"), ("account_id.account_type", "=like", "expense%")]
@@ -1261,7 +1262,7 @@ class InvestraValuation(models.Model):
         }}
 
     def _tax_transfer_history(self, rule):
-        """Přesuny daňového efektu od 1. 1. (rozhodnutí 2026-11-19): zaúčtované po třídách a přesný součet.
+        """Přesuny daňového efektu od začátku účetního období (rozhodnutí 2026-11-19): zaúčtované po třídách a přesný součet.
 
         Zaúčtované = součet `transfers` řádků daně dřívějších ocenění v roce. Přesný (nezaokrouhlený) součet je
         `transfers_exact` posledního řádku, který ho má; starší řádky ho nemají, pak přesný součet = zaúčtované přesuny.
@@ -1330,7 +1331,7 @@ class InvestraValuation(models.Model):
     def _carried_corrections(self, rule, fund_class, since, target="amount"):
         """Převzaté opravy částky (ZJ-12 B.7): opravy s platností „do konce období“ z dřívějších ocenění po dni `since`.
 
-        Odměna od poslední krystalizace, daň od 1. 1.; časově rozlišená úplata se nepřebírá (oprava je trvalá).
+        Odměna od poslední krystalizace, daň od začátku účetního období; časově rozlišená úplata se nepřebírá (oprava je trvalá).
         Ukončení (`ended_id`) je oprava o −částku s toutéž platností, proto se v součtu s ukončenou vyruší.
         """
         earlier = self._earlier_valuations(since)
@@ -1345,7 +1346,7 @@ class InvestraValuation(models.Model):
     def _apply_base_correction(self, item, base_entries):
         """Oprava základu (ZJ-12 B.7): nové opravy tohoto ocenění a převzaté „do konce období“ se přičtou k základu.
 
-        Daň: k základu (ruční úprava ZJ-07 bod 2), převzatá od 1. 1. Průměrný FK: k celoročnímu průměru, převzatá od 1. 1.
+        Daň: k základu (ruční úprava ZJ-07 bod 2), převzatá od začátku účetního období Průměrný FK: k celoročnímu průměru, převzatá od začátku účetního období
         Odměna: k hodnotě třídy, převzatá od krystalizace. Úplata ze stavu k datu (FK, kapitál třídy, aktiva): jen toto
         ocenění. Oprava základu nepevní částku: pravidlo se z opraveného základu spočítá (i v průchodu „Vypočteno“,
         kde jsou vynechané jen opravy částky).
@@ -1706,7 +1707,7 @@ class InvestraValuation(models.Model):
     def _book_tax(self, item, tax, computed=None):
         """Daň jedním dokladem (ZJ-12 B.4): doplatek do požadované daně a přesun daňového efektu tříd (B.5).
 
-        Přesuny se dorovnávají proti přesnému součtu od 1. 1. (`transfers_exact`, rozhodnutí 2026-11-19); rozdíl, aby byl
+        Přesuny se dorovnávají proti přesnému součtu od začátku účetního období (`transfers_exact`, rozhodnutí 2026-11-19); rozdíl, aby byl
         součet v ocenění nulový, nese přesun s největší absolutní hodnotou.
         Doúčtování po výkonnostní odměně (`tax:<id>:perf`) zaniká, odměnu a daň počítá společný dopočet.
         Opravená daň (`computed` = průchod bez oprav, B.7): doplatek z vypočtené daně + převzaté opravy; nové opravy
@@ -1716,8 +1717,8 @@ class InvestraValuation(models.Model):
         carried = item.get("carried", Decimal(0))
         required = engine.money((computed or tax)["required"])
         move = required - spec["booked"] + carried
-        # Dorovnání mezi oceněními (rozhodnutí 2026-11-19): přesun = money(přesný součet od 1. 1.) − už zaúčtované přesuny
-        # třídy od 1. 1.; uvnitř ocenění zbytek do nuly nese přesun s největší absolutní hodnotou.
+        # Dorovnání mezi oceněními (rozhodnutí 2026-11-19): přesun = money(přesný součet od začátku účetního období) − už zaúčtované přesuny
+        # třídy od začátku účetního období; uvnitř ocenění zbytek do nuly nese přesun s největší absolutní hodnotou.
         booked_transfers, previous_exact = spec.get("transfers_booked") or {}, spec.get("transfers_exact") or {}
         exact = {key: previous_exact.get(key, Decimal(0)) + value for key, value in tax["transfers"].items()}
         for key, value in previous_exact.items():

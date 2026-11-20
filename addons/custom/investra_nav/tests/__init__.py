@@ -27,3 +27,4 @@ from . import test_movement_onchange
 from . import test_portfolio_class
 from . import test_class_no_common
 from . import test_allocation_examples
+from . import test_fiscal_year

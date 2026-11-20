@@ -1,15 +1,16 @@
 """Schéma výpočtu úplat na fondu (ZJ-12 krok 5, C.1): předvolby základu, náhled s čísly a informace o vzájemném dopočtu.
 
 Náhled počítá STEJNÁ funkce jako ocenění (`engine.solve_fees`, `engine.periodic_fee`, `engine.performance_fee`); jen vstupy
-jsou modelové (FK 1 000 000, sazby aktuálních verzí, rok, výnos +5 %), ne stav knihy. Do výpočtu ocenění tento soubor nezasahuje.
+jsou modelové (FK 1 000 000, sazby aktuálních verzí, účetní období, výnos +5 %), ne stav knihy. Do výpočtu ocenění tento soubor nezasahuje.
 """
 
-from datetime import date
+from datetime import timedelta
 from decimal import Decimal
 
 from markupsafe import Markup, escape
 
 from odoo import api, fields, models
+from odoo.tools import format_date
 
 from .. import engine
 
@@ -111,7 +112,9 @@ class InvestraFundFeeScheme(models.Model):
     def _fee_scheme_items(self, rules):
         """Položky společného dopočtu s modelovým stavem; vrací (třídy, položky, poznámky)."""
         today = fields.Date.context_today(self)
-        start, end = date(today.year, 1, 1), date(today.year + 1, 1, 1)
+        # ZJ-17: model na jedno účetní období fondu (ne kalendářní rok).
+        start, last_day = self._fiscal_year_dates(today)
+        end = last_day + timedelta(days=1)
         fund_classes = self.class_ids
         count = len(fund_classes) or 1
         ids = fund_classes.ids or [0]
@@ -243,8 +246,8 @@ class InvestraFundFeeScheme(models.Model):
         summary = Markup("<p><b>%s</b> %s</p>") % (self.env._("FK po úplatách, odměně a dani:"), _fmt(engine.money(fk_final)))
         info = Markup("<p class='text-muted small'>%s %s</p>") % (
             self.env._(
-                "Náhled počítá stejná funkce jako ocenění (společný dopočet). Model: FK po kroku 1 %(fk)s, rok %(year)s, "
+                "Náhled počítá stejná funkce jako ocenění (společný dopočet). Model: FK po kroku 1 %(fk)s, účetní období od %(year)s, "
                 "sazby aktuálních verzí, výnos za rok +5 %%, bez podílů příjemcům a bez oprav.",
-                fk=_fmt(PREVIEW_FK), year=fields.Date.context_today(self).year),
+                fk=_fmt(PREVIEW_FK), year=format_date(self.env, self._fiscal_year_start(fields.Date.context_today(self)))),
             " ".join(notes))
         return table + summary + info

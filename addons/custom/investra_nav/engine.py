@@ -308,11 +308,11 @@ def _included(item, other, step):
 def _tax(spec, items, amounts, ratios):
     """Očekávaná daň (doplatek) a přesun daňového efektu specifických položek tříd (ZJ-12 B.4 a B.5).
 
-    spec: rate, step (1–3: které náklady snižují základ), result (výsledek od 1. 1. po kroku 1 už se zpět přičtenými
-    náklady dřívějších ocenění, které podle kroku základ nesnižují), booked (zaúčtovaná daň od 1. 1.), specific
-    ({třída: specifické náklady od 1. 1. před tímto oceněním, které základ snižují}), previous_effect ({třída: e × spec_c
+    spec: rate, step (1–3: které náklady snižují základ), result (výsledek od začátku účetního období po kroku 1 už se zpět přičtenými
+    náklady dřívějších ocenění, které podle kroku základ nesnižují), booked (zaúčtovaná daň od začátku účetního období), specific
+    ({třída: specifické náklady od začátku účetního období před tímto oceněním, které základ snižují}), previous_effect ({třída: e × spec_c
     minulého ocenění v roce}), previous_effect_total (e × Σ spec minulého ocenění).
-    Daňový efekt od 1. 1.: E_c = e × spec_c, e = efektivní sazba specifických položek. Přesun je přírůstkový:
+    Daňový efekt od začátku účetního období: E_c = e × spec_c, e = efektivní sazba specifických položek. Přesun je přírůstkový:
     přesun_c = ΔE_c − ρ_c × ΔΣE, Δ proti minulému ocenění, ρ dnešní. Dřívější přesuny se dnešním poměrem nepřepočítávají
     (stejně jako se dnes nepřepočítává daň rozdělená v minulých oceněních); součet přesunů je nula.
     """

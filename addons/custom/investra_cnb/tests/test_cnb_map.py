@@ -115,3 +115,22 @@ class TestCnbMapTwoModels(CnbMapCase):
     def test_same_bond_in_two_models_splits_rows(self):
         self.assertEqual(self.value("ROFO10_11", 6), 42000)
         self.assertEqual(self.value("ROFO10_11", 10), 10000)
+
+
+@tagged("post_install", "-at_install")
+class TestCnbFiscalYear(NavCase):
+    """ZJ-17: řádek „Od začátku účetního období“ počítá od začátku období knihy, ne od 1. 1."""
+
+    def test_income_statement_from_period_start(self):
+        fund = self.make_fund(launch="2037-06-01", classes=[{"code": "A"}])
+        company = fund.company_id
+        self.common_result(fund, "v1", "2038-03-10", 1000)
+        self.common_result(fund, "v2", "2038-08-10", 500)
+        day = date(2038, 8, 31)
+        Map = self.env["investra.cnb.map"]
+        income = lambda: Map._sheet_values(company, "VYFO20_11", day).get((35, 1), 0)
+        # Kalendářní kniha (výchozí 31. 12.): od 1. 1. 2038 jsou oba výnosy.
+        self.assertEqual(income(), 1500)
+        # Účetní období 1. 7. – 30. 6.: od 1. 7. 2038 jen srpnový výnos.
+        company.write({"fiscalyear_last_day": 30, "fiscalyear_last_month": "6"})
+        self.assertEqual(income(), 500)

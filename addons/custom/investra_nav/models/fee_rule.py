@@ -93,9 +93,9 @@ class InvestraFeeRule(models.Model):
         required=True,
         default="fk",
         tracking=True, string="Základ",
-        help="Z čeho se úplata počítá: fondový kapitál, jeho průměr od začátku roku, kapitál třídy, aktiva, nebo bez základu "
+        help="Z čeho se úplata počítá: fondový kapitál, jeho průměr od začátku účetního období, kapitál třídy, aktiva, nebo bez základu "
              "(jen pevná částka). Průměrný FK bez tříd je úplata celého fondu z průměru FK; s vyplněnými Platí třídy se počítá "
-             "za každou třídu z průměru jejího kapitálu od 1. 1., od prvního úpisu třídy nebo od zařazení do pravidla "
+             "za každou třídu z průměru jejího kapitálu od začátku účetního období, od prvního úpisu třídy nebo od zařazení do pravidla "
              "(pevné částky, minimum a maximum za každou třídu). U očekávané daně se nepoužívá.",
     )
     # ZJ-12 (rozhodnutí 2026-11-18 „Základ úplat, odměny a daně“): jedna volba „Základ: po kroku 1–4“ nahrazuje
@@ -267,7 +267,7 @@ class InvestraFeeRule(models.Model):
     def _check_archive(self):
         """Pojistka archivace (ZJ-12 krok 4, rozhodnutí 2026-11-18): archivované pravidlo se v dalším ocenění nepočítá,
         naběhlou odměnu ani zaúčtovanou daň by proto už nerozpustilo. Archivace se zastaví, má-li pravidlo odměny nebo daně
-        z posledního zaúčtovaného ocenění nenulovou naběhlou odměnu (třídy pravidla) nebo daň zaúčtovanou od 1. 1."""
+        z posledního zaúčtovaného ocenění nenulovou naběhlou odměnu (třídy pravidla) nebo daň zaúčtovanou od začátku účetního období"""
         Valuation = self.env["investra.valuation"].sudo()
         for rule in self.filtered(lambda r: r.active and r.kind in ("performance", "tax")):
             last = Valuation.search([
@@ -280,8 +280,8 @@ class InvestraFeeRule(models.Model):
                 amount, what = sum(lines.mapped("perf_accrued")), self.env._("naběhlou odměnu")
             else:
                 account = self.env["investra.account.role"].sudo().account_for(rule.company_id, "expense_tax")
-                amount = float(last._sum(("date", ">=", date(last.date.year, 1, 1)), ("account_id", "=", account.id)))
-                what = self.env._("zaúčtovanou daň od 1. 1.")
+                amount = float(last._sum(("date", ">=", last.fund_id._fiscal_year_start(last.date)), ("account_id", "=", account.id)))
+                what = self.env._("zaúčtovanou daň od začátku účetního období")
             if round(amount, 2):
                 raise UserError(self.env._(
                     "Pravidlo %(rule)s má z posledního ocenění %(valuation)s %(what)s %(amount)s. Archivované pravidlo by ji "

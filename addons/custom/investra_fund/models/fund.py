@@ -119,6 +119,20 @@ class InvestraFund(models.Model):
 
     _entity_uniq = models.Constraint("unique(entity_id)", "Kniha může mít jen jeden fond.")
 
+    def _fiscal_year_dates(self, day):
+        """Účetní období fondu (hospodářský rok podle knihy), do kterého patří `day`: (první den, poslední den).
+
+        ZJ-17: zdrojem je standardní nastavení knihy (`res.company.fiscalyear_last_day/month`, Odoo 20 Community
+        nemá záznamy `account.fiscal.year`). Zdaňovací období = účetní období.
+        """
+        self.ensure_one()
+        dates = self.company_id.compute_fiscalyear_dates(fields.Date.to_date(day))
+        return dates["date_from"], dates["date_to"]
+
+    def _fiscal_year_start(self, day):
+        """První den účetního období, do kterého patří `day` (podle knihy fondu)."""
+        return self._fiscal_year_dates(day)[0]
+
     @api.constrains("accrual_method", "accrual_note")
     def _check_accrual_note(self):
         for fund in self:

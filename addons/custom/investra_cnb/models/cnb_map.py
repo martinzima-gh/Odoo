@@ -22,7 +22,7 @@ class InvestraCnbMap(models.Model):
     source = fields.Selection([("role", "Role účtu"), ("result", "Výsledek běžného období")], required=True, default="role", string="Zdroj", tracking=True)
     role_id = fields.Many2one("investra.account.role", ondelete="restrict", string="Role účtu", tracking=True)
     ifrs9_category = fields.Selection(IFRS9_CATEGORY, string="Jen kategorie IFRS 9", tracking=True)
-    period = fields.Selection([("balance", "Zůstatek k datu"), ("ytd", "Od začátku roku")], required=True, default="balance", string="Období", tracking=True)
+    period = fields.Selection([("balance", "Zůstatek k datu"), ("ytd", "Od začátku účetního období")], required=True, default="balance", string="Období", tracking=True)
     sign = fields.Integer(required=True, default=1, string="Znaménko", tracking=True, help="1 zůstatek, -1 obrácený; určuje dopad do součtů.")
     report_sign = fields.Integer(required=True, default=1, string="Znaménko řádku", tracking=True, help="-1 u nákladů vykázaných kladně.")
     rollup_rows = fields.Char(string="Součtové řádky", tracking=True, help="Řádky oddělené čárkou, do kterých se hodnota přičte.")
@@ -45,7 +45,8 @@ class InvestraCnbMap(models.Model):
         """Hodnota jednoho řádku převodu ve funkční měně."""
         self.ensure_one()
         domain = self._line_domain(company, day)
-        start = date(day.year, 1, 1)
+        # ZJ-17: „od počátku“ = od začátku účetního období knihy (výkaz ČNB: zisk/ztráta za běžné účetní období, docs/cnb).
+        start = company.compute_fiscalyear_dates(day)["date_from"]
         if self.source == "result":
             return self._sum([
                 *domain, ("date", ">=", start), ("account_id.account_type", "in", ("income", "income_other", "expense", "expense_depreciation", "expense_direct_cost")),
