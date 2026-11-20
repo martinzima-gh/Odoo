@@ -11,7 +11,14 @@ PORTFOLIO_COLUMNS = [
     ("Zdroj ceny", "price_source"), ("Datum ceny", "price_date"), ("Pořizovací hodnota v měně", "cost_currency"),
     ("Pořizovací hodnota v měně fondu", "cost"), ("Reálná hodnota v měně", "fair_value_currency"),
     ("Kurz", "fx_rate"), ("Zdroj kurzu", "fx_source"), ("Reálná hodnota v měně fondu", "fair_value"),
-    ("Změna proti pořízení", "change"), ("Podíl na FK", "weight"),
+    ("Změna proti pořízení", "change"), ("Oceňovací rozdíl (OCI)", "oci"), ("Podíl na FK", "weight"),
+]
+
+# List Daň (ZJ-07 E): rozpad po daňových pravidlech ze snímku v detailu řádku daně (stejný zdroj jako rozpad v ocenění).
+TAX_COLUMNS = [
+    ("Pravidlo", "name"), ("Základ", "base"), ("Sazba", "rate"), ("Požadovaná daň", "required"), ("Zaúčtovaná daň", "booked"),
+    ("Pohyb", "move"), ("Zápočet", "credit"), ("Použitý zápočet", "credit_used"), ("Propadlý zápočet", "credit_lost"),
+    ("Neuznatelné náklady z výnosu", "nondeductible"), ("Oprava základu", "base_correction"), ("Převzaté opravy daně", "carried"),
 ]
 
 # List Úplaty (ZJ-12 E, ZJ-11 krok 3): základní sloupce vždy, sloupce oprav jen v ocenění s opravou.
@@ -62,9 +69,27 @@ class InvestraValuation(models.Model):
                 "fx_source": {"cnb": "ČNB", "ecb": "ECB"}.get(line.fx_source, ""),
                 "fair_value": line.fair_value,
                 "change": line.fair_value - line.cost,
+                "oci": line.oci,
                 "weight": line.fair_value / total,
             })
         return rows
+
+    def _package_rows_tax(self):
+        """Řádky listu Daň: pravidla ze snímku detailu řádku daně a výjimky fondu; prázdné, když ocenění daň nepočítalo."""
+        for line in self.fee_line_ids.filtered(lambda l: l.rule_id.kind == "tax"):
+            detail = json.loads(line.detail or "{}")
+            if not detail.get("rules"):
+                continue
+            rows = []
+            for rule in detail["rules"]:
+                row = {"name": rule.get("name") or ""}
+                for _label, key in TAX_COLUMNS[1:]:
+                    value = rule.get(key)
+                    row[key] = float(value) if value not in (None, "") else None
+                row["is_default"] = bool(rule.get("default"))
+                rows.append(row)
+            return rows, detail.get("exceptions") or [], detail.get("base_step")
+        return [], [], None
 
     @staticmethod
     def _fee_detail_step(detail):
@@ -285,6 +310,31 @@ class InvestraValuation(models.Model):
                 if value is None:
                     continue
                 sheet.write(row_index, column, value, amount if isinstance(value, float) else None)
+        tax_rows, tax_exceptions, tax_step = record._package_rows_tax()
+        if tax_rows:
+            sheet = book.add_worksheet("Daň")
+            header(sheet, "Daň")
+            for column, (label, _key) in enumerate(TAX_COLUMNS):
+                sheet.write(2, column, label, bold)
+            for row_index, row in enumerate(tax_rows, start=3):
+                for column, (_label, key) in enumerate(TAX_COLUMNS):
+                    value = row[key]
+                    if value is None:
+                        continue
+                    sheet.write(row_index, column, value, ratio if key == "rate" else amount if isinstance(value, float) else None)
+            next_row = 3 + len(tax_rows) + 1
+            if tax_step:
+                sheet.write(next_row, 0, f"Základ po kroku {tax_step}")
+                next_row += 1
+            if tax_exceptions:
+                sheet.write(next_row, 0, "Výjimky fondu", bold)
+                for column, label in enumerate(("Účet", "Pravidlo", "Podíl", "Neuznatelné náklady (% z výnosu)")):
+                    sheet.write(next_row + 1, column, label, bold)
+                for offset, exc in enumerate(tax_exceptions, start=next_row + 2):
+                    sheet.write(offset, 0, f"{exc.get('account') or ''} {exc.get('name') or ''}".strip())
+                    sheet.write(offset, 1, exc.get("rule_name") or "")
+                    sheet.write(offset, 2, float(exc.get("share") or 1), ratio)
+                    sheet.write(offset, 3, float(exc.get("nondeductible_pct") or 0), amount)
         book.close()
         attachment = self.env["ir.attachment"].sudo().create({
             "name": f"balicek-{record.fund_id.name}-{record.date}-v{record.version}.xlsx",

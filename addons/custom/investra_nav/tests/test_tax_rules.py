@@ -1,5 +1,7 @@
 import importlib.util
+import io
 import json
+import zipfile
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -93,6 +95,21 @@ class TestTaxRules(NavCase):
         self.assertEqual((self.move_balance(valuation, "681300"), self.move_balance(valuation, "347300")), (750, -750))
         self.assertTrue(valuation.tax_breakdown_html)
         self.assertIn(self.separate.name, valuation.tax_breakdown_html)
+
+    def test_package_has_tax_sheet(self):
+        """XLS pro depozitáře: list Daň z téhož snímku jako rozpad v ocenění (ZJ-07 E)."""
+        self.reference()
+        self.common_exceptions()
+        valuation = self.compute()
+        rows, exceptions, step = valuation._package_rows_tax()
+        by_name = {row["name"]: row for row in rows}
+        self.assertEqual(by_name[self.zif.name]["required"], 4237.5)
+        self.assertEqual(by_name[self.separate.name]["required"], 750.0)
+        self.assertTrue(exceptions)
+        self.assertEqual(step, "3")
+        self.run_to_posted(valuation)
+        data = zipfile.ZipFile(io.BytesIO(valuation.action_build_package().raw))
+        self.assertIn("Daň", data.read("xl/workbook.xml").decode())
 
     def test_reference_with_nondeductible(self):
         self.reference()
