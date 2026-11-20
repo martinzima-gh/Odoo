@@ -48,3 +48,5 @@ další hypotézy: pevné šířky sloupců (`width`) u polí Podíl, Neuznateln
 ## Převzetí
 
 Převzato 2026-11-20 (`14c751e`). Oprava je jen hypotéza (seznam mimo podmíněně skrytou skupinu); blikání nešlo reprodukovat, ověřit v prohlížeči po povýšení. Záložka přejmenována na „Daňová pravidla“.
+
+**Ověřeno Martinem v prohlížeči 2026-11-20:** po povýšení tabulka už nebliká; příčinou byl editovatelný seznam uvnitř podmíněně skryté skupiny. Uzavřeno.

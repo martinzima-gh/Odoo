@@ -53,7 +53,7 @@ Platí pro jednotlivé úkoly CP, ne trvale pro `CLAUDE.md`.
 | 16 | Nápověda u pole Výpočet za období: příklad Poměrně vs. Za každý započatý měsíc (10 000 měsíčně = 9 863,01 za 30 dní) | otevřené |
 | 17 | Režim „Za každý započatý měsíc“ vracel 0 pro období uvnitř jednoho měsíce (úplata třídy od 1. 10.) | **provedeno** (`engine._months_touched`, první úsek období; test `test_fee_started_month.py`) |
 | 18 | Kapitál nové třídy vstupuje do úplaty až od dne po úpisu (30 místo 31 dní) | **záměr (Martin)**, beze změny |
-| 19 | Tabulka Výjimky na záložce Daňová pravidla: po kliknutí se rozšiřuje donekonečna (v prohlížeči) | ověřit po povýšení; případně pevné šířky sloupců |
+| 19 | Tabulka Výjimky na záložce Daňová pravidla: po kliknutí se rozšiřuje donekonečna | **vyřešeno**: po vyndání seznamu z podmíněně skryté skupiny (AG-025) už nebliká (Martin ověřil v prohlížeči 2026-11-20) |
 
 ## A. Smazání návrhu obchodu (poznámka 1)
 
