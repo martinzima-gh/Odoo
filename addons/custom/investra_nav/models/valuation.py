@@ -754,27 +754,29 @@ class InvestraValuation(models.Model):
             for account in mapping.extra_account_ids:
                 roles[account] = (mapping.role_id.code, False)
             roles[mapping.account_id] = (mapping.role_id.code, True)
+        # ZJ-09 A3: zůstatky po třídách, aby se třída na přeceňovaných účtech neztratila; banky třídu nemají.
         balances = self.env["investra.fx.profile"].sudo()._foreign_balances(
             company, self._fx_accounts(), self.date, domain=self._line_domain(),
-            by_partner=lambda account: account.account_type != "asset_cash",
+            by_partner=lambda account: account.account_type != "asset_cash", extra_groupby=("investra_class_id",),
         )
         lines = []
-        for account, currency, partner, amount, balance in balances:
+        for account, currency, partner, amount, balance, fund_class in balances:
             if account not in roles:
                 raise UserError(self.env._("Účet %s v profilu přecenění nemá v knize roli.", account.display_name))
             code, main = roles[account]
             difference = engine.money(d(amount) * self._fx(currency)) - engine.money(d(balance))
             if not difference:
                 continue
+            cls = {"class_id": fund_class.id} if fund_class else {}  # bez třídy klíč nepřidávat → otisk beze změny
             line = {"role": code, "amount": difference, "movement_type": "fx_revaluation",
-                    "currency_id": currency.id, "amount_currency": "0"}
+                    "currency_id": currency.id, "amount_currency": "0", **cls}
             if not main:
                 line["extra"] = {"account_id": account.id}
             if partner:
                 line["partner_id"] = partner.id
             lines.append(line)
             lines.append({"role": "gain_fx" if difference > 0 else "loss_fx", "amount": -difference,
-                          "movement_type": "fx_revaluation"})
+                          "movement_type": "fx_revaluation", **cls})
         return lines
 
     def _compute_unsettled(self):
@@ -786,19 +788,21 @@ class InvestraValuation(models.Model):
             account = Mapping.search([("company_id", "=", self.company_id.id), ("role_id.code", "=", role)]).account_id
             if not account:
                 continue
+            # ZJ-09 A2(e): pohledávka a závazek nevypořádaného obchodu v portfoliu třídy nesou třídu, přecenění po třídách.
             groups = Line._read_group(
                 self._line_domain(("account_id", "=", account.id)),
-                groupby=["currency_id"], aggregates=["amount_currency:sum", "balance:sum"],
+                groupby=["currency_id", "investra_class_id"], aggregates=["amount_currency:sum", "balance:sum"],
             )
-            for currency, amount, balance in groups:
+            for currency, fund_class, amount, balance in groups:
                 if currency == self.fund_id.currency_id:
                     continue
                 difference = engine.money(d(amount) * self._fx(currency)) - engine.money(balance)
                 if difference:
+                    cls = {"class_id": fund_class.id} if fund_class else {}  # bez třídy klíč nepřidávat → otisk beze změny
                     lines.append({"role": role, "amount": difference, "movement_type": "fx_revaluation",
-                                  "currency_id": currency.id, "amount_currency": "0"})
+                                  "currency_id": currency.id, "amount_currency": "0", **cls})
                     lines.append({"role": "gain_fx" if difference > 0 else "loss_fx", "amount": -difference,
-                                  "movement_type": "fx_revaluation"})
+                                  "movement_type": "fx_revaluation", **cls})
         self._add_event("unsettled_fx", "FX přecenění nevypořádaných obchodů", lines)
         self._compute_unsettled_fair_value(Mapping, Line)
 

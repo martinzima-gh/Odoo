@@ -84,7 +84,6 @@
                         List ČNB se liší od návrhu typu nástroje.
                     </div>
                     <group string="Ostatní podíl" invisible="type_group != 'other_holding'">
-                        <field name="class_id"/>
                         <field name="holding_kind" required="type_group == 'other_holding'"/>
                         <field name="commitment_amount"/><field name="order_ref"/>
                     </group>

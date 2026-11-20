@@ -24,3 +24,4 @@ from . import test_fee_ui
 from . import test_package_fees
 from . import test_fee_average_class
 from . import test_movement_onchange
+from . import test_portfolio_class

@@ -15,7 +15,7 @@ class PreviewMixin:
             result.append((day, sorted(
                 (account, round(float(debit), 2), round(float(credit), 2))
                 + ((round(float(ccy or 0), 2),) if currency else ())
-                for account, debit, credit, ccy in rows
+                for account, debit, credit, ccy, *_ in rows
             )))
         return result
 

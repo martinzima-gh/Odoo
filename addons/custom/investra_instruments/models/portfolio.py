@@ -189,11 +189,38 @@ class InvestraFundPortfolio(models.Model):
     assessment = fields.Text(string="Posouzení modelu", tracking=True, help="Kdo a proč obchodní model určil (IFRS 9 B4.1.1).")
     active = fields.Boolean(default=True, string="Aktivní")
     classification_ids = fields.One2many("investra.portfolio.classification", "portfolio_id", string="Zařazení nástrojů")
+    # ZJ-09 (rozhodnutí 2026-11-17 „Třída portfolia“): prázdné = sdílené portfolio, vyplněné = portfolio jen této třídy.
+    # Řádky dokladů pozic portfolia třídy nesou třídu (investra.accounting.event._portfolio_class_lines).
+    class_id = fields.Many2one(
+        "investra.fund.class", ondelete="restrict", tracking=True, string="Třída", index="btree_not_null",
+        domain="[('fund_id', '=', fund_id)]",
+        help="Prázdné = sdílené portfolio všech tříd (výsledek se dělí poměrem tříd). Vyplněné = portfolio jen této třídy. "
+             "Po prvním dokladu portfolia nejde změnit.",
+    )
 
     _name_uniq = models.Constraint("unique(fund_id, name)", "Fond už má portfolio s tímto názvem.")
 
     def _has_trades(self):
         return bool(self.env["investra.trade"].sudo().search_count([("portfolio_id", "in", self.ids)], limit=1))
+
+    def _has_postings(self):
+        """Má portfolio doklady? Obchod, splátka, ocenění i derivát třídy mají na řádcích zařazení portfolia; sjednaný
+        derivát sdíleného portfolia zařazení na řádcích nemá (otisk dřívějších dokladů), proto se hledá i smlouva."""
+        self.ensure_one()
+        lines = self.env["account.move.line"].sudo().search_count(
+            [("investra_classification_id.portfolio_id", "=", self.id)], limit=1)
+        if lines:
+            return True
+        if "investra.derivative" in self.env:
+            return bool(self.env["investra.derivative"].sudo().search_count(
+                [("portfolio_id", "=", self.id), ("state", "!=", "draft")], limit=1))
+        return False
+
+    @api.constrains("class_id", "fund_id")
+    def _check_class(self):
+        for portfolio in self:
+            if portfolio.class_id and portfolio.class_id.fund_id != portfolio.fund_id:
+                raise ValidationError(self.env._("Třída portfolia musí patřit fondu portfolia."))
 
     def write(self, vals):
         if not self.env.su and "business_model" in vals and self._has_trades():
@@ -201,6 +228,12 @@ class InvestraFundPortfolio(models.Model):
                 "Po prvním obchodu nejde obchodní model portfolia změnit; změna modelu je reklasifikace (IFRS 9 4.4.1), "
                 "která zatím není podporovaná."
             ))
+        if "class_id" in vals:
+            for portfolio in self.filtered(lambda p: p.class_id.id != (vals["class_id"] or False)):
+                if portfolio._has_postings():
+                    raise UserError(self.env._(
+                        "Portfolio %s už má doklady; třídu nejde změnit. Pro jinou třídu založte nové portfolio.",
+                        portfolio.name))
         return super().write(vals)
 
     def unlink(self):

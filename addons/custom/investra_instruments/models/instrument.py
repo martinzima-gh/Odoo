@@ -165,7 +165,7 @@ class InvestraInstrument(models.Model):
     commitment_amount = fields.Float(digits=(20, 2), string="Upisovací závazek", help="Celková částka v měně nástroje, 0 = bez závazku.")
     holding_kind = fields.Selection([("securities", "Cenné papíry"), ("shares", "Podíly")], string="Typ investice", tracking=True)
     fund_id = fields.Many2one("investra.fund", ondelete="restrict", string="Fond", help="Vyplněno: nástroj patří jen tomuto fondu.")
-    class_id = fields.Many2one("investra.fund.class", ondelete="restrict", string="Třída", domain="[('fund_id', '=', fund_id)]")
+    # ZJ-09 A5: pole Třída na nástroji zrušeno (nic ho nepoužívalo); třída je na portfoliu (investra.fund.portfolio.class_id).
     order_ref = fields.Char(string="Zakázka")
     accrual_method = fields.Selection(
         [("fund", "Podle fondu"), ("eir", "Efektivní úroková míra"), ("linear", "Lineárně")],
@@ -283,13 +283,11 @@ class InvestraInstrument(models.Model):
             kind = instrument.type_id
             instrument.deviates_from_type = bool(kind) and (instrument.cnb_sheet or False) != (kind.cnb_sheet or False)
 
-    @api.constrains("type_id", "fund_id", "class_id", "holding_kind", "commitment_amount")
+    @api.constrains("type_id", "fund_id", "holding_kind", "commitment_amount")
     def _check_other_holding(self):
         for instrument in self:
             if instrument.commitment_amount < 0:
                 raise ValidationError(self.env._("Upisovací závazek nemůže být záporný: %s.", instrument.name))
-            if instrument.class_id and instrument.class_id.fund_id != instrument.fund_id:
-                raise ValidationError(self.env._("Třída nepatří do fondu nástroje: %s.", instrument.name))
             if instrument.type_group == "other_holding" and not (instrument.fund_id and instrument.holding_kind):
                 raise ValidationError(self.env._("Ostatní podíl musí mít fond a typ investice: %s.", instrument.name))
 
