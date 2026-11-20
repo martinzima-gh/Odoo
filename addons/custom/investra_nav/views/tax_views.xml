@@ -76,6 +76,59 @@
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_tax_rule_search"/>
     </record>
+    <record id="view_tax_exception_template_list" model="ir.ui.view">
+        <field name="name">investra.tax.exception.template.list</field>
+        <field name="model">investra.tax.exception.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="account_code"/>
+                <field name="rule_source"/>
+                <field name="tax_rule_id" invisible="rule_source != 'fixed'"/>
+                <field name="share"/>
+                <field name="nondeductible_pct"/>
+                <field name="fvoci_only"/>
+                <field name="note"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tax_exception_template_form" model="ir.ui.view">
+        <field name="name">investra.tax.exception.template.form</field>
+        <field name="model">investra.tax.exception.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="account_code"/>
+                            <field name="rule_source"/>
+                            <field name="tax_rule_id" invisible="rule_source != 'fixed'" required="rule_source == 'fixed'"
+                                   options="{'no_create': True}"/>
+                            <field name="fvoci_only"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="share"/>
+                            <field name="nondeductible_pct"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                    <p class="text-muted">
+                        Šablonu čte tlačítko „Přidat běžné výjimky“ na záložce Daňová pravidla fondu. Existující výjimky fondu
+                        nepřepisuje. Podíl a Neuznatelné (%) mají stejný význam jako u výjimky fondu.
+                    </p>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_tax_exception_template" model="ir.actions.act_window">
+        <field name="name">Šablona výjimek</field>
+        <field name="res_model">investra.tax.exception.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
     <menuitem id="menu_setup_taxes" name="Daně" parent="investra_entity.menu_setup" sequence="37"/>
     <menuitem id="menu_tax_rule" name="Daňová pravidla" parent="menu_setup_taxes" action="action_tax_rule" sequence="10"/>
+    <menuitem id="menu_tax_exception_template" name="Šablona výjimek" parent="menu_setup_taxes" action="action_tax_exception_template" sequence="20"/>
 </odoo>

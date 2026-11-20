@@ -114,29 +114,32 @@ class InvestraFundTax(models.Model):
     # --- běžné výjimky (D11) ----------------------------------------------------------------------------------------
 
     def action_add_common_tax_exceptions(self):
-        """Přidá běžné výjimky: české dividendy Mimo základ (5 % neuznatelných nákladů), zahraniční dividendy Samostatný základ 15 %
-        (5 %), dividendy z dceřiných společností a penále a reprezentace Mimo základ; má-li fond zařazení FVOCI, i odloženou daň
-        z oceňovacích rozdílů a splatnou daň z realizace (D11). Existující výjimku nepřepíše, chybějící účet vypíše."""
+        """Zkopíruje šablonu běžných výjimek (Nastavení › Daně › Šablona výjimek, ZJ-23) do výjimek fondu. Výchozí šablona: české
+        dividendy Mimo základ (5 % neuznatelných), zahraniční Samostatný základ 15 % (5 %), dividendy z dceřiných společností a
+        penále a reprezentace Mimo základ; řádky „Jen při FVOCI“ (D9/D10/D11) jen u fondu se zařazením FVOCI. Existující výjimku
+        nepřepíše, chybějící účet vypíše."""
         self.ensure_one()
         if not self.tax_rule_id:
             raise UserError(self.env._("Nejdřív zvolte výchozí daňové pravidlo fondu."))
         company = self.company_id
         chart = self.env["account.chart.template"].sudo().with_company(company)
         ref = lambda xmlid: self.env.ref(f"investra_nav.{xmlid}")
-        common = [
-            ("ifa_714100", ref("tax_rule_exempt"), 5.0), ("ifa_714200", ref("tax_rule_separate_15"), 5.0),
-            ("ifa_714300", ref("tax_rule_exempt"), 0.0), ("ifa_667300", ref("tax_rule_exempt"), 0.0),
-            ("ifa_667400", ref("tax_rule_exempt"), 0.0),
-        ]
         has_fvoci = bool(self.env["investra.portfolio.classification"].sudo().search_count(
             [("portfolio_id.fund_id", "=", self.id), ("ifrs9_category", "=", "fvoci")], limit=1))
-        if has_fvoci:
-            # D9: odložená daň z oceňovacích rozdílů podle sazby výchozího pravidla (5 % → varianta 5 %, jinak 21 %);
-            # D10: realizované přecenění FVOCI (akcie) se zdaní splatnou daní výchozího pravidla fondu.
-            deferred = ref("tax_rule_deferred_fvoci_5") if abs(self.tax_rule_id.rate_now - 0.05) < 1e-9 else ref("tax_rule_deferred_fvoci_21")
-            common += [("ifa_564300", deferred, 0.0), ("ifa_571100", self.tax_rule_id, 0.0)]
+        common = []
+        for line in self.env["investra.tax.exception.template"].sudo().search([]):
+            if line.fvoci_only and not has_fvoci:
+                continue
+            if line.rule_source == "default":
+                rule = self.tax_rule_id
+            elif line.rule_source == "deferred_fvoci":
+                # D9: odložená daň z oceňovacích rozdílů podle sazby výchozího pravidla (5 % → varianta 5 %, jinak 21 %).
+                rule = ref("tax_rule_deferred_fvoci_5") if abs(self.tax_rule_id.rate_now - 0.05) < 1e-9 else ref("tax_rule_deferred_fvoci_21")
+            else:
+                rule = line.tax_rule_id
+            common.append(("ifa_" + line.account_code, rule, line.share, line.nondeductible_pct, line.note))
         added, kept, missing = [], [], []
-        for ifa, rule, pct in common:
+        for ifa, rule, share, pct, note in common:
             account = chart.ref(ifa, raise_if_not_found=False)
             if not account:
                 missing.append(ifa.replace("ifa_", ""))
@@ -145,8 +148,8 @@ class InvestraFundTax(models.Model):
                 kept.append(account.code)
                 continue
             self.env["investra.fund.tax.exception"].create({
-                "fund_id": self.id, "account_id": account.id, "tax_rule_id": rule.id,
-                "nondeductible_pct": pct if account.account_type.startswith("income") else 0.0,
+                "fund_id": self.id, "account_id": account.id, "tax_rule_id": rule.id, "share": share,
+                "nondeductible_pct": pct if account.account_type.startswith(("income", "expense")) else 0.0, "note": note,
             })
             added.append(account.code)
         parts = [self.env._("Přidáno výjimek: %s.", len(added))]

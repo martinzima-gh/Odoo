@@ -51,7 +51,23 @@ hodnota do vyjádření poradce.
 
 ## Výsledek
 
-Doplní Claude po schválení plánu.
+Hotovo 2026-11-20 (Sonnet 5.5), commit „ZJ-23“ na větvi `ukol/ZJ-20-poznamky`.
+
+- **Pole** `nondeductible_pct` je „Neuznatelné (% z částky)“ pro výnosový i nákladový účet (rozvahový ne). Výnos beze změny; náklad:
+  v hlavní knize `valuation._tax_item` (+ pct × náklad zpět k základu výchozího pravidla), u úplat aktuálního ocenění `engine._tax`
+  (nový klíč spec `nondeductible_pct`, výchozí pravidlo odečte o pct méně).
+- **Odchylka od plánu:** výpočet nákladu má dvě místa (účetní knihy a úplaty ocenění), ne jedno; znaménko jde podle typu účtu (zachován
+  pohyb se znaménkem, ne absolutní hodnota, aby storna fungovala). Upozornění na Mimo základ + podíl < 100 % + pct je `onchange`
+  (ne blokující kontrola).
+- **Šablona** `investra.tax.exception.template` (zdroj pravidla: pevné / výchozí / odložené FVOCI podle sazby; příznak Jen při FVOCI),
+  výchozí data `data/tax_exception_template.xml` (noupdate, 7 řádků), nabídka Nastavení › Daně › Šablona výjimek, práva `ir.access.csv`,
+  sledování změn. Tlačítko čte šablonu. Migrace není potřeba (data se při povýšení založí). Verze modulu 20.0.0.40.0.
+- **Texty:** help polí, text na záložce Daň a kapitola `docs/manual/11-dan.md` upraveny rovnou (Copilot může jen zkontrolovat).
+- **Testy:** `TestTaxRules`, `TestTaxRulesModels` (38 testů) bez chyby; nové `test_fee_exception_nondeductible_pct_on_expense`
+  (základ 70 000 → daň 3 500) a `test_template_drives_common_exceptions`; referenční čísla ZJ-07 beze změny.
+- **Snímek 35/39:** shodný (po povýšení `investra_fund,investra_instruments,investra_nav`; samotný `investra_nav` selže na poli
+  `fiscal_year_end` z ZJ-20 B, které pracovní databáze ještě nemá).
+- **Pro Copilota (pohledy):** záložka Daň (text pod Výjimkami), seznam a formulář Šablona výjimek (`tax_views.xml`).
 
 ## Převzetí
 

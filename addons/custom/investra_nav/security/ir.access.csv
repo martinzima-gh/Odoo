@@ -63,3 +63,5 @@ access_tax_rule_version_mgr,investra.tax.rule.version mgr,investra.tax.rule.vers
 access_fund_tax_exception_read,investra.fund.tax.exception read,investra.fund.tax.exception,account.group_account_readonly,r,
 access_fund_tax_exception_mgr,investra.fund.tax.exception mgr,investra.fund.tax.exception,account.group_account_manager,crud,
 investra_fund_tax_exception_rule,investra.fund.tax.exception company,investra.fund.tax.exception,,crud,"[('company_id', 'in', company_ids)]"
+access_tax_exception_template_read,investra.tax.exception.template read,investra.tax.exception.template,account.group_account_readonly,r,
+access_tax_exception_template_mgr,investra.tax.exception.template mgr,investra.tax.exception.template,account.group_account_manager,crud,

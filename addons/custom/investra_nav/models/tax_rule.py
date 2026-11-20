@@ -162,9 +162,14 @@ class InvestraFundTaxException(models.Model):
     account_id = fields.Many2one("account.account", required=True, ondelete="restrict", check_company=True, tracking=True, string="Účet")
     tax_rule_id = fields.Many2one("investra.tax.rule", required=True, ondelete="restrict", tracking=True, string="Daňové pravidlo")
     share = fields.Float(digits=(6, 4), default=1.0, tracking=True, string="Podíl",
-                         help="Část účtu pro toto pravidlo; zbytek zůstává ve výchozím.")
-    nondeductible_pct = fields.Float(digits=(6, 2), default=0.0, tracking=True, string="Neuznatelné náklady (% z výnosu)",
-                                     help="Jen u výnosového účtu: část výnosu, ke které se připočtou neuznatelné náklady.")
+                         help="Část pohybu účtu, kterou převezme pravidlo této výjimky; zbytek zůstává ve výchozím pravidle fondu. "
+                              "Obvykle 100 %. Nižší podíl rozdělí účet mezi dvě pravidla (např. zahraniční dividenda 60/40, nebo "
+                              "úplata 40 000 s podílem 25 % v pravidle Mimo základ = 10 000 mimo základ). "
+                              "Neuznatelné (%) účet nerozděluje, jen vrací část částky do základu výchozího pravidla.")
+    nondeductible_pct = fields.Float(digits=(6, 2), default=0.0, tracking=True, string="Neuznatelné (% z částky)",
+                                     help="Univerzální procento pro výnosový i nákladový účet. Výnos: tolik % výnosu se přičte k základu "
+                                          "výchozího pravidla (neuznatelné náklady související s výnosem). Náklad: tolik % nákladu se "
+                                          "přičte zpět k základu (náklad základ sníží jen o zbytek).")
     movement_ytd = fields.Monetary(compute="_compute_movement_ytd", currency_field="currency_id", string="Pohyb od začátku období",
                                    help="Pohyb účtu od začátku účetního období fondu se znaménkem výnosu (kredit = +).")
     note = fields.Char(tracking=True, string="Poznámka")
@@ -189,6 +194,15 @@ class InvestraFundTaxException(models.Model):
             ], aggregates=["balance:sum"])[0][0]
             exception.movement_ytd = -(balance or 0.0)
 
+    @api.onchange("tax_rule_id", "share", "nondeductible_pct")
+    def _onchange_double_entry(self):
+        # ZJ-23: Mimo základ s podílem pod 100 % a zároveň s procentem je nejspíš totéž zadané dvakrát.
+        for exception in self:
+            if exception.tax_rule_id.kind == "exempt" and exception.share < 1 and exception.nondeductible_pct:
+                return {"warning": {"title": self.env._("Možné duplicitní zadání"), "message": self.env._(
+                    "Pravidlo Mimo základ s podílem pod 100 % a zároveň Neuznatelné (%) vrací do základu totéž dvakrát. "
+                    "Použijte buď podíl, nebo procento.")}}
+
     @api.constrains("account_id", "tax_rule_id", "share", "nondeductible_pct", "fund_id")
     def _check_exception(self):
         for exception in self:
@@ -196,9 +210,9 @@ class InvestraFundTaxException(models.Model):
             if not 0 < exception.share <= 1:
                 raise ValidationError(self.env._("Podíl výjimky musí být větší než 0 a nejvýš 1."))
             if not 0 <= exception.nondeductible_pct <= 100:
-                raise ValidationError(self.env._("Neuznatelné náklady jsou v procentech od 0 do 100."))
-            if exception.nondeductible_pct and not account.account_type.startswith("income"):
-                raise ValidationError(self.env._("Neuznatelné náklady z výnosu jde zadat jen u výnosového účtu."))
+                raise ValidationError(self.env._("Neuznatelné je v procentech od 0 do 100."))
+            if exception.nondeductible_pct and not account.account_type.startswith(("income", "expense")):
+                raise ValidationError(self.env._("Neuznatelné (%) jde zadat jen u výnosového nebo nákladového účtu."))
             company = exception.fund_id.company_id
             if company and account.company_ids and company not in account.company_ids:
                 raise ValidationError(self.env._("Účet %s nepatří knize fondu.", account.display_name))
@@ -213,3 +227,42 @@ class InvestraFundTaxException(models.Model):
             if company and account in self.env["investra.account.role"].sudo().accounts_for(company, "expense_tax"):
                 raise ValidationError(self.env._("Účty daně (%s) se do daňového základu nikdy nepočítají.", account.display_name))
             exception.fund_id._check_tax_accounts_distinct()
+
+
+TEMPLATE_RULE_SOURCES = [
+    ("fixed", "Pevné pravidlo"),
+    ("default", "Výchozí pravidlo fondu"),
+    ("deferred_fvoci", "Odložená daň FVOCI podle sazby výchozího pravidla (5 % → varianta 5 %, jinak 21 %)"),
+]
+
+
+class InvestraTaxExceptionTemplate(models.Model):
+    """ZJ-23: šablona běžných daňových výjimek (Nastavení › Daně › Šablona výjimek); tlačítko „Přidat běžné výjimky“ ve fondu
+    ji zkopíruje do výjimek fondu. Hodnoty dříve napevno v kódu (D11) jsou výchozí data šablony."""
+    _name = "investra.tax.exception.template"
+    _inherit = ["mail.thread"]
+    _description = "Šablona daňové výjimky"
+    _order = "sequence, account_code"
+
+    sequence = fields.Integer(default=10, string="Pořadí")
+    active = fields.Boolean(default=True, tracking=True, string="Aktivní")
+    account_code = fields.Char(required=True, tracking=True, string="Kód účtu",
+                               help="Kód účtu v knize fondu (např. 714100); účet se hledá v knize každého fondu zvlášť.")
+    rule_source = fields.Selection(TEMPLATE_RULE_SOURCES, required=True, default="fixed", tracking=True, string="Zdroj pravidla")
+    tax_rule_id = fields.Many2one("investra.tax.rule", ondelete="restrict", tracking=True, string="Daňové pravidlo",
+                                  help="U pevného pravidla.")
+    share = fields.Float(digits=(6, 4), default=1.0, tracking=True, string="Podíl")
+    nondeductible_pct = fields.Float(digits=(6, 2), default=0.0, tracking=True, string="Neuznatelné (% z částky)")
+    fvoci_only = fields.Boolean(tracking=True, string="Jen při FVOCI",
+                                help="Řádek se přidá jen fondu, který má portfolio se zařazením FVOCI (D11).")
+    note = fields.Char(tracking=True, string="Poznámka")
+
+    @api.constrains("rule_source", "tax_rule_id", "share", "nondeductible_pct")
+    def _check_template(self):
+        for line in self:
+            if line.rule_source == "fixed" and not line.tax_rule_id:
+                raise ValidationError(self.env._("U pevného pravidla zvolte daňové pravidlo."))
+            if not 0 < line.share <= 1:
+                raise ValidationError(self.env._("Podíl musí být větší než 0 a nejvýš 1."))
+            if not 0 <= line.nondeductible_pct <= 100:
+                raise ValidationError(self.env._("Neuznatelné je v procentech od 0 do 100."))

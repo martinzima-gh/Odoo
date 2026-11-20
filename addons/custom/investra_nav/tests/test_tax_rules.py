@@ -204,6 +204,18 @@ class TestTaxRules(NavCase):
         valuation.action_compute()
         self.assertEqual(self.required(valuation, self.zif), Decimal("3200.00"))  # 100 000 − 36 000
 
+    def test_fee_exception_nondeductible_pct_on_expense(self):
+        """ZJ-23: procento neuznatelnosti na nákladovém účtu – úplata 40 000, 25 % se přičte zpět: 100 000 − 40 000 + 10 000."""
+        self.carrier.base_step = "1"
+        self.post_to(None, 100000, "income_other")
+        management = self.expense_account(self.fund, "expense_management")
+        valuation = self.valuation(self.fund, DAY)
+        self.manual_fee(valuation, 40000, account_id=management.id)
+        self.env["investra.fund.tax.exception"].create({
+            "fund_id": self.fund.id, "account_id": management.id, "tax_rule_id": self.zif.id, "nondeductible_pct": 25})
+        valuation.action_compute()
+        self.assertEqual(self.required(valuation, self.zif), Decimal("3500.00"))  # základ 70 000 × 5 %
+
     # --- třídy -----------------------------------------------------------------------------------------------------
 
     def two_class_fund(self):

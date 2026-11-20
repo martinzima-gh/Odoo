@@ -1454,9 +1454,12 @@ class InvestraValuation(models.Model):
             if exception.tax_rule_id != default_rule:
                 rows[default_rule]["exceptions"] -= balance * share
             if exception.nondeductible_pct:
+                # ZJ-23: jedno procento pro výnos i náklad. Výnos (záporný zůstatek): + pct × výnos k základu (jako dosud);
+                # náklad (kladný zůstatek): + pct × náklad zpět k základu (náklad základ sníží jen o zbytek).
                 pct = d(exception.nondeductible_pct) / 100
-                add(default_rule, balance * pct, fund_class)  # výnos (záporný zůstatek) → + pct × výnos k základu
-                rows[default_rule]["nondeductible"] -= balance * pct
+                part = balance * pct if account.account_type.startswith("income") else -balance * pct
+                add(default_rule, part, fund_class)
+                rows[default_rule]["nondeductible"] -= part
         exception_ids = {account.id for account in exceptions}
         for item in self._earlier_fee_items(self._year_start()):
             if item["stage"] == engine.STAGE_TAX or item["stage"] <= step or item.get("account") in exception_ids:
@@ -1484,11 +1487,14 @@ class InvestraValuation(models.Model):
             specs.append(spec)
         split = {e.account_id.id: [(e.tax_rule_id.id if e.tax_rule_id in rows else "exempt", d(e.share))]
                  for e in exceptions.values() if e.account_id.account_type.startswith(("income", "expense"))}
+        nondeductible_pct = {e.account_id.id: e.nondeductible_pct for e in exceptions.values()
+                             if e.nondeductible_pct and e.account_id.account_type.startswith("expense")}
         previous, previous_total = self._previous_tax_effect(rule)
         transfers_booked, transfers_exact = self._tax_transfer_history(rule)
         return {"stage": engine.STAGE_TAX, "payer": None, "tax_rules": {r.id: r for r in used},
                 "tax_accounts": {r.id: accounts[r] for r in used}, "tax": {
-                    "step": step, "rules": specs, "split": split, "previous_effect": previous,
+                    "step": step, "rules": specs, "split": split, "nondeductible_pct": nondeductible_pct,
+                    "previous_effect": previous,
                     "previous_effect_total": previous_total, "transfers_booked": transfers_booked,
                     "transfers_exact": transfers_exact}}
 

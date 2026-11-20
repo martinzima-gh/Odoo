@@ -108,8 +108,9 @@ class TestTaxRulesModels(NavCase):
             self.exception("714200", "tax_rule_exempt", share=0)
         with self.assertRaises(ValidationError):
             self.exception("714200", "tax_rule_exempt", share=1.5)
-        with self.assertRaises(ValidationError):  # neuznatelné jen u výnosu
-            self.exception("667300", "tax_rule_exempt", nondeductible_pct=5)
+        self.exception("667300", "tax_rule_exempt", nondeductible_pct=5)  # ZJ-23: procento platí i u nákladového účtu
+        with self.assertRaises(ValidationError):  # ale ne u rozvahového účtu
+            self.exception("341220", "tax_rule_separate_15", nondeductible_pct=5)
         with self.assertRaises(ValidationError):  # účet daně se nikdy nepočítá
             self.exception("681000", "tax_rule_exempt")
         with self.assertRaises(ValidationError):  # výsledkový účet s odloženým pravidlem
@@ -179,10 +180,27 @@ class TestTaxRulesModels(NavCase):
         self.assertEqual((rows["714100"].tax_rule_id, rows["714100"].nondeductible_pct), (self.rule("tax_rule_exempt"), 5))
         self.assertEqual((rows["714200"].tax_rule_id, rows["714200"].nondeductible_pct), (self.rule("tax_rule_separate_15"), 5))
         self.assertEqual(rows["714300"].nondeductible_pct, 0)
+
         rows["714100"].tax_rule_id = self.rule("tax_rule_separate_15")  # ruční změna se nepřepíše
         self.fund.action_add_common_tax_exceptions()
         self.assertEqual(len(self.fund.tax_exception_ids), 5)
         self.assertEqual(rows["714100"].tax_rule_id, self.rule("tax_rule_separate_15"))
+
+    def test_template_drives_common_exceptions(self):
+        """ZJ-23: tlačítko čte šablonu; změna procenta a nový řádek šablony se projeví, deaktivovaný řádek se nepřidá."""
+        Template = self.env["investra.tax.exception.template"]
+        self.assertEqual(Template.search_count([]), 7)
+        self.env.ref("investra_nav.tax_tpl_714300").active = False
+        self.env.ref("investra_nav.tax_tpl_714100").nondeductible_pct = 7
+        self.env.ref("investra_nav.tax_tpl_667300").share = 0.5
+        with self.assertRaises(ValidationError):
+            Template.create({"account_code": "714100", "rule_source": "fixed"})
+        self.fund.tax_rule_id = self.rule("tax_rule_21")
+        self.fund.action_add_common_tax_exceptions()
+        rows = {e.account_id.code: e for e in self.fund.tax_exception_ids}
+        self.assertEqual(set(rows), {"714100", "714200", "667300", "667400"})
+        self.assertEqual(rows["714100"].nondeductible_pct, 7)
+        self.assertEqual(rows["667300"].share, 0.5)
 
     def fvoci_fund(self, rate_rule):
         fund = self.make_fund(classes=[{"code": "A"}])

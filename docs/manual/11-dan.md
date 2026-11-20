@@ -35,8 +35,8 @@ Ve formuláři fondu otevřete záložku **Daňová pravidla**:
 - **Základ: po kroku** určuje, zda daň zohlední žádné úplaty, úplaty, nebo úplaty i výkonnostní odměnu. Účetní výjimka má přednost.
 - Tabulka **Výjimky** přiřazuje účet k jinému pravidlu a případně jen k části jeho pohybu.
 
-Pole tabulky jsou **Účet**, **Daňové pravidlo**, **Podíl**, **Neuznatelné náklady (% z výnosu)**, **Pohyb od začátku období**
-a **Poznámka**. Neuznatelné náklady lze zadat pouze u výnosového účtu. Pohyb je od začátku účetního období fondu a zobrazuje
+Pole tabulky jsou **Účet**, **Daňové pravidlo**, **Podíl**, **Neuznatelné (% z částky)**, **Pohyb od začátku období**
+a **Poznámka**. Neuznatelné (%) lze zadat u výnosového i nákladového účtu. Pohyb je od začátku účetního období fondu a zobrazuje
 výnosy kladně (kredit = plus).
 
 ### Podíl a neuznatelné náklady
@@ -50,15 +50,16 @@ přiřazených k osvobozeným výnosům.
 - Úplata 40 000 Kč, pravidlo **Mimo základ daně** a podíl 25 %: 10 000 Kč je mimo základ a zbývajících 30 000 Kč se posoudí
   podle výchozího pravidla fondu.
 
-**Neuznatelné náklady (% z výnosu)** pohyb účtu nerozdělují jako Podíl. U pravidla **Mimo základ daně** vede jejich použití ke
-stejnému výsledku jako odpovídající Podíl. U zdaňovaného pravidla se neuznatelná část přičte navíc k základu podle výchozího
-pravidla fondu. Použijte proto Podíl, když chcete pohyb rozdělit mezi pravidlo výjimky a výchozí pravidlo; neuznatelné náklady
-slouží k navýšení zdanitelného základu.
+**Neuznatelné (% z částky)** je jedno univerzální procento pro výnos i náklad; pohyb účtu nerozděluje jako Podíl. U výnosu se
+tolik % výnosu přičte k základu výchozího pravidla (neuznatelné náklady související s výnosem). U nákladu se tolik % nákladu přičte
+zpět k základu: náklad 40 000 Kč s 25 % sníží základ jen o 30 000 Kč. Použijte Podíl, když chcete pohyb rozdělit mezi pravidlo
+výjimky a výchozí pravidlo; Neuznatelné (%) slouží k navýšení základu. U pravidla Mimo základ daně s Podílem pod 100 % nezadávejte
+procento současně, jde o totéž zadání dvakrát (formulář upozorní).
 
 Výjimka na účtu úplaty má přednost před volbou **Základ: po kroku**. Pokud tedy účet odpovídá výjimce, jeho pohyb se posoudí podle
 pravidla výjimky bez ohledu na to, zda volba základu zahrnuje úplaty.
 
-Tlačítko **Přidat běžné výjimky** doplní běžné výjimky pro dividendy, penále a reprezentaci; již nastavené výjimky nepřepíše.
+Tlačítko **Přidat běžné výjimky** zkopíruje do fondu řádky ze **Šablony výjimek** (Nastavení › Daně › Šablona výjimek; výchozí obsah: dividendy, penále a reprezentace, paušál 5 % u dividend je k ověření poradcem); již nastavené výjimky nepřepíše.
 Pokud fond používá FVOCI, doplní také výjimku pro odloženou daň z OCI a pro realizované přecenění akcií FVOCI. Tlačítko nepřidává
 výjimku pro ECL.
 

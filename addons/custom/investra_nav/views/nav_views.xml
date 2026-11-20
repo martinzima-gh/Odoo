@@ -67,12 +67,13 @@
                         </list>
                     </field>
                     <p class="text-muted" invisible="not tax_rule_id">
-                        Podíl určuje, jaká část pohybu účtu se přiřadí pravidlu výjimky; zbytek zůstává ve výchozím pravidle.
-                        Obvykle se používá 100 %; nižší podíl rozdělí účet mezi pravidlo výjimky a výchozí pravidlo, například při
-                        krácení nákladů k osvobozeným výnosům.
-                        Neuznatelné náklady (%) pohyb nerozdělují: u pravidla Mimo základ je výsledek stejný, u zdaňovaného
-                        pravidla se neuznatelná část přičte k základu podle výchozího pravidla.
-                        Výjimka na účtu má přednost před volbou Základ: po kroku.
+                        <b>Podíl</b> je část pohybu účtu, kterou převezme pravidlo výjimky; zbytek zůstává ve výchozím pravidle fondu.
+                        Obvykle 100 %. Nižší podíl rozdělí účet mezi dvě pravidla: zahraniční dividenda 60/40, nebo úplata 40 000
+                        s podílem 25 % v pravidle Mimo základ (10 000 mimo základ, 30 000 snižuje základ výchozího pravidla).
+                        <b>Neuznatelné (%)</b> účet nerozděluje: u výnosu i nákladu vrátí tolik % částky do základu výchozího pravidla
+                        (výnos 5 % = neuznatelné náklady, náklad 25 % = z 40 000 se 10 000 nepočítá jako odpočet). Podíl a procento
+                        nezadávejte u téhož účtu dvakrát. Výjimka na účtu má přednost před volbou Základ: po kroku.
+                        Tlačítko Přidat běžné výjimky čte šablonu v Nastavení › Daně › Šablona výjimek.
                     </p>
                 </page>
             </xpath>

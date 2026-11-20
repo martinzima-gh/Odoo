@@ -344,6 +344,8 @@ def _tax(spec, items, amounts, ratios):
     keys = {rule["key"] for rule in rules}
     default = next(rule["key"] for rule in rules if rule.get("default"))
     split = spec.get("split") or {}
+    # ZJ-23: procento neuznatelnosti nákladového účtu s výjimkou = část úplaty, která výchozí pravidlo základ nesnižuje.
+    nondeductible = spec.get("nondeductible_pct") or {}
     deductible = {key: ZERO for key in keys}
     specific = {rule["key"]: {code: dec((rule.get("specific") or {}).get(code)) for code in ratios} for rule in rules}
     for item in items:
@@ -365,6 +367,12 @@ def _tax(spec, items, amounts, ratios):
             deductible[key] += part
             if item.get("payer") is not None:
                 specific[key][item["payer"]] += part
+        pct = dec(nondeductible.get(item.get("tax_account")))
+        if pct and parts is not None:
+            back = expense * pct / 100
+            deductible[default] -= back
+            if item.get("payer") is not None:
+                specific[default][item["payer"]] -= back
     detail, effect = {}, {code: ZERO for code in ratios}
     effect_total = required_total = booked_total = ZERO
     for rule in rules:
