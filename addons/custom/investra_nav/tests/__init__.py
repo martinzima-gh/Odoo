@@ -25,3 +25,5 @@ from . import test_package_fees
 from . import test_fee_average_class
 from . import test_movement_onchange
 from . import test_portfolio_class
+from . import test_class_no_common
+from . import test_allocation_examples

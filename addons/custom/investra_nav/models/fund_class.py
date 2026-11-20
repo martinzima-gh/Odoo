@@ -40,7 +40,20 @@ class InvestraFundClass(models.Model):
                     ))
         if "unit_digits" in vals:
             self._check_unit_digits_not_below_posted(vals["unit_digits"])
+        if "shares_common" in vals:
+            # ZJ-08 D1: změna by zpětně změnila rozdělení zaúčtovaných ocenění.
+            for record in self.filtered(lambda r: r.shares_common != bool(vals["shares_common"])):
+                if record._fund_has_posted_valuation():
+                    raise UserError(self.env._(
+                        "Fond %s už má zaúčtované ocenění; změna „Podílí se na společných položkách“ u třídy %s by přepsala "
+                        "historii. Založte novou třídu.", record.fund_id.display_name, record.code))
         return super().write(vals)
+
+    def _fund_has_posted_valuation(self):
+        self.ensure_one()
+        return bool(self.env["investra.valuation"].sudo().search_count([
+            ("fund_id", "=", self.fund_id.id), ("state", "in", ("posted", "sent", "confirmed", "published", "reversed")),
+        ], limit=1))
 
     def _check_unit_digits_not_below_posted(self, new_digits):
         """MN-12 (rozhodnutí Martina 2026-11-16): desetinná místa kusů nejde snížit pod přesnost zaúčtovaných pohybů.

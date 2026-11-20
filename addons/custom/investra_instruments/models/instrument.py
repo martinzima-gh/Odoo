@@ -636,6 +636,8 @@ class InvestraTrade(models.Model):
         domain="[('fund_id', '=', fund_id)]", help="Portfolio fondu s obchodním modelem; určuje klasifikaci IFRS 9 obchodu.",
     )
     portfolio_choice = fields.Boolean(compute="_compute_portfolio_choice", string="Výběr portfolia")
+    # ZJ-09: obchod třídu nevybírá, nese ji portfolio (prázdné = sdílené portfolio); jen k zobrazení ve formuláři.
+    portfolio_class_id = fields.Many2one(related="portfolio_id.class_id", string="Třída portfolia")
     classification_id = fields.Many2one(
         "investra.portfolio.classification", compute="_compute_classification_id", string="Zařazení",
     )

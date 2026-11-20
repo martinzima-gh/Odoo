@@ -52,4 +52,31 @@ přecenění), s „Přednostmi“ a oddílem 1. Obsah se sem nekopíruje.
 
 ## Výsledek
 
+Běh 1 dávky (Claude Opus 5.5, 20. 11. 2026), větev `ukol/ZJ-07-dane-a-tridy`. Plán: oddíl 2 zadání dávky.
+
+- **Změněné soubory:** `investra_instruments/models/portfolio.py` (pole Třída, kontrola, zámek), `models/accounting_event.py` (nový,
+  `_portfolio_class_lines`), `models/instrument.py` a `views/instrument_views.xml` (zrušená třída nástroje); `investra_derivative/models/posting.py`
+  (zařazení u portfolia třídy, náhled); `investra_fx_revaluation/models/fx_profile.py` (`extra_groupby`); `investra_nav/models/valuation.py`
+  (kurzové přecenění a nevypořádané po třídách), `models/posting_preview.py` (náhled = doklad, třída na řádku); testy
+  `investra_nav/tests/test_portfolio_class.py`, `investra_derivative/tests/test_portfolio_class.py`, úprava rozbalení řádků náhledu ve třech testech.
+- **Ověřeno:** A5 `SELECT count(*) FROM investra_instrument WHERE class_id IS NOT NULL` v `investra` = 0. Testy A7 (stejný nástroj ve sdíleném
+  a v portfoliu B, dvě průměrky, storno, splátka s poplatkem, nevypořádaný obchod v EUR, náhled, zámek, forward v portfoliu B: A 25 000 000,
+  B 24 700 000 po vypořádání). `investra_instruments+`, `investra_fx_revaluation+`, `investra_allocation+`: 891 testů, 0 selhání.
+  Snímek 35 a 39 na povýšené kopii `investra` s přepočtem 35 shodný se snímkem před dávkou (`tools/snimek_na_kopii.sh`).
+- **Odchylky od plánu:**
+  1. Pravidlo (2) v A2: třídu řádkům bez zařazení dává **zdroj dokladu s portfoliem třídy** (obchod, splátka, derivát), ne „jediná třída
+     v dokladu“. Doklad ocenění obsahuje všechny pozice; řádky bez zařazení ze sdíleného portfolia (např. přecenění derivátu sdíleného
+     portfolia, které zařazení nemá kvůli otisku) by jinak dostaly třídu B. Ocenění portfolio nemá, platí v něm jen pravidlo (1).
+  2. Peněžní role třídu nedostanou ani podle zařazení; řádek, kde volající uvedl klíč `class_id` (i prázdný), se nemění.
+  3. Zámek třídy (`_has_postings`): řádek dokladu se zařazením portfolia **nebo** sjednaný derivát portfolia (derivát sdíleného portfolia
+     zařazení na řádcích nemá). Zámek platí i pod `sudo`.
+  4. A4: náhled zaúčtování bere řádky ze stejné transformace jako `_create_event` (ukáže i vnitřní zúčtování); řádek náhledu má jako 5. údaj
+     kód třídy (u zaúčtovaných dokladů z `investra_class_id`). Sloupec Třída v tabulce doplní běh 6 (`_documents_html`).
+  5. A2(d) `_compute_portfolio` beze změny (řádky zařazení mají), A2(c) poplatek splátky dostane třídu podle zdroje (test).
+  6. ČNB a přehled portfolia: výkazy berou zůstatky podle rolí, vnitřní zúčtování je za fond nulové; samostatný test ČNB s portfoliem třídy
+     není, ověřeno stávajícími testy `investra_cnb` beze změny.
+  7. Verze modulů se v běhu 1 nezvedají (oddíl 11: na konci dávky podle dotčených modulů).
+- **Neověřeno:** formulář portfolia a text třídy u obchodu (běh 6); ruční zkouška v UI.
+- **Otevřené otázky a návrhy mimo rozsah:** body 2b a 2c (bankovní účet třídy) později; rozpad „Ostatní specifické“ podle rolí zůstává otevřený.
+
 ## Převzetí

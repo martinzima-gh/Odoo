@@ -163,6 +163,9 @@ class InvestraFeeRule(models.Model):
     version_ids = fields.One2many("investra.fee.version", "rule_id", string="Verze")
     overlap_warning = fields.Text(compute="_compute_overlap_warning", string="Upozornění na souběh")
     class_base_warning = fields.Text(compute="_compute_class_base_warning", string="Upozornění na nastavení")
+    no_common_class_warning = fields.Text(
+        compute="_compute_no_common_class_warning", string="Upozornění na třídu bez podílu",
+        help="ZJ-08 D6: úplata z třídy, která se nepodílí na společných položkách, je obvykle omyl (ruční úplata ne).")
 
     @api.model
     def _base_steps(self, kind, base_source):
@@ -300,6 +303,22 @@ class InvestraFeeRule(models.Model):
             if rule.kind != "tax" and rule.recipient_class_ids and not rule.recipient_share:
                 messages.append(_("Přijímající třídy jsou zvolené, ale podíl příjemcům je 0: nic se jim nepřesune."))
             rule.class_base_warning = "\n".join(messages) or False
+
+    def _no_common_classes(self):
+        """Třídy bez podílu na společných položkách, ze kterých by pravidlo platilo (ZJ-08 D6); daň třídy nemá."""
+        self.ensure_one()
+        if self.kind == "tax":
+            return self.env["investra.fund.class"]
+        payers = self.class_ids or self.fund_id.class_ids
+        return payers.filtered(lambda c: not c.shares_common)
+
+    @api.depends("kind", "fund_id", "class_ids", "class_ids.shares_common", "fund_id.class_ids.shares_common")
+    def _compute_no_common_class_warning(self):
+        for rule in self:
+            classes = rule._no_common_classes()
+            rule.no_common_class_warning = "\n".join(
+                self.env._("Třída %s se nepodílí na společných položkách; úplata z ní je obvykle omyl.", c.code)
+                for c in classes) or False
 
     @api.depends("fund_id", "class_ids", "expense_role", "kind", "active")
     def _compute_overlap_warning(self):

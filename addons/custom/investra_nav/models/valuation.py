@@ -405,12 +405,23 @@ class InvestraValuation(models.Model):
                 "redemption_amount": sum((d(m.capital_amount) for m in redemptions), Decimal(0)),
                 "redemption_units": sum((d(m.units) for m in redemptions), Decimal(0)),
             }
-        total = sum(row["pre_capital"] for row in result.values())
+        # ZJ-08 D2: třída bez podílu na společných položkách má poměr 0 a pevnou část = předběžný kapitál (předchozí
+        # kapitál + pohyby); její hodnota je pak pevná část + položky jen této třídy (Δ). Fond bez takové třídy beze změny.
+        common = {c: row for c, row in result.items() if c.shares_common}
+        total = sum(row["pre_capital"] for row in common.values())
         if not total:
-            raise UserError(self.env._("Předběžný kapitál fondu je nulový."))
-        for row in result.values():
-            row["ratio"] = row["pre_capital"] / total
+            if len(common) == len(result):
+                raise UserError(self.env._("Předběžný kapitál fondu je nulový."))
+            raise UserError(self.env._("Předběžný kapitál tříd, které se podílejí na společných položkách, je nulový."))
+        for fund_class, row in result.items():
+            row["ratio"] = row["pre_capital"] / total if fund_class in common else Decimal(0)
+            row["fixed"] = Decimal(0) if fund_class in common else row["pre_capital"]
         return result
+
+    def _shared_neutral(self, context, deltas, net_assets=None):
+        """Společná část k rozdělení poměrem (ZJ-08 D2): FK − specifické položky tříd − kapitál tříd bez podílu."""
+        net = self._net_assets() if net_assets is None else net_assets
+        return net - sum(deltas.values()) - sum((row.get("fixed", Decimal(0)) for row in context.values()), Decimal(0))
 
     def _add_event(self, kind, name, lines, event_type="valuation"):
         lines = [line for line in lines if line["amount"]]
@@ -855,8 +866,8 @@ class InvestraValuation(models.Model):
     def _class_value(self, fund_class, context):
         """Kapitál třídy podle aktuálního stavu knihy, před dalším krokem."""
         deltas = {c: self._delta(c) for c in context}
-        neutral = self._net_assets() - sum(deltas.values())
-        return context[fund_class]["ratio"] * neutral + deltas[fund_class]
+        neutral = self._shared_neutral(context, deltas)
+        return context[fund_class]["ratio"] * neutral + deltas[fund_class] + context[fund_class].get("fixed", Decimal(0))
 
     def _book_fee(self, rule, amount, fund_class, movement="fee", payable="fee_payable", kind_suffix="", name=None,
                   weights=None):
@@ -1551,6 +1562,12 @@ class InvestraValuation(models.Model):
             }, manual=entry)
         self._check_previous_corrections()
         self._check_carried(items)
+        if self.fund_id.class_ids.filtered(lambda c: not c.shares_common):
+            # ZJ-08 D6: jen u fondu s třídou bez podílu, aby se kontroly ostatních ocenění nezměnily.
+            wrong = [(rule, c) for rule in rules for c in rule._no_common_classes()]
+            self._check("fee_no_common_class", self.env._("Úplaty neplatí třídy bez podílu na společných položkách"), not wrong,
+                        "; ".join(self.env._("Třída %(cls)s se nepodílí na společných položkách; úplata %(rule)s z ní je obvykle "
+                                             "omyl.", cls=c.code, rule=r.name) for r, c in wrong), severity="warning")
         if any(r.kind == "periodic" and r.base_source == "average_fk" and r.class_ids for r in rules):
             self._check("average_class_gap", self.env._("Třídy průměrného FK jsou v pravidle bez přerušení"), not gaps,
                         "; ".join(self.env._("Třída %(cls)s byla v pravidle %(rule)s letos přerušeně", cls=c, rule=r)
@@ -1738,7 +1755,9 @@ class InvestraValuation(models.Model):
             return
         start = self._period_start()
         deltas = {c: self._delta(c) for c in context}
-        neutral = self._net_assets() - sum(deltas.values())
+        neutral = self._shared_neutral(context, deltas)
+        # ZJ-08 D2: jen třídy s podílem na společných položkách (třída bez podílu na řádcích schématu být nesmí).
+        context = {c: row for c, row in context.items() if c.shares_common}
         pre_total = sum(row["pre_capital"] for row in context.values())
         change = neutral - pre_total
         fraction = engine.year_fraction(start, self.date, "act365")
@@ -1773,12 +1792,14 @@ class InvestraValuation(models.Model):
         """Finální kapitál tříd, kurzy a kontroly."""
         fund_capital = self._net_assets()
         deltas = {c: self._delta(c) for c in context}
-        neutral = fund_capital - sum(deltas.values())
-        raw = {c: row["ratio"] * neutral + deltas[c] for c, row in context.items()}
+        neutral = self._shared_neutral(context, deltas, fund_capital)
+        raw = {c: row["ratio"] * neutral + deltas[c] + row.get("fixed", Decimal(0)) for c, row in context.items()}
         rounded = {c: engine.money(value) for c, value in raw.items()}
         remainder = fund_capital - sum(rounded.values())
         if remainder:
-            rounded[max(sorted(rounded, key=lambda c: c.code), key=lambda c: rounded[c])] += remainder
+            # Zaokrouhlení nese největší třída s podílem na společných položkách (ZJ-08: třída bez podílu ho nenese).
+            candidates = [c for c in rounded if c.shares_common] or list(rounded)
+            rounded[max(sorted(candidates, key=lambda c: c.code), key=lambda c: rounded[c])] += remainder
         rows = []
         bridges = {}
         for fund_class, row in context.items():
@@ -1850,7 +1871,7 @@ class InvestraValuation(models.Model):
             transfers = json.loads(line.detail or "{}").get("transfers") or {}
             tax_effect += d(transfers.get(str(fund_class.id), 0))
         shared = value - row["pre_capital"] - delta
-        shared_raw = engine.money(row["ratio"] * neutral) - row["pre_capital"]
+        shared_raw = engine.money(row["ratio"] * neutral) - (row["pre_capital"] - row.get("fixed", Decimal(0)))
 
         # Kapitál třídy bere čistou částku pohybu (poplatek jen ve prospěch třídy, rozdíl podle toho, komu patří).
         def in_class_currency(movement):

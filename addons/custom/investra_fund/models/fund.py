@@ -165,6 +165,13 @@ class InvestraFundClass(models.Model):
     # Poplatky jen na třídě (ZJ-03); změny sazby, příjemce, článku statutu a poznámky zapíše write() do historie
     # třídy ve strukturované podobě, bez verzí. Pole poplatků nemají tracking=True, aby se zprávy nezdvojovaly
     # s vestavěným sledováním Odoo 20 (které funguje i bez modulu mail_tracking).
+    # ZJ-08 bod 1 (rozhodnutí 2026-11-17, D13): třída bez podílu na sdíleném výsledku (typicky manažerská). Zámek po
+    # prvním zaúčtovaném ocenění je v investra_nav, kontrola alokačního schématu v investra_allocation.
+    shares_common = fields.Boolean(
+        default=True, required=True, tracking=True, string="Podílí se na společných položkách",
+        help="Vypnuto: třída nemá podíl na sdíleném výsledku (portfolio, společné náklady, daň). Její kapitál = předchozí kapitál + "
+             "pohyby třídy (úpisy, odkupy) + položky jen této třídy (např. přijatá výkonnostní odměna). Typicky manažerská třída. "
+             "Po prvním zaúčtovaném ocenění fondu nejde změnit.")
     entry_fee_rate = fields.Float(digits=(7, 4), required=True, default=0.0, string="Vstupní poplatek (%)",
                                   help="Sazba z hrubé platby úpisu.")
     entry_fee_recipient = fields.Selection(FEE_RECIPIENT, required=True, default="manager",
@@ -237,6 +244,14 @@ class InvestraFundClass(models.Model):
     def _compute_display_name(self):
         for record in self:
             record.display_name = f"{record.fund_id.name} / {record.code}"
+
+    @api.constrains("shares_common", "fund_id", "active")
+    def _check_shares_common(self):
+        for fund in self.fund_id:
+            classes = fund.class_ids
+            if classes and not classes.filtered("shares_common"):
+                raise ValidationError(self.env._(
+                    "Fond %s musí mít aspoň jednu aktivní třídu, která se podílí na společných položkách.", fund.display_name))
 
     @api.constrains("isin")
     def _check_isin(self):
