@@ -33,8 +33,18 @@ do historie pravidla jednou, jako změna pole „Základ: po kroku“.
 
 **Pole bez účinku.** U druhu **Daň** formulář pole Platí třídy, Podíl příjemcům, Přijímají třídy a Nákladová role nemá: daň je náklad celého fondu,
 účtuje se na roli Daň a mezi třídy ji rozdělí výpočet (poměr a přesun daňového efektu). Formulář pravidla upozorní, když vyplněné pole výpočet
-nepoužije: Kapitál třídy bez tříd (počítá se z FK celého fondu), průměrný FK se třídami (průměr po třídách zatím není), podíl příjemcům bez
-přijímajících tříd nebo přijímající třídy s podílem 0.
+nepoužije: Kapitál třídy bez tříd (počítá se z FK celého fondu), podíl příjemcům bez přijímajících tříd nebo přijímající třídy s podílem 0.
+
+**Průměrný FK po třídách** (ZJ-14). Bez vyplněných Platí třídy je průměrný FK úplata celého fondu z průměru FK. S třídami se počítá za každou
+třídu zvlášť z průměru jejího kapitálu (v měně fondu):
+
+- nárok běží od nejpozdějšího z: 31. 12. minulého roku, prvního úpisu třídy, zařazení třídy do pravidla. Zařazení se pozná s přesností na ocenění:
+  třída přidaná do pravidla po ocenění k 28. 2. se počítá od 28. 2.;
+- body průměru jsou kapitály třídy ze zaúčtovaných ocenění v roce, kdy byla třída v pravidle, a dnešní hodnota třídy po zvoleném kroku; průměr prostý;
+- pevné částky, minimum, maximum a příplatky se uplatní za každou třídu zvlášť (jako u Kapitálu třídy);
+- ocenění zaúčtuje nárok minus to, co třída v roce z pravidla už nesla; ruční oprava částky platí trvale, oprava základu třídy do konce roku;
+- přepnout pravidlo mezi celým fondem a třídami jde jen od 1. 1. (nebo novým pravidlem), jinak se výpočet zastaví; třídu, která byla
+  v roce z pravidla vyřazena a znovu zařazena, ocenění ukáže v kontrolách jako upozornění.
 
 ## 2. Schéma výpočtu na fondu
 
@@ -80,7 +90,7 @@ jsou sloupce oprav skryté. Samostatné řádky oprav jsou jen na záložce **Ru
   Krystalizace a konec roku převzetí ukončí.
 - **Odměna a daň – Jen toto ocenění:** další ocenění opravu nepřevezme a upozorní „Opravy „jen toto ocenění“ z minulého ocenění skončily“.
 - **Oprava základu** se přičte k základu pravidla. U daně je to ruční úprava základu (kladná = připočitatelná, záporná = odčitatelná), platí do konce roku.
-  U průměrného FK upravuje celoroční průměr a platí do konce roku jako převzatá oprava. U úplaty z FK nebo kapitálu třídy platí jen pro toto ocenění
+  U průměrného FK upravuje celoroční průměr (po třídách průměr dané třídy) a platí do konce roku jako převzatá oprava. U úplaty z FK nebo kapitálu třídy platí jen pro toto ocenění
   a další ocenění upozorní „Oprava základu z minulého ocenění skončila“.
 
 **Záporný výsledek opravy.** Když po opravě vyjde záporný stav pravidla (u úplaty částka řádku pravidla + opravy, u odměny naběhlá odměna, u daně

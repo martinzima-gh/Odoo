@@ -10,6 +10,23 @@ from .common import DerivativeCase
 class TestDerivativeRecord(DerivativeCase):
     """Evidence FX derivátu (DE-02): založení nástroje a kontroly smlouvy a noh; nic se neúčtuje."""
 
+    def test_portfolio_menu_order_and_location(self):
+        names = (
+            "investra_instruments.menu_trade",
+            "investra_nav.menu_repayment",
+            "investra_derivative.menu_derivative",
+            "investra_instruments.menu_price",
+            "investra_instruments.menu_classification",
+        )
+        menus = [self.env.ref(name) for name in names]
+        self.assertEqual([menu.sequence for menu in menus], [10, 20, 30, 40, 50])
+        self.assertTrue(all(menu.parent_id == self.env.ref("investra_instruments.menu_instruments") for menu in menus))
+        self.assertEqual(
+            self.env.ref("investra_instruments.menu_portfolio").parent_id,
+            self.env.ref("investra_entity.menu_setup_funds"),
+        )
+        self.assertEqual(self.env.ref("investra_instruments.action_portfolio").name, "Portfolia")
+
     def test_forward_creates_instrument(self):
         forward = self.forward()
         instrument = forward.instrument_id
@@ -35,6 +52,42 @@ class TestDerivativeRecord(DerivativeCase):
         self.assertEqual(set(swap.leg_ids.mapped("state")), {"open"})
         self.assertEqual(swap.name, "FX swap EUR/CZK 31.12.2026")
 
+    def test_forward_form_defaults_one_leg_and_functional_currency(self):
+        form = Form(self.env["investra.derivative"].with_user(self.preparer))
+        form.fund_id = self.fund
+        self.assertEqual(form.kind, "forward")
+        self.assertEqual(len(form.leg_ids), 1)
+        with form.leg_ids.edit(0) as leg:
+            self.assertEqual(leg.buy_currency_id, self.czk)
+            # Noha se při opuštění ukládá, proto ji vyplníme celou (povinná pole).
+            leg.settlement_date = date(2026, 10, 2)
+            leg.buy_amount = 25_000_000
+            leg.sell_currency_id = self.eur
+            leg.sell_amount = 1_000_000
+
+    def test_swap_form_prefills_far_leg_and_agrees(self):
+        self.rate("2026-09-30", 25)
+        form = Form(self.env["investra.derivative"].with_user(self.preparer))
+        form.fund_id = self.fund
+        form.partner_id = self.bank
+        form.kind = "swap"
+        form.trade_date = date(2026, 9, 30)
+        form.contract_ref = "FX-PREFILL"
+        with form.leg_ids.edit(0) as near:
+            near.settlement_date = date(2026, 10, 2)
+            near.buy_currency_id = self.eur
+            near.buy_amount = 1_000_000
+            near.sell_currency_id = self.czk
+            near.sell_amount = 25_000_000
+        with form.leg_ids.edit(1) as far:
+            self.assertEqual((far.buy_currency_id, far.buy_amount), (self.czk, 25_000_000))
+            self.assertEqual((far.sell_currency_id, far.sell_amount), (self.eur, 1_000_000))
+            self.assertFalse(far.settlement_date)
+            far.settlement_date = date(2026, 12, 31)
+        derivative = form.save()
+        derivative.action_agree()
+        self.assertEqual(derivative.state, "agreed")
+
     def test_swap_saves_in_form(self):
         with Form(self.env["investra.derivative"].with_user(self.preparer)) as form:
             form.fund_id = self.fund
@@ -42,13 +95,13 @@ class TestDerivativeRecord(DerivativeCase):
             form.kind = "swap"
             form.trade_date = date(2026, 9, 30)
             form.contract_ref = "FX-FORM"
-            with form.leg_ids.new() as leg:
+            with form.leg_ids.edit(0) as leg:
                 leg.settlement_date = date(2026, 10, 2)
                 leg.buy_currency_id = self.eur
                 leg.buy_amount = 1_000_000
                 leg.sell_currency_id = self.czk
                 leg.sell_amount = 25_000_000
-            with form.leg_ids.new() as leg:
+            with form.leg_ids.edit(1) as leg:
                 leg.settlement_date = date(2026, 12, 31)
                 leg.buy_currency_id = self.czk
                 leg.buy_amount = 24_900_000

@@ -122,16 +122,29 @@
             </form>
         </field>
     </record>
+    <record id="action_new_trade_buy" model="ir.actions.act_window">
+        <field name="name">Nový nákup</field><field name="res_model">investra.trade</field>
+        <field name="view_mode">form</field><field name="context">{'default_side': 'buy'}</field>
+    </record>
+    <record id="action_new_trade_sell" model="ir.actions.act_window">
+        <field name="name">Nový prodej</field><field name="res_model">investra.trade</field>
+        <field name="view_mode">form</field><field name="context">{'default_side': 'sell'}</field>
+    </record>
     <record id="view_trade_list" model="ir.ui.view">
         <field name="name">investra.trade.list</field><field name="model">investra.trade</field>
         <field name="arch" type="xml">
             <list default_order="trade_date desc">
                 <field name="id" optional="hide"/>
+                <header>
+                    <button name="%(action_new_trade_buy)d" type="action" string="Nový nákup" class="btn-primary"/>
+                    <button name="%(action_new_trade_sell)d" type="action" string="Nový prodej"/>
+                </header>
                 <field name="trade_date"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'unsettled'" decoration-success="state == 'settled'" decoration-muted="state == 'reversed'"/>
-                <field name="fund_id"/><field name="portfolio_id" optional="show"/><field name="instrument_id"/>
-                <field name="ifrs9_category" optional="show"/><field name="settlement_date"/>
-                <field name="side"/><field name="units"/><field name="price"/><field name="accrued_interest" optional="hide"/><field name="fx_rate"/>
+                <field name="fund_id"/><field name="instrument_id"/><field name="side"/><field name="units"/>
+                <field name="price"/><field name="instrument_currency_id" string="Měna"/><field name="settlement_date"/>
+                <field name="portfolio_id" optional="hide"/><field name="ifrs9_category" optional="hide"/>
+                <field name="fx_rate" optional="hide"/><field name="accrued_interest" optional="hide"/>
             </list>
         </field>
     </record>
@@ -151,7 +164,7 @@
                 <filter name="filter_trade_date" date="trade_date" string="Datum obchodu"/>
                 <group>
                     <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
-                    <filter name="group_by_portfolio" string="Obchodní model" context="{'group_by': 'portfolio_id'}"/>
+                    <filter name="group_by_portfolio" string="Portfolio" context="{'group_by': 'portfolio_id'}"/>
                     <filter name="group_by_instrument" string="Nástroj" context="{'group_by': 'instrument_id'}"/>
                     <filter name="group_by_state" string="Stav" context="{'group_by': 'state'}"/>
                     <filter name="group_by_trade_date_month" string="Měsíc obchodu" context="{'group_by': 'trade_date:month'}"/>
@@ -175,16 +188,30 @@
                     <div class="alert alert-warning" role="alert" invisible="not settlement_fx_note">
                         <field name="settlement_fx_note" readonly="1"/>
                     </div>
+                    <field name="held_instrument_ids" invisible="1"/>
+                    <field name="portfolio_choice" invisible="1"/>
+                    <field name="foreign_currency" invisible="1"/>
+                    <field name="quantity" invisible="1" force_save="1"/>
                     <div class="oe_title">
+                        <div class="o_investra_metadata">
+                            <div class="o_investra_metadata_item">
+                                <label for="side" string="Nákup / Prodej"/>
+                                <field name="side" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
+                            </div>
+                            <div class="o_investra_metadata_item">
+                                <label for="trade_date"/>
+                                <field name="trade_date" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
+                            </div>
+                        </div>
                         <h1><field name="instrument_id" readonly="event_id or state in ('settled', 'reversed')"
-                                   domain="side == 'sell' and [('id', 'in', held_instrument_ids)] or []"/></h1>
+                                   domain="side == 'sell' and [('id', 'in', held_instrument_ids), ('type_id.kind', '!=', 'other_holding')] or [('type_id.kind', '!=', 'other_holding')]"/></h1>
                     </div>
                     <div class="o_investra_metadata">
                         <div class="o_investra_metadata_item">
                             <label for="fund_id"/>
                             <field name="fund_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
                         </div>
-                        <div class="o_investra_metadata_item">
+                        <div class="o_investra_metadata_item" invisible="not portfolio_choice">
                             <label for="portfolio_id"/>
                             <field name="portfolio_id" nolabel="1" readonly="event_id or state in ('settled', 'reversed')" options="{'no_create': True}"/>
                         </div>
@@ -194,35 +221,39 @@
                             <label for="units"/>
                             <field name="units" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
                         </div>
-                        <div class="o_investra_metric_item">
-                            <label for="price"/>
-                            <field name="price" nolabel="1" readonly="event_id or state in ('settled', 'reversed')"/>
+                        <div class="o_investra_metric_item" invisible="side != 'sell'">
+                            <label for="held_quantity"/>
+                            <field name="held_quantity" nolabel="1" readonly="1"/>
+                        </div>
+                        <div class="o_investra_metric_item" invisible="side != 'sell' or state != 'draft'">
+                            <button name="action_sell_all" type="object" string="Prodat vše"/>
                         </div>
                     </div>
-                    <group class="o_investra_trade_content">
-                        <group string="Nástroj a klasifikace">
-                            <field name="side" widget="radio" options="{'horizontal': true}" readonly="event_id or state in ('settled', 'reversed')"/>
-                            <field name="held_instrument_ids" invisible="1"/>
-                            <field name="classification_id"/>
-                            <field name="ifrs9_category"/>
-                            <field name="held_quantity" invisible="side != 'sell' or state != 'draft'"/>
-                            <field name="quantity" invisible="1" force_save="1"/>
+                    <group name="trade_content" class="o_investra_trade_content">
+                        <group name="trade_price" string="Cena">
+                            <div class="o_investra_metadata_item">
+                                <label for="price"/>
+                                <field name="price" nolabel="1" class="oe_inline" readonly="event_id or state in ('settled', 'reversed')"/>
+                                <field name="instrument_currency_id" nolabel="1" class="oe_inline" readonly="1"/>
+                            </div>
                             <field name="instrument_kind" invisible="1"/>
                             <field name="accrued_interest" invisible="instrument_kind != 'bond'" readonly="event_id or state in ('settled', 'reversed')"/>
                         </group>
-                        <group string="Data a kurzy">
-                            <field name="trade_date" readonly="event_id or state in ('settled', 'reversed')"/>
+                        <group name="trade_settlement" string="Vypořádání">
                             <field name="settlement_date" readonly="state in ('settled', 'reversed')"/>
-                            <field name="foreign_currency" invisible="1"/>
-                            <field name="fx_rate" invisible="not foreign_currency and fx_rate == 1" readonly="event_id or state in ('settled', 'reversed')"/>
-                            <field name="settlement_fx_rate" invisible="not foreign_currency and settlement_fx_rate in (0, 1)" readonly="state in ('settled', 'reversed')"/>
+                            <field name="fx_rate" invisible="not foreign_currency" readonly="event_id or state in ('settled', 'reversed')"/>
+                            <field name="settlement_fx_rate" invisible="not foreign_currency" readonly="state in ('settled', 'reversed')"/>
                         </group>
-                        <group string="Účetní události">
-                            <field name="event_id"/>
-                            <field name="settlement_event_id"/>
-                            <field name="replaced_id" invisible="not replaced_id"/>
-                            <field name="settlement_reversal_reason" invisible="not settlement_reversal_reason"/>
-                        </group>
+                    </group>
+                    <group name="trade_classification" string="Zařazení">
+                        <field name="classification_id" invisible="1"/>
+                        <field name="ifrs9_category" readonly="1"/>
+                    </group>
+                    <group string="Účetní události" invisible="state == 'draft'">
+                        <field name="event_id"/>
+                        <field name="settlement_event_id"/>
+                        <field name="replaced_id" invisible="not replaced_id"/>
+                        <field name="settlement_reversal_reason" invisible="not settlement_reversal_reason"/>
                     </group>
                 </sheet>
             </form>
@@ -282,21 +313,21 @@
             <list default_order="date desc">
                 <field name="id" optional="hide"/>
                 <header>
-                    <button name="action_approve" type="object" string="Schválit"/>
+                    <button name="action_approve_drafts" type="object" string="Schválit"/>
                 </header>
                 <field name="date" string="Datum"/>
                 <field name="instrument_code"/>
                 <field name="instrument_isin" optional="show"/>
                 <field name="instrument_id" string="Název"/>
-                <field name="scope" optional="show"/>
+                <field name="scope" optional="hide"/>
                 <field name="fund_id" string="Fond"/>
                 <field name="price" string="Cena"/>
                 <field name="currency_id"/>
                 <field name="source"/>
-                <field name="deviation_reason" optional="show"/>
+                <field name="deviation_reason" optional="hide"/>
                 <field name="state" string="Stav" widget="badge" decoration-warning="state == 'draft'" decoration-success="state == 'approved'"/>
-                <field name="entered_by" string="Zadal" optional="show"/>
-                <field name="approved_by" string="Schválil" optional="show"/>
+                <field name="entered_by" string="Zadal" optional="hide"/>
+                <field name="approved_by" string="Schválil" optional="hide"/>
             </list>
         </field>
     </record>
@@ -313,22 +344,19 @@
                     <div class="alert alert-warning" role="alert" invisible="not book_warning">
                         <field name="book_warning" readonly="1"/>
                     </div>
-                    <group>
-                        <group>
-                            <field name="instrument_id" string="Nástroj" readonly="state == 'approved'"/>
-                            <field name="fund_id" string="Fond" readonly="state == 'approved' or id"
-                                   placeholder="Prázdné = sdílená tržní cena pro všechny fondy"/>
-                            <field name="scope"/>
-                            <field name="date" string="Datum" readonly="state == 'approved'"/>
-                        </group>
-                        <group>
-                            <field name="price" string="Cena"/>
-                            <field name="currency_id" options="{'no_create': True}"/>
-                            <field name="source"/>
-                            <field name="deviation_reason" invisible="not fund_id"/>
-                            <field name="entered_by" string="Zadal"/>
-                            <field name="approved_by" string="Schválil"/>
-                        </group>
+                    <group col="1">
+                        <field name="instrument_id" string="Nástroj" readonly="state == 'approved'"/>
+                        <field name="fund_id" string="Fond" readonly="state == 'approved' or id"
+                               placeholder="Prázdné = sdílená tržní cena pro všechny fondy"/>
+                        <field name="scope" invisible="1"/>
+                        <field name="date" string="Datum" readonly="state == 'approved'"/>
+                        <field name="price" string="Cena"/>
+                        <field name="currency_id" options="{'no_create': True}" readonly="instrument_id"/>
+                        <field name="previous_price_hint" readonly="1"/>
+                        <field name="source"/>
+                        <field name="deviation_reason" invisible="not fund_id"/>
+                        <field name="entered_by" string="Zadal" invisible="not entered_by"/>
+                        <field name="approved_by" string="Schválil" invisible="not approved_by"/>
                     </group>
                 </sheet>
                 <chatter/>
@@ -381,7 +409,7 @@
     <menuitem id="menu_instruments" name="Portfolio" parent="investra_entity.menu_root" sequence="20"/>
     <menuitem id="menu_instrument" name="Nástroje" parent="investra_entity.menu_setup_instruments" action="action_instrument" sequence="10"/>
     <menuitem id="menu_instrument_type" name="Typy nástrojů" parent="investra_entity.menu_setup_instruments" action="action_instrument_type" sequence="20"/>
-    <menuitem id="menu_price" name="Ceny" parent="menu_instruments" action="action_price" sequence="20"/>
+    <menuitem id="menu_price" name="Ceny" parent="menu_instruments" action="action_price" sequence="40"/>
     <menuitem id="menu_trade" name="Obchody" parent="menu_instruments" action="action_trade" sequence="10"/>
 
     <record id="view_classification_list" model="ir.ui.view">
@@ -439,49 +467,78 @@
                         <strong>Čeká na potvrzení v Žádostech ke schválení.</strong>
                         <button name="action_open_pending_request" type="object" class="btn btn-link p-0 ms-2" string="Otevřít žádost"/>
                     </div>
-                    <group>
-                        <group string="Pozice">
-                            <field name="portfolio_id" options="{'no_create': True}"/><field name="fund_id"/>
-                            <field name="instrument_id"/><field name="instrument_kind"/>
-                            <field name="valid_from"/><field name="valid_to"/>
-                        </group>
-                        <group string="(a) Povaha nástroje">
-                            <field name="instrument_nature"/>
-                            <field name="nature_note" placeholder="Posouzení podle IAS 32, je-li povaha jiná než podle druhu"/>
-                        </group>
-                    </group>
-                    <group>
-                        <group string="(b) Test SPPI" invisible="instrument_nature not in ('debt', 'puttable')">
-                            <field name="sppi"/>
-                            <field name="sppi_version" invisible="sppi == 'na'"/>
-                            <field name="sppi_note" invisible="sppi == 'na'"/>
-                        </group>
-                        <group string="(c) Obchodní model">
-                            <field name="business_model"/>
-                        </group>
-                    </group>
-                    <group>
-                        <group string="(d) Povinná klasifikace">
-                            <field name="mandatory_category"/>
-                        </group>
-                        <group string="(e) Určení / volba" invisible="instrument_nature not in ('debt', 'puttable', 'equity')">
-                            <field name="designation"/>
-                            <field name="designation_note" invisible="designation == 'none'" required="designation != 'none'"/>
-                        </group>
-                    </group>
-                    <group string="(f) Výsledek">
-                        <group>
-                            <field name="computed_category"/>
-                            <field name="category_override"/>
-                            <field name="override_note" invisible="not category_override" required="category_override"/>
-                            <field name="ifrs9_category"/>
-                            <field name="valuation_method" readonly="ifrs9_category == 'amortised'"/>
-                            <field name="role_id"/><field name="deviates_from_proposal"/><field name="note"/>
-                        </group>
-                        <group>
-                            <field name="classification_basis" nolabel="1" colspan="2"/>
-                        </group>
-                    </group>
+                    <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="portfolio_id"/>
+                            <field name="portfolio_id" nolabel="1" options="{'no_create': True}"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="instrument_id"/>
+                            <field name="instrument_id" nolabel="1" options="{'no_create': True}"
+                                   domain="['|', ('fund_id', '=', fund_id), ('isin', '!=', False)]"/>
+                            <div class="text-muted">
+                                Fond: <field name="fund_id" readonly="1" nolabel="1" class="oe_inline"/>
+                                · Druh: <field name="instrument_kind" readonly="1" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="valid_from"/>
+                            <field name="valid_from" nolabel="1"/>
+                        </div>
+                        <div class="o_investra_metadata_item" invisible="not valid_to">
+                            <label for="valid_to"/>
+                            <field name="valid_to" nolabel="1" readonly="1"/>
+                        </div>
+                    </div>
+                    <div class="o_investra_metric_strip">
+                        <div class="o_investra_metric_item">
+                            <label for="ifrs9_category"/>
+                            <field name="ifrs9_category" nolabel="1" readonly="1"/>
+                        </div>
+                        <div class="o_investra_metric_item">
+                            <label for="valuation_method"/>
+                            <field name="valuation_method" nolabel="1" readonly="ifrs9_category == 'amortised'"/>
+                        </div>
+                        <div class="o_investra_metric_item">
+                            <label for="role_id"/>
+                            <field name="role_id" nolabel="1"/>
+                        </div>
+                    </div>
+                    <field name="deviates_from_proposal" invisible="not deviates_from_proposal"/>
+                    <notebook>
+                        <page string="Postup klasifikace">
+                            <group>
+                                <group string="Povaha nástroje">
+                                    <field name="instrument_nature"/>
+                                    <field name="nature_note" placeholder="Posouzení podle IAS 32, je-li povaha jiná než podle druhu"/>
+                                </group>
+                                <group string="Test SPPI" invisible="instrument_nature not in ('debt', 'puttable')">
+                                    <field name="sppi"/>
+                                    <field name="sppi_version" invisible="sppi == 'na'"/>
+                                    <field name="sppi_note" invisible="sppi == 'na'"/>
+                                </group>
+                                <group string="Obchodní model">
+                                    <field name="business_model"/>
+                                </group>
+                                <group string="Povinná klasifikace">
+                                    <field name="mandatory_category"/>
+                                    <field name="computed_category"/>
+                                </group>
+                                <group string="Určení / volba" invisible="instrument_nature not in ('debt', 'puttable', 'equity')">
+                                    <field name="designation"/>
+                                    <field name="designation_note" invisible="designation == 'none'" required="designation != 'none'"/>
+                                </group>
+                                <group string="Ruční kategorie">
+                                    <field name="category_override"/>
+                                    <field name="override_note" invisible="not category_override" required="category_override"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="classification_basis" nolabel="1"/>
+                                <field name="note"/>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>
@@ -494,7 +551,7 @@
                 <field name="instrument_id"/><field name="fund_id"/><field name="portfolio_id"/>
                 <group>
                     <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
-                    <filter name="group_by_portfolio" string="Obchodní model" context="{'group_by': 'portfolio_id'}"/>
+                    <filter name="group_by_portfolio" string="Portfolio" context="{'group_by': 'portfolio_id'}"/>
                     <filter name="group_by_category" string="Kategorie IFRS 9" context="{'group_by': 'ifrs9_category'}"/>
                 </group>
             </search>
@@ -535,7 +592,7 @@
         <field name="inherit_id" ref="investra_fund.view_fund_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Obchodní modely">
+                <page string="Portfolia">
                     <field name="portfolio_ids">
                         <list><field name="sequence" widget="handle"/><field name="name"/><field name="business_model"/></list>
                     </field>
@@ -544,21 +601,22 @@
         </field>
     </record>
     <record id="action_portfolio" model="ir.actions.act_window">
-        <field name="name">Obchodní modely</field><field name="res_model">investra.fund.portfolio</field><field name="view_mode">list,form</field>
+        <field name="name">Portfolia</field><field name="res_model">investra.fund.portfolio</field><field name="view_mode">list,form</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Zatím tu není žádný obchodní model</p>
+            <p class="o_view_nocontent_smiling_face">Zatím tu není žádné portfolio</p>
             <p>Portfolio fondu s obchodním modelem podle IFRS 9. Nový fond dostane portfolio „Hlavní“ s modelem Řízení na reálnou hodnotu; model je potřeba posoudit a doložit.</p>
         </field>
     </record>
     <record id="action_classification" model="ir.actions.act_window">
         <field name="name">Zařazení nástrojů</field><field name="res_model">investra.portfolio.classification</field>
         <field name="view_mode">list,form</field><field name="search_view_id" ref="view_classification_search"/>
+        <field name="context">{'search_default_group_by_fund': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Zatím tu není žádné zařazení</p>
             <p>Kategorie IFRS 9, způsob ocenění a role účtu nástroje v obchodním modelu fondu s platností od.
                Obchod bez zařazení nejde zaúčtovat; po prvním obchodu zařazení změní jen reklasifikace.</p>
         </field>
     </record>
-    <menuitem id="menu_portfolio" name="Obchodní modely" parent="menu_instruments" action="action_portfolio" sequence="30"/>
-    <menuitem id="menu_classification" name="Zařazení nástrojů" parent="menu_instruments" action="action_classification" sequence="40"/>
+    <menuitem id="menu_portfolio" name="Portfolia" parent="investra_entity.menu_setup_funds" action="action_portfolio" sequence="20"/>
+    <menuitem id="menu_classification" name="Zařazení nástrojů" parent="menu_instruments" action="action_classification" sequence="50"/>
 </odoo>

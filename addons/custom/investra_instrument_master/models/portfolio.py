@@ -34,7 +34,7 @@ class InvestraFundPortfolioMaster(models.Model):
     reason_help = fields.Text(related="classification_reason_id.help_text", string="Vysvětlení důvodu")
     strategy_description = fields.Text(string="Strategie portfolia", tracking=True)
     sales_policy_description = fields.Text(string="Pravidla prodejů", tracking=True)
-    valid_from = fields.Date(string="Platí od", tracking=True)
+    valid_from = fields.Date(default=fields.Date.context_today, string="Platí od", tracking=True)
     valid_to = fields.Date(string="Platí do", tracking=True)
     state = fields.Selection(
         [("draft", "Návrh"), ("approved", "Schváleno"), ("closed", "Uzavřeno")],
@@ -51,6 +51,13 @@ class InvestraFundPortfolioMaster(models.Model):
     lock_date = fields.Date(compute="_compute_lock", string="V užívání od")
 
     _code_uniq = models.UniqueIndex("(fund_id, code) WHERE code IS NOT NULL", "Fond už má portfolio s tímto kódem.")
+
+    @api.onchange("measurement_category_id")
+    def _onchange_measurement_category_id(self):
+        if self.measurement_category_id:
+            business_model = CATEGORY_MODEL.get(self.measurement_category_id.code)
+            if business_model:
+                self.business_model = business_model
 
     def _compute_lock(self):
         """Zámek z prvního obchodu portfolia; obchod se nemění, jen se čte (sudo: připravovatel nemusí obchody vidět)."""

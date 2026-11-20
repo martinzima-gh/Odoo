@@ -8,6 +8,7 @@ from decimal import Decimal
 from markupsafe import Markup
 
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 from odoo.tools import format_date, formatLang
 
 from .. import engine
@@ -21,6 +22,8 @@ class InvestraTradePreview(models.Model):
     _name = "investra.trade"
     _inherit = ["investra.trade", "investra.posting.preview"]
 
+    price_hint = fields.Char(compute="_compute_price_hint", string="Nápověda ceny")
+    classification_summary = fields.Char(compute="_compute_classification_summary", string="Zařazení")
     calendar_note = fields.Char(
         compute="_compute_calendar_note", string="Upozornění ke kalendáři",
         help="Dluhopis bez kalendáře toků nebo obchod mimo kupónová období: naběhlý úrok se nepředvyplní.",
@@ -30,6 +33,55 @@ class InvestraTradePreview(models.Model):
         help="Zaúčtované doklady obchodu a vypořádání; u návrhu a nevypořádaného obchodu náhled dokladů, které vzniknou, "
              "a u prodeje v návrhu odhad výsledku, který zaúčtuje ocenění.",
     )
+
+    @api.onchange("instrument_id", "fund_id", "trade_date", "settlement_date")
+    def _onchange_home_currency_rate(self):
+        """Cizí měna: kurz k datu sjednání a kurz vypořádání k datu vypořádání ze zdroje kurzů knihy (AG-021, R3).
+
+        Chybějící kurz formulář nezastaví (pole se jen nepředvyplní); zaúčtování ho vyžaduje dál."""
+        super()._onchange_home_currency_rate()
+        for trade in self:
+            if not (trade.instrument_id and trade.fund_id and trade.foreign_currency):
+                continue
+            currency = trade.instrument_id.currency_id
+            for field, day in (("fx_rate", trade.trade_date), ("settlement_fx_rate", trade.settlement_date)):
+                if not day:
+                    continue
+                try:
+                    trade[field] = float(trade.fund_id._fx_at(currency, day))
+                except UserError:
+                    trade[field] = 0.0
+
+    @api.depends("instrument_id", "fund_id", "trade_date")
+    def _compute_price_hint(self):
+        Price = self.env["investra.instrument.price"]
+        for trade in self:
+            previous = Price._last_approved_for(trade.instrument_id, trade.trade_date, trade.fund_id)
+            if not previous:
+                trade.price_hint = False
+                continue
+            trade.price_hint = self.env._(
+                "Poslední schválená cena k datu sjednání: %(price)s %(currency)s (k %(date)s)",
+                price=formatLang(self.env, previous.price, digits=8),
+                currency=trade.instrument_id.currency_id.name,
+                date=format_date(self.env, previous.date),
+            )
+
+    @api.depends("classification_id", "ifrs9_category", "portfolio_id")
+    def _compute_classification_summary(self):
+        for trade in self:
+            if not (trade.classification_id and trade.ifrs9_category and trade.portfolio_id):
+                trade.classification_summary = False
+                continue
+            category = {
+                "fvtpl": self.env._("FVTPL"),
+                "fvoci": self.env._("FVOCI"),
+                "amortised": self.env._("Naběhlá hodnota"),
+            }[trade.ifrs9_category]
+            trade.classification_summary = self.env._(
+                "Zařazení: %(category)s, portfolio %(portfolio)s",
+                category=category, portfolio=trade.portfolio_id.name,
+            )
 
     @api.depends("state", "instrument_id", "trade_date")
     def _compute_calendar_note(self):

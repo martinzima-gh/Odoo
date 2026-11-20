@@ -986,9 +986,10 @@ class InvestraValuation(models.Model):
                         "borne": {key: ratio * amount - transfers.get(key, Decimal(0)) for key, ratio in ratios.items()},
                     })
                     continue
-                if line.rule_id.base_source == "average_fk":
+                if line.rule_id.base_source == "average_fk" and not detail.get("per_class"):
                     # Před krokem 3 vznikal u průměrného FK s více třídami řádek za každou třídu se stejnou částkou
-                    # (doklad jen jeden, B.6): z ocenění se bere jen první řádek pravidla.
+                    # (doklad jen jeden, B.6): z ocenění se bere jen první řádek pravidla. Řádky po třídách (ZJ-14,
+                    # `per_class`) jsou samostatné úplaty tříd a neslučují se.
                     if line.rule_id in averages:
                         continue
                     averages.add(line.rule_id)
@@ -1059,11 +1060,18 @@ class InvestraValuation(models.Model):
         """Úplata z průměrného FK (ZJ-12 B.6): nárok od začátku roku minus to, co už je v roce naúčtované.
 
         Průměr prostý: dřívější body jsou zveřejněné FK, dnešní bod je FK po zvoleném kroku (v dopočtu váha 1/n).
-        Pravidlo dává jednu položku bez ohledu na třídy (oprava B.6: dřív řádek za každou třídu a dvojí „booked“).
+        Pravidlo bez Platí třídy dává jednu položku celého fondu (oprava B.6: dřív řádek za každou třídu a dvojí „booked“);
+        pravidlo s třídami počítá `_average_class_item` (ZJ-14).
         """
         year_start = self._year_start()
         start = max(year_start, self.fund_id.launch_date or year_start)
         earlier = self._earlier_valuations(year_start)
+        # ZJ-14 (doplněno Claudem): pravidlo počítané letos po třídách nejde v roce přepnout na celý fond.
+        if any(json.loads(line.detail or "{}").get("per_class")
+               for line in earlier.fee_line_ids.filtered(lambda l: l.rule_id == rule)):
+            raise UserError(self.env._(
+                "Pravidlo %s bylo letos počítáno po třídách; přepnout na celý fond jde od 1. 1. nebo novým pravidlem.",
+                rule.name))
         capitals = [d(v.fund_capital) for v in earlier]
         booked = Decimal(0)
         for valuation in earlier:
@@ -1083,6 +1091,68 @@ class InvestraValuation(models.Model):
 
         return {"base": {"scope": "fund", "step": int(rule.base_step)},
                 "amount": lambda current: full(current)["exact"] - booked, "full": full, "shift": shift}
+
+    def _first_subscription(self, fund_class):
+        """Vznik třídy (ZJ-14): datum prvního nestornovaného úpisu do data ocenění, jinak None."""
+        movement = self.env["investra.class.movement"].sudo().search([
+            ("class_id", "=", fund_class.id), ("movement_type", "=", "subscription"), ("state", "!=", "reversed"),
+            ("date", "<=", self.date),
+        ], order="date", limit=1)
+        return movement.date if movement else None
+
+    def _average_class_item(self, rule, fund_class):
+        """Úplata z průměrného FK třídy (ZJ-14): nárok od začátku nároku třídy minus to, co třída v roce už nesla.
+
+        Začátek nároku S = nejpozdější z: 31. 12. minulého roku (a vznik fondu), první úpis třídy, zařazení třídy do
+        pravidla. Zařazení = první zaúčtované ocenění v roce s řádkem (pravidlo, třída, `per_class`); S = začátek jeho
+        období. Body: kapitál třídy zaúčtovaných ocenění v roce po S, která řádek (pravidlo, třída, `per_class`) mají
+        (třída v nich byla v pravidle), plus dnešní bod = hodnota třídy po zvoleném kroku (v dopočtu váha 1/n).
+        Pevné části, minimum, maximum a příplatky za každou třídu. Booked = řádky (pravidlo, třída, `per_class`);
+        ruční opravy částky (řádky bez pravidla) se neodečítají, platí trvale. Třída bez úpisu položku nemá (None).
+        """
+        created = self._first_subscription(fund_class)
+        if not created:
+            return None
+        year_start = self._year_start()
+        earlier = self._earlier_valuations(year_start)
+        in_rule = {}
+        for valuation in earlier:
+            lines = valuation.fee_line_ids.filtered(lambda l: l.rule_id == rule)
+            details = [json.loads(line.detail or "{}") for line in lines]
+            if any(not detail.get("per_class") for detail in details):
+                raise UserError(self.env._(
+                    "Pravidlo %s bylo letos počítáno za celý fond; přepnout na třídy jde od 1. 1. nebo novým pravidlem.",
+                    rule.name))
+            own = lines.filtered(lambda l: l.class_id == fund_class)
+            if own:
+                in_rule[valuation] = own
+        first = next((v for v in earlier if v in in_rule), None)
+        entry = first._period_start() if first else self._period_start()
+        start = max(year_start, self.fund_id.launch_date or year_start, created, entry)
+        points, booked = [], Decimal(0)
+        for valuation in earlier:
+            if valuation not in in_rule:
+                continue
+            booked += sum((d(line.amount) for line in in_rule[valuation]), Decimal(0))
+            if valuation.date > start:
+                row = valuation.class_line_ids.filtered(lambda l: l.class_id == fund_class)[:1]
+                points.append((valuation.date, d(row.capital)))
+        # Přerušené zařazení: zaúčtované ocenění po prvním zařazení bez řádku třídy (třída v něm v pravidle nebyla).
+        gap = bool(first) and any(v.date > first.date and v not in in_rule for v in earlier)
+        spec = rule._engine_rule(start, self.date)
+        count = len(self.fund_id.class_ids)
+        shift = {"base": Decimal(0)}
+
+        def full(current):
+            result = engine.average_fee(spec, start, self.date, [value for _day, value in points], current,
+                                        booked=booked, shift=shift["base"], classes_count=count)
+            result.pop("exact_move")
+            return {"per_class": True, "start": start, "points": [[day, value] for day, value in points],
+                    "today": current, "base_step": rule.base_step, **result}
+
+        return {"base": {"scope": "class", "class": fund_class.id, "step": int(rule.base_step)},
+                "amount": lambda current: full(current)["exact"] - booked, "full": full, "shift": shift,
+                "gap": gap}
 
     def _performance_item(self, rule, fund_class, context):
         """Výkonnostní odměna třídy: základ hodnota třídy po kroku 1, 2 nebo 4, nikdy po sobě samé.
@@ -1239,7 +1309,8 @@ class InvestraValuation(models.Model):
             return ("tax", rule.id)
         if rule.kind == "performance":
             return ("perf", rule.id, class_id)
-        return ("fee", rule.id, None if rule.base_source == "average_fk" else class_id)
+        # Průměrný FK bez tříd je úplata celého fondu; s třídami (ZJ-14) položka za každou třídu.
+        return ("fee", rule.id, None if rule.base_source == "average_fk" and not rule.class_ids else class_id)
 
     def _carried_corrections(self, rule, fund_class, since, target="amount"):
         """Převzaté opravy částky (ZJ-12 B.7): opravy s platností „do konce období“ z dřívějších ocenění po dni `since`.
@@ -1270,7 +1341,8 @@ class InvestraValuation(models.Model):
         new = base_entries.filtered(
             lambda e: self._correction_key(e.corrects_rule_id, e.class_id.id or None) == item["key"])
         if item["kind"] == "tax" or rule.base_source == "average_fk":
-            carried = self._carried_corrections(rule, None, self._year_start(), target="base")
+            # Průměrný FK po třídách (ZJ-14): oprava základu třídy upravuje průměr třídy, převzatá do konce roku.
+            carried = self._carried_corrections(rule, fund_class, self._year_start(), target="base")
         elif item["kind"] == "performance":
             carried = self._carried_corrections(rule, fund_class, item["state"]["base_date"], target="base")
         else:
@@ -1395,7 +1467,20 @@ class InvestraValuation(models.Model):
         values = {c: self._class_value(c, context) for c in context}
         classes = {c.id: {"value": values[c], "ratio": context[c]["ratio"]} for c in context}
         items = []
+        gaps = []
         for rule in rules.filtered(lambda r: r.kind == "periodic"):
+            if rule.base_source == "average_fk" and rule.class_ids:
+                # ZJ-14: průměrný FK po třídách, plátce je třída (příjemci, daňový efekt a přemostění jako úplata třídy).
+                for fund_class in rule.class_ids:
+                    average = self._average_class_item(rule, fund_class)
+                    if average is None:
+                        continue
+                    if average.pop("gap"):
+                        gaps.append((fund_class.code, rule.name))
+                    items.append({"key": ("fee", rule.id, fund_class.id), "stage": engine.STAGE_FEE,
+                                  "payer": fund_class.id, "kind": "periodic", "rule": rule, "fund_class": fund_class,
+                                  **self._recipients(rule, values), **average})
+                continue
             if rule.base_source == "average_fk":
                 # Rozhodnutí 2026-11-19: příjemci i u průměrného FK, aby dopočet počítal stejně jako doklad (`_book_fee`).
                 items.append({"key": ("fee", rule.id, None), "stage": engine.STAGE_FEE, "payer": None,
@@ -1462,6 +1547,10 @@ class InvestraValuation(models.Model):
             }, manual=entry)
         self._check_previous_corrections()
         self._check_carried(items)
+        if any(r.kind == "periodic" and r.base_source == "average_fk" and r.class_ids for r in rules):
+            self._check("average_class_gap", self.env._("Třídy průměrného FK jsou v pravidle bez přerušení"), not gaps,
+                        "; ".join(self.env._("Třída %(cls)s byla v pravidle %(rule)s letos přerušeně", cls=c, rule=r)
+                                  for c, r in gaps), severity="warning")
         self._check_version_copies()
         negative = []
         for item in items:
@@ -2363,6 +2452,13 @@ class InvestraValuation(models.Model):
     def create(self, vals_list):
         if not self.env.su and any(SYSTEM_FIELDS & set(vals) for vals in vals_list):
             raise UserError(self.env._("Stav a výsledky ocenění nastavuje jen postup ocenění."))
+        # Odchylka: nové ocenění k datu, ke kterému jsou jen vrácené nebo stornované verze (např. po zrušení návrhu),
+        # dostane další číslo verze; dřív dostalo 1 a narazilo na unique(fond, datum, verze). Aktivní verzi to nepřebije.
+        for vals in vals_list:
+            if "version" not in vals and vals.get("fund_id") and vals.get("date"):
+                existing = self.sudo().search([("fund_id", "=", vals["fund_id"]), ("date", "=", vals["date"])])
+                if existing and all(v.state in ("returned", "reversed") for v in existing):
+                    vals["version"] = max(existing.mapped("version")) + 1
         records = super().create(vals_list)
         records._check_previous_published()
         records._check_no_later_valuation()

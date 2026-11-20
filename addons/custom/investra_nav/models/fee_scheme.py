@@ -146,6 +146,11 @@ class InvestraFundFeeScheme(models.Model):
             step = int(rule.base_step)
             if rule.base_source == "none":
                 targets, base, const = [None], None, amount(Decimal(0))
+            elif rule.base_source == "average_fk" and rule.class_ids:
+                # ZJ-14: průměrný FK po třídách; v náhledu bez historie ocenění je průměr = dnešní bod.
+                targets, base, const = rule.class_ids.ids, None, None
+                notes.append(self.env._("%s: průměrný FK po třídách bez historie ocenění (průměr = dnešní hodnota třídy).",
+                                        rule.name))
             elif rule.base_source == "average_fk":
                 targets, base, const = [None], {"scope": "fund", "step": step}, None
             elif rule.base_source == "class_fk":
@@ -154,7 +159,7 @@ class InvestraFundFeeScheme(models.Model):
                 targets, base, const = (rule.class_ids.ids or [None]), {"scope": "fund", "step": step}, None
             for target in targets:
                 item_base = base
-                if rule.base_source == "class_fk" and target:
+                if rule.base_source in ("class_fk", "average_fk") and target:
                     item_base = {"scope": "class", "class": target, "step": step}
                 elif rule.base_source == "class_fk":
                     item_base = {"scope": "fund", "step": step}

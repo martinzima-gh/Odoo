@@ -52,12 +52,18 @@
                     <button name="action_open_pending_request" type="object" class="btn btn-link p-0 ms-2" string="Otevřít žádost"/>
                 </div>
             </xpath>
-            <xpath expr="//sheet/group" position="before">
+            <xpath expr="//group[@name='trade_content']" position="before">
                 <div class="alert alert-warning" role="alert" invisible="not calendar_note">
                     <field name="calendar_note" readonly="1"/>
                 </div>
             </xpath>
-            <xpath expr="//sheet/group" position="after">
+            <xpath expr="//group[@name='trade_price']/field[@name='accrued_interest']" position="before">
+                <field name="price_hint" readonly="1"/>
+            </xpath>
+            <xpath expr="//group[@name='trade_classification']/field[@name='ifrs9_category']" position="replace">
+                <field name="classification_summary" readonly="1"/>
+            </xpath>
+            <xpath expr="//group[@name='trade_content']" position="after">
                 <notebook invisible="not posting_preview">
                     <page name="posting_preview" string="Zaúčtování">
                         <field name="posting_preview" nolabel="1" readonly="1"/>

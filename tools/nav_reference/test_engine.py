@@ -14,6 +14,36 @@ JAN1, DEC31_25, DEC31_26 = date(2026, 1, 1), date(2025, 12, 31), date(2026, 12, 
 V = lambda **k: {"valid_from": date(2020, 1, 1), **k}
 
 
+class AverageByClass(unittest.TestCase):
+    """ZJ-14 referenční příklad (spočetl Martin): 3,65 % p. a., ACT/365, body = kapitály ocenění a dnešní bod."""
+
+    RULE = {"versions": [V(rate="0.0365")]}
+    START, JAN, FEB, MAR = date(2026, 12, 31), date(2027, 1, 31), date(2027, 2, 28), date(2027, 3, 31)
+
+    def fee(self, start, end, points, current, booked=0):
+        return e.average_fee(self.RULE, start, end, points, current, booked=booked)
+
+    def test_class_a_from_start(self):
+        # 31. 1.: 1 000 000 × 0,0365 × 31/365 = 3 100; 28. 2.: průměr 1 005 000, 59 dní → 5 929,50, pohyb 2 829,50;
+        # 31. 3.: průměr 1 010 000, 90 dní → 9 090, pohyb 3 160,50
+        self.assertEqual(self.fee(self.START, self.JAN, [], 1000000)["move"], D("3100.00"))
+        feb = self.fee(self.START, self.FEB, [1000000], 1010000, booked="3100")
+        self.assertEqual((feb["entitlement"], feb["move"]), (D("5929.50"), D("2829.50")))
+        mar = self.fee(self.START, self.MAR, [1000000, 1010000], 1020000, booked="5929.50")
+        self.assertEqual((mar["entitlement"], mar["move"]), (D("9090.00"), D("3160.50")))
+
+    def test_class_b_first_subscription(self):
+        # Úpis 15. 2.: 28. 2. 500 000 × 0,0365 × 13/365 = 650; 31. 3. průměr 502 500, 44 dní → 2 211, pohyb 1 561
+        sub = date(2027, 2, 15)
+        self.assertEqual(self.fee(sub, self.FEB, [], 500000)["move"], D("650.00"))
+        mar = self.fee(sub, self.MAR, [500000], 505000, booked="650")
+        self.assertEqual((mar["entitlement"], mar["move"]), (D("2211.00"), D("1561.00")))
+
+    def test_class_c_added_to_rule(self):
+        # Do pravidla po ocenění 28. 2.: S = 28. 2., jen dnešní bod 300 000, 31 dní → 930
+        self.assertEqual(self.fee(self.FEB, self.MAR, [], 300000)["move"], D("930.00"))
+
+
 class Periodic(unittest.TestCase):
     def test_percent_year(self):
         r = e.periodic_fee({"versions": [V(rate="0.02")]}, DEC31_25, DEC31_26, 1000000)

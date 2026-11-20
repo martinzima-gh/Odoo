@@ -362,6 +362,47 @@ class TestAccrual(NavCase):
         self.assertEqual(repayment.portfolio_id, self.held_in(self.deposit))
         self.assertEqual((repayment.principal_amount, repayment.interest_amount), (1000, 0))
 
+    def test_form_prefills_foreign_rate_and_hides_home_rate(self):
+        self.deposit_position()
+        self.rate("2030-01-01", 25)
+        foreign = self.instrument("deposit", currency_id=self.eur.id)
+        foreign.cashflow_ids = [(0, 0, {"date": "2030-01-01", "amount": 1000})]
+        self.env["investra.trade"].create({
+            "fund_id": self.fund.id, "portfolio_id": self.held_in(foreign).id, "instrument_id": foreign.id,
+            "trade_date": "2029-01-01", "quantity": 1, "price": 950, "fx_rate": 25,
+        })._book()
+
+        form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))
+        form.fund_id = self.fund
+        form.date = date(2030, 1, 1)
+        form.instrument_id = foreign
+        self.assertTrue(form.foreign_currency)
+        self.assertEqual(form.fx_rate, 25)
+        repayment = form.save()
+        repayment.action_book()
+        self.assertEqual(repayment.state, "posted")
+
+        home_form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))
+        home_form.fund_id = self.fund
+        home_form.date = date(2030, 1, 1)
+        home_form.instrument_id = self.deposit
+        self.assertFalse(home_form.foreign_currency)
+        self.assertEqual(home_form.fx_rate, 1)
+        arch = self.env.ref("investra_nav.view_repayment_form").arch
+        self.assertIn('invisible="not foreign_currency"', arch)
+
+    def test_extraordinary_form_orders_kind_first_and_shows_closing_option(self):
+        self.deposit_position()
+        form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))
+        form.fund_id = self.fund
+        form.date = date(2029, 4, 1)
+        form.instrument_id = self.deposit
+        form.kind = "extraordinary"
+        self.assertTrue(form.closes_position)
+        arch = self.env.ref("investra_nav.view_repayment_form").arch
+        self.assertLess(arch.index('name="kind"'), arch.index('name="fund_id"'))
+        self.assertIn('invisible="kind != \'extraordinary\'"', arch)
+
     def test_date_change_keeps_manual_amounts_instrument_change_prefills(self):
         self.deposit_position()
         form = Form(self.env["investra.instrument.repayment"].with_user(self.preparer))

@@ -716,31 +716,45 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
+    <record id="action_movement_new_subscription" model="ir.actions.act_window">
+        <field name="name">Nový úpis</field><field name="res_model">investra.class.movement</field><field name="view_mode">form</field>
+        <field name="context">{'default_movement_type': 'subscription'}</field>
+    </record>
+    <record id="action_movement_new_redemption" model="ir.actions.act_window">
+        <field name="name">Nový odkup</field><field name="res_model">investra.class.movement</field><field name="view_mode">form</field>
+        <field name="context">{'default_movement_type': 'redemption'}</field>
+    </record>
     <record id="view_movement_list" model="ir.ui.view">
         <field name="name">investra.class.movement.list</field>
         <field name="model">investra.class.movement</field>
         <field name="arch" type="xml">
             <!-- Nejnovější nahoře, při shodném datu fondy abecedně (požadavek 2026-11-14). -->
-            <list default_order="date desc, fund_id asc" decoration-muted="state == 'reversed'" decoration-info="state == 'draft'">
-                <field name="id" optional="hide"/>
+            <list default_order="date desc, fund_id asc" create="false"
+                  decoration-muted="state == 'reversed'" decoration-info="state == 'draft'">
+                <header>
+                    <button name="%(action_movement_new_subscription)d" type="action" string="Nový úpis" display="always"
+                            class="btn-primary" groups="investra_entity.group_valuation_preparer"/>
+                    <button name="%(action_movement_new_redemption)d" type="action" string="Nový odkup" display="always"
+                            groups="investra_entity.group_valuation_preparer"/>
+                    <button name="action_book" type="object" string="Zaúčtovat"
+                            groups="investra_entity.group_valuation_preparer"/>
+                </header>
                 <field name="date" string="Datum"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
                 <field name="fund_id" string="Fond"/>
                 <field name="class_id" string="Třída"/>
                 <field name="movement_type" string="Typ"/>
-                <field name="source" optional="show"/>
-                <field name="external_ref" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'reversed'"/>
                 <field name="units" string="Kusy"/>
-                <field name="price" optional="show"/>
-                <field name="currency_id" string="Měna kurzu" optional="show"/>
-                <field name="amount_class" optional="show"/>
-                <field name="fee_amount_class" optional="show"/>
-                <field name="rounding_amount_class" optional="hide"/>
-                <field name="fx_rate" string="Kurz" optional="show"/>
-                <field name="amount"/>
-                <field name="capital_amount_signed" optional="show"
+                <field name="price" string="Cena za kus"/>
+                <field name="amount_class" string="Hrubá částka (měna kurzu)"/>
+                <field name="fee_amount_class" string="Poplatek"/>
+                <field name="capital_amount_signed" string="Změna kapitálu ±"
                        decoration-success="movement_type == 'subscription'" decoration-danger="movement_type == 'redemption'"/>
-                <field name="capital_amount" optional="hide"/>
+                <field name="currency_id" string="Měna kurzu"/>
+                <field name="fx_rate" string="Kurz" optional="hide"/>
+                <field name="amount" string="Hrubá ve funkční měně" optional="hide"/>
+                <field name="source" optional="hide"/>
+                <field name="external_ref" string="Identifikátor IS" optional="hide"/>
                 <field name="event_id" string="Účetní událost" optional="hide"/>
             </list>
         </field>
@@ -768,73 +782,96 @@
                         <strong>Čeká na potvrzení v Žádostech ke schválení.</strong>
                         <button name="action_open_pending_request" type="object" class="btn btn-link p-0 ms-2" string="Otevřít žádost"/>
                     </div>
+                    <!-- Nadpis: Typ + Třída + Datum vpravo -->
                     <div class="oe_title">
-                        <h1><field name="class_id" readonly="state != 'draft'"/></h1>
-                    </div>
-                    <div class="o_investra_metadata">
-                        <div class="o_investra_metadata_item">
-                            <label for="fund_id"/>
-                            <field name="fund_id" nolabel="1"/>
-                        </div>
-                        <div class="o_investra_metadata_item">
-                            <label for="movement_type"/>
-                            <field name="movement_type" nolabel="1" readonly="state != 'draft'"/>
-                        </div>
-                        <div class="o_investra_metadata_item">
-                            <label for="source"/>
-                            <field name="source" nolabel="1" readonly="state != 'draft'"/>
-                        </div>
-                        <div class="o_investra_metadata_item">
-                            <label for="currency_id"/>
-                            <field name="currency_id" nolabel="1"/>
+                        <h1>
+                            <field name="movement_type" readonly="state != 'draft'" class="me-1"/>
+                            <field name="class_id" readonly="state != 'draft'"/>
+                        </h1>
+                        <div class="o_investra_metadata">
+                            <div class="o_investra_metadata_item">
+                                <label for="currency_id"/>
+                                <field name="currency_id" nolabel="1"/>
+                            </div>
+                            <div class="o_investra_metadata_item">
+                                <label for="date"/>
+                                <field name="date" nolabel="1" readonly="state != 'draft'"/>
+                            </div>
                         </div>
                     </div>
-                    <div class="o_investra_metric_strip">
-                        <div class="o_investra_metric_item">
-                            <label for="units"/>
-                            <field name="units" nolabel="1" readonly="state != 'draft'"/>
+                    <!-- Zdroj -->
+                    <group>
+                        <field name="source" readonly="state != 'draft'"/>
+                        <field name="manual_reason" readonly="state != 'draft'" required="source == 'manual'"
+                               invisible="source != 'manual'"/>
+                        <field name="external_ref" readonly="state != 'draft'" required="source == 'is'"
+                               invisible="source != 'is'"/>
+                    </group>
+                    <!-- Pomocná pole pro podmínky níže (neukládají se) -->
+                    <field name="foreign_currency" invisible="1"/>
+                    <field name="price_matches" invisible="1"/>
+                    <!-- 1. Zadání (AG-019 B) -->
+                    <group string="1. Zadání">
+                        <!-- Úpis: přijatá platba -->
+                        <field name="amount_class" string="Přijatá platba" readonly="state != 'draft'"
+                               invisible="movement_type != 'subscription'"/>
+                        <!-- Odkup: podle kusů nebo částky (jen volba zadání, neukládá se) -->
+                        <field name="redemption_by" widget="radio" options="{'horizontal': true}"
+                               invisible="movement_type != 'redemption' or state != 'draft' or source != 'manual'"/>
+                        <field name="units" string="Kusy" readonly="state != 'draft' or redemption_by == 'amount'"
+                               invisible="movement_type != 'redemption'"/>
+                        <field name="requested_amount"
+                               invisible="movement_type != 'redemption' or redemption_by != 'amount' or state != 'draft' or source != 'manual'"/>
+                        <!-- Cena za kus se zveřejněným kurzem -->
+                        <label for="price"/>
+                        <div class="o_row">
+                            <field name="price" readonly="state != 'draft'"/>
+                            <i class="fa fa-check text-success" title="Cena odpovídá zveřejněnému kurzu" invisible="not price_matches"/>
+                            <span class="text-muted" invisible="not published_date">zveřejněný kurz k
+                                <field name="published_date" nolabel="1" class="oe_inline"/>:
+                                <field name="published_price" nolabel="1" class="oe_inline"/></span>
+                            <span class="text-warning" invisible="published_date or state != 'draft' or source != 'manual'">První úpis: zadejte počáteční cenu za kus</span>
                         </div>
-                        <div class="o_investra_metric_item">
-                            <label for="price"/>
-                            <field name="price" nolabel="1" readonly="state != 'draft'"/>
+                        <!-- Důvod odlišné ceny jen když se cena liší nebo zveřejněný kurz chybí -->
+                        <field name="price_reason" readonly="state != 'draft'" invisible="price_matches and not price_reason"/>
+                        <!-- Kurz jen u třídy v cizí měně -->
+                        <field name="fx_rate" readonly="state != 'draft'" invisible="not foreign_currency"/>
+                    </group>
+                    <!-- 2. Poplatek -->
+                    <group string="2. Poplatek">
+                        <field name="fee_rate_percent" string="Sazba třídy (%)"/>
+                        <field name="fee_percent" invisible="state != 'draft' or source != 'manual'"/>
+                        <field name="fee_amount_class" readonly="state != 'draft'"/>
+                        <div class="alert alert-info mb-0" colspan="2" invisible="not fee_warning or state != 'draft'">
+                            <field name="fee_warning" nolabel="1"/>
                         </div>
-                        <div class="o_investra_metric_item">
-                            <label for="amount_class"/>
-                            <field name="amount_class" nolabel="1" readonly="state != 'draft'"/>
-                        </div>
-                    </div>
-                    <group class="o_investra_movement_content">
-                        <group string="Pohyb">
-                            <field name="date" readonly="state != 'draft'"/>
-                            <field name="external_ref" readonly="state != 'draft'" required="source == 'is'"/>
-                            <field name="manual_reason" readonly="state != 'draft'" required="source == 'manual'"
-                                   invisible="source != 'manual'"/>
-                            <field name="replaced_id" invisible="not replaced_id"/>
-                            <field name="valuation_id" invisible="not valuation_id"/>
-                            <field name="price_reason" readonly="state != 'draft'"/>
-                        </group>
-                        <group string="Cena a měna">
-                            <field name="fx_rate" readonly="state != 'draft'"/>
-                            <field name="amount" readonly="state != 'draft'"/>
-                        </group>
-                        <group string="Poplatek">
-                            <field name="fee_amount_class" readonly="state != 'draft'"/>
-                            <field name="fee_expected_class"/>
-                            <field name="fee_recipient" readonly="state != 'draft'"/>
-                            <field name="fee_partner_id" readonly="state != 'draft'"/>
-                        </group>
-                        <group string="Zaokrouhlení a výsledek">
-                            <field name="rounding_amount_class" readonly="state != 'draft'"/>
-                            <field name="rounding_owner" readonly="state != 'draft'"/>
-                            <field name="value_class"/>
-                            <field name="residual_class"/>
-                            <field name="payout_class" invisible="movement_type != 'redemption'"/>
-                            <field name="capital_amount"/>
-                            <field name="capital_amount_class"/>
-                        </group>
-                        <group string="Účetní událost">
-                            <field name="event_id"/>
-                        </group>
+                        <field name="fee_recipient" readonly="state != 'draft'" required="fee_amount_class &gt; 0"
+                               invisible="not fee_amount_class"/>
+                        <field name="fee_partner_id" readonly="state != 'draft'"
+                               invisible="not fee_amount_class or fee_recipient not in ('manager', 'distributor')"/>
+                    </group>
+                    <!-- 3. Výsledek -->
+                    <group string="3. Výsledek">
+                        <field name="units" string="Kusy" readonly="state != 'draft'" invisible="movement_type != 'subscription'"/>
+                        <field name="units_hint" nolabel="1" colspan="2" class="text-muted" invisible="movement_type != 'subscription'"/>
+                        <field name="amount_class" string="Hrubá částka (měna kurzu)" readonly="state != 'draft'"
+                               invisible="movement_type != 'redemption'"/>
+                        <field name="value_class" string="Kusy × cena"/>
+                        <field name="rounding_amount_class" readonly="state != 'draft'" string="Rozdíl ze zaokrouhlení"/>
+                        <field name="rounding_owner" readonly="state != 'draft'" invisible="not rounding_amount_class"/>
+                        <field name="residual_class" string="Zbytek"
+                               decoration-success="residual_class == 0" decoration-danger="residual_class != 0"/>
+                        <div class="text-danger" colspan="2" invisible="residual_class == 0">Zaúčtování zastaví, je-li zbytek víc než 0,01.</div>
+                        <field name="payout_class" invisible="movement_type != 'redemption'"/>
+                        <field name="capital_amount_class" string="Změna kapitálu třídy (měna kurzu)"/>
+                        <field name="capital_amount" string="Změna kapitálu třídy (funkční měna)" invisible="not foreign_currency"/>
+                        <field name="amount" readonly="state != 'draft'" invisible="not foreign_currency"/>
+                    </group>
+                    <!-- Vazby (jen když jsou) -->
+                    <group invisible="not replaced_id and not valuation_id and not event_id">
+                        <field name="replaced_id" invisible="not replaced_id"/>
+                        <field name="valuation_id" invisible="not valuation_id"/>
+                        <field name="event_id" invisible="not event_id"/>
                     </group>
                     <group invisible="state != 'reversed'">
                         <field name="reversal_reason"/>
@@ -913,7 +950,7 @@ if isinstance(result, dict):
         <field name="search_view_id" ref="view_movement_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Zatím tu není žádný úpis ani odkup</p>
-            <p>Pohyby kapitálu a kusů tříd fondu. Dokud nepřicházejí z IS, zadávají se ručně; zaúčtují se jako účetní událost a vstupují do dalšího ocenění.</p>
+            <p>Ruční zadání: tlačítko <b>Nový úpis</b> nebo <b>Nový odkup</b>. Úpis: zadejte přijatou platbu a cenu, formulář dopočte poplatek, kusy a rozdíl ze zaokrouhlení. Odkup: zadejte kusy nebo požadovanou částku; zbytek dopočte formulář.</p>
         </field>
     </record>
     <record id="view_instrument_form_schedule" model="ir.ui.view">
@@ -1058,15 +1095,20 @@ if isinstance(result, dict):
                     <field name="allowed_instrument_ids" invisible="1"/>
                     <field name="allowed_portfolio_ids" invisible="1"/>
                     <field name="portfolio_choice" invisible="1"/>
+                    <field name="foreign_currency" invisible="1"/>
                     <div class="alert alert-warning" role="alert" invisible="not write_off_amount">
                         Pozice se uzavře, ale jistina <field name="write_off_amount" class="oe_inline" readonly="1"/> zůstane
                         neuhrazená: ocenění ji (s naběhlým úrokem) odúčtuje do výsledku. Jde-li o částečnou splátku, zrušte volbu
                         Uzavírá pozici.
                     </div>
                     <div class="oe_title">
-                        <h1>Splátka nástroje – <field name="date" nolabel="1" readonly="state != 'draft'"/></h1>
+                        <h1>Splátka nástroje</h1>
                     </div>
                     <div class="o_investra_metadata">
+                        <div class="o_investra_metadata_item">
+                            <label for="kind"/>
+                            <field name="kind" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
                         <div class="o_investra_metadata_item">
                             <label for="fund_id"/>
                             <field name="fund_id" nolabel="1" readonly="state != 'draft'"/>
@@ -1075,9 +1117,13 @@ if isinstance(result, dict):
                             <label for="instrument_id"/>
                             <field name="instrument_id" nolabel="1" options="{'no_create': True}" readonly="state != 'draft'"/>
                         </div>
-                        <div class="o_investra_metadata_item">
+                        <div class="o_investra_metadata_item" invisible="not portfolio_choice">
                             <label for="portfolio_id"/>
                             <field name="portfolio_id" nolabel="1" options="{'no_create': True}" readonly="state != 'draft' or not portfolio_choice" force_save="1"/>
+                        </div>
+                        <div class="o_investra_metadata_item">
+                            <label for="date"/>
+                            <field name="date" nolabel="1" readonly="state != 'draft'"/>
                         </div>
                     </div>
                     <div class="o_investra_metric_strip">
@@ -1090,23 +1136,29 @@ if isinstance(result, dict):
                             <field name="interest_amount" nolabel="1" readonly="state != 'draft'"/>
                         </div>
                         <div class="o_investra_metric_item">
+                            <label for="fee_amount"/>
+                            <field name="fee_amount" nolabel="1" readonly="state != 'draft'"/>
+                        </div>
+                        <div class="o_investra_metric_item">
                             <label for="amount"/>
                             <field name="amount" nolabel="1"/>
                         </div>
+                        <div class="o_investra_metric_item">
+                            <label for="remaining_before"/>
+                            <field name="remaining_before"/>
+                            <label for="remaining_after"/>
+                            <field name="remaining_after"/>
+                        </div>
                     </div>
                     <group>
-                        <group string="Pozice">
-                            <field name="remaining_before"/>
-                            <field name="remaining_after"/>
-                        </group>
                         <group string="Splátka">
-                            <field name="kind" readonly="state != 'draft'"/>
                             <field name="closes_position" readonly="state != 'draft'" invisible="kind != 'extraordinary'"/>
-                            <field name="fee_amount" readonly="state != 'draft'"/>
-                            <field name="fx_rate" readonly="state != 'draft'"/>
+                            <field name="fx_rate" readonly="state != 'draft'" invisible="not foreign_currency"/>
+                        </group>
+                        <group string="Záznam">
+                            <field name="event_id" invisible="not event_id"/>
                             <field name="replaced_id" invisible="not replaced_id"/>
-                            <field name="event_id"/>
-                            <field name="reversal_reason" invisible="state != 'reversed'"/>
+                            <field name="reversal_reason" invisible="not reversal_reason"/>
                         </group>
                     </group>
                     <notebook invisible="not posting_preview">
@@ -1141,12 +1193,13 @@ if isinstance(result, dict):
     <record id="action_repayment" model="ir.actions.act_window">
         <field name="name">Splátky nástrojů</field><field name="res_model">investra.instrument.repayment</field><field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_repayment_search"/>
+        <field name="context">{'search_default_filter_unposted': 1, 'search_default_group_by_instrument': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Zatím tu není žádná splátka</p>
             <p>Splátky jistiny a úroku držených nástrojů, například úvěru nebo termínovaného vkladu, v naběhlé i reálné hodnotě. Splátka účtuje na inkasa na cestě, která vynuluje bankovní výpis; jistina snižuje zbývající jistinu pozice a rozdíl proti očekávání doúčtuje ocenění.</p>
         </field>
     </record>
-    <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="30"/>
+    <menuitem id="menu_repayment" name="Splátky nástrojů" parent="investra_instruments.menu_instruments" action="action_repayment" sequence="20"/>
     <menuitem id="menu_valuation" name="Ocenění" parent="investra_entity.menu_root" action="action_valuation" sequence="10"/>
     <menuitem id="menu_movement" name="Úpisy a odkupy" parent="investra_entity.menu_root" action="action_movement" sequence="30"/>
     <menuitem id="menu_fee_rule" name="Pravidla úplat" parent="investra_entity.menu_setup_funds" action="action_fee_rule" sequence="30"/>

@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools import format_date, formatLang
 
 
 IFRS9_CATEGORY = [("fvtpl", "Reálná hodnota do výsledku"), ("fvoci", "Reálná hodnota do OCI"), ("amortised", "Naběhlá hodnota")]
@@ -419,8 +420,9 @@ class InvestraInstrumentPrice(models.Model):
     # Kniha ceny: u ceny fondu společnost fondu, u sdílené ceny kniha investiční společnosti; nastaví se při založení.
     company_id = fields.Many2one("res.company", required=True, readonly=True, index=True, string="Kniha")
     book_warning = fields.Char(compute="_compute_book_warning", string="Upozornění na knihu")
-    date = fields.Date(required=True, string="Datum", tracking=True)
+    date = fields.Date(required=True, default=fields.Date.context_today, string="Datum", tracking=True)
     price = fields.Float(required=True, digits=(20, 8), string="Cena", tracking=True, help="V jednotkách měny ceny za kus.")
+    previous_price_hint = fields.Char(compute="_compute_previous_price_hint", string="Předchozí schválená cena")
     currency_id = fields.Many2one(
         "res.currency", compute="_compute_currency_id", store=True, precompute=True, readonly=False, required=True, string="Měna",
         tracking=True, help="Musí se rovnat měně nástroje.",
@@ -452,6 +454,68 @@ class InvestraInstrumentPrice(models.Model):
     def _compute_currency_id(self):
         for price in self:
             price.currency_id = price.instrument_id.currency_id
+
+    @api.model
+    def _last_approved_for(self, instrument, day, fund=None, exclude=None):
+        if not instrument or not day:
+            return self.browse()
+        domain = [
+            ("instrument_id", "=", instrument.id), ("date", "<=", day), ("state", "=", "approved"),
+        ]
+        if fund:
+            domain += ["|", ("fund_id", "=", fund.id), ("fund_id", "=", False)]
+        else:
+            domain.append(("fund_id", "=", False))
+        if exclude and exclude.ids:
+            domain.append(("id", "not in", exclude.ids))
+        return self.search(domain, order="date desc", limit=1)
+
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        instrument_id = values.get("instrument_id") or self.env.context.get("default_instrument_id")
+        instrument = self.env["investra.instrument"].browse(instrument_id).exists()
+        if instrument:
+            if "fund_id" in fields_list and not values.get("fund_id") and not instrument.isin:
+                values["fund_id"] = instrument.fund_id.id
+            if "source" in fields_list and not values.get("source"):
+                previous = self.search([("instrument_id", "=", instrument.id)], order="date desc", limit=1)
+                if previous:
+                    values["source"] = previous.source
+        return values
+
+    @api.onchange("instrument_id")
+    def _onchange_instrument_id(self):
+        for price in self:
+            if not price.instrument_id:
+                continue
+            if not price.instrument_id.isin:
+                price.fund_id = price.instrument_id.fund_id
+            previous = self.search(
+                [("instrument_id", "=", price.instrument_id.id)], order="date desc", limit=1,
+            )
+            if previous:
+                price.source = previous.source
+
+    @api.depends("instrument_id", "fund_id", "date", "price")
+    def _compute_previous_price_hint(self):
+        for price in self:
+            previous = self._last_approved_for(
+                price.instrument_id, price.date, price.fund_id, exclude=price._origin,
+            )
+            if not previous:
+                price.previous_price_hint = False
+                continue
+            currency = price.instrument_id.currency_id
+            amount = formatLang(self.env, previous.price, digits=8)
+            hint = self.env._(
+                "Předchozí schválená cena: %(price)s %(currency)s k datu %(date)s",
+                price=amount, currency=currency.name, date=format_date(self.env, previous.date),
+            )
+            if previous.price:
+                change = formatLang(self.env, (price.price / previous.price - 1) * 100, digits=2)
+                hint += self.env._(" (změna %s %%)", change)
+            price.previous_price_hint = hint
 
     @api.depends("fund_id", "company_id")
     @api.depends_context("uid", "allowed_company_ids")
@@ -551,6 +615,10 @@ class InvestraInstrumentPrice(models.Model):
             if Matrix._approve_step("price_approve", price, price.sudo().entered_by | price.sudo().create_uid):
                 price.sudo().write({"state": "approved", "approved_by": self.env.user.id})
 
+    def action_approve_drafts(self):
+        self.filtered(lambda price: price.state == "draft").action_approve()
+        return True
+
 
 class InvestraTrade(models.Model):
     """Portfoliová transakce; účetní doklad vzniká přes událost a nese nástroj na řádku."""
@@ -566,14 +634,15 @@ class InvestraTrade(models.Model):
     company_id = fields.Many2one(related="fund_id.company_id", store=True, index=True)
     instrument_id = fields.Many2one("investra.instrument", required=True, ondelete="restrict", string="Nástroj")
     portfolio_id = fields.Many2one(
-        "investra.fund.portfolio", required=True, ondelete="restrict", index=True, string="Obchodní model",
+        "investra.fund.portfolio", required=True, ondelete="restrict", index=True, string="Portfolio",
         domain="[('fund_id', '=', fund_id)]", help="Portfolio fondu s obchodním modelem; určuje klasifikaci IFRS 9 obchodu.",
     )
+    portfolio_choice = fields.Boolean(compute="_compute_portfolio_choice", string="Výběr portfolia")
     classification_id = fields.Many2one(
         "investra.portfolio.classification", compute="_compute_classification_id", string="Zařazení",
     )
     ifrs9_category = fields.Selection(IFRS9_CATEGORY, compute="_compute_classification_id", string="Kategorie IFRS 9")
-    trade_date = fields.Date(required=True, string="Datum sjednání")
+    trade_date = fields.Date(required=True, default=fields.Date.context_today, string="Datum sjednání")
     settlement_date = fields.Date(string="Datum vypořádání")
     quantity = fields.Float(required=True, digits=(20, 6), help="Kladně nákup, záporně prodej.", string="Množství")
     # Nákup a prodej zvlášť, kusy kladně; množství se znaménkem zůstává pro výpočty a importy (2026-11-12, zkouška v UI).
@@ -586,6 +655,7 @@ class InvestraTrade(models.Model):
                                  help="Kusy nástroje v obchodním modelu k datu sjednání, bez tohoto obchodu.")
     price = fields.Float(required=True, digits=(20, 8), string="Cena")
     instrument_kind = fields.Selection(related="instrument_id.type_id.kind", string="Druh nástroje")
+    instrument_currency_id = fields.Many2one(related="instrument_id.currency_id", string="Měna nástroje")
     accrued_interest = fields.Float(
         digits=(20, 2), string="Naběhlý úrok",
         help="Jen u dluhopisů: naběhlý kupón zaplacený při nákupu nebo přijatý při prodeji, v měně nástroje, kladně. "
@@ -608,6 +678,30 @@ class InvestraTrade(models.Model):
     foreign_currency = fields.Boolean(compute="_compute_foreign_currency", string="Nástroj v cizí měně")
     settlement_fx_note = fields.Char(compute="_compute_settlement_fx_note", string="Upozornění ke kurzu vypořádání")
 
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        fund_id = values.get("fund_id") or self.env.context.get("default_fund_id")
+        fund = self.env["investra.fund"].browse(fund_id).exists() if fund_id else self._default_fund()
+        if fund:
+            if "fund_id" in fields_list and not values.get("fund_id"):
+                values["fund_id"] = fund.id
+            if "portfolio_id" in fields_list and not values.get("portfolio_id"):
+                portfolio = fund._default_portfolio()
+                if portfolio:
+                    values["portfolio_id"] = portfolio.id
+        return values
+
+    @api.model
+    def _default_fund(self):
+        funds = self.env["investra.fund"].search([("company_id", "=", self.env.company.id)])
+        return funds if len(funds) == 1 else self.env["investra.fund"]
+
+    @api.depends("fund_id")
+    def _compute_portfolio_choice(self):
+        for trade in self:
+            trade.portfolio_choice = bool(trade.fund_id and len(trade.fund_id.portfolio_ids) > 1)
+
     @api.depends("instrument_id", "fund_id")
     def _compute_foreign_currency(self):
         for trade in self:
@@ -628,13 +722,27 @@ class InvestraTrade(models.Model):
                     )
             trade.settlement_fx_note = note
 
-    @api.onchange("instrument_id", "fund_id")
+    @api.onchange("instrument_id", "fund_id", "trade_date", "settlement_date")
     def _onchange_home_currency_rate(self):
-        """Nástroj v měně fondu: kurzy jsou skryté a musí být 1."""
+        """Předvyplní kurz měny k datu obchodu a vypořádání."""
         for trade in self:
-            if trade.instrument_id and trade.fund_id and not trade.foreign_currency:
+            if not trade.instrument_id or not trade.fund_id:
+                continue
+            if not trade.foreign_currency:
                 trade.fx_rate = 1
-                trade.settlement_fx_rate = 0
+                trade.settlement_fx_rate = 1
+            # Cizí měna: kurz ze zdroje kurzů knihy předvyplňuje rozšíření v investra_nav (`fund._fx_at` je tam).
+
+    @api.onchange("trade_date", "instrument_id")
+    def _onchange_settlement_date(self):
+        """Datum vypořádání se předvyplní datem sjednání (R4); jen ve formuláři, ne jako výchozí hodnota při `create`."""
+        for trade in self:
+            initial_date = (
+                trade._origin.trade_date if trade._origin
+                else trade.env.context.get("default_trade_date") or fields.Date.context_today(trade)
+            )
+            if trade.trade_date and (not trade.settlement_date or trade.settlement_date == initial_date):
+                trade.settlement_date = trade.trade_date
 
     @api.constrains("instrument_id", "fund_id", "fx_rate", "settlement_fx_rate")
     def _check_home_currency_rate(self):
@@ -689,6 +797,15 @@ class InvestraTrade(models.Model):
             holdings = trade._holdings_without_self()
             trade.held_instrument_ids = [(6, 0, list({instrument.id for instrument, _p in holdings}))]
             trade.held_quantity = holdings.get((trade.instrument_id._origin, trade.portfolio_id._origin), 0.0)
+
+    def action_sell_all(self):
+        for trade in self:
+            if trade.state != "draft" or trade.side != "sell":
+                raise UserError(self.env._("Prodat vše jde jen u nezaúčtovaného prodeje."))
+            if not trade.held_quantity:
+                raise UserError(self.env._("K datu sjednání nejsou v portfoliu žádné kusy k prodeji."))
+            trade.units = trade.held_quantity
+        return True
 
     @api.onchange("instrument_id", "side")
     def _onchange_sale_portfolio(self):

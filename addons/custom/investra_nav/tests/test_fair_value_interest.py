@@ -72,7 +72,6 @@ class TestFairValueInterest(NavCase):
         with Form(self.env["investra.trade"]) as form:
             form.fund_id = self.fund
             form.instrument_id = bond
-            form.portfolio_id = self.portfolio(self.fund)
             form.trade_date = date(2029, 3, 1)
             form.units = 10
             form.price = 990

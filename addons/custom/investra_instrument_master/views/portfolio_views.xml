@@ -26,16 +26,19 @@
                 <attribute name="readonly">is_locked</attribute>
             </xpath>
             <xpath expr="//field[@name='name']" position="after">
-                <field name="code"/>
-                <field name="measurement_category_id" readonly="is_locked" options="{'no_create': True}"/>
+                <field name="code" required="state == 'draft'"/>
+                <field name="measurement_category_id" readonly="is_locked" required="state == 'draft'" options="{'no_create': True}"/>
             </xpath>
             <xpath expr="//field[@name='business_model']" position="attributes">
                 <attribute name="readonly">is_locked</attribute>
             </xpath>
             <xpath expr="//field[@name='business_model']" position="after">
-                <field name="classification_reason_id" readonly="is_locked" options="{'no_create': True}"/>
+                <field name="classification_reason_id" readonly="is_locked" required="state == 'draft'" options="{'no_create': True}"/>
                 <field name="reason_help" nolabel="1" colspan="2" readonly="1" class="text-muted"
                        invisible="not reason_help"/>
+            </xpath>
+            <xpath expr="//field[@name='assessment']" position="attributes">
+                <attribute name="required">state == 'draft'</attribute>
             </xpath>
             <xpath expr="//sheet/group" position="after">
                 <notebook>
@@ -48,7 +51,7 @@
                     <page string="Řízení a kontrola" name="governance">
                         <group>
                             <group string="Platnost">
-                                <field name="valid_from"/><field name="valid_to"/>
+                                <field name="valid_from" required="state == 'draft'"/><field name="valid_to"/>
                                 <field name="lock_date" invisible="not is_locked"/>
                             </group>
                             <group string="Schválení a revize">
@@ -60,6 +63,22 @@
                 </notebook>
             </xpath>
         </field>
+    </record>
+
+    <record id="view_portfolio_search" model="ir.ui.view">
+        <field name="name">investra.fund.portfolio.search</field><field name="model">investra.fund.portfolio</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="fund_id"/>
+                <field name="state"/>
+                <group>
+                    <filter name="group_by_fund" string="Fond" context="{'group_by': 'fund_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="investra_instruments.action_portfolio" model="ir.actions.act_window">
+        <field name="search_view_id" ref="view_portfolio_search"/>
     </record>
 
     <record id="view_portfolio_list_master" model="ir.ui.view">

@@ -1,7 +1,7 @@
 from datetime import date
 
 from odoo.exceptions import UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from .test_instrument import InstrumentCase
 from odoo.addons.investra_instruments.tests.common import with_ids
@@ -27,6 +27,19 @@ class TestClassification(InstrumentCase):
         self.assertEqual(self.fund.portfolio_ids.mapped("name"), ["Hlavní"])
         self.assertEqual(self.fund.portfolio_ids.business_model, "fair_value")
         self.assertEqual(self.trade(self.instrument, 1).portfolio_id, self.fund.portfolio_ids)
+
+    def test_classification_form_defaults_portfolio_and_limits_instruments(self):
+        Classification = self.env["investra.portfolio.classification"]
+        form = Form(Classification.with_context(default_fund_id=self.fund.id))  # bez uložení (povinný nástroj)
+        self.assertEqual(form.portfolio_id, self.fund._default_portfolio())
+        self.assertTrue(form.valid_from)
+        self.portfolio(self.fund, "hold_to_collect")
+        form = Form(Classification.with_context(default_fund_id=self.fund.id))
+        self.assertFalse(form.portfolio_id)
+        arch = self.env.ref("investra_instruments.view_classification_form").arch
+        self.assertIn("('fund_id', '=', fund_id)", arch)
+        self.assertIn("('isin', '!=', False)", arch)
+        self.assertIn("search_default_group_by_fund", self.env.ref("investra_instruments.action_classification").context)
 
     def test_two_portfolios_need_choice(self):
         self.portfolio(self.fund, "hold_to_collect")

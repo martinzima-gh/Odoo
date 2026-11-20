@@ -177,7 +177,7 @@ class InvestraFundPortfolio(models.Model):
 
     _name = "investra.fund.portfolio"
     _inherit = ["investra.record.guard", "mail.thread"]
-    _description = "Obchodní model fondu"
+    _description = "Portfolio fondu"
     _order = "fund_id, sequence, id"
     _book_fields = ("fund_id",)
 
@@ -275,6 +275,18 @@ class InvestraPortfolioClassification(models.Model):
     deviates_from_proposal = fields.Boolean(compute="_compute_deviates", string="Odchylka od návrhu")
 
     _uniq = models.Constraint("unique(portfolio_id, instrument_id, valid_from)", "Zařazení nástroje k tomuto dni už existuje.")
+
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        if "portfolio_id" in fields_list and not values.get("portfolio_id"):
+            fund_id = values.get("fund_id") or self.env.context.get("default_fund_id")
+            fund = self.env["investra.fund"].browse(fund_id).exists()
+            if fund:
+                portfolio = fund._default_portfolio()
+                if portfolio:
+                    values["portfolio_id"] = portfolio.id
+        return values
 
     def _compute_display_name(self):
         for record in self:
@@ -609,7 +621,7 @@ class InvestraPortfolioClassification(models.Model):
 class InvestraFund(models.Model):
     _inherit = "investra.fund"
 
-    portfolio_ids = fields.One2many("investra.fund.portfolio", "fund_id", string="Obchodní modely")
+    portfolio_ids = fields.One2many("investra.fund.portfolio", "fund_id", string="Portfolia")
 
     @api.model_create_multi
     def create(self, vals_list):

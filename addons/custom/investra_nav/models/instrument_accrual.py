@@ -328,7 +328,7 @@ class InvestraInstrumentRepayment(models.Model):
         domain="[('id', 'in', allowed_instrument_ids)]",
     )
     portfolio_id = fields.Many2one(
-        "investra.fund.portfolio", required=True, ondelete="restrict", string="Obchodní model",
+        "investra.fund.portfolio", required=True, ondelete="restrict", string="Portfolio",
         domain="[('id', 'in', allowed_portfolio_ids)]", help="Doplní se z nákupu; volí se jen u nástroje drženého ve dvou modelech.",
     )
     allowed_instrument_ids = fields.Many2many("investra.instrument", compute="_compute_allowed", string="Držené nástroje")
@@ -359,6 +359,7 @@ class InvestraInstrumentRepayment(models.Model):
     remaining_before = fields.Float(compute="_compute_remaining", digits=(20, 2), string="Zbývající jistina před splátkou")
     remaining_after = fields.Float(compute="_compute_remaining", digits=(20, 2), string="Zbývající jistina po splátce")
     fx_rate = fields.Float(required=True, default=1, digits=(16, 6), string="Kurz")
+    foreign_currency = fields.Boolean(compute="_compute_foreign_currency", string="Nástroj v cizí měně")
     state = fields.Selection(
         [("draft", "Návrh"), ("posted", "Zaúčtováno"), ("reversed", "Stornováno")],
         required=True, default="draft", readonly=True, index=True, string="Stav",
@@ -366,6 +367,27 @@ class InvestraInstrumentRepayment(models.Model):
     event_id = fields.Many2one("investra.accounting.event", readonly=True, string="Účetní událost")
     reversal_reason = fields.Text(readonly=True, string="Důvod storna")
     replaced_id = fields.Many2one("investra.instrument.repayment", readonly=True, ondelete="restrict", string="Opravuje splátku")
+
+    @api.depends("fund_id.currency_id", "instrument_id.currency_id")
+    def _compute_foreign_currency(self):
+        for repayment in self:
+            repayment.foreign_currency = bool(
+                repayment.fund_id and repayment.instrument_id
+                and repayment.fund_id.currency_id != repayment.instrument_id.currency_id
+            )
+
+    @api.onchange("fund_id", "instrument_id", "date")
+    def _onchange_fx_rate(self):
+        for repayment in self:
+            if not repayment.fund_id or not repayment.instrument_id:
+                continue
+            if not repayment.foreign_currency:
+                repayment.fx_rate = 1
+            elif repayment.date:
+                try:
+                    repayment.fx_rate = float(repayment.fund_id._fx_at(repayment.instrument_id.currency_id, repayment.date))
+                except UserError:
+                    repayment.fx_rate = 0.0  # chybějící kurz formulář nezastaví, zaúčtování ho vyžaduje dál
 
     @api.model_create_multi
     def create(self, vals_list):
