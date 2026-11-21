@@ -35,20 +35,22 @@ class TestZj24Messages(NavCase):
             self.valuation(fund, date(2027, 1, 31)).action_compute()
 
     def test_missing_rate_names_rule_fund_and_first_version(self):
+        # Bod 15: úplata před první verzí se neúčtuje; chybou zůstává výkonnostní odměna, která sazbu ke dni ocenění nemá (bod 14).
         fund = self.make_fund(launch="2026-12-31", classes=[{"code": "A"}])
         self.subscribe(self.cls(fund, "A"), "2027-01-05", 36500, 100)
         rule = self.env["investra.fee.rule"].create({
-            "fund_id": fund.id, "name": "Úplata správce", "kind": "periodic",
-            "version_ids": [(0, 0, {"valid_from": "2027-01-10", "rate": 0.0365})],
+            "fund_id": fund.id, "name": "Odměna správce", "kind": "performance",
+            "class_ids": [(6, 0, self.cls(fund, "A").ids)], "expense_role": "expense_performance", "crystallisation": "none",
+            "version_ids": [(0, 0, {"valid_from": "2027-03-01", "rate": 0.2, "perf_measure": "unit", "initial_reference": 1000})],
         })
         with self.assertRaises(UserError) as raised:
             self.valuation(fund, date(2027, 1, 31)).action_compute()
         message = str(raised.exception)
-        self.assertIn("Úplata správce", message)
+        self.assertIn("Odměna správce", message)
         self.assertIn(fund.display_name, message)
-        self.assertIn("2027-01-10", message)
-        self.assertIn("2027-01-01", message)  # den, ke kterému sazba chybí (první den období po datu vzniku)
-        self.assertEqual(rule.version_ids.valid_from, date(2027, 1, 10))
+        self.assertIn("2027-03-01", message)  # první verze
+        self.assertIn("2027-01-31", message)  # den, ke kterému sazba chybí (datum ocenění)
+        self.assertEqual(rule.version_ids.valid_from, date(2027, 3, 1))
 
     def test_used_rule_cannot_be_deleted_and_message_says_archive(self):
         fund = self.make_fund(launch="2026-12-31", classes=[{"code": "A"}])
