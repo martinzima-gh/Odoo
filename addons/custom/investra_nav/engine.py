@@ -73,22 +73,19 @@ def year_fraction(start, end, basis="act365"):
 def split_by_versions(start, end, versions):
     """Rozdělí období podle verzí sazby. Verze platí od valid_from včetně.
 
-    Období bez platné verze je chyba: sazba se nesmí tiše domýšlet.
+    Období před první verzí vrací úsek s verzí None (úplata 0, ZJ-24 bod 15). Bez verzí chyba.
     """
     ordered = sorted(versions, key=lambda v: v["valid_from"])
+    if not ordered:
+        raise ValueError("Pravidlo nemá žádnou verzi sazby.")
     segments = []
     cursor = start
     while cursor < end:
         first_day = cursor + timedelta(days=1)
         valid = [v for v in ordered if v["valid_from"] <= first_day]
-        if not valid:
-            raise ValueError(f"Pro den {first_day} není platná sazba.")
-        current = valid[-1]
         following = [v for v in ordered if v["valid_from"] > first_day]
-        seg_end = end
-        if following:
-            seg_end = min(end, following[0]["valid_from"] - timedelta(days=1))
-        segments.append((cursor, seg_end, current))
+        seg_end = min(end, following[0]["valid_from"] - timedelta(days=1)) if following else end
+        segments.append((cursor, seg_end, valid[-1] if valid else None))
         cursor = seg_end
     return segments
 
@@ -121,6 +118,9 @@ def _step_amount(version, base):
 
 
 def _segment_amount(version, seg_start, seg_end, base, basis, classes_count, first_segment=True):
+    if version is None:
+        return ZERO, {"from": seg_start.isoformat(), "to": seg_end.isoformat(), "uncovered": True,
+                      "fraction": "0", "variable": "0", "fixed": "0", "amount": "0"}
     fraction = year_fraction(seg_start, seg_end, basis)
     variable = _variable_rate_amount(version, base) * fraction
     # Pevné částky jsou měsíční; „každý započatý měsíc“ počítá kalendářní měsíce období. První úsek období počítá i měsíc,
@@ -156,9 +156,11 @@ def periodic_fee(rule, start, end, base, classes_count=1, max_steps=100):
     base = dec(base)
     basis = rule.get("basis", "act365")
     segments = split_by_versions(start, end, rule["versions"])
+    first_covered = next((i for i, (_s, _e, v) in enumerate(segments) if v is not None), None)
+    uncovered_days = sum(((e - s).days for s, e, v in segments if v is None), 0)
 
     def compute(current_base):
-        rows = [_segment_amount(v, s, e, current_base, basis, classes_count, first_segment=(index == 0))
+        rows = [_segment_amount(v, s, e, current_base, basis, classes_count, first_segment=(index == first_covered))
                 for index, (s, e, v) in enumerate(segments)]
         return sum((r[0] for r in rows), ZERO), [r[1] for r in rows]
 
@@ -174,7 +176,8 @@ def periodic_fee(rule, start, end, base, classes_count=1, max_steps=100):
         else:
             raise ValueError("Výpočet úplaty se neustálil.")
     # „exact“ = částka před zaokrouhlením; ocenění na ní ustaluje společný dopočet úplat „po všech úplatách“ (ZJ-06 bod 7).
-    return {"amount": money(amount), "exact": amount, "steps": steps, "segments": rows}
+    return {"amount": money(amount), "exact": amount, "steps": steps, "segments": rows,
+            "uncovered_days": uncovered_days}
 
 
 def average_fee(rule, start, end, points, current, booked=ZERO, shift=ZERO, classes_count=1):
