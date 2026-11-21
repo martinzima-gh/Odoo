@@ -200,7 +200,11 @@ class InvestraValuation(models.Model):
     portfolio_line_ids = fields.One2many("investra.valuation.portfolio", "valuation_id", readonly=True, string="Portfolio")
     check_ids = fields.One2many("investra.valuation.check", "valuation_id", readonly=True, string="Kontroly")
     approval_ids = fields.One2many("investra.valuation.approval", "valuation_id", readonly=True, string="Schválení")
-    external_fee_ids = fields.One2many("investra.valuation.external", "valuation_id", string="Ručně doložené úplaty")
+    external_fee_ids = fields.One2many(
+        "investra.valuation.external", "valuation_id", string="Ručně doložené úplaty",
+        help="Úplata spočtená mimo Odoo. Zaúčtuje se k datu ocenění na zvolený účet nákladu nebo výnosu proti závazku z úplat, v cizí měně "
+             "kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Kladná částka = náklad (vrub nákladového "
+             "účtu), záporná = výnos (např. vratka). Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.")
     event_ids = fields.Many2many("investra.accounting.event", readonly=True, string="Doklady")
     snapshot = fields.Text(readonly=True, string="Snímek")
     snapshot_hash = fields.Char(readonly=True, string="Otisk snímku")

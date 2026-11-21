@@ -35,6 +35,19 @@ class InvestraValuationTaxBreakdown(models.Model):
             detail = json.loads(line.detail or "{}") if line else {}
             valuation.tax_breakdown_html = valuation._tax_breakdown(detail) if detail.get("rules") else False
 
+    def _used_exceptions(self, exceptions):
+        """Výjimky s nenulovým pohybem na účtu od začátku účetního období (jen zobrazení; detail řádku daně pohyb neukládá)."""
+        if not exceptions:
+            return []
+        year_start = self.fund_id._fiscal_year_start(self.date)
+        used = []
+        for exception in exceptions:
+            account = self.env["account.account"].sudo().search(
+                [("code", "=", exception.get("account")), ("company_ids", "in", self.company_id.id)], limit=1)
+            if account and self._sum(("account_id", "=", account.id), ("date", ">=", year_start)):
+                used.append(exception)
+        return used
+
     def _tax_breakdown(self, detail):
         _ = self.env._
         head = (_("Pravidlo"), _("Základ"), _("Sazba"), _("Požadovaná"), _("Zaúčtovaná"), _("Pohyb"))
@@ -49,12 +62,11 @@ class InvestraValuationTaxBreakdown(models.Model):
                 _fmt(row.get("booked")), _fmt(row.get("move"))))
             notes = []
             if row.get("default"):
-                notes.append(_("výsledek od začátku účetního období %s", _fmt(row.get("result"))))
-                if Decimal(row.get("excluded") or 0):
-                    notes.append(_("z toho výjimky do jiných pravidel %s", _fmt(row.get("excluded"))))
-                if Decimal(row.get("nondeductible") or 0):
-                    notes.append(_("neuznatelné náklady z výnosu %s", _fmt(row.get("nondeductible"))))
-                notes.append(_("základ po kroku %s", detail.get("base_step") or "–"))
+                # ZJ-25 1.4: jedna věta jako výpočet základu (výsledek − výjimky + neuznatelné = základ · krok).
+                notes.append(_(
+                    "výsledek od zač. období %(result)s − výjimky %(excluded)s + neuznatelné %(nondeductible)s = základ %(base)s · po kroku %(step)s",
+                    result=_fmt(row.get("result")), excluded=_fmt(row.get("excluded")), nondeductible=_fmt(row.get("nondeductible")),
+                    base=_fmt(row.get("base")), step=detail.get("base_step") or "–"))
             if Decimal(row.get("base_correction") or 0):
                 notes.append(_("oprava základu %s", _fmt(row.get("base_correction"))))
             if Decimal(row.get("carried") or 0):
@@ -66,7 +78,7 @@ class InvestraValuationTaxBreakdown(models.Model):
                 body.append(Markup("<tr><td colspan='6' class='text-muted small ps-4'>%s</td></tr>") % escape("; ".join(notes)))
         if not body:
             return False
-        exceptions = detail.get("exceptions") or []
+        exceptions = self._used_exceptions(detail.get("exceptions") or [])
         extra = Markup("")
         if exceptions:
             items = Markup("").join(
@@ -75,7 +87,9 @@ class InvestraValuationTaxBreakdown(models.Model):
                     escape(_(", podíl %s", _pct(e.get("share")))) if Decimal(e.get("share") or 1) != 1 else "",
                     escape(_(", neuznatelné %s %% z výnosu", e.get("nondeductible_pct"))) if Decimal(e.get("nondeductible_pct") or 0) else "")
                 for e in exceptions)
-            extra = Markup("<p class='small mb-1'>%s</p><ul class='small'>%s</ul>") % (_("Výjimky fondu:"), items)
+            # Jen výjimky s pohybem na účtu od začátku účetního období; ostatní jsou k dispozici ve formuláři fondu.
+            extra = Markup("<details class='small'><summary>%s</summary><ul>%s</ul></details>") % (
+                _("▸ Použité výjimky (%s)", len(exceptions)), items)
         return Markup(
             "<table class='table table-sm'><thead><tr><th>%s</th><th class='text-end'>%s</th><th class='text-end'>%s</th>"
             "<th class='text-end'>%s</th><th class='text-end'>%s</th><th class='text-end'>%s</th></tr></thead><tbody>%s</tbody>"

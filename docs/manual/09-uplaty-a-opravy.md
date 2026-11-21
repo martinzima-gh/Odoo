@@ -119,6 +119,17 @@ Tlačítka jsou na řádku pravidla a platí pro všechny jeho změněné opravy
 které v této verzi nejsou“ (upozornění) je vypíše; tlačítko **Převzít z předchozí verze** v hlavičce je zkopíruje (s odkazem „Převzato z“).
 Když je vynecháváte záměrně, upozornění nechte být.
 
+### Ručně doložená úplata – pravidla zaúčtování (přesunuto z textu v ocenění, ZJ-25)
+
+Záložka **Ručně doložené úplaty** nese jen větu „Kladná částka = náklad, záporná = výnos (např. vratka). Účtuje se k datu ocenění proti závazku z úplat;
+prázdná třída = celý fond.“ Podrobnosti jsou v nápovědě pole:
+
+- Úplata spočtená mimo Odoo se zaúčtuje k datu ocenění na zvolený účet nákladu nebo výnosu proti závazku z úplat, v cizí měně kurzem k datu ocenění.
+- Pořadí výpočtu: spolu s ostatními úplatami, před výkonnostní odměnou a daní.
+- Poznámka je povinná (důvod, např. faktura), příloha je nepovinná.
+- Případy, které tento postup nepokrývá, zaúčtujte ručně v hlavní knize.
+- Upozornění ke znaménku se zobrazí jen u řádku, kde je znaménko opačné, než odpovídá druhu účtu.
+
 ## 4. Jak úplatu zrušit
 
 | Situace | Postup |

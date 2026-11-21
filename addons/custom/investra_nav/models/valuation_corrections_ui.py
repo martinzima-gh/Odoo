@@ -16,7 +16,7 @@ class InvestraValuationCorrectionsUi(models.Model):
     carried_correction_ids = fields.Many2many(
         "investra.valuation.external", compute="_compute_carried_corrections", string="Převzaté opravy",
         help="Opravy dřívějších ocenění „do konce období“, které tohle ocenění převzalo do výpočtu. Jen pro čtení; "
-             "převzetí skončí tlačítkem Ukončit opravu.")
+             "převzetí skončí tlačítkem Ukončit opravu (založí opravu o opačnou částku s poznámkou); výpočet je zahrnuje.")
     has_corrections = fields.Boolean(compute="_compute_has_corrections", string="Má opravy")
     # Rozhodnutí 2026-11-19: záložka Úplaty ukazuje jeden řádek na pravidlo (vypočteno, oprava, výsledek); řádky oprav
     # jsou jen na záložce Ruční úplaty, kde jdou smazat nebo ukončit. Rozpis `fee_line_ids` (účtování, XLS) se nemění.

@@ -17,7 +17,6 @@
                     <div>
                         <div class="o_investra_label">FK fondu</div>
                         <div class="o_investra_big" t-out="this.kpi.capital"/>
-                        <div class="o_investra_note">celkový kapitál k datu ocenění</div>
                     </div>
                     <div>
                         <div class="o_investra_label">Změna FK od minula</div>

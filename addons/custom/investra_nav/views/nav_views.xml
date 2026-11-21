@@ -374,7 +374,7 @@
                         </list></field>
                         <field name="tax_breakdown_html" nolabel="1" readonly="1" invisible="not tax_breakdown_html"/>
                             <group string="Převzaté opravy" invisible="not carried_correction_ids">
-                                <div class="text-muted" colspan="2">Opravy dřívějších ocenění „do konce období“, které toto ocenění převzalo; zahrnuje je výpočet. Jen pro čtení. Převzetí končí tlačítkem Ukončit opravu (založí opravu o opačnou částku s poznámkou).</div>
+                                <div class="text-muted" colspan="2">Opravy dřívějších ocenění platné do konce období. Ukončíte je tlačítkem Ukončit opravu.</div>
                                 <field name="carried_correction_ids" nolabel="1" colspan="2" readonly="1" context="{'ending_valuation_id': id}">
                                     <list create="0" delete="0" edit="0">
                                         <field name="valuation_id" string="Z ocenění"/>
@@ -388,12 +388,8 @@
                             </group>
                         </page>
                         <page string="Ručně doložené úplaty" invisible="not external_fee_ids and state in ('submitted', 'approved', 'posted', 'sent', 'confirmed', 'published')">
-                            <div class="alert alert-info" role="alert">Úplata spočtená mimo Odoo (ZJ-03). Zaúčtuje se k datu ocenění na zvolený účet nákladu nebo výnosu proti závazku z úplat, v cizí měně kurzem k datu ocenění; spolu s ostatními úplatami, před výkonnostní odměnou a daní. Prázdná třída = celý fond. Poznámka je povinná, příloha nepovinná. Jiné případy zaúčtujte ručně v hlavní knize.</div>
-                            <div class="alert alert-warning" role="alert">
-                                <strong>Znaménko částky:</strong> <strong>+ náklad</strong> (vrub zvoleného nákladového účtu), <strong>− výnos</strong>
-                                (ve prospěch zvoleného výnosového účtu). Příklad: poplatek správci 5 000 → <code>5 000</code> na nákladový účet;
-                                vratka od správce 1 200 → <code>−1 200</code> na výnosový účet.
-                            </div>
+                            <div class="text-muted mb-2">Kladná částka = náklad, záporná = výnos (např. vratka). Účtuje se k datu ocenění
+                                proti závazku z úplat; prázdná třída = celý fond.</div>
                             <field name="external_fee_ids" context="{'default_valuation_id': id}"
                                    readonly="state not in ('draft', 'computed')"><list editable="bottom">
                             <field name="class_id" domain="[('fund_id', '=', parent.fund_id)]" options="{'no_create': True}"/>
