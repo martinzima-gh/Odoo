@@ -19,6 +19,8 @@ access_valuation_read,investra.valuation read,investra.valuation,account.group_a
 access_valuation_prep,investra.valuation prep,investra.valuation,investra_entity.group_valuation_preparer,cru,
 investra_valuation_rule,investra.valuation company,investra.valuation,,crud,"[('company_id', 'in', company_ids)]"
 access_val_class_read,investra.valuation.class read,investra.valuation.class,account.group_account_readonly,r,
+access_val_class_account,investra.valuation.class.account,investra.valuation.class.account,account.group_account_readonly,crud,
+access_val_class_transfer,investra.valuation.class.transfer,investra.valuation.class.transfer,account.group_account_readonly,crud,
 investra_val_class_rule,investra.valuation.class company,investra.valuation.class,,crud,"[('company_id', 'in', company_ids)]"
 access_val_fee_read,investra.valuation.fee read,investra.valuation.fee,account.group_account_readonly,r,
 investra_val_fee_rule,investra.valuation.fee company,investra.valuation.fee,,crud,"[('company_id', 'in', company_ids)]"

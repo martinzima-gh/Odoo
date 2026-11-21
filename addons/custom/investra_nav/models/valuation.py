@@ -2192,6 +2192,7 @@ class InvestraValuation(models.Model):
         self.write({"fund_capital": float(fund_capital), "neutral_capital": float(neutral)})
         self._run_checks(fund_capital, rounded)
         self._run_bridge_checks(context, bridges, rounded)
+        self._run_split_check(context, bridges)  # ZJ-25: rozpad po účtech = přemostění (jen kontrola, nic se neukládá)
 
     def _class_bridge(self, fund_class, row, value, value_class, delta, neutral, fx_rate, price):
         """Přemostění třídy od minulého ocenění ke konečnému kapitálu a kurzu.
