@@ -88,3 +88,12 @@ mění z chyby na nulu. Chybou zůstane pravidlo **bez jakékoli verze** (to pla
 **Schválení:** plán schválil Martin 2026-11-20 (a ano, b A, c ne). Provedení odloženo na příště (Opus); body 13, 14, 16 a výnosový účet hotové.
 
 **Doplněno 2026-11-20 (Martin souhlasil):** smazání pravidla úplat použitého v oceněních odmítne srozumitelná hláška „Archivujte ho“ (`fee_rule.unlink`, test v `test_zj24_messages.py`).
+
+## Provedeno: bod 15 (2026-11-21)
+
+Podle `docs/ukoly/podklady/davka-ZJ-24-27/plan-ZJ-24-bod-15.md`, větev `ukol/ZJ-24-bod-15`, commity „ZJ-24 K1–K3“ až „K7“.
+- `engine.split_by_versions` vrací pro období před první verzí úsek s verzí `None`; `_segment_amount` pro něj dává 0; „první úsek“ pro režim Za každý započatý měsíc je první úsek s verzí; výsledek má `uncovered_days`. Bez verzí `ValueError`.
+- `fee_rule._engine_rule`: předkontrola mezery (bod 14) zrušena; `_no_rate_error` zůstává pro výkonnostní odměnu a daň.
+- `valuation._apply_fees`: varovná kontrola `fee_not_in_force` jen při nálezu. `_zero_capital_error`: věta o úpisu před vznikem jen pro třídy se společnými položkami, hláška jmenuje třídy (K6).
+- Verze `investra_nav` 20.0.0.45.0. Testy `test_zj24_bod15.py` (10) + upravený `test_zj24_messages.py`; `investra_nav+` 795 testů bez chyby; snímek 35 shodný.
+- **Neověřeno v prohlížeči.** Pracovní `investra` neupgradována na .45.
