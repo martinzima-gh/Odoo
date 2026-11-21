@@ -344,6 +344,8 @@
                             <field name="fair_value_currency" optional="hide"/>
                             <field name="fx_rate" optional="show"/>
                             <field name="fair_value"/>
+                            <field name="price_change" optional="hide" sum="Změna ceny"/>
+                            <field name="fx_change" optional="hide" sum="z toho kurz"/>
                             <field name="realised" optional="show"/>
                             <field name="oci" optional="show"/>
                         </list></field></page>

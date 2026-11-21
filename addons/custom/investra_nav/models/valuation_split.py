@@ -352,3 +352,35 @@ class AccountMoveLineSplit(models.Model):
         if event and event._source():
             return event.action_open_source()
         return {"type": "ir.actions.act_window", "res_model": "account.move", "res_id": self.move_id.id, "views": [(False, "form")]}
+
+
+class InvestraValuationPortfolioChange(models.Model):
+    """ZJ-25 1.5: změna ceny a z toho kurz u řádku portfolia proti minulému ocenění (jen zobrazení, nic se neukládá)."""
+
+    _inherit = "investra.valuation.portfolio"
+
+    prev_line_id = fields.Many2one("investra.valuation.portfolio", compute="_compute_price_change", string="Řádek minulého ocenění")
+    price_change = fields.Float(compute="_compute_price_change", digits=(20, 2), string="Změna ceny",
+                                help="Kusy × (jednotková hodnota × kurz − minulá jednotková hodnota × minulý kurz); jednotková hodnota = "
+                                     "reálná hodnota v měně / kusy. Bez minulého řádku nebo bez kusů 0.")
+    fx_change = fields.Float(compute="_compute_price_change", digits=(20, 2), string="z toho kurz",
+                             help="Kusy × minulá jednotková hodnota × (kurz − minulý kurz): část změny ceny z pohybu kurzu.")
+
+    def _compute_price_change(self):
+        Line = self.sudo()
+        previous = {}
+        for valuation in self.valuation_id:
+            if valuation.previous_id:
+                for line in Line.search([("valuation_id", "=", valuation.previous_id.id)]):
+                    previous[(valuation.id, line.instrument_id.id, line.portfolio_id.id, line.classification_id.id)] = line
+        for line in self:
+            prev = previous.get((line.valuation_id.id, line.instrument_id.id, line.portfolio_id.id, line.classification_id.id))
+            line.prev_line_id = prev if line.instrument_id else False
+            line.price_change = line.fx_change = 0.0
+            if not (prev and line.instrument_id and line.quantity and prev.quantity):
+                continue
+            unit_now = d(line.fair_value_currency) / d(line.quantity)
+            unit_before = d(prev.fair_value_currency) / d(prev.quantity)
+            quantity = d(line.quantity)
+            line.price_change = float(engine.money(quantity * (unit_now * d(line.fx_rate) - unit_before * d(prev.fx_rate))))
+            line.fx_change = float(engine.money(quantity * unit_before * (d(line.fx_rate) - d(prev.fx_rate))))
