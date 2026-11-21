@@ -1,5 +1,5 @@
 import json
-from datetime import date, timedelta
+from datetime import date
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -486,10 +486,6 @@ class InvestraFeeRule(models.Model):
         versions = [v._engine_values() for v in self.version_ids]
         if not versions:
             raise UserError(self.env._("Pravidlo %s nemá žádnou sazbu.", self.name))
-        # ZJ-24 bod 14: engine by na mezeru před první verzí odpověděl jen „Pro den … není platná sazba“; tady řekneme čeho se týká.
-        # Podmínka kopíruje engine (první den období = den po začátku).
-        if min(self.version_ids.mapped("valid_from")) > start + timedelta(days=1):
-            raise self._no_rate_error(start + timedelta(days=1))
         # ZJ-12 krok 2: engine počítá vždy ze základu, který mu předá ocenění; volbu kroku řeší ocenění.
         return {"basis": self.basis, "versions": versions}
 
