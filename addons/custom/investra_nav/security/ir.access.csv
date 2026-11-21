@@ -30,6 +30,8 @@ investra_val_external_rule,investra.valuation.external company,investra.valuatio
 access_val_portfolio_read,investra.valuation.portfolio read,investra.valuation.portfolio,account.group_account_readonly,r,
 investra_val_portfolio_rule,investra.valuation.portfolio company,investra.valuation.portfolio,,crud,"[('company_id', 'in', company_ids)]"
 access_val_check_read,investra.valuation.check read,investra.valuation.check,account.group_account_readonly,r,
+access_val_check_item_read,investra.valuation.check.item read,investra.valuation.check.item,account.group_account_readonly,r,
+investra_val_check_item_rule,investra.valuation.check.item company,investra.valuation.check.item,,crud,"[('company_id', 'in', company_ids)]"
 investra_val_check_rule,investra.valuation.check company,investra.valuation.check,,crud,"[('company_id', 'in', company_ids)]"
 access_val_approval_read,investra.valuation.approval read,investra.valuation.approval,account.group_account_readonly,r,
 investra_val_approval_rule,investra.valuation.approval company,investra.valuation.approval,,crud,"[('company_id', 'in', company_ids)]"

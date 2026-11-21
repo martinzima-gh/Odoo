@@ -284,7 +284,11 @@ class InvestraValuation(models.Model):
         common_wrong = abs(shared_from_rows - shared_expected) > TOLERANCE
         self._check("class_split", "Rozpad tříd po účtech = přemostění", not wrong and not common_wrong,
                     "; ".join(f"{line.class_id.code}: {impact} ≠ {expected}" for line, expected, impact in wrong)
-                    or (f"společná změna {shared_from_rows} ≠ {shared_expected}" if common_wrong else ""))
+                    or (f"společná změna {shared_from_rows} ≠ {shared_expected}" if common_wrong else ""),
+                    expected=expected_total, actual=actual_total, difference=actual_total - expected_total,
+                    items=[{"record": line, "name": line.class_id.code,
+                            "values": f"očekáváno {expected}, rozpad {impact}, rozdíl {impact - expected}"}
+                           for line, expected, impact in wrong])
 
 
 class InvestraValuationClass(models.Model):

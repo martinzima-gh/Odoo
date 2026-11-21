@@ -4,7 +4,7 @@ from datetime import timedelta
 from decimal import ROUND_DOWN, ROUND_HALF_UP, ROUND_UP, Decimal
 
 from odoo import api, fields, models
-from odoo.tools import format_date, html2plaintext
+from odoo.tools import format_date, formatLang, html2plaintext
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from odoo.addons.investra_entity.models.entity import RATE_SOURCE_NONE
@@ -2268,29 +2268,36 @@ class InvestraValuation(models.Model):
         """Kontroly přemostění tříd; rozdíl nad 0,01 zastaví ocenění."""
         tolerance = Decimal("0.01")
         movements, units, result, specific = [], [], [], []
+        lines = {line.class_id: line for line in self.class_line_ids}
+        item = lambda fund_class, text: {"record": lines[fund_class], "name": fund_class.code, "values": text}
+        bad_movements, bad_units, bad_result = [], [], []
         for fund_class, row in context.items():
             b = bridges[fund_class]
             code = fund_class.code
             pre = b["opening_capital"] + b["subscription_amount"] - b["redemption_amount"] - b["dividend_amount"]
             if abs(pre - row["pre_capital"]) > tolerance:
                 movements.append(f"{code}: {pre} ≠ {row['pre_capital']}")
+                bad_movements.append(item(fund_class, f"očekáváno {row['pre_capital']}, skutečnost {pre}, rozdíl {pre - row['pre_capital']}"))
             count = b["opening_units"] + b["subscription_units"] - b["redemption_units"]
             if abs(count - row["units"]) > Decimal("0.000001"):
                 units.append(f"{code}: {count} ≠ {row['units']}")
+                bad_units.append(item(fund_class, f"očekáváno {row['units']}, skutečnost {count}, rozdíl {count - row['units']}"))
             specific_total = (b["fee_amount"] + b["performance_amount"] + b["allocation_amount"] + b["tax_effect_amount"]
                               + b["other_amount"])
             end = row["pre_capital"] + b["shared_result"] + specific_total
             if abs(end - rounded[fund_class]) > tolerance:
                 result.append(f"{code}: {end} ≠ {rounded[fund_class]}")
+                bad_result.append(item(fund_class, f"očekáváno {rounded[fund_class]}, skutečnost {end}, rozdíl {end - rounded[fund_class]}"))
         opening = sum((b["opening_capital"] for b in bridges.values()), Decimal(0))
         previous_fk = d(self.previous_id.fund_capital) if self.previous_id else Decimal(0)
         self._check("bridge_movements", "Přemostění: FK (t−1) + úpisy − odkupy = upravený FK", not movements,
-                    "; ".join(movements))
-        self._check("bridge_units", "Přemostění: kusy (t−1) + úpisy − odkupy = kusy", not units, "; ".join(units))
+                    "; ".join(movements), items=bad_movements)
+        self._check("bridge_units", "Přemostění: kusy (t−1) + úpisy − odkupy = kusy", not units, "; ".join(units), items=bad_units)
         self._check("bridge_result", "Přemostění: upravený FK + společná a specifická změna = FK", not result,
-                    "; ".join(result))
+                    "; ".join(result), items=bad_result)
         self._check("bridge_opening", "Přemostění: součet FK (t−1) tříd = FK minulého ocenění",
-                    abs(opening - previous_fk) <= tolerance, f"{opening} / {previous_fk}")
+                    abs(opening - previous_fk) <= tolerance, f"{opening} / {previous_fk}",
+                    expected=previous_fk, actual=opening, difference=opening - previous_fk)
 
     def _run_movement_checks(self):
         """Úpisy a odkupy období (rozhodnutí „Úpisy a odkupy (bod 8 UX)“, 2026-11-11).
@@ -2304,38 +2311,73 @@ class InvestraValuation(models.Model):
         ])
         draft = movements.filtered(lambda m: m.state == "draft")
         self._check("movements_posted", "Úpisy a odkupy období jsou zaúčtované", not draft,
-                    "; ".join(draft.mapped("display_name")))
+                    "; ".join(draft.mapped("display_name")), expected=0, actual=len(draft), difference=len(draft),
+                    items=[{"record": m} for m in draft])
         fees = movements.filtered(lambda m: abs(d(m.fee_amount_class) - d(m.fee_expected_class)) > Decimal("0.01"))
         self._check("movement_fee_rate", "Poplatky úpisů a odkupů odpovídají sazbě třídy", not fees,
                     "; ".join(f"{m.display_name}: {m.fee_amount_class} / {m.fee_expected_class}" for m in fees),
-                    severity="warning")
+                    severity="warning", items=[{"record": m, "values": f"{m.fee_amount_class} / {m.fee_expected_class}"} for m in fees])
         prices = movements.filtered("price_reason")
         self._check("movement_price", "Úpisy a odkupy za zveřejněný kurz třídy", not prices,
-                    "; ".join(f"{m.display_name}: {m.price_reason}" for m in prices), severity="warning")
+                    "; ".join(f"{m.display_name}: {m.price_reason}" for m in prices), severity="warning",
+                    actual=len(prices), items=[{"record": m, "values": m.price_reason} for m in prices])
 
-    def _check(self, code, name, ok, detail="", severity="stop"):
+    def _check(self, code, name, ok, detail="", severity="stop", expected=None, actual=None, difference=None, items=None):
+        """Založí kontrolu. Zpětně kompatibilní: dosavadní volání (poziční, `severity=`) platí beze změny.
+
+        items: dicty {"record": záznam, "name"?: str, "values"?: str} nebo {"name": str, "values"?: str, "res_model"?: str,
+        "res_id"?: int}; ukládají se jen u nesplněné kontroly. expected/actual/difference: text beze změny, čísla se formátují.
+        """
+        commands = []
+        for index, item in enumerate([] if ok else (items or [])):
+            record = item.get("record")
+            commands.append((0, 0, {
+                "sequence": index,
+                "name": item.get("name") or (record.display_name if record else "-"),
+                "values": item.get("values") or False,
+                "res_model": record._name if record else item.get("res_model") or False,
+                "res_id": record.id if record else item.get("res_id") or False,
+            }))
         self.env["investra.valuation.check"].sudo().create({
             "valuation_id": self.id,
             "code": code,
             "name": name,
             "status": "ok" if ok else severity,
             "detail": str(detail),
+            "expected": self._check_format(expected),
+            "actual": self._check_format(actual),
+            "difference": self._check_format(difference),
+            "item_ids": commands,
         })
 
+    def _check_format(self, value):
+        if value is None or value is False:
+            return False
+        if isinstance(value, str):
+            return value
+        if isinstance(value, int) and not isinstance(value, bool):
+            return str(value)
+        return formatLang(self.env, float(value), digits=2)
+
     def _run_checks(self, fund_capital, rounded):
-        self._check("classes_sum", "Součet tříd se rovná FK", sum(rounded.values()) == fund_capital, sum(rounded.values()))
+        classes_total = sum(rounded.values())
+        self._check("classes_sum", "Součet tříd se rovná FK", classes_total == fund_capital, classes_total,
+                    expected=fund_capital, actual=classes_total, difference=classes_total - fund_capital)
         clearing = self._role_balance("internal_clearing")
-        self._check("clearing_zero", "Vnitřní zúčtování je za fond nulové", clearing == 0, clearing)
+        self._check("clearing_zero", "Vnitřní zúčtování je za fond nulové", clearing == 0, clearing,
+                    expected=Decimal(0), actual=clearing, difference=clearing)
         instrument_ledger = self._position_balance()
         positions = sum(
             (d(line.fair_value) for line in self.portfolio_line_ids if line.kind != "bank"), Decimal(0)
         )
         self._check("positions_ledger", "Pozice se rovnají hlavní knize", instrument_ledger == engine.money(positions),
-                    f"{instrument_ledger} / {positions}")
+                    f"{instrument_ledger} / {positions}", expected=engine.money(positions), actual=instrument_ledger,
+                    difference=instrument_ledger - engine.money(positions))
         overdue = self.env["investra.trade"].sudo().search_count([
             ("fund_id", "=", self.fund_id.id), ("state", "=", "unsettled"), ("settlement_date", "<=", self.date),
         ])
-        self._check("trades_settled", "Obchody po termínu vypořádání jsou vypořádané", not overdue, overdue, severity="warning")
+        self._check("trades_settled", "Obchody po termínu vypořádání jsou vypořádané", not overdue, overdue, severity="warning",
+                    expected=0, actual=overdue, difference=overdue)
         # Pozice bere jen obchody s dokladem (rozhodnutí 2026-11-13 „Návrhy obchodů v pozicích“, závažnost stop):
         # obchod, který by k datu už byl v pozici, ale doklad nemá, je chybějící doklad, nebo neprovedený návrh ke smazání.
         unbooked = self.env["investra.trade"].sudo().search([
@@ -2343,12 +2385,15 @@ class InvestraValuation(models.Model):
             ("event_id", "=", False),
         ]).filtered(lambda t: t._recognition_date() <= self.date)
         self._check("trades_booked", "Obchody k datu jsou zaúčtované", not unbooked,
-                    ", ".join(f"{t.instrument_id.name} {t.trade_date}" for t in unbooked))
+                    ", ".join(f"{t.instrument_id.name} {t.trade_date}" for t in unbooked),
+                    expected=0, actual=len(unbooked), difference=len(unbooked),
+                    items=[{"record": t, "name": f"{t.instrument_id.name} {t.trade_date}"} for t in unbooked])
         # Ruční přepsání kategorie IFRS 9 je odchylka od rozhodovacího stromu; schvalovatel ji musí vidět (rozhodnutí 2026-11-11).
         overridden = self.portfolio_line_ids.classification_id.filtered("category_override")
         self._check(
             "classification_override", "Pozice bez ručně přepsané kategorie IFRS 9", not overridden,
             ", ".join(overridden.mapped("display_name")), severity="warning",
+            items=[{"record": c} for c in overridden],
         )
         # Role nebo způsob ocenění jinak než návrh (např. repo s nebankovní protistranou na roli repo s bankou,
         # rozhodnutí 2026-11-11 „Osnova fondů – převodová tabulka“).
@@ -2356,6 +2401,7 @@ class InvestraValuation(models.Model):
         self._check(
             "classification_proposal", "Zařazení pozic odpovídá návrhu (způsob ocenění, role účtu)", not deviating,
             ", ".join(deviating.mapped("display_name")), severity="warning",
+            items=[{"record": c} for c in deviating],
         )
         # Inkasa na cestě (splátky nástrojů čekající na výpis) mají od 2026-11-12 vlastní roli; kniha bez ní se nesčítá.
         transit = self._role_balance("cash_in_transit")
@@ -2363,7 +2409,8 @@ class InvestraValuation(models.Model):
             [("company_id", "=", self.company_id.id), ("role_id.code", "=", "cash_in_transit_receipt")], limit=1
         ):
             transit += self._role_balance("cash_in_transit_receipt")
-        self._check("transit_zero", "Peníze a inkasa na cestě jsou nulové", transit == 0, transit, severity="warning")
+        self._check("transit_zero", "Peníze a inkasa na cestě jsou nulové", transit == 0, transit, severity="warning",
+                    expected=Decimal(0), actual=transit, difference=transit)
         # Kalendářní splátka bez zaúčtování: ocenění by ji odúčtovalo do úroků (rozhodnutí 2026-11-12
         # „Návrhy kalendářních splátek“).
         Repayment = self.env["investra.instrument.repayment"].sudo()
@@ -2379,12 +2426,14 @@ class InvestraValuation(models.Model):
         )
         unassigned = self._accounts_without_role()
         self._check("accounts_role", "Účty se zůstatkem mají roli (jinak chybí ve výkazech ČNB)", not unassigned,
-                    ", ".join(a.display_name for a in unassigned), severity="warning")
+                    ", ".join(a.display_name for a in unassigned), severity="warning",
+                    actual=len(unassigned), items=[{"record": a} for a in unassigned])
         pending = self.env["account.move"].sudo().search_count([
             ("company_id", "=", self.company_id.id), ("state", "=", "draft"), ("date", "<=", self.date),
             ("id", "not in", self.event_ids.move_id.ids),
         ])
-        self._check("no_foreign_drafts", "K datu nejsou jiné nezaúčtované doklady", not pending, pending, severity="warning")
+        self._check("no_foreign_drafts", "K datu nejsou jiné nezaúčtované doklady", not pending, pending, severity="warning",
+                    expected=0, actual=pending, difference=pending)
         manual = self._manual_rates()
         self._check("manual_rate", "Ocenění používá jen vyhlášené kurzy", not manual, "; ".join(manual), severity="warning")
         stale = self._stale_prices()
@@ -2394,7 +2443,8 @@ class InvestraValuation(models.Model):
             lambda i: i.type_id.kind == "bond" and not i.cashflow_ids
         )
         self._check("bond_calendar", "Dluhopisy v portfoliu mají kalendář toků (jinak se nepočítá naběhlý úrok)",
-                    not no_calendar, ", ".join(no_calendar.mapped("name")), severity="warning")
+                    not no_calendar, ", ".join(no_calendar.mapped("name")), severity="warning",
+                    actual=len(no_calendar), items=[{"record": i} for i in no_calendar])
         exceptions = self._lock_exceptions_since_previous()
         self._check("lock_exception", "Uzamčené období nebylo otevřeno výjimkou", not exceptions,
                     "; ".join(exceptions), severity="warning")
