@@ -141,65 +141,97 @@
             <form string="Přemostění třídy" class="o_investra_bridge">
                 <sheet>
                     <div class="oe_title"><h2><field name="class_id" readonly="1"/></h2></div>
-                    <div class="text-muted mb-3">Čte se shora dolů: počáteční stav + pohyby = upravený FK; upravený FK + změna společná
-                        + změna specifická = konečný stav.</div>
-                    <!-- Rozhodnutí 2026-11-19: jedna mřížka (stejné sloupce ve všech částech), vlevo částky, vpravo jen kusy,
-                         čísla vpravo (static/src/valuation_class/bridge.scss). -->
-                    <group col="4">
-                        <separator string="1. Počáteční stav (minulé ocenění)" colspan="4"/>
-                        <field name="opening_capital"/>
-                        <field name="opening_units"/>
-                        <field name="opening_price"/>
-                        <div colspan="2"/>
-                        <separator string="2. Pohyby" colspan="4"/>
-                        <field name="subscription_amount" string="+ Úpisy"/>
-                        <field name="subscription_units"/>
-                        <field name="redemption_amount" string="− Odkupy"/>
-                        <field name="redemption_units"/>
-                        <field name="dividend_amount" string="− Dividendy"/>
-                        <div colspan="2"/>
-                        <field name="pre_capital" string="= Upravený FK"/>
-                        <div colspan="2"/>
-                        <separator string="3. Změna hodnoty" colspan="4"/>
-                        <field name="ratio" string="Alokační poměr" widget="percentage" options="{'digits': [16, 6]}"/>
-                        <div colspan="2"/>
-                        <field name="shared_result" string="+ Změna společná"/>
-                        <div colspan="2"/>
-                        <field name="rounding_amount" string="   z toho zaokrouhlení"/>
-                        <div colspan="2"/>
-                        <field name="delta" string="+ Změna specifická"/>
-                        <div colspan="2"/>
-                        <field name="fee_amount" string="   z toho úplaty třídy"/>
-                        <div colspan="2"/>
-                        <field name="performance_amount" string="   z toho výkonnostní odměna"/>
-                        <div colspan="2"/>
-                        <field name="allocation_amount" string="   z toho přesun podle pořadí nároků"/>
-                        <div colspan="2"/>
-                        <field name="tax_effect_amount" string="   z toho daňový efekt specifických položek"/>
-                        <div colspan="2"/>
-                        <field name="other_amount" string="   z toho ostatní specifické"/>
-                        <div colspan="2"/>
-                        <separator string="4. Konečný stav" colspan="4"/>
-                        <field name="capital" string="= FK"/>
-                        <field name="units" string="Kusy"/>
-                        <field name="price" string="Kurz"/>
-                        <div colspan="2"/>
-                        <field name="price_change_pct" decoration-success="price_change_pct &gt; 0" decoration-danger="price_change_pct &lt; 0"/>
-                        <div colspan="2"/>
-                    </group>
-                    <group col="4" string="V měně třídy" invisible="not foreign_currency">
-                        <field name="currency_name"/>
-                        <div colspan="2"/>
-                        <field name="fx_rate"/>
-                        <div colspan="2"/>
-                        <field name="opening_capital_class"/>
-                        <div colspan="2"/>
-                        <field name="subscription_amount_class"/>
-                        <div colspan="2"/>
-                        <field name="redemption_amount_class"/>
-                        <div colspan="2"/>
-                        <field name="capital_class"/>
-                    </group>
+                    <notebook>
+                        <page string="Přemostění" name="bridge">
+                        <div class="text-muted mb-3">Čte se shora dolů: počáteční stav + pohyby = upravený FK; upravený FK + změna společná
+                            + změna specifická = konečný stav.</div>
+                        <!-- Rozhodnutí 2026-11-19: jedna mřížka (stejné sloupce ve všech částech), vlevo částky, vpravo jen kusy,
+                             čísla vpravo (static/src/valuation_class/bridge.scss). -->
+                        <group col="4">
+                            <separator string="1. Počáteční stav (minulé ocenění)" colspan="4"/>
+                            <field name="opening_capital"/>
+                            <field name="opening_units"/>
+                            <field name="opening_price"/>
+                            <div colspan="2"/>
+                            <separator string="2. Pohyby" colspan="4"/>
+                            <field name="subscription_amount" string="+ Úpisy"/>
+                            <field name="subscription_units"/>
+                            <field name="redemption_amount" string="− Odkupy"/>
+                            <field name="redemption_units"/>
+                            <field name="dividend_amount" string="− Dividendy"/>
+                            <div colspan="2"/>
+                            <field name="pre_capital" string="= Upravený FK"/>
+                            <div colspan="2"/>
+                            <separator string="3. Změna hodnoty" colspan="4"/>
+                            <field name="ratio" string="Alokační poměr" widget="percentage" options="{'digits': [16, 6]}"/>
+                            <div colspan="2"/>
+                            <field name="shared_result" string="+ Změna společná"/>
+                            <div colspan="2"/>
+                            <field name="rounding_amount" string="   z toho zaokrouhlení"/>
+                            <div colspan="2"/>
+                            <field name="delta" string="+ Změna specifická"/>
+                            <div colspan="2"/>
+                            <field name="fee_amount" string="   z toho úplaty třídy"/>
+                            <div colspan="2"/>
+                            <field name="performance_amount" string="   z toho výkonnostní odměna"/>
+                            <div colspan="2"/>
+                            <field name="allocation_amount" string="   z toho přesun podle pořadí nároků"/>
+                            <div colspan="2"/>
+                            <field name="tax_effect_amount" string="   z toho daňový efekt specifických položek"/>
+                            <div colspan="2"/>
+                            <field name="other_amount" string="   z toho ostatní specifické"/>
+                            <div colspan="2"/>
+                            <separator string="4. Konečný stav" colspan="4"/>
+                            <field name="capital" string="= FK"/>
+                            <field name="units" string="Kusy"/>
+                            <field name="price" string="Kurz"/>
+                            <div colspan="2"/>
+                            <field name="price_change_pct" decoration-success="price_change_pct &gt; 0" decoration-danger="price_change_pct &lt; 0"/>
+                            <div colspan="2"/>
+                        </group>
+                        <group col="4" string="V měně třídy" invisible="not foreign_currency">
+                            <field name="currency_name"/>
+                            <div colspan="2"/>
+                            <field name="fx_rate"/>
+                            <div colspan="2"/>
+                            <field name="opening_capital_class"/>
+                            <div colspan="2"/>
+                            <field name="subscription_amount_class"/>
+                            <div colspan="2"/>
+                            <field name="redemption_amount_class"/>
+                            <div colspan="2"/>
+                            <field name="capital_class"/>
+                        </group>
+                        </page>
+                        <page string="Účty" name="accounts">
+                            <div class="text-muted mb-3">Změna společná a specifická rozepsaná po účtech. Součty odpovídají přemostění
+                                (kontrola Rozpad tříd po účtech).</div>
+                            <button name="action_open_split" type="object" string="Rozpad po účtech (rozvaha)" class="btn-primary me-2"
+                                    context="{'split_mode': 'balance'}"/>
+                            <button name="action_open_split" type="object" string="Podle výsledovky" class="btn-secondary"
+                                    context="{'split_mode': 'result'}"/>
+                        </page>
+                        <page string="Úpisy a odkupy" name="movements">
+                            <field name="movement_ids" readonly="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="date"/>
+                                    <field name="movement_type"/>
+                                    <field name="source"/>
+                                    <field name="units"/>
+                                    <field name="price"/>
+                                    <field name="capital_amount" string="Změna kapitálu" sum="Celkem"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Úplaty třídy" name="class_fees">
+                            <field name="fee_line_ids" readonly="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="name"/>
+                                    <field name="amount" sum="Celkem"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                     <field name="foreign_currency" invisible="1"/>
                 </sheet>
             </form>
@@ -256,6 +288,9 @@
                             <span> – </span>
                             <field name="date" readonly="state != 'draft'"/>
                         </h1>
+                    </div>
+                    <div invisible="not check_summary" class="mb-2">
+                        <button name="action_show_checks" type="object" class="btn btn-link px-0"><field name="check_summary" readonly="1"/></button>
                     </div>
                     <group>
                         <group string="Ocenění">
@@ -375,7 +410,33 @@
                             <field name="document_name" column_invisible="1"/>
                             <field name="document" filename="document_name"/>
                         </list></field></page>
-                        <page string="Kontroly"><field name="check_ids"><list><field name="name"/><field name="status"/><field name="detail"/></list></field></page>
+                        <page string="Kontroly" name="checks">
+                            <div class="d-flex gap-4 mb-2">
+                                <span class="badge text-bg-danger"><field name="check_stop_count"/> stop</span>
+                                <span class="badge text-bg-warning"><field name="check_warning_count"/> upozornění</span>
+                                <span class="badge text-bg-success"><field name="check_ok_count"/> v pořádku</span>
+                            </div>
+                            <field name="check_ids"><list default_group_by="area">
+                                <field name="area" column_invisible="1"/>
+                                <field name="name"/>
+                                <field name="status" widget="badge" decoration-success="status == 'ok'" decoration-warning="status == 'warning'" decoration-danger="status == 'stop'"/>
+                                <field name="expected" optional="show"/><field name="actual" optional="show"/><field name="difference" optional="show"/>
+                                <field name="item_count" optional="show"/>
+                                <field name="detail" optional="hide"/>
+                            </list><form>
+                                <group>
+                                    <field name="what"/>
+                                    <field name="how"/>
+                                    <field name="expected"/><field name="actual"/><field name="difference"/>
+                                    <field name="detail"/>
+                                </group>
+                                <field name="item_ids"><list create="0" delete="0" edit="0">
+                                    <field name="name"/><field name="values"/>
+                                    <button name="action_open" type="object" string="Otevřít" icon="fa-external-link" invisible="not res_id"/>
+                                    <field name="res_id" column_invisible="1"/>
+                                </list></field>
+                            </form></field>
+                        </page>
                         <page string="Schválení"><field name="approval_ids"><list><field name="name"/><field name="role_id"/><field name="min_role" optional="hide"/><field name="alone" optional="show"/><field name="user_id"/><field name="approved_at"/><field name="matrix_id" optional="hide"/></list></field></page>
                         <page string="Doklady"><field name="event_ids"><list><field name="name"/><field name="state" widget="badge" decoration-info="state in ('draft', 'locked')" decoration-success="state == 'posted'" decoration-muted="state in ('reversed', 'discarded')"/><field name="move_id"/></list></field></page>
                         <!-- ZJ-06 bod 12: nezměnitelná historie kroků ocenění (kdo, kdy, co, důvod). -->

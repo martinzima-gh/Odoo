@@ -144,7 +144,7 @@
         <field name="arch" type="xml">
             <list create="false">
                 <field name="id" optional="hide"/>
-                <field name="valuation_id"/><field name="name"/><field name="status" widget="badge" decoration-success="status == 'ok'" decoration-warning="status == 'warning'" decoration-danger="status == 'stop'"/><field name="detail"/>
+                <field name="valuation_id"/><field name="area" optional="show"/><field name="name"/><field name="status" widget="badge" decoration-success="status == 'ok'" decoration-warning="status == 'warning'" decoration-danger="status == 'stop'"/><field name="expected" optional="show"/><field name="actual" optional="show"/><field name="difference" optional="show"/><field name="detail"/>
             </list>
         </field>
     </record>

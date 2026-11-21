@@ -62,3 +62,35 @@ class InvestraValuationCheckItem(models.Model):
         record.check_access("read")
         return {"type": "ir.actions.act_window", "res_model": self.res_model, "res_id": self.res_id,
                 "views": [(False, "form")], "target": "current"}
+
+
+class InvestraValuation(models.Model):
+    _inherit = "investra.valuation"
+
+    check_stop_count = fields.Integer(compute="_compute_check_counts", string="Kontroly se stopem")
+    check_warning_count = fields.Integer(compute="_compute_check_counts", string="Kontroly s upozorněním")
+    check_ok_count = fields.Integer(compute="_compute_check_counts", string="Kontroly v pořádku")
+    check_summary = fields.Char(compute="_compute_check_counts", string="Kontroly")
+
+    @api.depends("check_ids.status")
+    def _compute_check_counts(self):
+        for valuation in self:
+            statuses = valuation.check_ids.mapped("status")
+            stop, warning = statuses.count("stop"), statuses.count("warning")
+            valuation.check_stop_count = stop
+            valuation.check_warning_count = warning
+            valuation.check_ok_count = statuses.count("ok")
+            valuation.check_summary = (
+                self.env._("Kontroly: %(stop)s stop, %(warning)s upozornění", stop=stop, warning=warning) if stop or warning else False)
+
+    def action_show_checks(self):
+        """Seznam kontrol tohoto ocenění (stop → upozornění → v pořádku, po oblastech)."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Kontroly – %s", self.display_name),
+            "res_model": "investra.valuation.check",
+            "views": [(False, "list")],
+            "domain": [("valuation_id", "=", self.id)],
+            "context": {"group_by": "area", "create": False},
+        }

@@ -294,6 +294,18 @@ class InvestraValuation(models.Model):
 class InvestraValuationClass(models.Model):
     _inherit = "investra.valuation.class"
 
+    movement_ids = fields.Many2many("investra.class.movement", compute="_compute_split_records", string="Úpisy a odkupy období")
+    fee_line_ids = fields.Many2many("investra.valuation.fee", compute="_compute_split_records", string="Úplaty třídy")
+
+    def _compute_split_records(self):
+        Movement = self.env["investra.class.movement"].sudo()
+        for line in self:
+            valuation = line.valuation_id
+            line.movement_ids = Movement.search([
+                ("class_id", "=", line.class_id.id), ("date", ">", valuation._period_start()), ("date", "<=", valuation.date),
+                ("state", "!=", "reversed")], order="date, id")
+            line.fee_line_ids = valuation.fee_line_ids.filtered(lambda fee: fee.class_id == line.class_id)
+
     def action_open_split(self):
         """Dočasné řádky rozpadu třídy po účtech (pohled z kontextu `split_mode`: balance | result) a jejich seznam."""
         self.ensure_one()
