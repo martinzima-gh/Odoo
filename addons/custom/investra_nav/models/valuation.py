@@ -399,9 +399,11 @@ class InvestraValuation(models.Model):
     def _zero_capital_error(self, start, whole_fund):
         """Hláška k nulovému kapitálu. Když fond má nestornované pohyby k datu `start` nebo dřív (typicky úpis před vznikem
         fondu), řekne to výslovně (ZJ-24 bod 13); ocenění bere jen pohyby po začátku období, dřívější nezapočítá."""
-        early = self.env["investra.class.movement"].sudo().search([
-            ("fund_id", "=", self.fund_id.id), ("date", "<=", start), ("state", "!=", "reversed"),
-        ], order="date, id")
+        common = self.fund_id.class_ids.filtered("shares_common")
+        domain = [("fund_id", "=", self.fund_id.id), ("date", "<=", start), ("state", "!=", "reversed")]
+        if not whole_fund:
+            domain.append(("class_id", "in", common.ids))
+        early = self.env["investra.class.movement"].sudo().search(domain, order="date, id")
         if early and not self.previous_id:
             return UserError(self.env._(
                 "Fond nemá v období po %(start)s žádný kapitál. Úpis nebo odkup s datem %(dates)s je před datem vzniku fondu "
@@ -409,7 +411,9 @@ class InvestraValuation(models.Model):
                 start=start, dates=", ".join(sorted({fields.Date.to_string(m.date) for m in early}))))
         if whole_fund:
             return UserError(self.env._("Předběžný kapitál fondu je nulový."))
-        return UserError(self.env._("Předběžný kapitál tříd, které se podílejí na společných položkách, je nulový."))
+        return UserError(self.env._(
+            "Předběžný kapitál tříd %(classes)s, které se podílejí na společných položkách, je nulový.",
+            classes=", ".join(common.mapped("code"))))
 
     def _class_context(self):
         """Předběžný kapitál, kusy a poměr tříd."""
@@ -1745,6 +1749,21 @@ class InvestraValuation(models.Model):
         classes = {c.id: {"value": values[c], "ratio": context[c]["ratio"]} for c in context}
         items = []
         gaps = []
+        # ZJ-24 bod 15: pravidlo se před první verzí sazby neúčtuje (0); ocenění to jen oznámí, chybou zůstává pravidlo bez verze.
+        # Kontrola vzniká jen při nálezu, takže u běžných ocenění se počet kontrol nemění.
+        period_start = self._period_start()
+        late = []
+        for rule in rules.filtered(lambda r: r.kind == "periodic" and r.version_ids):
+            first = min(rule.version_ids.mapped("valid_from"))
+            if first > period_start + timedelta(days=1):
+                until = min(self.date, first - timedelta(days=1))
+                late.append(self.env._(
+                    "%(rule)s (fond %(fund)s): neúčtuje se %(since)s – %(until)s, první verze sazby platí od %(first)s",
+                    rule=rule.name, fund=self.fund_id.display_name, since=format_date(self.env, period_start + timedelta(days=1)),
+                    until=format_date(self.env, until), first=format_date(self.env, first)))
+        if late:
+            self._check("fee_not_in_force", self.env._("Pravidla úplat začínají až po začátku období"), False,
+                        "; ".join(late), severity="warning")
         for rule in rules.filtered(lambda r: r.kind == "periodic"):
             if rule.base_source == "average_fk" and rule.class_ids:
                 # ZJ-14: průměrný FK po třídách, plátce je třída (příjemci, daňový efekt a přemostění jako úplata třídy).
