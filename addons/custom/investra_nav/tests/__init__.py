@@ -43,3 +43,4 @@ from . import test_zj24_messages
 from . import test_zj24_bod15
 from . import test_zj25_split
 from . import test_zj25_checks
+from . import test_zj25_package

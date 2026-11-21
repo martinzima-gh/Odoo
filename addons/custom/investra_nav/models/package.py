@@ -6,6 +6,11 @@ import xlsxwriter
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
+GROUP_ORDER = [
+    ("asset", "Aktiva"), ("liability", "Závazky"), ("off_balance", "Podrozvaha"), ("capital", "Kapitálové pohyby (nejsou výsledek)"),
+    ("prior", "Dodatečné zápisy do minulých období"), ("rounding", "Zaokrouhlení podílu"),
+]
+
 PORTFOLIO_COLUMNS = [
     ("Druh", "kind"), ("Název", "name"), ("ISIN", "isin"), ("Měna", "currency"), ("Kusy", "quantity"), ("Cena", "price"),
     ("Zdroj ceny", "price_source"), ("Datum ceny", "price_date"), ("Pořizovací hodnota v měně", "cost_currency"),
@@ -175,16 +180,53 @@ class InvestraValuation(models.Model):
             rows.append(row)
         return rows, bool(has_fix)
 
-    def _trial_balance(self):
-        """Předvaha k datu ze zaúčtovaných dokladů, účet a zůstatek."""
+    def _trial_balance_split(self):
+        """Předvaha (ZJ-25): zaúčtované řádky k datu ocenění; zůstatek k začátku období, pohyb období bez třídy a po třídách fondu,
+        pohyb celkem, zůstatek k datu. Jen účty se zůstatkem nebo pohybem; vrací (třídy, řádky, součtový řádek)."""
+        start = self._period_start()
         Line = self.env["account.move.line"].sudo()
-        groups = Line._read_group(
-            [("company_id", "=", self.company_id.id), ("date", "<=", self.date), ("parent_state", "=", "posted")],
-            groupby=["account_id"],
-            aggregates=["debit:sum", "credit:sum", "balance:sum"],
-        )
-        rows = [(a.code, a.name, debit, credit, balance) for a, debit, credit, balance in groups]
-        return sorted(rows, key=lambda row: row[0] or "")
+        base = [("company_id", "=", self.company_id.id), ("parent_state", "=", "posted")]
+        classes = self.fund_id.class_ids.sorted("code")
+        accounts, opening, common, by_class = {}, {}, {}, {}
+        for account, balance in Line._read_group(base + [("date", "<=", start)], groupby=["account_id"], aggregates=["balance:sum"]):
+            accounts[account.id] = account
+            opening[account.id] = balance
+        for account, fund_class, balance in Line._read_group(
+                base + [("date", ">", start), ("date", "<=", self.date)], groupby=["account_id", "investra_class_id"],
+                aggregates=["balance:sum"]):
+            accounts[account.id] = account
+            if fund_class:
+                by_class.setdefault(account.id, {})[fund_class.id] = balance
+            else:
+                common[account.id] = balance
+        rows = []
+        for account_id, account in sorted(accounts.items(), key=lambda item: item[1].code or ""):
+            per_class = [by_class.get(account_id, {}).get(c.id, 0.0) for c in classes]
+            start_value, common_value = opening.get(account_id, 0.0), common.get(account_id, 0.0)
+            movement = common_value + sum(per_class)
+            if not any(round(v, 2) for v in (start_value, movement, common_value, *per_class)):
+                continue
+            rows.append({"code": account.code, "name": account.name, "opening": start_value, "common": common_value,
+                         "classes": per_class, "movement": movement, "closing": start_value + movement})
+        total = {"code": "Celkem", "name": "", **{key: sum(r[key] for r in rows) for key in ("opening", "common", "movement", "closing")},
+                 "classes": [sum(r["classes"][i] for r in rows) for i in range(len(classes))]}
+        return classes, rows, total
+
+    def _split_sheet_rows(self):
+        """List Rozpad tříd: rozpad po účtech v pohledu Rozvaha pro všechny třídy vedle sebe (jen v paměti, z `_class_split`)."""
+        split = self._class_split()
+        lines = list(split)
+        keys, rows = [], {}
+        for line in lines:
+            for row in split[line]["balance"]:
+                key = (row["group"], row["account"].id if row.get("account") else 0)
+                if key not in rows:
+                    keys.append(key)
+                    rows[key] = {"account": row.get("account"), "group": row["group"], "common": row["common"], "cells": {}}
+                rows[key]["cells"][line.id] = (row["share"], row["specific"], row["impact"])
+        order = [g for g, _label in GROUP_ORDER]
+        keys.sort(key=lambda key: order.index(key[0]) if key[0] in order else len(order))
+        return lines, [rows[key] for key in keys]
 
     def _nav_rows(self):
         """Rozpad NAV po rolích účtů, aktuální a předchozí ocenění a rozdíl."""
@@ -286,14 +328,50 @@ class InvestraValuation(models.Model):
             for column, (_label, value, cell_format) in enumerate(bridge_columns):
                 sheet.write(row_index, column, value(line), cell_format)
 
+        sheet = book.add_worksheet("Rozpad tříd")
+        header(sheet, "Rozpad tříd po účtech (pohled Rozvaha)")
+        lines, split_rows = record._split_sheet_rows()
+        sheet.write(2, 0, "Účet", bold)
+        sheet.write(2, 1, "Název", bold)
+        sheet.write(2, 2, "Společné – fond", bold)
+        for index, line in enumerate(lines):
+            for offset, label in enumerate(("Podíl", "Specifické", "Vliv")):
+                sheet.write(2, 3 + index * 3 + offset, f"{label} {line.class_id.code}", bold)
+        group_labels = dict(GROUP_ORDER)
+        totals = [0.0] * (1 + 3 * len(lines))
+        for row_index, row in enumerate(split_rows, start=3):
+            account = row["account"]
+            sheet.write(row_index, 0, account.code if account else "")
+            sheet.write(row_index, 1, account.name if account else group_labels.get(row["group"], row["group"]))
+            sheet.write(row_index, 2, float(row["common"]), amount)
+            totals[0] += float(row["common"])
+            for index, line in enumerate(lines):
+                for offset, value in enumerate(row["cells"].get(line.id, (0, 0, 0))):
+                    sheet.write(row_index, 3 + index * 3 + offset, float(value), amount)
+                    totals[1 + index * 3 + offset] += float(value)
+        last = 3 + len(split_rows)
+        sheet.write(last, 0, "Celkem", bold)
+        for column, value in enumerate(totals, start=2):
+            sheet.write(last, column, value, amount)
+        sheet.write(last + 1, 0, "Kontrola: výsledek přemostění (změna společná + specifická)")
+        sheet.write(last + 2, 0, "Rozdíl")
+        for index, line in enumerate(lines):
+            column = 3 + index * 3 + 2
+            check = line.shared_result + line.delta
+            sheet.write(last + 1, column, check, amount)
+            sheet.write(last + 2, column, round(totals[1 + index * 3 + 2] - check, 2), amount)
+
         sheet = book.add_worksheet("Předvaha")
         header(sheet, "Předvaha")
-        for column, label in enumerate(("Účet", "Název", "MD", "D", "Zůstatek")):
+        classes, trial_rows, trial_total = record._trial_balance_split()
+        labels = ["Účet", "Název", f"Zůstatek k {record._period_start()}", "Pohyb: Společné",
+                  *[f"Pohyb: {c.code}" for c in classes], "Pohyb celkem", f"Zůstatek k {record.date}"]
+        for column, label in enumerate(labels):
             sheet.write(2, column, label, bold)
-        for row_index, row in enumerate(record._trial_balance(), start=3):
-            sheet.write(row_index, 0, row[0])
-            sheet.write(row_index, 1, row[1])
-            for column, value in enumerate(row[2:], start=2):
+        for row_index, row in enumerate([*trial_rows, trial_total], start=3):
+            sheet.write(row_index, 0, row["code"], bold if row is trial_total else None)
+            sheet.write(row_index, 1, row["name"])
+            for column, value in enumerate((row["opening"], row["common"], *row["classes"], row["movement"], row["closing"]), start=2):
                 sheet.write(row_index, column, value, amount)
 
         sheet = book.add_worksheet("Úplaty")
